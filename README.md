@@ -1,93 +1,330 @@
-# sc-openscience
+# UNESCO Open Science Portal
 
+Welcome to the UNESCO Open Science Portal powered by InvenioRDM - a modern research data management platform.
 
+## Prerequisites
 
-## Getting started
+Before setting up the UNESCO Open Science Portal, ensure your system meets these requirements:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### System Requirements
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **Operating System**: macOS, Linux, or Windows with WSL2
+- **Memory**: Minimum 4GB RAM (8GB recommended for optimal performance)
+- **Storage**: At least 5GB free disk space
+- **Internet**: Stable connection for downloading dependencies
 
-## Add your files
+### Required Software
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+- **Python 3.9+**: Required for InvenioRDM
+  ```bash
+  python3 --version  # Should show Python 3.9 or higher
+  ```
+- **Docker & Docker Compose**: For containerized services
+  ```bash
+  docker --version && docker compose version
+  ```
+- **Git**: For version control
+  ```bash
+  git --version
+  ```
 
+### Port Availability
+
+Ensure these ports are available (not used by other applications):
+
+- **5000**: Development server
+- **5432**: PostgreSQL database
+- **9200**: OpenSearch
+- **6379**: Redis cache
+- **5672**: RabbitMQ message queue
+
+### Docker Configuration
+
+- Docker Desktop must be running
+- User must have permissions to run Docker commands
+- At least 4GB of memory allocated to Docker
+
+## Quick Start
+
+This project includes a Makefile for easy development workflow management. All commands automatically handle virtual environment activation.
+
+### Initial Setup
+
+For first-time setup, initialize the project:
+
+```bash
+make init
 ```
-cd existing_repo
-git remote add origin https://repository.unesco.org/gitlab/sc/sc-openscience.git
-git branch -M main
-git push -uf origin main
+
+This command will:
+
+- Create a Python virtual environment (`.venv`)
+- Install all required dependencies
+- Setup containerized services (PostgreSQL, OpenSearch, Redis, RabbitMQ)
+- Prepare the InvenioRDM instance
+
+### Development Workflow
+
+**Start the development server:**
+
+```bash
+make up
 ```
 
-## Integrate with your tools
+Visit https://127.0.0.1:5000 in your browser once the server is running.
 
-- [ ] [Set up project integrations](https://repository.unesco.org/gitlab/sc/sc-openscience/-/settings/integrations)
+### Login Credentials
 
-## Collaborate with your team
+The system comes with three ready-to-use user accounts:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+| Email                  | Password    | Role          | Description                                     |
+| ---------------------- | ----------- | ------------- | ----------------------------------------------- |
+| `admin@unesco.org`     | `Passw0rd!` | Administrator | Full system access including admin panel        |
+| `scientist@unesco.org` | `Passw0rd!` | Scientist     | Standard user for creating and managing records |
+| `demo@unesco.org`      | `Passw0rd!` | Demo User     | Basic user for demonstration purposes           |
 
-## Test and Deploy
+**Note**: All users are pre-confirmed and active, so no email verification is required.
 
-Use the built-in continuous integration in GitLab.
+**Stop all services:**
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```bash
+make stop
+```
 
-***
+**Build assets (CSS, JS, templates):**
 
-# Editing this README
+```bash
+make build
+```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+**Complete cleanup (⚠️ destroys all data):**
 
-## Suggestions for a good README
+```bash
+make destroy
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+## Development
 
-## Name
-Choose a self-explaining name for your project.
+### Development Workflow
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+When developing and customizing the UNESCO Science Portal, follow this workflow:
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+#### 1. **Making Changes**
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+You can modify various parts of the system:
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- **Templates**: Edit files in `templates/` directory for HTML/Jinja2 changes
+- **Assets**: Modify files in `assets/` directory:
+  - **Stylesheets**: `assets/less/` for LESS/CSS files
+  - **JavaScript**: `assets/js/` for JavaScript files
+  - **Images**: `static/images/` for static assets
+- **Configuration**: Update `invenio.cfg` for system settings
+- **Data**: Modify `app_data/` for vocabularies, users, pages
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+#### 2. **Building Assets**
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+After making changes to templates, stylesheets, or JavaScript files, you **must** rebuild assets:
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+```bash
+make build
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+This command compiles:
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+- LESS files into CSS
+- JavaScript bundles
+- Template changes
+- Static file collections
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+#### 3. **Viewing Changes**
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+After building assets:
 
-## License
-For open source projects, say how it is licensed.
+1. **Refresh your browser** at https://127.0.0.1:5000
+2. **Clear browser cache** if changes don't appear (Ctrl+F5 or Cmd+Shift+R)
+3. **Check browser console** for any JavaScript errors
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+#### 4. **Common Development Tasks**
+
+**Styling Changes:**
+
+```bash
+# Edit LESS files in assets/less/
+# Then rebuild:
+make build
+# Refresh browser to see changes
+```
+
+**Template Modifications:**
+
+```bash
+# Edit HTML/Jinja2 files in templates/
+# Then rebuild:
+make build
+# Refresh browser to see changes
+```
+
+**Configuration Updates:**
+
+```bash
+# Edit invenio.cfg
+# Restart the server:
+make stop
+make up
+```
+
+**Adding New Users/Data:**
+
+```bash
+# Edit app_data/users.yaml or other data files
+# Then reload fixtures:
+make users
+```
+
+#### 5. **Development Server Management**
+
+The development server supports hot-reloading for Python code changes, but **not** for assets:
+
+- **Python code changes**: Automatically detected and reloaded
+- **Template/Asset changes**: Require `make build` + browser refresh
+- **Configuration changes**: Require server restart (`make stop` + `make up`)
+
+#### 6. **Debugging Tips**
+
+- **Check logs**: Terminal where `make up` is running shows real-time logs
+- **Browser DevTools**: Use F12 to inspect CSS/JavaScript issues
+- **Asset build errors**: `make build` will show compilation errors
+- **Server errors**: Check the terminal output for Python stack traces
+
+### Development Best Practices
+
+1. **Always build after asset changes**: `make build` is required for CSS/JS/template changes
+2. **Use browser cache refresh**: Ctrl+F5 (Windows/Linux) or Cmd+Shift+R (Mac)
+3. **Test in clean browser session**: Use incognito/private mode to avoid cache issues
+4. **Check both logged-in and logged-out views**: Some changes only appear in certain states
+5. **Validate responsive design**: Test on different screen sizes
+
+### Hot Development Loop
+
+For efficient development:
+
+```bash
+# 1. Start the server (once)
+make up
+
+# 2. Make your changes to templates/assets/styles
+# 3. Build assets
+make build
+
+# 4. Refresh browser at https://127.0.0.1:5000
+# 5. Repeat steps 2-4 as needed
+```
+
+**Note**: Keep the terminal with `make up` running throughout your development session.
+
+## Manual Commands
+
+If you prefer to run commands manually, ensure the virtual environment is activated first:
+
+```bash
+source .venv/bin/activate
+
+# Then run any invenio-cli commands:
+invenio-cli services start
+invenio-cli run
+```
+
+## Available Make Commands
+
+| Command        | Description                                         |
+| -------------- | --------------------------------------------------- |
+| `make init`    | Initialize project with virtualenv and setup        |
+| `make users`   | Create ready-to-use users with predefined passwords |
+| `make up`      | Start development server and services               |
+| `make stop`    | Stop all services                                   |
+| `make build`   | Build frontend assets                               |
+| `make destroy` | Completely destroy instance and virtualenv          |
+| `make help`    | Show available commands                             |
+
+## Project Structure
+
+| Directory/File             | Description                                        |
+| -------------------------- | -------------------------------------------------- |
+| `Dockerfile`               | Container image definition                         |
+| `Pipfile` / `Pipfile.lock` | Python dependencies managed by pipenv              |
+| `app_data/`                | Application data (vocabularies, pages)             |
+| `assets/`                  | Frontend assets (CSS, JavaScript, LESS, templates) |
+| `docker/`                  | Docker configuration files                         |
+| `invenio.cfg`              | Main InvenioRDM configuration                      |
+| `static/`                  | Static files served as-is                          |
+| `templates/`               | Custom Jinja2 templates                            |
+| `.venv/`                   | Python virtual environment                         |
+
+## Important Notes
+
+- **SSL Certificate**: The development server uses a self-signed SSL certificate. Your browser will show a security warning that you need to bypass.
+- **Virtual Environment**: All Invenio commands must be run within the activated virtual environment. The Makefile handles this automatically.
+- **First Run**: Initial setup and first server start may take several minutes as Docker images are downloaded.
+
+## Customizations
+
+This UNESCO Science Portal instance includes:
+
+- Custom UNESCO branding and colors
+- Inter font family (UNESCO's official typeface)
+- Custom footer with UNESCO links
+- Favicon and logo customizations
+
+## Documentation
+
+For detailed InvenioRDM documentation, visit:
+
+- [InvenioRDM Documentation](https://inveniordm.docs.cern.ch/)
+- [InvenioRDM CLI Reference](https://inveniordm.docs.cern.ch/reference/cli/)
+
+## Troubleshooting
+
+### Common Issues
+
+- **Permission Issues**: Ensure Docker is running and you have proper permissions
+- **Port Conflicts**: Default ports (5000, 5432, 9200, 6379) must be available
+- **Memory Issues**: Ensure sufficient RAM (minimum 4GB recommended)
+
+### Login Problems
+
+If you encounter login issues with the default InvenioRDM users:
+
+- **Default users** `admin@inveniosoftware.org` and `user@demo.org` may not be active/confirmed
+- **Solution**: Use the UNESCO users created by `make users` or `make init`
+- **Password reset**: If needed, use the "Forgot Password" link and check logs for reset links
+
+### Administrator Permissions Issues
+
+If the administrator user cannot access the admin panel:
+
+- **Cause**: InvenioRDM fixtures don't support direct permission assignment via `allow` field
+- **Solution**: The Makefile automatically assigns permissions after user creation
+- **Manual fix**: Run `make users` again or use CLI commands:
+  ```bash
+  source .venv/bin/activate
+  invenio access allow superuser-access user admin@unesco.org
+  invenio access allow administration-access user admin@unesco.org
+  ```
+
+### User Management
+
+To create additional users manually:
+
+```bash
+source .venv/bin/activate
+invenio users create user@example.org --password mypassword --active --confirm
+```
+
+To assign admin privileges:
+
+```bash
+source .venv/bin/activate
+invenio access allow superuser-access user user@example.org
+```
+
+For more help, check the [InvenioRDM troubleshooting guide](https://inveniordm.docs.cern.ch/install/troubleshoot/).

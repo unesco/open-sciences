@@ -1,0 +1,41 @@
+{# -*- coding: utf-8 -*- Copyright (C) 2022-2024 CERN. Copyright (C) 2024 KTH
+Royal Institute of Technology. Invenio App RDM is free software; you can
+redistribute it and/or modify it under the terms of the MIT License; see LICENSE
+file for more details. #}
+
+<div
+  class="footer-bottom sub-footer"
+  style="background-color: #0073b7; padding: 1.5rem 0; margin-top: 0"
+>
+  <div class="ui container">
+    <div class="ui stackable grid">
+      <div class="ten wide column left middle aligned">
+        {%- block footer_bottom_left %}
+        <div style="color: white; line-height: 1.5">
+          <p style="margin: 0 0 0.3rem 0; font-size: 0.95rem">
+            © 2025 UNESCO Science Portal - United Nations Educational,
+            Scientific and Cultural Organization
+          </p>
+          <p style="margin: 0; font-size: 0.8rem; opacity: 0.85">
+            Promoting international cooperation in education, science, and
+            culture worldwide
+          </p>
+        </div>
+        {%- endblock footer_bottom_left %}
+      </div>
+      <div class="six wide column right aligned middle aligned">
+        {%- block footer_bottom_right %}
+        <div style="text-align: right">
+          {%- if config.I18N_LANGUAGES %} {% from
+          "invenio_i18n/macros/language_selector.html" import
+          language_selector_dropdown %}
+          <div style="margin-bottom: 0.5rem">
+            {{ language_selector_dropdown() }}
+          </div>
+          {%- endif %}
+        </div>
+        {%- endblock footer_bottom_right %}
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "my-site-db",
+      "Group": "Servers",
+      "Host": "my-site-db-1",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "my-site",
+      "SSLMode": "prefer"
+    }
+  }
+}

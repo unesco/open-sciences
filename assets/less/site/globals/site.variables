@@ -1,0 +1,43 @@
+/*
+ * Open Science Portal Theme Variables
+ * Based on UNESCO brand colors
+ */
+
+/* UNESCO Brand Colors */
+@unescoBlue: #0073b7;
+@unescoGreen: #009639;
+@unescoLightBlue: #2ea3d9;
+@unescoNavy: #003366;
+
+/* Primary Colors */
+@primaryColor: @unescoBlue;
+@secondaryColor: @unescoGreen;
+
+/* Header/Navigation */
+@navbarBackgroundColor: @unescoBlue;
+@navbarBackgroundImage: linear-gradient(135deg, @unescoBlue 0%, @unescoLightBlue 100%);
+
+/* Footer */
+@footerLightColor: @unescoBlue;
+@footerDarkColor: @unescoNavy;
+
+/* Buttons - Aligned to UNESCO Blue */
+@searchButtonColor: @unescoBlue;
+@buttonPrimaryBackground: @unescoBlue;
+@buttonSecondaryBackground: @unescoGreen;
+
+/* Links */
+@linkColor: @unescoBlue;
+@linkHoverColor: @unescoNavy;
+
+/* Typography - UNESCO Official Font */
+@fontName: 'Inter';
+@importGoogleFonts: true;
+@googleFontFamily: 'Inter:wght@300;400;500;600;700';
+@googleFontSizes: '300,400,500,600,700';
+
+/* Font Family Variables - Safe naming to avoid conflicts */
+@unescoFont: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+/* Brand Color for various elements */
+@brandColor: @unescoBlue;

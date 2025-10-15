@@ -1,0 +1,135 @@
+{# Copyright (C) 2019-2020 CERN. Copyright (C) 2019-2020 Northwestern
+University. Copyright (C) 2019-2020 Graz University of Technology. Copyright (C)
+2024 KTH Royal Institute of Technology. Invenio App RDM is free software; you
+can redistribute it and/or modify it under the terms of the MIT License; see
+LICENSE file for more details. #} {%- block footer_top %}
+<div
+  class="footer-top"
+  style="background-color: #0073b7; padding: 3rem 0 2rem 0; margin-bottom: 0"
+>
+  <div class="ui container">
+    <div class="ui stackable three column grid">
+      <div class="column">
+        <h3
+          class="ui header"
+          style="color: #fff; font-size: 1.2rem; margin-bottom: 1.5rem"
+        >
+          UNESCO
+        </h3>
+        <div class="ui list">
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="https://www.unesco.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Official UNESCO Website</a
+            >
+          </div>
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="https://www.unesco.org/en/natural-sciences"
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Natural Sciences</a
+            >
+          </div>
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="https://www.unesco.org/en/education"
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Education</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <h3
+          class="ui header"
+          style="color: #fff; font-size: 1.2rem; margin-bottom: 1.5rem"
+        >
+          Scientific Research
+        </h3>
+        <div class="ui list">
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="{{ url_for('invenio_search_ui.search') }}"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Search Publications</a
+            >
+          </div>
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="{{ url_for('invenio_app_rdm_records.deposit_create') }}"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Submit Research</a
+            >
+          </div>
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="#"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Guidelines</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <h3
+          class="ui header"
+          style="color: #fff; font-size: 1.2rem; margin-bottom: 1.5rem"
+        >
+          Community
+        </h3>
+        <div class="ui list">
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="{{ url_for('invenio_communities.communities_frontpage') }}"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Scientific Communities</a
+            >
+          </div>
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="#"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Help & Support</a
+            >
+          </div>
+          <div class="item" style="padding: 0.4rem 0">
+            <a
+              href="#"
+              style="color: #fff; text-decoration: none; transition: color 0.3s"
+              onmouseover="this.style.color='#0073b7'"
+              onmouseout="this.style.color='#fff'"
+              >Events & Training</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{%- endblock footer_top %} {# Include our custom site footer #} {% include
+"invenio_app_rdm/site_footer.html" %}

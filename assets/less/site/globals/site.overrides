@@ -1,0 +1,246 @@
+/*
+ * Open Science Portal Theme Overrides
+ */
+
+/* Import Inter font from Google Fonts - UNESCO Official Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Apply Inter font globally */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headers with Inter font */
+h1, h2, h3, h4, h5, h6,
+.ui.header,
+.header {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Navigation and menu items */
+.ui.menu,
+.ui.menu .item,
+.ui.navbar,
+.navbar-nav,
+.navbar-brand {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 500;
+}
+
+/* Buttons with Inter font */
+.ui.button,
+.btn {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Forms and inputs */
+.ui.input input,
+.ui.form input,
+.ui.form textarea,
+.ui.form select,
+input,
+textarea,
+select {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 400;
+}
+
+/* Footer text with Inter */
+#footer,
+.footer-bottom,
+.sub-footer {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 400;
+}
+
+/* Cards and content areas */
+.ui.card,
+.ui.segment {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Custom header styling */
+.theme-header {
+  background: linear-gradient(135deg, #0073b7 0%, #2ea3d9 100%);
+  box-shadow: 0 2px 4px rgba(0, 115, 183, 0.2);
+}
+
+/* Custom footer styling */
+.footer {
+  background: linear-gradient(to bottom, #0073b7, #003366);
+}
+
+/* UNESCO accent elements - using blue for better brand consistency */
+.unesco-accent {
+  color: #0073b7 !important;
+}
+
+/* Search button and primary buttons with UNESCO blue */
+.ui.primary.button,
+.ui.primary.buttons .button,
+.ui.search .ui.button {
+  background-color: #0073b7 !important;
+  color: white !important;
+}
+
+.ui.primary.button:hover,
+.ui.primary.buttons .button:hover,
+.ui.search .ui.button:hover {
+  background-color: #005a93 !important;
+}
+
+/* Custom styling for search results */
+.search-results .ui.card {
+  border-left: 3px solid #009639;
+}
+
+/* Logo styling */
+.navbar-brand img {
+  max-height: 50px;
+  width: auto;
+}
+
+/* Homepage section styling */
+.section-title {
+  color: #0073b7 !important;
+  font-weight: 600;
+}
+
+.section-subtitle {
+  color: #4a4a4a;
+  line-height: 1.6;
+}
+
+/* Homepage improvements */
+.get-started-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.brought-to-you-section {
+  background-color: #f8f9fa;
+}
+
+/* Card hover effects */
+.brought-to-you-section .column > div {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.brought-to-you-section .column > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 115, 183, 0.15) !important;
+}
+
+/* Footer customizations */
+.page-footer {
+  background-color: #f8f9fa;
+  border-top: 2px solid #0073b7;
+}
+
+.footer-bottom, .sub-footer {
+  background-color: #0073b7 !important;
+  color: white;
+}
+
+.footer-bottom a, .sub-footer a {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.footer-bottom a:hover, .sub-footer a:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+/* Card hover animations */
+.ui.card {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* Button improvements */
+.ui.button {
+  transition: all 0.3s ease;
+}
+
+.ui.button:hover {
+  transform: translateY(-2px);
+}
+
+/* Icon color consistency */
+.ui.icon.button i {
+  color: white !important;
+}
+
+/* Search input styling */
+.ui.input input {
+  border-color: rgba(0, 115, 183, 0.3);
+}
+
+.ui.input input:focus {
+  border-color: #0073b7;
+  box-shadow: 0 0 0 2px rgba(0, 115, 183, 0.2);
+}
+
+/* Navbar improvements */
+.theme.header {
+  border-bottom: 3px solid rgba(0, 115, 183, 0.1);
+}
+
+/* Responsive improvements */
+@media only screen and (max-width: 768px) {
+  .section-title {
+    font-size: 1.8rem !important;
+  }
+  
+  .get-started-section {
+    min-height: 60vh !important;
+    background-attachment: scroll;
+  }
+  
+  .brought-to-you-section .column {
+    margin-bottom: 1rem;
+  }
+  
+  .footer-bottom .grid {
+    text-align: center !important;
+  }
+  
+  .footer-bottom .right.aligned {
+    text-align: center !important;
+  }
+  
+  .ui.container {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+  }
+}
+
+/* Footer spacing management */
+.invenio-page-body {
+  padding-bottom: 0em;
+}
+
+/* Footer unification - remove all separations */
+#rdm-footer-element {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.footer-top {
+  box-shadow: none !important;
+  border: none !important;
+  margin-bottom: 0 !important;
+}
+
+.footer-bottom, .sub-footer {
+  box-shadow: none !important;
+  border-top: none !important;
+  margin-top: 0 !important;
+  border: none !important;
+}

@@ -1,0 +1,17 @@
+{%- extends "invenio_theme/page.html" %} {%- block head_links %} {{ super() }}
+<!-- Custom favicon -->
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href="{{ url_for('static', filename='images/favicon.svg') }}"
+/>
+<link
+  rel="alternate icon"
+  href="{{ url_for('static', filename='images/favicon.svg') }}"
+/>
+<link
+  rel="mask-icon"
+  href="{{ url_for('static', filename='images/favicon.svg') }}"
+  color="#0073b7"
+/>
+{%- endblock head_links %}
