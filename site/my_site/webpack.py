@@ -9,7 +9,8 @@ theme = WebpackThemeBundle(
     themes={
         "semantic-ui": dict(
             entry={
-                # Add your webpack entrypoints
+                # Statistics dashboard bundle
+                "my-site-statistics": "./js/my_site/statistics.js",
             },
         ),
     },
