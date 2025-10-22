@@ -222,17 +222,112 @@ make build
 
 **Note**: Keep the terminal with `make up` running throughout your development session.
 
-## Manual Commands
+## Scripts Microservice
 
-If you prefer to run commands manually, ensure the virtual environment is activated first:
+The project includes a containerized microservice for interacting with InvenioRDM APIs through Python scripts.
+
+### Quick Microservice Setup
+
+**1. Ensure InvenioRDM is running:**
 
 ```bash
-source .venv/bin/activate
-
-# Then run any invenio-cli commands:
-invenio-cli services start
-invenio-cli run
+make up
 ```
+
+**2. Automatically configure environment (generates API token and .env file):**
+
+```bash
+make scripts-setup-env
+```
+
+**3. Build the microservice container:**
+
+```bash
+make scripts-build
+```
+
+**4. Test the connection:**
+
+```bash
+make scripts-run CMD='python examples/invenio_cli.py test-connection'
+```
+
+### Scripts Usage Examples
+
+**Search records:**
+
+```bash
+make scripts-run CMD='python examples/search_records.py -q "climate data" -s 5 --detailed'
+```
+
+**Create a new record:**
+
+```bash
+make scripts-run CMD='python examples/create_record.py -t "My Dataset" --creator "John Doe" --description "Test record"'
+```
+
+**Use the unified CLI:**
+
+```bash
+make scripts-run CMD='python examples/invenio_cli.py search -q test'
+make scripts-run CMD='python examples/invenio_cli.py get record-id'
+```
+
+**Interactive shell for development:**
+
+```bash
+make scripts-shell
+```
+
+### Available Scripts Commands
+
+| Command                  | Description                               |
+| ------------------------ | ----------------------------------------- |
+| `make scripts-setup-env` | Automatic setup with API token generation |
+| `make scripts-build`     | Build the microservice container          |
+| `make scripts-run`       | Run a specific script                     |
+| `make scripts-shell`     | Open interactive shell in container       |
+| `make scripts-help`      | Show detailed help with examples          |
+
+### Scripts Development
+
+**Microservice structure:**
+
+```
+scripts/
+├── src/
+│   └── invenio_client.py      # Python client for InvenioRDM API
+├── examples/
+│   ├── search_records.py      # Search examples
+│   ├── create_record.py       # Record creation
+│   ├── get_statistics.py      # Statistics
+│   └── invenio_cli.py         # Unified CLI
+├── config/
+│   ├── .env                   # Configuration (auto-generated)
+│   └── .env.example           # Example template
+├── requirements.txt           # Python dependencies
+├── Dockerfile                 # Container definition
+└── README.md                  # Detailed documentation
+```
+
+**To develop new scripts:**
+
+1. Enter the container shell: `make scripts-shell`
+2. Your scripts can use `from src.invenio_client import InvenioRDMClient`
+3. Configuration is automatically loaded from environment variables
+4. See `scripts/README.md` for complete API documentation
+
+**Regenerate API token:**
+
+If you need a new token (for example, after database reset):
+
+```bash
+make scripts-setup-env
+```
+
+This command will detect if InvenioRDM is running, create a new token for the admin user, and automatically update the `.env` file.
+
+For more details, see the complete documentation in `scripts/README.md`.
 
 ## Available Make Commands
 
@@ -281,50 +376,3 @@ For detailed InvenioRDM documentation, visit:
 
 - [InvenioRDM Documentation](https://inveniordm.docs.cern.ch/)
 - [InvenioRDM CLI Reference](https://inveniordm.docs.cern.ch/reference/cli/)
-
-## Troubleshooting
-
-### Common Issues
-
-- **Permission Issues**: Ensure Docker is running and you have proper permissions
-- **Port Conflicts**: Default ports (5000, 5432, 9200, 6379) must be available
-- **Memory Issues**: Ensure sufficient RAM (minimum 4GB recommended)
-
-### Login Problems
-
-If you encounter login issues with the default InvenioRDM users:
-
-- **Default users** `admin@inveniosoftware.org` and `user@demo.org` may not be active/confirmed
-- **Solution**: Use the UNESCO users created by `make users` or `make init`
-- **Password reset**: If needed, use the "Forgot Password" link and check logs for reset links
-
-### Administrator Permissions Issues
-
-If the administrator user cannot access the admin panel:
-
-- **Cause**: InvenioRDM fixtures don't support direct permission assignment via `allow` field
-- **Solution**: The Makefile automatically assigns permissions after user creation
-- **Manual fix**: Run `make users` again or use CLI commands:
-  ```bash
-  source .venv/bin/activate
-  invenio access allow superuser-access user admin@unesco.org
-  invenio access allow administration-access user admin@unesco.org
-  ```
-
-### User Management
-
-To create additional users manually:
-
-```bash
-source .venv/bin/activate
-invenio users create user@example.org --password mypassword --active --confirm
-```
-
-To assign admin privileges:
-
-```bash
-source .venv/bin/activate
-invenio access allow superuser-access user user@example.org
-```
-
-For more help, check the [InvenioRDM troubleshooting guide](https://inveniordm.docs.cern.ch/install/troubleshoot/).
