@@ -58,10 +58,13 @@ make init
 
 This command will:
 
+- Check and clean Docker environment
 - Create a Python virtual environment (`.venv`)
 - Install all required dependencies
 - Setup containerized services (PostgreSQL, OpenSearch, Redis, RabbitMQ)
 - Prepare the InvenioRDM instance
+
+**Note**: If you encounter issues with services not starting (especially Redis), run `make check` first to clean up Docker, then retry `make init`.
 
 ### Development Workflow
 
@@ -331,15 +334,17 @@ For more details, see the complete documentation in `scripts/README.md`.
 
 ## Available Make Commands
 
-| Command        | Description                                         |
-| -------------- | --------------------------------------------------- |
-| `make init`    | Initialize project with virtualenv and setup        |
-| `make users`   | Create ready-to-use users with predefined passwords |
-| `make up`      | Start development server and services               |
-| `make stop`    | Stop all services                                   |
-| `make build`   | Build frontend assets                               |
-| `make destroy` | Completely destroy instance and virtualenv          |
-| `make help`    | Show available commands                             |
+| Command         | Description                                         |
+| --------------- | --------------------------------------------------- |
+| `make init`     | Initialize project with virtualenv and setup        |
+| `make users`    | Create ready-to-use users with predefined passwords |
+| `make up`       | Start development server and services               |
+| `make stop`     | Stop all services and processes                     |
+| `make stop-all` | Force stop all services, containers and processes   |
+| `make build`    | Build frontend assets                               |
+| `make check`    | Check and fix Docker services if needed             |
+| `make destroy`  | Completely destroy instance and virtualenv          |
+| `make help`     | Show available commands                             |
 
 ## Project Structure
 
@@ -376,3 +381,63 @@ For detailed InvenioRDM documentation, visit:
 
 - [InvenioRDM Documentation](https://inveniordm.docs.cern.ch/)
 - [InvenioRDM CLI Reference](https://inveniordm.docs.cern.ch/reference/cli/)
+
+## Troubleshooting
+
+### Common Issues
+
+#### Redis/Services Not Starting After Destroy
+
+If you encounter errors like "Unable to boot up redis" after running `make destroy`:
+
+**Problem**: Docker containers or volumes remain in an inconsistent state.
+
+**Solution**:
+
+```bash
+# Method 1: Use the check command to clean up
+make check
+
+# Then re-initialize
+make init
+
+# Method 2: Manual cleanup
+docker-compose -f docker-compose.full.yml down --remove-orphans
+docker volume prune -f
+docker network prune -f
+make init
+```
+
+#### Permission Issues
+
+**Problem**: Ensure Docker is running and you have proper permissions.
+
+**Solution**:
+
+- Make sure Docker Desktop is running
+- Check that your user has Docker permissions
+- On Linux, you may need to add your user to the docker group: `sudo usermod -aG docker $USER`
+
+#### Port Conflicts
+
+**Problem**: Default ports (5000, 5432, 9200, 6379) must be available.
+
+**Solution**:
+
+```bash
+# Check which process is using a port
+lsof -i :5000  # Replace 5000 with the conflicting port
+
+# Stop all services to free ports
+make stop-all
+```
+
+#### Memory Issues
+
+**Problem**: Ensure sufficient RAM (minimum 4GB recommended).
+
+**Solution**:
+
+- Increase Docker Desktop memory allocation in Settings → Resources
+- Close other memory-intensive applications
+- Consider upgrading your system RAM

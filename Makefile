@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init up stop build users ssl-certs scripts-build scripts-up scripts-stop scripts-run scripts-shell scripts-help scripts-setup-env scripts-status
+.PHONY: help destroy init up stop stop-all build users ssl-certs check scripts-build scripts-up scripts-stop scripts-run scripts-shell scripts-help scripts-setup-env scripts-status
 
 # Default target
 help:
@@ -20,7 +20,9 @@ help:
 	@echo "  users        - Create ready-to-use users with predefined passwords"
 	@echo "  up           - Start the development server and services"
 	@echo "  stop         - Stop all services and processes"
+	@echo "  stop-all     - Force stop all services, containers and processes"
 	@echo "  build        - Build assets (CSS, JS, etc.)"
+	@echo "  check        - Check and fix Docker services if needed"
 	@echo "  destroy      - Completely destroy the instance and virtualenv"
 	@echo ""
 	@echo "Scripts Microservice Commands:"
@@ -39,7 +41,9 @@ help:
 # Initialize the project
 init:
 	@echo "🚀 Initializing UNESCO Science Portal..."
-	@echo "📦 Creating Python virtual environment..."
+	@echo "� Checking Docker environment..."
+	$(MAKE) check
+	@echo "�📦 Creating Python virtual environment..."
 	python3 -m venv $(VENV_PATH)
 	@echo "🔧 Activating virtual environment and installing dependencies..."
 	$(VENV_ACTIVATE) && pip install --upgrade pip
@@ -49,9 +53,9 @@ init:
 	$(VENV_ACTIVATE) && invenio-cli install
 	@echo "🐳 Setting up containerized services..."
 	$(VENV_ACTIVATE) && invenio-cli services setup
-	@echo "� Setting up SSL certificates..."
+	@echo "🔐 Setting up SSL certificates..."
 	$(MAKE) ssl-certs
-	@echo "�👥 Creating ready-to-use users..."
+	@echo "👥 Creating ready-to-use users..."
 	$(MAKE) users
 	@echo "✅ Initialization complete! Use 'make up' to start the server."
 
@@ -95,6 +99,27 @@ users:
 	@echo "   📧 demo@unesco.org / $(USER_PASSWORD) (Demo User)"
 	@echo "✅ All users are active and ready to login!"
 
+# Check and fix Docker services
+check:
+	@echo "🔍 Checking Docker services status..."
+	@echo "🐳 Checking if Docker is running..."
+	@if ! docker info > /dev/null 2>&1; then \
+		echo "❌ Docker is not running. Please start Docker Desktop."; \
+		exit 1; \
+	fi
+	@echo "✅ Docker is running"
+	@echo "🔄 Checking InvenioRDM containers..."
+	@if docker ps -a | grep -q "sc-openscience"; then \
+		echo "🧹 Found existing containers, cleaning up..."; \
+		docker-compose -f docker-compose.full.yml down --remove-orphans 2>/dev/null || true; \
+		docker rm -f $$(docker ps -a -q --filter "name=sc-openscience") 2>/dev/null || true; \
+	fi
+	@echo "🗑️  Removing stale volumes..."
+	-docker volume rm $$(docker volume ls -q --filter "name=sc-openscience") 2>/dev/null || true
+	@echo "🌐 Removing stale networks..."
+	-docker network rm $$(docker network ls -q --filter "name=sc-openscience") 2>/dev/null || true
+	@echo "✅ Docker cleanup complete. Ready for fresh setup."
+
 # Generate SSL certificates for development
 ssl-certs:
 	@echo "🔐 Generating SSL certificates for development..."
@@ -115,7 +140,9 @@ destroy:
 	@echo "💥 Destroying UNESCO Science Portal instance..."
 	@echo "⚠️  This will permanently delete all data!"
 	@read -p "Are you sure? Type 'yes' to continue: " confirm && [ "$$confirm" = "yes" ]
-	@echo "🐳 Destroying containerized services..."
+	@echo "� Stopping all services first..."
+	-$(MAKE) stop-all
+	@echo "�🐳 Destroying containerized services..."
 	-$(VENV_ACTIVATE) && invenio-cli services destroy
 	@echo "🧹 Performing global cleanup..."
 	-$(VENV_ACTIVATE) && invenio-cli destroy
@@ -123,6 +150,11 @@ destroy:
 	rm -rf $(VENV_PATH)
 	@echo "🔐 Removing SSL certificates..."
 	rm -f docker/nginx/test.crt docker/nginx/test.key
+	@echo "🐋 Cleaning up Docker volumes and networks..."
+	-docker volume prune -f
+	-docker network prune -f
+	@echo "💾 Removing any persistent data..."
+	-rm -rf .invenio.private
 	@echo "✅ Instance completely destroyed!"
 
 # Scripts microservice targets
