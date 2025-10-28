@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init up stop stop-all build users ssl-certs check scripts-build scripts-up scripts-stop scripts-run scripts-shell scripts-help scripts-setup-env scripts-status
+.PHONY: help destroy init up stop stop-all build users ssl-certs check scripts-build scripts-up scripts-stop scripts-run scripts-shell scripts-help scripts-setup-env scripts-status scripts-import
 
 # Default target
 help:
@@ -32,11 +32,13 @@ help:
 	@echo "  scripts-up        - Start the scripts microservice"
 	@echo "  scripts-stop      - Stop the scripts microservice containers"
 	@echo "  scripts-run       - Run a specific script (use CMD='python examples/...')"
+	@echo "  scripts-import    - Import records from CSV (use CSV='path/to/file.csv')"
 	@echo "  scripts-shell     - Open an interactive shell in the scripts container"
 	@echo "  scripts-help      - Show scripts microservice help and examples"
 	@echo ""
 	@echo "Usage: make [command]"
 	@echo "Example: make scripts-run CMD='python examples/search_records.py -q test'"
+	@echo "Example: make scripts-import CSV='data/sample_records.csv'"
 
 # Initialize the project
 init:
@@ -233,6 +235,23 @@ scripts-shell:
 	@echo "🐚 Opening interactive shell in scripts container..."
 	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli /bin/bash
 
+scripts-import:
+	@echo "📥 Importing records from CSV..."
+	@if [ -z "$(CSV)" ]; then \
+		echo "❌ Error: Please specify CSV='path/to/file.csv'"; \
+		echo "Example: make scripts-import CSV='data/sample_records.csv'"; \
+		echo "Example: make scripts-import CSV='data/sample_records.csv' OPTS='--dry-run'"; \
+		echo "Example: make scripts-import CSV='data/sample_records.csv' OPTS='--skip-errors --verbose'"; \
+		exit 1; \
+	fi
+	@echo "📂 CSV file: $(CSV)"
+	@if [ -n "$(OPTS)" ]; then \
+		echo "⚙️  Options: $(OPTS)"; \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV) $(OPTS); \
+	else \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV); \
+	fi
+
 scripts-help:
 	@echo "📚 InvenioRDM Scripts Microservice Help"
 	@echo "======================================"
@@ -253,7 +272,20 @@ scripts-help:
 	@echo "  scripts-status    - Check system configuration and status"
 	@echo "  scripts-setup-env - Regenerate configuration and API token"
 	@echo ""
-	@echo " Usage Examples:"
+	@echo "📥 CSV Import:"
+	@echo "  Import records from CSV file:"
+	@echo "    make scripts-import CSV='data/sample_records.csv'"
+	@echo ""
+	@echo "  Import with options:"
+	@echo "    make scripts-import CSV='data/my_records.csv' OPTS='--dry-run'"
+	@echo "    make scripts-import CSV='data/my_records.csv' OPTS='--skip-errors --verbose'"
+	@echo ""
+	@echo "  CSV file format (see scripts/data/sample_records.csv for example):"
+	@echo "    Required columns: title, creators"
+	@echo "    Optional: description, resource_type, publication_date, access_record,"
+	@echo "              access_files, file_paths, publish, record_id (for updates)"
+	@echo ""
+	@echo "💡 Usage Examples:"
 	@echo "  Search records:"
 	@echo "    make scripts-run CMD='python examples/search_records.py -q \"climate data\" -s 5 --detailed'"
 	@echo ""

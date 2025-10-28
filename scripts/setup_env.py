@@ -88,12 +88,18 @@ def get_existing_token():
 
 def create_api_token():
     """Creates a new API token using InvenioRDM CLI"""
-    print("🔑 Creating new API token...")
+    print("🔑 Creating new API token with full permissions...")
 
-    # Create token for admin user (without checking if exists first)
+    # Create token for admin user with all necessary scopes
     admin_email = "admin@unesco.org"
     token_name = "Scripts Microservice Token"
-    cmd = f'invenio tokens create -n "{token_name}" -u "{admin_email}"'
+
+    # InvenioRDM requires specific scopes for record operations
+    # Common scopes needed for full record management:
+    # - user:email (read user email)
+    # - For record operations, we typically need to be authenticated admin
+    # The -i flag creates an internal token with more permissions
+    cmd = f'invenio tokens create -n "{token_name}" -u "{admin_email}" -i'
 
     output = activate_venv_and_run(cmd)
     if output is None:

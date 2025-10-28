@@ -12,6 +12,8 @@ services:
     volumes:
       # Mount config directory for environment files
       - ./scripts/config:/app/config:ro
+      # Mount data directory for CSV files
+      - ./scripts/data:/app/data:rw
       # Mount a volume for file uploads (optional)
       - ./uploads:/app/uploads:ro
     networks:
@@ -33,6 +35,7 @@ services:
       - ./scripts/config/.env
     volumes:
       - ./scripts/config:/app/config:ro
+      - ./scripts/data:/app/data:rw
       - ./uploads:/app/uploads:ro
     network_mode: host
     # This service is designed to be run with specific commands

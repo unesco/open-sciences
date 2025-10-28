@@ -105,6 +105,66 @@ make scripts-shell
 python examples/search_records.py -q test
 ```
 
+### Import Records from CSV
+
+Import or update records in bulk from a CSV file:
+
+```bash
+# Import records from the sample CSV
+make scripts-import CSV='data/sample_records.csv'
+
+# Import with dry-run mode (validate without creating records)
+make scripts-import CSV='data/my_records.csv' OPTS='--dry-run'
+
+# Import with options
+make scripts-import CSV='data/my_records.csv' OPTS='--skip-errors --verbose'
+
+# Import with custom delimiter
+make scripts-import CSV='data/records.tsv' OPTS='--delimiter "\t"'
+```
+
+**CSV File Format**
+
+The CSV file should contain the following columns:
+
+**Required columns:**
+
+- `title`: Record title
+- `creators`: Semicolon and pipe-separated list of creators
+  - Format: `"Given Family; ORCID; Affiliation | Given2 Family2; ORCID2; Affiliation2"`
+  - ORCID and Affiliation are optional
+  - Example: `"John Doe;0000-0001-2345-6789;MIT | Jane Smith;;Harvard"`
+
+**Optional columns:**
+
+- `record_id`: Existing record ID for updates (leave empty for new records)
+- `description`: Record description
+- `resource_type`: Resource type (default: `dataset`)
+  - Options: `dataset`, `publication-article`, `software`, `image-photo`, etc.
+- `publication_date`: Publication date in YYYY-MM-DD format (default: today)
+- `access_record`: Record access level (`public` or `restricted`, default: `public`)
+- `access_files`: Files access level (`public` or `restricted`, default: `public`)
+- `file_paths`: Semicolon-separated list of file paths to upload
+  - Example: `"/path/to/file1.csv;/path/to/file2.txt"`
+- `publish`: Whether to publish immediately (`yes`/`no`, default: `no`)
+
+**Example CSV:**
+
+```csv
+title,description,creators,resource_type,publication_date,access_record,access_files,publish
+"Climate Dataset","Climate change data","Maria Rossi;0000-0001-2345-6789;University of Rome",dataset,2024-01-15,public,public,yes
+"AI Research","Deep learning study","Alice Smith;;MIT | Bob Johnson;0000-0002-3456-7890;Stanford",publication-article,2024-02-20,public,restricted,no
+```
+
+See `scripts/data/sample_records.csv` for a complete example.
+
+**Import Options:**
+
+- `--dry-run`: Validate CSV and show what would be created without making changes
+- `--skip-errors`: Continue processing even if some records fail
+- `--verbose`: Show detailed information for each record
+- `--delimiter`: Specify CSV delimiter (default: comma)
+
 ## Docker Usage
 
 ### Using Make Commands (Recommended)
@@ -205,6 +265,7 @@ results = client.search_records(q="test")
 
 - **search_records.py**: Search and display InvenioRDM records
 - **create_record.py**: Create new record drafts with files
+- **import_from_csv.py**: Import or update records in bulk from CSV files
 - **get_statistics.py**: Retrieve and display statistics
 - **invenio_cli.py**: Comprehensive CLI tool
 
