@@ -331,15 +331,29 @@ make scripts-run CMD='python examples/invenio_cli.py get record-id'
 make scripts-shell
 ```
 
+**Import from external data sources:**
+
+```bash
+# Import publications from Lens.org
+make scripts-import-lens FILE='src/sources/lens/data/publications.json'
+
+# Dry-run validation (no records created)
+make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'
+
+# Import with limits
+make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10 --verbose'
+```
+
 ### Available Scripts Commands
 
-| Command                  | Description                               |
-| ------------------------ | ----------------------------------------- |
-| `make scripts-setup-env` | Automatic setup with API token generation |
-| `make scripts-build`     | Build the microservice container          |
-| `make scripts-run`       | Run a specific script                     |
-| `make scripts-shell`     | Open interactive shell in container       |
-| `make scripts-help`      | Show detailed help with examples          |
+| Command                    | Description                               |
+| -------------------------- | ----------------------------------------- |
+| `make scripts-setup-env`   | Automatic setup with API token generation |
+| `make scripts-build`       | Build the microservice container          |
+| `make scripts-run`         | Run a specific script                     |
+| `make scripts-shell`       | Open interactive shell in container       |
+| `make scripts-import-lens` | Import publications from Lens.org         |
+| `make scripts-help`        | Show detailed help with examples          |
 
 ### Scripts Development
 
@@ -348,10 +362,24 @@ make scripts-shell
 ```
 scripts/
 ├── src/
-│   └── invenio_client.py      # Python client for InvenioRDM API
+│   ├── invenio_client.py      # Python client for InvenioRDM API
+│   └── sources/               # External data source importers
+│       ├── README.md          # Guide for adding new sources
+│       └── lens/              # Lens.org importer
+│           ├── config.py      # Mapping configuration
+│           ├── reader.py      # JSON/API readers
+│           ├── importer.py    # Main orchestrator
+│           ├── data/          # Sample data files
+│           │   └── publications.json
+│           └── mappers/       # Field mappers
+│               ├── standard.py    # Standard InvenioRDM fields
+│               ├── custom.py      # Custom fields
+│               └── related.py     # Related identifiers
 ├── examples/
 │   ├── search_records.py      # Search examples
 │   ├── create_record.py       # Record creation
+│   ├── import_from_lens.py    # Lens.org importer CLI
+│   ├── test_lens_mapping.py   # Test Lens.org mapping
 │   ├── get_statistics.py      # Statistics
 │   └── invenio_cli.py         # Unified CLI
 ├── config/
@@ -361,6 +389,22 @@ scripts/
 ├── Dockerfile                 # Container definition
 └── README.md                  # Detailed documentation
 ```
+
+**Data source importers:**
+
+The `src/sources/` directory contains importers for external data sources:
+
+- **Lens.org** (`lens/`): Import publication records from Lens.org JSON exports
+  - Standard metadata mapping (titles, creators, dates)
+  - Author identifiers (ORCID) and affiliations (ROR)
+  - Custom fields support (MeSH terms, ASJC subjects, metrics)
+  - Related identifiers (DOI, PMID, PMCID, arXiv)
+
+See `src/sources/README.md` for:
+
+- Architecture and design patterns
+- How to add new data sources
+- Testing and validation guidelines
 
 **To develop new scripts:**
 

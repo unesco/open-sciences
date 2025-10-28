@@ -165,6 +165,79 @@ See `scripts/data/sample_records.csv` for a complete example.
 - `--verbose`: Show detailed information for each record
 - `--delimiter`: Specify CSV delimiter (default: comma)
 
+### Import from External Data Sources
+
+Import publication records from various external data sources:
+
+#### Lens.org
+
+Import publications from Lens.org JSON exports:
+
+```bash
+# Validate without creating records (dry-run)
+make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'
+
+# Import all records from JSON file
+make scripts-import-lens FILE='src/sources/lens/data/publications.json'
+
+# Import first 10 records
+make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10'
+
+# Import with offset (skip first 10, import next 20)
+make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--offset 10 --limit 20'
+
+# Custom batch size with verbose output
+make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--batch-size 5 --verbose'
+
+# Force reimport of existing records
+make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no-skip-existing'
+```
+
+**Lens.org Import Features:**
+
+- ✅ Standard metadata (title, creators, publication_date, publisher, description)
+- ✅ Author identifiers (ORCID)
+- ✅ Institutional affiliations (ROR IDs)
+- ⚠️ Custom fields (requires InvenioRDM configuration)
+- ⚠️ Related identifiers (DOI, PMID, PMCID, arXiv, etc.)
+- ⚠️ Subject classification (MeSH terms, ASJC codes)
+
+**Data Sources Architecture:**
+
+All data source importers are organized under `src/sources/`:
+
+```
+src/sources/
+├── README.md           # Documentation on adding new sources
+└── lens/              # Lens.org importer
+    ├── config.py      # Mapping configuration
+    ├── reader.py      # JSON/API readers
+    ├── importer.py    # Main orchestrator
+    ├── data/          # Sample data files
+    │   └── publications.json
+    └── mappers/       # Field mappers
+        ├── standard.py    # Standard InvenioRDM fields
+        ├── custom.py      # Custom fields (Lens-specific)
+        └── related.py     # Related identifiers
+```
+
+See `src/sources/README.md` for detailed documentation on:
+
+- Adding new data sources
+- Architecture and design patterns
+- Testing and validation
+- Performance considerations
+
+**Future Data Sources:**
+
+The architecture supports easy addition of new sources:
+
+- DataCite
+- Crossref
+- OpenAlex
+- PubMed/PMC
+- Custom institutional repositories
+
 ## Docker Usage
 
 ### Using Make Commands (Recommended)
@@ -266,8 +339,18 @@ results = client.search_records(q="test")
 - **search_records.py**: Search and display InvenioRDM records
 - **create_record.py**: Create new record drafts with files
 - **import_from_csv.py**: Import or update records in bulk from CSV files
+- **import_from_lens.py**: Import publications from Lens.org JSON exports
+- **test_lens_mapping.py**: Test and validate Lens.org metadata mapping
 - **get_statistics.py**: Retrieve and display statistics
 - **invenio_cli.py**: Comprehensive CLI tool
+
+### Data Source Importers
+
+- **Lens.org** (`src/sources/lens/`): Import publication records from Lens.org
+  - Supports JSON file exports
+  - Rich metadata mapping (authors, ORCID, affiliations, subjects)
+  - Batch processing with configurable size
+  - Dry-run mode for validation
 
 ### Script Options
 
@@ -375,6 +458,51 @@ nano scripts/examples/my_new_script.py
 # Test it
 make scripts-run CMD='python examples/my_new_script.py -q test'
 ```
+
+### Adding a New Data Source
+
+To add a new data source importer (e.g., DataCite):
+
+**1. Create directory structure:**
+
+```bash
+cd scripts/src/sources
+mkdir -p datacite/{data,mappers}
+```
+
+**2. Implement core modules:**
+
+```bash
+# Copy template from lens/ and adapt
+cp lens/base.py datacite/
+cp lens/config.py datacite/
+cp lens/reader.py datacite/
+cp lens/importer.py datacite/
+cp lens/mappers/*.py datacite/mappers/
+```
+
+**3. Create CLI script:**
+
+```bash
+# Create examples/import_from_datacite.py
+# Follow the pattern from import_from_lens.py
+```
+
+**4. Update Makefile:**
+
+```makefile
+scripts-import-datacite:
+	@echo "🔬 Importing from DataCite..."
+	# ... similar to scripts-import-lens
+```
+
+**5. Test your importer:**
+
+```bash
+make scripts-import-datacite FILE='src/sources/datacite/data/sample.json' OPTS='--dry-run'
+```
+
+See `src/sources/README.md` for detailed documentation and patterns.
 
 ### Available Development Tools
 

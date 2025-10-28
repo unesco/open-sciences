@@ -42,8 +42,8 @@ from colorama import init, Fore, Style
 # Add parent directory to path to import from src
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.lens_org import create_importer, create_reader
-from src.lens_org.config import LensImportConfig
+from src.sources.lens import create_importer, create_reader
+from src.sources.lens.config import LensImportConfig
 
 # Initialize colorama for colored output
 init(autoreset=True)

@@ -8,7 +8,7 @@ import logging
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 
-from ..invenio_client import InvenioRDMClient
+from ...invenio_client import InvenioRDMClient
 from .base import ImportResult, MappingError, ValidationError
 from .config import LensImportConfig
 from .reader import LensDataReader, create_reader

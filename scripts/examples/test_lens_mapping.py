@@ -14,13 +14,13 @@ from pprint import pprint
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.lens_org.reader import JSONFileReader
-from src.lens_org.mappers import (
+from src.sources.lens.reader import JSONFileReader
+from src.sources.lens.mappers import (
     StandardFieldsMapper,
     CustomFieldsMapper,
     RelatedIdentifiersMapper,
 )
-from src.lens_org.config import LensImportConfig
+from src.sources.lens.config import LensImportConfig
 
 
 def test_mapping(json_file: str, record_index: int = 0):
