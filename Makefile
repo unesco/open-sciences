@@ -26,19 +26,22 @@ help:
 	@echo "  destroy      - Completely destroy the instance and virtualenv"
 	@echo ""
 	@echo "Scripts Microservice Commands:"
-	@echo "  scripts-setup-env - Auto-setup environment with API token generation"
-	@echo "  scripts-status    - Check scripts microservice configuration status"
-	@echo "  scripts-build     - Build the scripts microservice container"
-	@echo "  scripts-up        - Start the scripts microservice"
-	@echo "  scripts-stop      - Stop the scripts microservice containers"
-	@echo "  scripts-run       - Run a specific script (use CMD='python examples/...')"
-	@echo "  scripts-import    - Import records from CSV (use CSV='path/to/file.csv')"
-	@echo "  scripts-shell     - Open an interactive shell in the scripts container"
-	@echo "  scripts-help      - Show scripts microservice help and examples"
+	@echo "  scripts-setup-env    - Auto-setup environment with API token generation"
+	@echo "  scripts-status       - Check scripts microservice configuration status"
+	@echo "  scripts-build        - Build the scripts microservice container"
+	@echo "  scripts-up           - Start the scripts microservice"
+	@echo "  scripts-stop         - Stop the scripts microservice containers"
+	@echo "  scripts-run          - Run a specific script or tool"
+	@echo "  scripts-import-csv   - Import records from CSV (use FILE='path/to/file.csv')"
+	@echo "  scripts-import-lens  - Import from Lens.org (use FILE='path/to/file.json')"
+	@echo "  scripts-import-zenodo - Import from Zenodo (use RECORD_ID or QUERY)"
+	@echo "  scripts-reset        - Delete all + import from source (CSV/Lens/Zenodo)"
+	@echo "  scripts-shell        - Open an interactive shell in the scripts container"
+	@echo "  scripts-help         - Show scripts microservice help and examples"
 	@echo ""
 	@echo "Usage: make [command]"
-	@echo "Example: make scripts-run CMD='python examples/search_records.py -q test'"
-	@echo "Example: make scripts-import CSV='data/sample_records.csv'"
+	@echo "Example: make scripts-run CMD='python -m src.tools.search -q test'"
+	@echo "Example: make scripts-import-csv FILE='data/sample_records.csv'"
 
 # Initialize the project
 init:
@@ -226,7 +229,7 @@ scripts-run:
 	@echo "🏃 Running script command: $(CMD)"
 	@if [ -z "$(CMD)" ]; then \
 		echo "❌ Error: Please specify CMD='command to run'"; \
-		echo "Example: make scripts-run CMD='python examples/search_records.py -q test'"; \
+		echo "Example: make scripts-run CMD='python -m src.tools.search -q test'"; \
 		exit 1; \
 	fi
 	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $(CMD)
@@ -235,14 +238,14 @@ scripts-shell:
 	@echo "🐚 Opening interactive shell in scripts container..."
 	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli /bin/bash
 
-scripts-import:
+scripts-import-csv:
 	@echo "📥 Importing records from CSV..."
 	@if [ -z "$(FILE)" ]; then \
 		echo "❌ Error: FILE parameter required"; \
 		echo "Usage:"; \
-		echo "  make scripts-import FILE='src/sources/csv/data/publications.csv'"; \
-		echo "  make scripts-import FILE='data/records.csv' OPTS='--dry-run'"; \
-		echo "  make scripts-import FILE='data/records.csv' OPTS='--skip-errors --verbose'"; \
+		echo "  make scripts-import-csv FILE='src/sources/csv/data/publications.csv'"; \
+		echo "  make scripts-import-csv FILE='data/records.csv' OPTS='--dry-run'"; \
+		echo "  make scripts-import-csv FILE='data/records.csv' OPTS='--skip-errors --verbose'"; \
 		exit 1; \
 	fi
 	@CMD="python -m src.sources.csv --file $(FILE)"; \
@@ -254,27 +257,57 @@ scripts-import:
 scripts-delete-all:
 	@echo "🗑️  Deleting all records from InvenioRDM..."
 	@if [ -n "$(OPTS)" ]; then \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/delete_all_records.py $(OPTS); \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.tools.cleanup $(OPTS); \
 	else \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/delete_all_records.py; \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.tools.cleanup; \
 	fi
 
 scripts-reset:
 	@echo "🔄 Resetting InvenioRDM records..."
-	@echo "📋 Step 1/2: Deleting all existing records..."
-	@docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/delete_all_records.py --confirm
-	@echo ""
-	@echo "📋 Step 2/2: Importing fresh records from CSV..."
-	@if [ -z "$(FILE)" ]; then \
-		echo "❌ Error: FILE parameter required"; \
-		echo "Usage: make scripts-reset FILE='src/sources/csv/data/publications.csv'"; \
+	@if [ -z "$(CSV)" ] && [ -z "$(LENS)" ] && [ -z "$(ZENODO_ID)" ] && [ -z "$(ZENODO_QUERY)" ]; then \
+		echo "❌ Error: Source parameter required"; \
+		echo "Usage:"; \
+		echo "  CSV:    make scripts-reset CSV='data/publications.csv'"; \
+		echo "  Lens:   make scripts-reset LENS='data/publications.json'"; \
+		echo "  Zenodo: make scripts-reset ZENODO_ID='17462748'"; \
+		echo "  Zenodo: make scripts-reset ZENODO_QUERY='climate data' MAX=5"; \
+		echo ""; \
+		echo "With options:"; \
+		echo "  make scripts-reset CSV='data/publications.csv' OPTS='--verbose'"; \
+		echo "  make scripts-reset LENS='data/publications.json' OPTS='--limit 10'"; \
+		echo "  make scripts-reset ZENODO_ID='17462748' OPTS='--skip-files'"; \
 		exit 1; \
 	fi
-	@CMD="python -m src.sources.csv --file $(FILE)"; \
-	if [ -n "$(OPTS)" ]; then \
-		CMD="$$CMD $(OPTS)"; \
-	fi; \
-	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
+	@echo ""
+	@echo "📋 Step 1/2: Deleting all existing records..."
+	@docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.tools.cleanup --confirm
+	@echo ""
+	@echo "📋 Step 2/2: Importing fresh records..."
+	@if [ -n "$(CSV)" ]; then \
+		echo "📥 Importing from CSV: $(CSV)"; \
+		CMD="python -m src.sources.csv --file $(CSV)"; \
+		if [ -n "$(OPTS)" ]; then \
+			CMD="$$CMD $(OPTS)"; \
+		fi; \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD; \
+	elif [ -n "$(LENS)" ]; then \
+		echo "🔬 Importing from Lens: $(LENS)"; \
+		CMD="python -m src.sources.lens --file $(LENS)"; \
+		if [ -n "$(OPTS)" ]; then \
+			CMD="$$CMD $(OPTS)"; \
+		fi; \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD; \
+	elif [ -n "$(ZENODO_ID)" ]; then \
+		echo "📡 Importing from Zenodo record: $(ZENODO_ID)"; \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --record-id $(ZENODO_ID) $(OPTS); \
+	elif [ -n "$(ZENODO_QUERY)" ]; then \
+		echo "📡 Importing from Zenodo search: $(ZENODO_QUERY)"; \
+		if [ -n "$(MAX)" ]; then \
+			docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" --max-results $(MAX) $(OPTS); \
+		else \
+			docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" $(OPTS); \
+		fi; \
+	fi
 	@echo ""
 	@echo "✅ Reset complete!"
 
@@ -322,7 +355,7 @@ scripts-help:
 	@echo "1. Ensure InvenioRDM is running: make up"
 	@echo "2. Automatically configure environment: make scripts-setup-env"
 	@echo "3. Build the container: make scripts-build"
-	@echo "4. Test the connection: make scripts-run CMD='python examples/invenio_cli.py test-connection'"
+	@echo "4. Test the connection: make scripts-run CMD='python -m src.tools.cli test-connection'"
 	@echo "5. Stop when done: make scripts-stop"
 	@echo ""
 	@echo "🔧 Manual Setup (if needed):"
@@ -336,20 +369,27 @@ scripts-help:
 	@echo ""
 	@echo "📥 CSV Import:"
 	@echo "  Import records from CSV file:"
-	@echo "    make scripts-import CSV='data/publications.csv'"
+	@echo "    make scripts-import-csv FILE='data/publications.csv'"
 	@echo ""
 	@echo "  Import with options:"
-	@echo "    make scripts-import CSV='data/my_records.csv' OPTS='--dry-run'"
-	@echo "    make scripts-import CSV='data/my_records.csv' OPTS='--skip-errors --verbose'"
+	@echo "    make scripts-import-csv FILE='data/my_records.csv' OPTS='--dry-run'"
+	@echo "    make scripts-import-csv FILE='data/my_records.csv' OPTS='--skip-errors --verbose'"
 	@echo ""
 	@echo "🗑️  Record Management:"
 	@echo "  Delete all records:"
 	@echo "    make scripts-delete-all OPTS='--dry-run'  # Preview deletions"
 	@echo "    make scripts-delete-all OPTS='--confirm'  # Delete without prompt"
 	@echo ""
-	@echo "  Reset records (delete all + import CSV):"
+	@echo "  Reset records (delete all + import from source):"
 	@echo "    make scripts-reset CSV='data/publications.csv'"
+	@echo "    make scripts-reset LENS='data/publications.json'"
+	@echo "    make scripts-reset ZENODO_ID='17462748'"
+	@echo "    make scripts-reset ZENODO_QUERY='climate data' MAX=5"
+	@echo ""
+	@echo "  Reset with options:"
 	@echo "    make scripts-reset CSV='data/publications.csv' OPTS='--verbose'"
+	@echo "    make scripts-reset LENS='data/publications.json' OPTS='--limit 10'"
+	@echo "    make scripts-reset ZENODO_ID='17462748' OPTS='--skip-files'"
 	@echo ""
 	@echo "📡 Import from Zenodo:"
 	@echo "  Import a specific record by ID:"
@@ -379,18 +419,18 @@ scripts-help:
 	@echo ""
 	@echo "💡 Usage Examples:"
 	@echo "  Search records:"
-	@echo "    make scripts-run CMD='python examples/search_records.py -q \"climate data\" -s 5 --detailed'"
+	@echo "    make scripts-run CMD='python -m src.tools.search -q \"climate data\" -s 5 --detailed'"
 	@echo ""
 	@echo "  Create a record:"
 	@echo "    make scripts-run CMD='python examples/create_record.py -t \"My Dataset\" --creator \"John Doe\" --description \"Test record\"'"
 	@echo ""
 	@echo "  Get statistics:"
-	@echo "    make scripts-run CMD='python examples/get_statistics.py --record-id abcd-1234'"
+	@echo "    make scripts-run CMD='python -m src.tools.stats --record-id abcd-1234'"
 	@echo ""
-	@echo "  Use the unified CLI:"
-	@echo "    make scripts-run CMD='python examples/invenio_cli.py test-connection'"
-	@echo "    make scripts-run CMD='python examples/invenio_cli.py search -q test'"
-	@echo "    make scripts-run CMD='python examples/invenio_cli.py get abcd-1234'"
+		@echo "  Use the CLI tool:"
+	@echo "    make scripts-run CMD='python -m src.tools.cli test-connection'"
+	@echo "    make scripts-run CMD='python -m src.tools.cli search -q test'"
+	@echo "    make scripts-run CMD='python -m src.tools.cli get abcd-1234'"
 	@echo ""
 	@echo "🐚 Interactive Shell:"
 	@echo "    make scripts-shell"

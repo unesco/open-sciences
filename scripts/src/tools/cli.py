@@ -1,25 +1,25 @@
-#!/usr/bin/env python3
 """
-CLI Tool for InvenioRDM API Operations
+CLI Tool for InvenioRDM API Operations.
 
 A comprehensive command-line interface for interacting with InvenioRDM.
-Provides commands for searching, creating, and managing records.
+Provides commands for searching, creating, managing records, and testing connections.
+
+Usage:
+    python -m src.tools.cli test-connection
+    python -m src.tools.cli search -q "climate" -s 10
+    python -m src.tools.cli create --title "My Dataset" --creator "John Doe"
 """
 
 import sys
 import os
-from pathlib import Path
-
-# Add the src directory to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-from invenio_client import create_client_from_env
-import click
 import json
+import click
 from colorama import Fore, Style, init
 
+from src.invenio_client import create_client_from_env
+
 # Initialize colorama for colored output
-init()
+init(autoreset=True)
 
 
 @click.group()

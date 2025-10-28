@@ -30,7 +30,7 @@ make scripts-setup-env
 make scripts-build
 
 # Test the connection
-make scripts-run CMD='python examples/invenio_cli.py test-connection'
+make scripts-run CMD='python -m src.tools.cli test-connection'
 ```
 
 This automated setup will:
@@ -55,40 +55,63 @@ make scripts-build
 ### Search Records
 
 ```bash
-make scripts-run CMD='python examples/search_records.py -q "climate data" -s 10 --detailed'
+# Basic search
+make scripts-run CMD='python -m src.tools.search -q "climate data" -s 10'
+
+# Detailed view
+make scripts-run CMD='python -m src.tools.search -q "test" --detailed'
+
+# With pagination
+make scripts-run CMD='python -m src.tools.search -q "dataset" --page 2 --size 20'
 ```
 
-### Create a New Record
+### View Record Details
 
 ```bash
-make scripts-run CMD='python examples/create_record.py \
-  --title "My Research Dataset" \
-  --creator "John Doe" \
-  --creator-affiliation "University Example" \
-  --description "This is a sample dataset" \
-  --publish'
+# View formatted output
+make scripts-run CMD='python -m src.tools.view abc-123'
+
+# View as JSON
+make scripts-run CMD='python -m src.tools.view abc-123 --format json'
 ```
 
 ### Get Statistics
 
 ```bash
-make scripts-run CMD='python examples/get_statistics.py --record-id abcd-1234'
+# Record statistics
+make scripts-run CMD='python -m src.tools.stats --record-id abc-123'
+
+# System statistics
+make scripts-run CMD='python -m src.tools.stats'
+```
+
+### Manage Records
+
+```bash
+# Delete all records (with confirmation)
+make scripts-delete-all
+
+# Delete all (dry-run)
+make scripts-run CMD='python -m src.tools.cleanup --dry-run'
+
+# Delete with confirmation flag
+make scripts-run CMD='python -m src.tools.cleanup --confirm'
 ```
 
 ### Use CLI Tool
 
 ```bash
 # Test connection
-make scripts-run CMD='python examples/invenio_cli.py test-connection'
+make scripts-run CMD='python -m src.tools.cli test-connection'
 
 # Search records
-make scripts-run CMD='python examples/invenio_cli.py search -q "machine learning" -s 5'
+make scripts-run CMD='python -m src.tools.cli search -q "machine learning" -s 5'
 
 # Get record details
-make scripts-run CMD='python examples/invenio_cli.py get abcd-1234'
+make scripts-run CMD='python -m src.tools.cli get abc-123'
 
 # Create a new record
-make scripts-run CMD='python examples/invenio_cli.py create \
+make scripts-run CMD='python -m src.tools.cli create \
   --title "New Dataset" \
   --creator "Jane Smith" \
   --type dataset \
@@ -101,8 +124,9 @@ make scripts-run CMD='python examples/invenio_cli.py create \
 # Open interactive shell for development
 make scripts-shell
 
-# Inside the container, you can run any Python script:
-python examples/search_records.py -q test
+# Inside the container, you can run tools directly:
+python -m src.tools.search -q test
+python -m src.tools.view abc-123
 ```
 
 ### Import Records from CSV
@@ -111,16 +135,16 @@ Import or update records in bulk from a CSV file:
 
 ```bash
 # Import records from the example CSV
-make scripts-import FILE='src/sources/csv/data/publications.csv'
+make scripts-import-csv FILE='src/sources/csv/data/publications.csv'
 
 # Import with dry-run mode (validate without creating records)
-make scripts-import FILE='src/sources/csv/data/publications.csv' OPTS='--dry-run'
+make scripts-import-csv FILE='src/sources/csv/data/publications.csv' OPTS='--dry-run'
 
 # Import with options
-make scripts-import FILE='src/sources/csv/data/publications.csv' OPTS='--skip-errors --verbose'
+make scripts-import-csv FILE='src/sources/csv/data/publications.csv' OPTS='--skip-errors --verbose'
 
 # Import with custom delimiter
-make scripts-import FILE='data/publications.tsv' OPTS="--delimiter $'\t'"
+make scripts-import-csv FILE='data/publications.tsv' OPTS="--delimiter $'\t'"
 ```
 
 **CSV File Format**
@@ -238,6 +262,36 @@ make scripts-import-zenodo RECORD_ID='17462748' OPTS='--verbose'
 - ✅ Related identifiers (DOI, arXiv, etc.)
 - ✅ Dry-run mode for validation
 
+### Reset Records (Delete All + Import)
+
+The `scripts-reset` command combines record deletion with import from any source:
+
+```bash
+# Reset with CSV import
+make scripts-reset CSV='src/sources/csv/data/publications.csv'
+make scripts-reset CSV='data/my_records.csv' OPTS='--verbose'
+
+# Reset with Lens import
+make scripts-reset LENS='src/sources/lens/data/publications.json'
+make scripts-reset LENS='data/my_lens_export.json' OPTS='--limit 10'
+
+# Reset with Zenodo import (by record ID)
+make scripts-reset ZENODO_ID='17462748'
+make scripts-reset ZENODO_ID='17462748' OPTS='--skip-files'
+
+# Reset with Zenodo import (by search query)
+make scripts-reset ZENODO_QUERY='climate data' MAX=5
+make scripts-reset ZENODO_QUERY='COVID-19' MAX=3 OPTS='--skip-files --verbose'
+```
+
+**Reset Features:**
+
+- ✅ Deletes all existing records first
+- ✅ Imports fresh data from any source (CSV, Lens, or Zenodo)
+- ✅ Supports all source-specific options via `OPTS`
+- ✅ Useful for development, testing, and data refresh workflows
+- ⚠️ **Warning**: Permanently deletes all records before import
+
 **Data Sources Architecture:**
 
 All data source importers are organized under `src/sources/`:
@@ -301,13 +355,13 @@ make scripts-setup-env
 # Build the container
 make scripts-build
 
-# Run scripts
-make scripts-run CMD='python examples/search_records.py -q test'
+# Run tools
+make scripts-run CMD='python -m src.tools.search -q test'
 
 # Interactive shell
 make scripts-shell
 
-# Show all available examples
+# Show all available commands
 make scripts-help
 ```
 
@@ -320,12 +374,12 @@ If you prefer using Docker directly:
 docker build -t invenio-scripts .
 
 # Run with environment file (after setup)
-docker run --env-file config/.env invenio-scripts python examples/search_records.py -q "test"
+docker run --env-file config/.env invenio-scripts python -m src.tools.search -q "test"
 
 # With inline environment variables
 docker run -e INVENIO_BASE_URL=https://your-rdm.example.com \
            -e INVENIO_TOKEN=your_token \
-           invenio-scripts python examples/invenio_cli.py test-connection
+           invenio-scripts python -m src.tools.cli test-connection
 ```
 
 ### Using Docker Compose
@@ -384,43 +438,45 @@ results = client.search_records(q="test")
 
 ## Available Scripts
 
-### Core Examples
+### Management Tools
 
-- **search_records.py**: Search and display InvenioRDM records
-- **create_record.py**: Create new record drafts with files
-- **test_lens_mapping.py**: Test and validate Lens.org metadata mapping
-- **get_statistics.py**: Retrieve and display statistics
-- **invenio_cli.py**: Comprehensive CLI tool
+Located in `src/tools/`, these tools help manage and interact with InvenioRDM:
 
-### Data Source Importers
+- **`search.py`**: Search and browse records with pagination and detailed views
 
-- **CSV** (`src/sources/csv/`): Import records from CSV files
+  ```bash
+  python -m src.tools.search -q "query" --size 10 --detailed
+  ```
 
-  - Execute via: `python -m src.sources.csv` or `make scripts-import`
-  - Supports flexible field mapping and batch processing
-  - Create new records or update existing ones
-  - File uploads and publishing workflow
-  - Dry-run mode for validation
+- **`view.py`**: View detailed record information
 
-- **Lens.org** (`src/sources/lens/`): Import publication records from Lens.org
+  ```bash
+  python -m src.tools.view RECORD_ID
+  ```
 
-  - Execute via: `python -m src.sources.lens` or `make scripts-import-lens`
-  - JSON export format support
-  - Standard metadata with ORCID and ROR identifiers
-  - Batch processing with offset/limit controls
+- **`stats.py`**: Get statistics for records or system
 
-- **Zenodo** (`src/sources/zenodo/`): Import records from Zenodo.org
+  ```bash
+  python -m src.tools.stats --record-id abc-123
+  ```
 
-  - Execute via: `python -m src.sources.zenodo` or `make scripts-import-zenodo`
-  - Import by record ID or search query
-  - Automatic file download and upload
-  - Complete metadata mapping with license support
-  - Dry-run and metadata-only modes
-  - Execute via: `python -m src.sources.lens` or `make scripts-import-lens`
-  - Supports JSON file exports
-  - Rich metadata mapping (authors, ORCID, affiliations, subjects)
-  - Batch processing with configurable size
-  - Dry-run mode for validation
+- **`cleanup.py`**: Delete all records (for testing/reset)
+
+  ```bash
+  python -m src.tools.cleanup --dry-run
+  ```
+
+- **`cli.py`**: Comprehensive CLI with all operations
+  ```bash
+  python -m src.tools.cli test-connection
+  python -m src.tools.cli search -q "test"
+  ```
+
+See [`src/tools/README.md`](src/tools/README.md) for detailed documentation.
+
+### Data Import Sources
+
+Located in `src/sources/`, these modules import data from various sources:
 
 ### Script Options
 
@@ -454,19 +510,23 @@ make scripts-build
 Edit files in the `scripts/` directory:
 
 - **API Client**: Modify `src/invenio_client.py` for new API features
-- **Examples**: Add new scripts in `examples/` directory
+- **Tools**: Add new management tools in `src/tools/` directory
+- **Sources**: Add new data importers in `src/sources/` directory
 - **Configuration**: Update `config/.env` if needed
 
 **2. Testing Changes**
 
 ```bash
-# Test individual scripts
-make scripts-run CMD='python examples/your_new_script.py'
+# Test individual tools
+make scripts-run CMD='python -m src.tools.your_new_tool'
+
+# Test import sources
+make scripts-import-zenodo DRY_RUN=true
 
 # Use interactive shell for development
 make scripts-shell
 # Inside container:
-python your_script.py
+python -m src.tools.search -q test
 ```
 
 **3. Rebuilding After Changes**
@@ -485,49 +545,94 @@ If you need a fresh API token or environment:
 make scripts-setup-env
 ```
 
-### Creating New Scripts
+### Creating New Tools
 
-**Template for a new script:**
+**Template for a new management tool:**
 
 ```python
 #!/usr/bin/env python3
 """
-New script example
+New tool example - Tool description
 """
 
-import sys
-import argparse
+import click
+import logging
+from colorama import Fore, Style
 from src.invenio_client import create_client_from_env
 
-def main():
-    parser = argparse.ArgumentParser(description='Your script description')
-    parser.add_argument('-q', '--query', help='Search query')
-    args = parser.parse_args()
+logger = logging.getLogger(__name__)
 
-    # Create client from environment
+def core_logic(client, query):
+    """Core functionality."""
+    try:
+        results = client.search_records(q=query)
+        return results
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        raise
+
+@click.command()
+@click.option('-q', '--query', help='Search query')
+@click.option('--verbose', is_flag=True, help='Enable verbose output')
+def main(query, verbose):
+    """
+    Your tool description.
+
+    Usage: python -m src.tools.newtool -q "test"
+    """
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
     client = create_client_from_env()
 
-    # Your logic here
     try:
-        results = client.search_records(q=args.query)
-        print(f"Found {results.get('hits', {}).get('total', 0)} results")
+        results = core_logic(client, query)
+        total = results.get('hits', {}).get('total', 0)
+        print(f"{Fore.GREEN}✓{Style.RESET_ALL} Found {total} results")
     except Exception as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+        print(f"{Fore.RED}✗{Style.RESET_ALL} Error: {e}")
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     main()
 ```
 
-**Add to examples directory:**
+**Add to src/tools directory:**
 
 ```bash
-# Create your script
-nano scripts/examples/my_new_script.py
+# Create your tool
+nano scripts/src/tools/my_new_tool.py
+
+# Update src/tools/__init__.py to export it
+# Add documentation to src/tools/README.md
 
 # Test it
-make scripts-run CMD='python examples/my_new_script.py -q test'
+make scripts-run CMD='python -m src.tools.my_new_tool -q test'
 ```
+
+**Creating New Import Sources:**
+
+Follow the modular pattern in `src/sources/`. Example:
+
+```bash
+# Create new source directory
+mkdir -p scripts/src/sources/newsource
+
+# Add required modules
+touch scripts/src/sources/newsource/__init__.py
+touch scripts/src/sources/newsource/config.py
+touch scripts/src/sources/newsource/fetcher.py
+touch scripts/src/sources/newsource/mapper.py
+touch scripts/src/sources/newsource/importer.py
+touch scripts/src/sources/newsource/main.py
+
+# Add Makefile target
+# Add documentation
+```
+
+See `src/sources/zenodo/` for a complete implementation example.
 
 ### Adding a New Data Source
 
@@ -606,7 +711,7 @@ make scripts-run CMD='python -c "from src.invenio_client import create_client_fr
 make scripts-run CMD='python -c "import os; print(os.environ.get(\"INVENIO_BASE_URL\"))"'
 
 # Test connection
-make scripts-run CMD='python examples/invenio_cli.py test-connection'
+make scripts-run CMD='python -m src.tools.cli test-connection'
 ```
 
 ## API Coverage
@@ -661,9 +766,12 @@ except requests.RequestException as e:
 ## Contributing
 
 1. Add new features to `src/invenio_client.py`
-2. Create example scripts in `examples/`
-3. Update this README with new functionality
+2. Create new tools in `src/tools/` or import sources in `src/sources/`
+3. Update relevant README files with new functionality
 4. Test with your InvenioRDM instance
+5. Follow the established modular patterns
+
+See the existing tools and sources for reference implementations.
 
 ## Troubleshooting
 
@@ -678,7 +786,8 @@ except requests.RequestException as e:
 Enable verbose output in CLI tools:
 
 ```bash
-python examples/invenio_cli.py --verbose test-connection
+python -m src.tools.cli --verbose test-connection
+python -m src.tools.search -q test --verbose
 ```
 
 ### API Debugging

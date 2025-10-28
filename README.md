@@ -68,62 +68,44 @@ This command will:
 
 ### Development Workflow
 
-**Start the development server:**
+**1. Start the development server:**
 
 ```bash
 make up
 ```
 
-Visit https://127.0.0.1:5000 in your browser once the server is running.
+Visit https://127.0.0.1:5000 in your browser.
 
-> **💡 Tip - Reset Records for Full Programmatic Control**  
-> After starting the server, you may want to reset all records to use only the curated scientific publications defined in `scripts/data/publications.csv`. This gives you full programmatic control over your dataset:
->
-> ```bash
-> make scripts-reset CSV='data/publications.csv'
-> ```
->
-> This command will delete all existing records and import only the high-quality scientific publications from the CSV, ensuring a clean and controlled dataset. See the [Scripts Microservice](#scripts-microservice) section for more details.
+**2. (Optional) Reset with curated data:**
 
-> **🌐 Tip - Import from Zenodo.org**  
-> You can import records directly from Zenodo.org with all metadata and files:
->
-> ```bash
-> # Import a specific record by ID
-> make scripts-import-zenodo RECORD='17462748'
->
-> # Import without downloading files (metadata only)
-> make scripts-import-zenodo RECORD='17462748' OPTS='--skip-files'
->
-> # Search and import multiple records
-> make scripts-import-zenodo SEARCH='climate data' MAX=5
-> ```
->
-> This allows you to populate your instance with real scientific data from Zenodo, including all creators, contributors, related identifiers, keywords, and files. Perfect for testing or bootstrapping your repository!
+After the server is running, you can optionally reset all records and load fresh data from various sources:
 
-> **🔬 Tip - Import from Lens.org**  
-> You can also import publications from Lens.org JSON exports with rich metadata:
->
-> ```bash
-> # Import from Lens.org JSON export
-> make scripts-import-lens FILE='data/lens.org/publications.json'
->
-> # Dry run to validate without creating records
-> make scripts-import-lens FILE='publications.json' OPTS='--dry-run'
->
-> # Import first 10 records only
-> make scripts-import-lens FILE='publications.json' OPTS='--limit 10'
-> ```
->
-> Lens.org importer includes support for:
->
-> - MeSH terms (Medical Subject Headings)
-> - ASJC subjects (journal classification)
-> - Chemical substances with CAS registry numbers
-> - Citation metrics and funding information
-> - Rich affiliation data with ROR/GRID IDs
->
-> See `scripts/docs/LENS_ORG_IMPORTER.md` for complete documentation.
+```bash
+# Option A: Reset with CSV data (recommended for development)
+make scripts-reset CSV='src/sources/csv/data/publications.csv'
+
+# Option B: Reset with Lens.org publications
+make scripts-reset LENS='src/sources/lens/data/publications.json'
+
+# Option C: Reset with Zenodo record
+make scripts-reset ZENODO_ID='17462748'
+
+# Option D: Reset with Zenodo search results
+make scripts-reset ZENODO_QUERY='climate data' MAX=5
+```
+
+This command:
+
+- ✅ Deletes all existing records
+- ✅ Imports fresh, curated data
+- ✅ Gives you full programmatic control over your dataset
+- ✅ Perfect for development and testing
+
+**3. Stop the server:**
+
+```bash
+make stop
+```
 
 ### Login Credentials
 
@@ -157,281 +139,139 @@ make destroy
 
 ## Development
 
-### Development Workflow
+### Making Changes
 
-When developing and customizing the UNESCO Science Portal, follow this workflow:
+When customizing the portal, you can modify:
 
-#### 1. **Making Changes**
+- **Templates**: `templates/` directory (HTML/Jinja2)
+- **Styles**: `assets/less/` (LESS/CSS files)
+- **JavaScript**: `assets/js/`
+- **Configuration**: `invenio.cfg`
+- **Static files**: `static/images/`
 
-You can modify various parts of the system:
+### Build Assets
 
-- **Templates**: Edit files in `templates/` directory for HTML/Jinja2 changes
-- **Assets**: Modify files in `assets/` directory:
-  - **Stylesheets**: `assets/less/` for LESS/CSS files
-  - **JavaScript**: `assets/js/` for JavaScript files
-  - **Images**: `static/images/` for static assets
-- **Configuration**: Update `invenio.cfg` for system settings
-- **Data**: Modify `app_data/` for vocabularies, users, pages
-
-#### 2. **Building Assets**
-
-After making changes to templates, stylesheets, or JavaScript files, you **must** rebuild assets:
+After modifying templates, styles, or JavaScript:
 
 ```bash
 make build
 ```
 
-This command compiles:
+Then refresh your browser (Ctrl+F5 or Cmd+Shift+R).
 
-- LESS files into CSS
-- JavaScript bundles
-- Template changes
-- Static file collections
-
-#### 3. **Viewing Changes**
-
-After building assets:
-
-1. **Refresh your browser** at https://127.0.0.1:5000
-2. **Clear browser cache** if changes don't appear (Ctrl+F5 or Cmd+Shift+R)
-3. **Check browser console** for any JavaScript errors
-
-#### 4. **Common Development Tasks**
-
-**Styling Changes:**
+### Development Loop
 
 ```bash
-# Edit LESS files in assets/less/
-# Then rebuild:
-make build
-# Refresh browser to see changes
-```
-
-**Template Modifications:**
-
-```bash
-# Edit HTML/Jinja2 files in templates/
-# Then rebuild:
-make build
-# Refresh browser to see changes
-```
-
-**Configuration Updates:**
-
-```bash
-# Edit invenio.cfg
-# Restart the server:
-make stop
-make up
-```
-
-**Adding New Users/Data:**
-
-```bash
-# Edit app_data/users.yaml or other data files
-# Then reload fixtures:
-make users
-```
-
-#### 5. **Development Server Management**
-
-The development server supports hot-reloading for Python code changes, but **not** for assets:
-
-- **Python code changes**: Automatically detected and reloaded
-- **Template/Asset changes**: Require `make build` + browser refresh
-- **Configuration changes**: Require server restart (`make stop` + `make up`)
-
-#### 6. **Debugging Tips**
-
-- **Check logs**: Terminal where `make up` is running shows real-time logs
-- **Browser DevTools**: Use F12 to inspect CSS/JavaScript issues
-- **Asset build errors**: `make build` will show compilation errors
-- **Server errors**: Check the terminal output for Python stack traces
-
-### Development Best Practices
-
-1. **Always build after asset changes**: `make build` is required for CSS/JS/template changes
-2. **Use browser cache refresh**: Ctrl+F5 (Windows/Linux) or Cmd+Shift+R (Mac)
-3. **Test in clean browser session**: Use incognito/private mode to avoid cache issues
-4. **Check both logged-in and logged-out views**: Some changes only appear in certain states
-5. **Validate responsive design**: Test on different screen sizes
-
-### Hot Development Loop
-
-For efficient development:
-
-```bash
-# 1. Start the server (once)
+# 1. Start server (once)
 make up
 
-# 2. Make your changes to templates/assets/styles
+# 2. Make changes to templates/assets/styles
+
 # 3. Build assets
 make build
 
 # 4. Refresh browser at https://127.0.0.1:5000
-# 5. Repeat steps 2-4 as needed
+
+# Repeat steps 2-4 as needed
 ```
 
-**Note**: Keep the terminal with `make up` running throughout your development session.
+**Note**: Python code changes reload automatically, but assets require `make build`.
 
 ## Scripts Microservice
 
-The project includes a containerized microservice for interacting with InvenioRDM APIs through Python scripts.
+The project includes a Python microservice for programmatic interaction with InvenioRDM.
 
-### Quick Microservice Setup
-
-**1. Ensure InvenioRDM is running:**
+### Quick Setup
 
 ```bash
+# 1. Start InvenioRDM
 make up
-```
 
-**2. Automatically configure environment (generates API token and .env file):**
-
-```bash
+# 2. Configure scripts environment (auto-generates API token)
 make scripts-setup-env
-```
 
-**3. Build the microservice container:**
-
-```bash
+# 3. Build the scripts container
 make scripts-build
+
+# 4. Test connection
+make scripts-run CMD='python -m src.tools.cli test-connection'
 ```
 
-**4. Test the connection:**
+### Common Operations
+
+**Import Data:**
 
 ```bash
-make scripts-run CMD='python examples/invenio_cli.py test-connection'
+# From CSV
+make scripts-import-csv FILE='src/sources/csv/data/publications.csv'
+
+# From Lens.org JSON export
+make scripts-import-lens FILE='src/sources/lens/data/publications.json'
+
+# From Zenodo (by ID)
+make scripts-import-zenodo RECORD_ID='17462748'
+
+# From Zenodo (by search)
+make scripts-import-zenodo QUERY='climate data' MAX=5
 ```
 
-### Scripts Usage Examples
-
-**Search records:**
+**Search and Browse:**
 
 ```bash
-make scripts-run CMD='python examples/search_records.py -q "climate data" -s 5 --detailed'
+# Search records
+make scripts-run CMD='python -m src.tools.search -q "climate" -s 10'
+
+# View record details
+make scripts-run CMD='python -m src.tools.view RECORD_ID'
+
+# Get statistics
+make scripts-run CMD='python -m src.tools.stats'
 ```
 
-**Create a new record:**
+**Reset Data:**
 
 ```bash
-make scripts-run CMD='python examples/create_record.py -t "My Dataset" --creator "John Doe" --description "Test record"'
+# Delete all records and import from CSV
+make scripts-reset CSV='src/sources/csv/data/publications.csv'
+
+# Delete all records and import from Lens.org JSON export
+make scripts-reset LENS='src/sources/lens/data/publications.json'
+
+# Delete all records and import a specific Zenodo record
+make scripts-reset ZENODO_ID='17462748'
+
+# Delete all records and import from Zenodo search
+make scripts-reset ZENODO_QUERY='climate data' MAX=5
 ```
 
-**Use the unified CLI:**
-
-```bash
-make scripts-run CMD='python examples/invenio_cli.py search -q test'
-make scripts-run CMD='python examples/invenio_cli.py get record-id'
-```
-
-**Interactive shell for development:**
+**Interactive Shell:**
 
 ```bash
 make scripts-shell
 ```
 
-**Import from external data sources:**
+### Available Commands
 
-```bash
-# Import publications from Lens.org
-make scripts-import-lens FILE='src/sources/lens/data/publications.json'
+| Command                      | Description                         |
+| ---------------------------- | ----------------------------------- |
+| `make scripts-setup-env`     | Auto-configure with API token       |
+| `make scripts-build`         | Build scripts container             |
+| `make scripts-run`           | Run any script or tool              |
+| `make scripts-import-csv`    | Import from CSV file                |
+| `make scripts-import-lens`   | Import from Lens.org                |
+| `make scripts-import-zenodo` | Import from Zenodo                  |
+| `make scripts-reset`         | Delete all + import from any source |
+| `make scripts-delete-all`    | Delete all records                  |
+| `make scripts-shell`         | Interactive shell                   |
+| `make scripts-help`          | Detailed help with examples         |
 
-# Dry-run validation (no records created)
-make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'
+### Documentation
 
-# Import with limits
-make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10 --verbose'
-```
+For complete documentation, see:
 
-### Available Scripts Commands
-
-| Command                    | Description                               |
-| -------------------------- | ----------------------------------------- |
-| `make scripts-setup-env`   | Automatic setup with API token generation |
-| `make scripts-build`       | Build the microservice container          |
-| `make scripts-run`         | Run a specific script                     |
-| `make scripts-shell`       | Open interactive shell in container       |
-| `make scripts-import-lens` | Import publications from Lens.org         |
-| `make scripts-help`        | Show detailed help with examples          |
-
-### Scripts Development
-
-**Microservice structure:**
-
-```
-scripts/
-├── src/
-│   ├── invenio_client.py      # Python client for InvenioRDM API
-│   └── sources/               # External data source importers
-│       ├── README.md          # Guide for adding new sources
-│       └── lens/              # Lens.org importer
-│           ├── config.py      # Mapping configuration
-│           ├── reader.py      # JSON/API readers
-│           ├── importer.py    # Main orchestrator
-│           ├── data/          # Sample data files
-│           │   └── publications.json
-│           └── mappers/       # Field mappers
-│               ├── standard.py    # Standard InvenioRDM fields
-│               ├── custom.py      # Custom fields
-│               └── related.py     # Related identifiers
-├── examples/
-│   ├── search_records.py      # Search examples
-│   ├── create_record.py       # Record creation
-│   ├── test_lens_mapping.py   # Test Lens.org mapping
-│   ├── get_statistics.py      # Statistics
-│   └── invenio_cli.py         # Unified CLI
-├── config/
-│   ├── .env                   # Configuration (auto-generated)
-│   └── .env.example           # Example template
-├── requirements.txt           # Python dependencies
-├── Dockerfile                 # Container definition
-└── README.md                  # Detailed documentation
-```
-
-**Data source importers:**
-
-The `src/sources/` directory contains importers for external data sources:
-
-- **CSV** (`csv/`): Import records from CSV files
-
-  - Execute: `python -m src.sources.csv` or `make scripts-import`
-  - Flexible field mapping for standard and custom metadata
-  - Support for creators, contributors, related identifiers
-  - File uploads and publishing workflow
-  - Create new records or update existing ones
-
-- **Lens.org** (`lens/`): Import publication records from Lens.org JSON exports
-  - Execute: `python -m src.sources.lens` or `make scripts-import-lens`
-  - Standard metadata mapping (titles, creators, dates)
-  - Author identifiers (ORCID) and affiliations (ROR)
-  - Custom fields support (MeSH terms, ASJC subjects, metrics)
-  - Related identifiers (DOI, PMID, PMCID, arXiv)
-
-See `src/sources/README.md` for:
-
-- Architecture and design patterns
-- How to add new data sources
-- Testing and validation guidelines
-
-**To develop new scripts:**
-
-1. Enter the container shell: `make scripts-shell`
-2. Your scripts can use `from src.invenio_client import InvenioRDMClient`
-3. Configuration is automatically loaded from environment variables
-4. See `scripts/README.md` for complete API documentation
-
-**Regenerate API token:**
-
-If you need a new token (for example, after database reset):
-
-```bash
-make scripts-setup-env
-```
-
-This command will detect if InvenioRDM is running, create a new token for the admin user, and automatically update the `.env` file.
-
-For more details, see the complete documentation in `scripts/README.md`.
+- `scripts/README.md` - Full scripts documentation
+- `scripts/src/tools/README.md` - Management tools guide
+- `scripts/src/sources/README.md` - Data importers guide
 
 ## Available Make Commands
 
