@@ -101,6 +101,30 @@ Visit https://127.0.0.1:5000 in your browser once the server is running.
 >
 > This allows you to populate your instance with real scientific data from Zenodo, including all creators, contributors, related identifiers, keywords, and files. Perfect for testing or bootstrapping your repository!
 
+> **🔬 Tip - Import from Lens.org**  
+> You can also import publications from Lens.org JSON exports with rich metadata:
+>
+> ```bash
+> # Import from Lens.org JSON export
+> make scripts-import-lens FILE='data/lens.org/publications.json'
+>
+> # Dry run to validate without creating records
+> make scripts-import-lens FILE='publications.json' OPTS='--dry-run'
+>
+> # Import first 10 records only
+> make scripts-import-lens FILE='publications.json' OPTS='--limit 10'
+> ```
+>
+> Lens.org importer includes support for:
+>
+> - MeSH terms (Medical Subject Headings)
+> - ASJC subjects (journal classification)
+> - Chemical substances with CAS registry numbers
+> - Citation metrics and funding information
+> - Rich affiliation data with ROR/GRID IDs
+>
+> See `scripts/docs/LENS_ORG_IMPORTER.md` for complete documentation.
+
 ### Login Credentials
 
 The system comes with three ready-to-use user accounts:

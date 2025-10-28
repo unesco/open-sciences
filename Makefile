@@ -303,6 +303,22 @@ scripts-import-zenodo:
 	fi; \
 	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
 
+scripts-import-lens:
+	@echo "🔬 Importing from Lens.org..."
+	@if [ -z "$(FILE)" ]; then \
+		echo "❌ Error: FILE parameter required"; \
+		echo "Usage:"; \
+		echo "  make scripts-import-lens FILE='data/lens.org/publications.json'"; \
+		echo "  make scripts-import-lens FILE='publications.json' OPTS='--dry-run'"; \
+		echo "  make scripts-import-lens FILE='publications.json' OPTS='--limit 10 --verbose'"; \
+		exit 1; \
+	fi
+	@CMD="python examples/import_from_lens.py --file $(FILE)"; \
+	if [ -n "$(OPTS)" ]; then \
+		CMD="$$CMD $(OPTS)"; \
+	fi; \
+	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
+
 scripts-help:
 	@echo "📚 InvenioRDM Scripts Microservice Help"
 	@echo "======================================"
@@ -349,6 +365,17 @@ scripts-help:
 	@echo "  Search and import multiple records:"
 	@echo "    make scripts-import-zenodo SEARCH='climate data' MAX=5"
 	@echo "    make scripts-import-zenodo SEARCH='COVID-19' MAX=3 OPTS='--skip-files'"
+	@echo ""
+	@echo "🔬 Import from Lens.org:"
+	@echo "  Import publications from Lens.org JSON export:"
+	@echo "    make scripts-import-lens FILE='data/lens.org/publications.json'"
+	@echo "    make scripts-import-lens FILE='publications.json' OPTS='--dry-run'  # Validate only"
+	@echo "    make scripts-import-lens FILE='publications.json' OPTS='--limit 10' # Import first 10"
+	@echo ""
+	@echo "  Advanced options:"
+	@echo "    make scripts-import-lens FILE='publications.json' OPTS='--limit 20 --offset 10'  # Skip first 10"
+	@echo "    make scripts-import-lens FILE='publications.json' OPTS='--batch-size 5 --verbose' # Custom batch"
+	@echo "    make scripts-import-lens FILE='publications.json' OPTS='--no-skip-existing'     # Reimport all"
 	@echo ""
 	@echo "  CSV file format (see scripts/data/sample_records.csv for example):"
 	@echo "    Required columns: title, creators"
