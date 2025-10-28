@@ -101,6 +101,46 @@ make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--
 - Architecture: `docs/LENS_ORG_MAPPING_ANALYSIS.md`
 - Implementation: `docs/LENS_ORG_IMPLEMENTATION_SUMMARY.md`
 
+### Zenodo (`zenodo/`)
+
+Import records from Zenodo.org via their public API.
+
+**Features:**
+
+- ✅ Import by Zenodo record ID
+- ✅ Search and import multiple records
+- ✅ Complete metadata mapping (creators, contributors, identifiers)
+- ✅ Automatic file download and upload
+- ✅ ORCID identifier preservation
+- ✅ License mapping
+- ✅ HTML description cleaning
+- ✅ Dry-run mode for validation
+- ✅ Metadata-only import option
+
+**Usage:**
+
+```bash
+# Import a specific record
+make scripts-import-zenodo RECORD_ID='17462748'
+
+# Import without files (metadata only)
+make scripts-import-zenodo RECORD_ID='17462748' OPTS='--skip-files'
+
+# Dry run (validation only)
+make scripts-import-zenodo RECORD_ID='17462748' OPTS='--dry-run'
+
+# Search and import multiple records
+make scripts-import-zenodo QUERY='climate data' MAX=5
+
+# Direct module execution
+python -m src.sources.zenodo --record-id 17462748
+python -m src.sources.zenodo --search "climate data" --max-results 5
+```
+
+**API Reference:** https://developers.zenodo.org/
+
+**Documentation:** See `src/sources/zenodo/README.md`
+
 ## Adding a New Data Source
 
 To add a new data source (e.g., "datacite"):

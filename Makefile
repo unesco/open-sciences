@@ -280,27 +280,23 @@ scripts-reset:
 
 scripts-import-zenodo:
 	@echo "📥 Importing from Zenodo..."
-	@if [ -z "$(RECORD)" ] && [ -z "$(SEARCH)" ]; then \
-		echo "❌ Error: RECORD or SEARCH parameter required"; \
+	@if [ -z "$(RECORD_ID)" ] && [ -z "$(QUERY)" ]; then \
+		echo "❌ Error: RECORD_ID or QUERY parameter required"; \
 		echo "Usage:"; \
-		echo "  make scripts-import-zenodo RECORD='17462748'"; \
-		echo "  make scripts-import-zenodo SEARCH='climate data' MAX=5"; \
+		echo "  make scripts-import-zenodo RECORD_ID='17462748'"; \
+		echo "  make scripts-import-zenodo QUERY='climate data' MAX=5"; \
+		echo "  make scripts-import-zenodo RECORD_ID='17462748' OPTS='--skip-files --dry-run'"; \
 		exit 1; \
 	fi
-	@CMD="python examples/import_from_zenodo.py"; \
-	if [ -n "$(RECORD)" ]; then \
-		CMD="$$CMD --record-id $(RECORD)"; \
-	fi; \
-	if [ -n "$(SEARCH)" ]; then \
-		CMD="$$CMD --search '$(SEARCH)'"; \
-	fi; \
-	if [ -n "$(MAX)" ]; then \
-		CMD="$$CMD --max-results $(MAX)"; \
-	fi; \
-	if [ -n "$(OPTS)" ]; then \
-		CMD="$$CMD $(OPTS)"; \
-	fi; \
-	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
+	@if [ -n "$(RECORD_ID)" ]; then \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --record-id $(RECORD_ID) $(OPTS); \
+	elif [ -n "$(QUERY)" ]; then \
+		if [ -n "$(MAX)" ]; then \
+			docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(QUERY)" --max-results $(MAX) $(OPTS); \
+		else \
+			docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(QUERY)" $(OPTS); \
+		fi; \
+	fi
 
 scripts-import-lens:
 	@echo "🔬 Importing from Lens.org..."
@@ -357,13 +353,13 @@ scripts-help:
 	@echo ""
 	@echo "📡 Import from Zenodo:"
 	@echo "  Import a specific record by ID:"
-	@echo "    make scripts-import-zenodo RECORD='17462748'"
-	@echo "    make scripts-import-zenodo RECORD='17462748' OPTS='--skip-files'  # Metadata only"
-	@echo "    make scripts-import-zenodo RECORD='17462748' OPTS='--dry-run'     # Preview"
+	@echo "    make scripts-import-zenodo RECORD_ID='17462748'"
+	@echo "    make scripts-import-zenodo RECORD_ID='17462748' OPTS='--skip-files'  # Metadata only"
+	@echo "    make scripts-import-zenodo RECORD_ID='17462748' OPTS='--dry-run'     # Preview"
 	@echo ""
 	@echo "  Search and import multiple records:"
-	@echo "    make scripts-import-zenodo SEARCH='climate data' MAX=5"
-	@echo "    make scripts-import-zenodo SEARCH='COVID-19' MAX=3 OPTS='--skip-files'"
+	@echo "    make scripts-import-zenodo QUERY='climate data' MAX=5"
+	@echo "    make scripts-import-zenodo QUERY='COVID-19' MAX=3 OPTS='--skip-files'"
 	@echo ""
 	@echo "🔬 Import from Lens.org:"
 	@echo "  Import publications from Lens.org JSON export:"

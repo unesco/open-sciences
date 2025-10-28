@@ -202,23 +202,73 @@ make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--
 - ⚠️ Related identifiers (DOI, PMID, PMCID, arXiv, etc.)
 - ⚠️ Subject classification (MeSH terms, ASJC codes)
 
+#### Zenodo
+
+Import records from Zenodo.org via their public API:
+
+```bash
+# Import a specific record by ID
+make scripts-import-zenodo RECORD_ID='17462748'
+
+# Import without files (metadata only)
+make scripts-import-zenodo RECORD_ID='17462748' OPTS='--skip-files'
+
+# Dry run (validate without importing)
+make scripts-import-zenodo RECORD_ID='17462748' OPTS='--dry-run'
+
+# Search and import multiple records
+make scripts-import-zenodo QUERY='climate data' MAX=5
+
+# Search with file skipping
+make scripts-import-zenodo QUERY='COVID-19' MAX=3 OPTS='--skip-files'
+
+# Verbose output
+make scripts-import-zenodo RECORD_ID='17462748' OPTS='--verbose'
+```
+
+**Zenodo Import Features:**
+
+- ✅ Import by Zenodo record ID
+- ✅ Search and bulk import
+- ✅ Complete metadata (creators, contributors, identifiers, keywords)
+- ✅ Automatic file download and upload
+- ✅ ORCID identifier preservation
+- ✅ License mapping
+- ✅ HTML description cleaning
+- ✅ Related identifiers (DOI, arXiv, etc.)
+- ✅ Dry-run mode for validation
+
 **Data Sources Architecture:**
 
 All data source importers are organized under `src/sources/`:
 
 ```
 src/sources/
-├── README.md           # Documentation on adding new sources
-└── lens/              # Lens.org importer
-    ├── config.py      # Mapping configuration
-    ├── reader.py      # JSON/API readers
-    ├── importer.py    # Main orchestrator
-    ├── data/          # Sample data files
-    │   └── publications.json
-    └── mappers/       # Field mappers
-        ├── standard.py    # Standard InvenioRDM fields
-        ├── custom.py      # Custom fields (Lens-specific)
-        └── related.py     # Related identifiers
+├── README.md              # Documentation on adding new sources
+├── csv/                   # CSV importer
+│   ├── config.py
+│   ├── reader.py
+│   ├── mapper.py
+│   ├── parsers.py
+│   ├── importer.py
+│   ├── main.py
+│   └── data/publications.csv
+├── lens/                  # Lens.org importer
+│   ├── config.py
+│   ├── reader.py
+│   ├── importer.py
+│   ├── main.py
+│   ├── data/publications.json
+│   └── mappers/
+│       ├── standard.py
+│       ├── custom.py
+│       └── related.py
+└── zenodo/                # Zenodo.org importer
+    ├── config.py
+    ├── fetcher.py         # API client
+    ├── mapper.py
+    ├── importer.py
+    └── main.py
 ```
 
 See `src/sources/README.md` for detailed documentation on:
@@ -353,6 +403,19 @@ results = client.search_records(q="test")
   - Dry-run mode for validation
 
 - **Lens.org** (`src/sources/lens/`): Import publication records from Lens.org
+
+  - Execute via: `python -m src.sources.lens` or `make scripts-import-lens`
+  - JSON export format support
+  - Standard metadata with ORCID and ROR identifiers
+  - Batch processing with offset/limit controls
+
+- **Zenodo** (`src/sources/zenodo/`): Import records from Zenodo.org
+
+  - Execute via: `python -m src.sources.zenodo` or `make scripts-import-zenodo`
+  - Import by record ID or search query
+  - Automatic file download and upload
+  - Complete metadata mapping with license support
+  - Dry-run and metadata-only modes
   - Execute via: `python -m src.sources.lens` or `make scripts-import-lens`
   - Supports JSON file exports
   - Rich metadata mapping (authors, ORCID, affiliations, subjects)
