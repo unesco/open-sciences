@@ -14,6 +14,10 @@ services:
       - ./scripts/config:/app/config:ro
       # Mount data directory for CSV files
       - ./scripts/data:/app/data:rw
+      # Mount source code for development
+      - ./scripts/src:/app/src:ro
+      # Mount examples directory
+      - ./scripts/examples:/app/examples:ro
       # Mount a volume for file uploads (optional)
       - ./uploads:/app/uploads:ro
     networks:
@@ -36,6 +40,8 @@ services:
     volumes:
       - ./scripts/config:/app/config:ro
       - ./scripts/data:/app/data:rw
+      - ./scripts/src:/app/src:ro
+      - ./scripts/examples:/app/examples:ro
       - ./uploads:/app/uploads:ro
     network_mode: host
     # This service is designed to be run with specific commands

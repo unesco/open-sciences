@@ -1,33 +1,14 @@
 #!/usr/bin/env python3
 """
-Import publications from Lens.org into InvenioRDM.
+Main entry point for Lens.org import operations.
 
-This script provides a command-line interface to import publication data
-from Lens.org JSON exports into InvenioRDM.
+This module provides the core import functionality for Lens.org publications,
+including CLI argument parsing, environment setup, and import orchestration.
 
-Features:
-- Import from JSON files exported from Lens.org
-- Dry-run mode for validation without creating records
-- Skip existing records (by DOI)
-- Batch processing with configurable batch size
-- Detailed logging and error reporting
-- Support for custom fields and rich metadata
-
-Examples:
-    # Import all records from JSON file
-    python import_from_lens.py --file publications.json
-
-    # Dry run to validate without creating records
-    python import_from_lens.py --file publications.json --dry-run
-
-    # Import specific number of records
-    python import_from_lens.py --file publications.json --limit 10
-
-    # Custom batch size
-    python import_from_lens.py --file publications.json --batch-size 5
-
-    # Don't skip existing records
-    python import_from_lens.py --file publications.json --no-skip-existing
+Can be run in multiple ways:
+    - As package module: python -m src.sources.lens
+    - Via wrapper: python examples/import_from_lens.py
+    - Direct execution: python src/sources/lens/main.py (for development)
 """
 
 import sys
@@ -39,27 +20,35 @@ from typing import Optional
 import click
 from colorama import init, Fore, Style
 
-# Add parent directory to path to import from src
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.sources.lens import create_importer, create_reader
-from src.sources.lens.config import LensImportConfig
+# Handle both direct execution and package import
+if __name__ == "__main__" and __package__ is None:
+    # Direct execution: add parent to path and use absolute imports
+    script_dir = Path(__file__).parent.parent.parent.parent
+    if str(script_dir) not in sys.path:
+        sys.path.insert(0, str(script_dir))
+    from src.sources.lens.config import LensImportConfig
+    from src.sources.lens.reader import create_reader
+    from src.sources.lens.importer import create_importer
+else:
+    # Package import: use relative imports
+    from .config import LensImportConfig
+    from .reader import create_reader
+    from .importer import create_importer
 
 # Initialize colorama for colored output
 init(autoreset=True)
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-)
-
 logger = logging.getLogger(__name__)
 
 
 def setup_environment():
-    """Check required environment variables."""
+    """
+    Check required environment variables.
+
+    Raises:
+        SystemExit: If required environment variables are missing
+    """
     # Environment variables are loaded by docker-compose via env_file
     # No need to load .env manually when running in container
 
@@ -106,68 +95,29 @@ def print_info(message: str):
     print(f"{Fore.BLUE}ℹ {message}")
 
 
-@click.command()
-@click.option(
-    "--file",
-    "-f",
-    required=True,
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="Path to Lens.org JSON export file",
-)
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    default=False,
-    help="Validate metadata without creating records",
-)
-@click.option(
-    "--skip-existing/--no-skip-existing",
-    default=True,
-    help="Skip records with existing DOI in InvenioRDM",
-)
-@click.option(
-    "--batch-size",
-    type=int,
-    default=None,
-    help=f"Number of records per batch (default: {LensImportConfig.BATCH_SIZE})",
-)
-@click.option(
-    "--limit",
-    type=int,
-    default=None,
-    help="Maximum number of records to import (all by default)",
-)
-@click.option(
-    "--offset",
-    type=int,
-    default=0,
-    help="Number of records to skip from start (default: 0)",
-)
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    default=False,
-    help="Enable verbose logging (DEBUG level)",
-)
-def main(
+def run_import(
     file: Path,
-    dry_run: bool,
-    skip_existing: bool,
-    batch_size: Optional[int],
-    limit: Optional[int],
-    offset: int,
-    verbose: bool,
-):
+    dry_run: bool = False,
+    skip_existing: bool = True,
+    batch_size: Optional[int] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
+    verbose: bool = False,
+) -> int:
     """
-    Import publications from Lens.org JSON export into InvenioRDM.
+    Execute the Lens.org import process.
 
-    This tool maps Lens.org metadata to InvenioRDM format including:
-    - Standard bibliographic fields (title, authors, date, etc.)
-    - Custom fields (MeSH terms, ASJC subjects, chemicals, etc.)
-    - Related identifiers (DOI, PMID, arXiv, etc.)
-    - Rich affiliation data with ROR/GRID IDs
-    - Citation metrics and counts
+    Args:
+        file: Path to Lens.org JSON export file
+        dry_run: If True, validate without creating records
+        skip_existing: If True, skip records with existing DOI
+        batch_size: Number of records per batch
+        limit: Maximum number of records to import
+        offset: Number of records to skip from start
+        verbose: Enable verbose logging
+
+    Returns:
+        Exit code (0 for success, 1 for failure)
     """
     # Set logging level
     if verbose:
@@ -215,7 +165,7 @@ def main(
 
         if not all_records:
             print_warning("No records to import after applying offset/limit")
-            return
+            return 0
 
         print_success(f"Loaded {len(all_records)} records to import\n")
 
@@ -288,19 +238,118 @@ def main(
             else:
                 print_error("Import failed - no records were created")
 
-        # Exit code based on result
+        # Return exit code based on result
         if result.failed > 0 and result.successful == 0:
-            sys.exit(1)
+            return 1
+        return 0
 
     except FileNotFoundError as e:
         print_error(f"File not found: {e}")
-        sys.exit(1)
+        return 1
 
     except Exception as e:
         logger.exception("Unexpected error during import")
         print_error(f"Import failed: {e}")
-        sys.exit(1)
+        return 1
+
+
+@click.command()
+@click.option(
+    "--file",
+    "-f",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Path to Lens.org JSON export file",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Validate metadata without creating records",
+)
+@click.option(
+    "--skip-existing/--no-skip-existing",
+    default=True,
+    help="Skip records with existing DOI in InvenioRDM",
+)
+@click.option(
+    "--batch-size",
+    type=int,
+    default=None,
+    help=f"Number of records per batch (default: {LensImportConfig.BATCH_SIZE})",
+)
+@click.option(
+    "--limit",
+    type=int,
+    default=None,
+    help="Maximum number of records to import (all by default)",
+)
+@click.option(
+    "--offset",
+    type=int,
+    default=0,
+    help="Number of records to skip from start (default: 0)",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    default=False,
+    help="Enable verbose logging (DEBUG level)",
+)
+def main(
+    file: Path,
+    dry_run: bool,
+    skip_existing: bool,
+    batch_size: Optional[int],
+    limit: Optional[int],
+    offset: int,
+    verbose: bool,
+):
+    """
+    Import publications from Lens.org JSON export into InvenioRDM.
+
+    This tool maps Lens.org metadata to InvenioRDM format including:
+
+    \b
+    - Standard bibliographic fields (title, authors, date, etc.)
+    - Custom fields (MeSH terms, ASJC subjects, chemicals, etc.)
+    - Related identifiers (DOI, PMID, arXiv, etc.)
+    - Rich affiliation data with ROR/GRID IDs
+    - Citation metrics and counts
+
+    Examples:
+
+    \b
+        # Import all records
+        python -m src.sources.lens.main --file publications.json
+
+        # Dry run validation
+        python -m src.sources.lens.main --file publications.json --dry-run
+
+        # Import first 10 records
+        python -m src.sources.lens.main --file publications.json --limit 10
+
+        # Skip first 10, import next 20
+        python -m src.sources.lens.main --file publications.json --offset 10 --limit 20
+    """
+    exit_code = run_import(
+        file=file,
+        dry_run=dry_run,
+        skip_existing=skip_existing,
+        batch_size=batch_size,
+        limit=limit,
+        offset=offset,
+        verbose=verbose,
+    )
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
+    # Add parent directory to path for direct execution
+    # This allows running as: python -m src.sources.lens.main
+    script_dir = Path(__file__).parent.parent.parent.parent
+    if str(script_dir) not in sys.path:
+        sys.path.insert(0, str(script_dir))
+
     main()

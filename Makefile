@@ -313,7 +313,7 @@ scripts-import-lens:
 		echo "  make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10 --verbose'"; \
 		exit 1; \
 	fi
-	@CMD="python examples/import_from_lens.py --file $(FILE)"; \
+	@CMD="python -m src.sources.lens --file $(FILE)"; \
 	if [ -n "$(OPTS)" ]; then \
 		CMD="$$CMD $(OPTS)"; \
 	fi; \

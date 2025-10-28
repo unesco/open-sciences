@@ -84,14 +84,17 @@ To add a new data source (e.g., "datacite"):
 
    - Place test files in `data/` directory
 
-4. **Create CLI script:**
+4. **Create main.py module:**
 
-   - Add `examples/import_from_datacite.py`
-   - Follow the pattern from `import_from_lens.py`
+   - Add `src/sources/datacite/main.py`
+   - Follow the pattern from `src/sources/lens/main.py`
+   - Include CLI with Click, environment setup, import orchestration
+   - Add `__main__.py` for module execution support
 
 5. **Update Makefile:**
 
    - Add `scripts-import-datacite` target
+   - Use `python -m src.sources.datacite` command
    - Add help documentation
 
 6. **Update this README:**

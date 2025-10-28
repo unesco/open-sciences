@@ -378,7 +378,6 @@ scripts/
 ├── examples/
 │   ├── search_records.py      # Search examples
 │   ├── create_record.py       # Record creation
-│   ├── import_from_lens.py    # Lens.org importer CLI
 │   ├── test_lens_mapping.py   # Test Lens.org mapping
 │   ├── get_statistics.py      # Statistics
 │   └── invenio_cli.py         # Unified CLI
@@ -395,6 +394,7 @@ scripts/
 The `src/sources/` directory contains importers for external data sources:
 
 - **Lens.org** (`lens/`): Import publication records from Lens.org JSON exports
+  - Execute: `python -m src.sources.lens` or `make scripts-import-lens`
   - Standard metadata mapping (titles, creators, dates)
   - Author identifiers (ORCID) and affiliations (ROR)
   - Custom fields support (MeSH terms, ASJC subjects, metrics)

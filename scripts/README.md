@@ -339,7 +339,6 @@ results = client.search_records(q="test")
 - **search_records.py**: Search and display InvenioRDM records
 - **create_record.py**: Create new record drafts with files
 - **import_from_csv.py**: Import or update records in bulk from CSV files
-- **import_from_lens.py**: Import publications from Lens.org JSON exports
 - **test_lens_mapping.py**: Test and validate Lens.org metadata mapping
 - **get_statistics.py**: Retrieve and display statistics
 - **invenio_cli.py**: Comprehensive CLI tool
@@ -347,6 +346,7 @@ results = client.search_records(q="test")
 ### Data Source Importers
 
 - **Lens.org** (`src/sources/lens/`): Import publication records from Lens.org
+  - Execute via: `python -m src.sources.lens` or `make scripts-import-lens`
   - Supports JSON file exports
   - Rich metadata mapping (authors, ORCID, affiliations, subjects)
   - Batch processing with configurable size
@@ -481,11 +481,12 @@ cp lens/importer.py datacite/
 cp lens/mappers/*.py datacite/mappers/
 ```
 
-**3. Create CLI script:**
+**3. Create main.py module:**
 
 ```bash
-# Create examples/import_from_datacite.py
-# Follow the pattern from import_from_lens.py
+# Create src/sources/datacite/main.py
+# Follow the pattern from src/sources/lens/main.py
+# Include CLI, environment setup, and import orchestration
 ```
 
 **4. Update Makefile:**
@@ -493,7 +494,11 @@ cp lens/mappers/*.py datacite/mappers/
 ```makefile
 scripts-import-datacite:
 	@echo "🔬 Importing from DataCite..."
-	# ... similar to scripts-import-lens
+	@CMD="python -m src.sources.datacite --file $(FILE)"; \
+	if [ -n "$(OPTS)" ]; then \
+		CMD="$$CMD $(OPTS)"; \
+	fi; \
+	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
 ```
 
 **5. Test your importer:**
