@@ -251,6 +251,22 @@ class InvenioRDMClient:
         except requests.RequestException:
             return False
 
+    def delete_record(self, record_id: str) -> bool:
+        """
+        Delete a published record.
+
+        Args:
+            record_id: Record identifier
+
+        Returns:
+            True if deletion was successful
+        """
+        try:
+            self._make_request("DELETE", f"/records/{record_id}")
+            return True
+        except requests.RequestException:
+            return False
+
     # =====================================
     # FILES API
     # =====================================

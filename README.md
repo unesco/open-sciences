@@ -76,6 +76,15 @@ make up
 
 Visit https://127.0.0.1:5000 in your browser once the server is running.
 
+> **💡 Tip - Reset Records for Full Programmatic Control**  
+> After starting the server, you may want to reset all records to use only the curated scientific publications defined in `scripts/data/publications.csv`. This gives you full programmatic control over your dataset:
+>
+> ```bash
+> make scripts-reset CSV='data/publications.csv'
+> ```
+>
+> This command will delete all existing records and import only the high-quality scientific publications from the CSV, ensuring a clean and controlled dataset. See the [Scripts Microservice](#scripts-microservice) section for more details.
+
 ### Login Credentials
 
 The system comes with three ready-to-use user accounts:

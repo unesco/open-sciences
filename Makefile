@@ -252,6 +252,33 @@ scripts-import:
 		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV); \
 	fi
 
+scripts-delete-all:
+	@echo "🗑️  Deleting all records from InvenioRDM..."
+	@if [ -n "$(OPTS)" ]; then \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/delete_all_records.py $(OPTS); \
+	else \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/delete_all_records.py; \
+	fi
+
+scripts-reset:
+	@echo "🔄 Resetting InvenioRDM records..."
+	@echo "📋 Step 1/2: Deleting all existing records..."
+	@docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/delete_all_records.py --confirm
+	@echo ""
+	@echo "📋 Step 2/2: Importing fresh records from CSV..."
+	@if [ -z "$(CSV)" ]; then \
+		echo "❌ Error: CSV parameter required"; \
+		echo "Usage: make scripts-reset CSV='data/publications.csv'"; \
+		exit 1; \
+	fi
+	@if [ -n "$(OPTS)" ]; then \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV) $(OPTS); \
+	else \
+		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV); \
+	fi
+	@echo ""
+	@echo "✅ Reset complete!"
+
 scripts-help:
 	@echo "📚 InvenioRDM Scripts Microservice Help"
 	@echo "======================================"
@@ -274,11 +301,20 @@ scripts-help:
 	@echo ""
 	@echo "📥 CSV Import:"
 	@echo "  Import records from CSV file:"
-	@echo "    make scripts-import CSV='data/sample_records.csv'"
+	@echo "    make scripts-import CSV='data/publications.csv'"
 	@echo ""
 	@echo "  Import with options:"
 	@echo "    make scripts-import CSV='data/my_records.csv' OPTS='--dry-run'"
 	@echo "    make scripts-import CSV='data/my_records.csv' OPTS='--skip-errors --verbose'"
+	@echo ""
+	@echo "🗑️  Record Management:"
+	@echo "  Delete all records:"
+	@echo "    make scripts-delete-all OPTS='--dry-run'  # Preview deletions"
+	@echo "    make scripts-delete-all OPTS='--confirm'  # Delete without prompt"
+	@echo ""
+	@echo "  Reset records (delete all + import CSV):"
+	@echo "    make scripts-reset CSV='data/publications.csv'"
+	@echo "    make scripts-reset CSV='data/publications.csv' OPTS='--verbose'"
 	@echo ""
 	@echo "  CSV file format (see scripts/data/sample_records.csv for example):"
 	@echo "    Required columns: title, creators"

@@ -111,16 +111,16 @@ Import or update records in bulk from a CSV file:
 
 ```bash
 # Import records from the sample CSV
-make scripts-import CSV='data/sample_records.csv'
+make scripts-import CSV='data/publications.csv'
 
 # Import with dry-run mode (validate without creating records)
-make scripts-import CSV='data/my_records.csv' OPTS='--dry-run'
+make scripts-import CSV='data/publications.csv' OPTS='--dry-run'
 
 # Import with options
-make scripts-import CSV='data/my_records.csv' OPTS='--skip-errors --verbose'
+make scripts-import CSV='data/publications.csv' OPTS='--skip-errors --verbose'
 
 # Import with custom delimiter
-make scripts-import CSV='data/records.tsv' OPTS='--delimiter "\t"'
+make scripts-import CSV='data/publications.tsv' OPTS='--delimiter "\t"'
 ```
 
 **CSV File Format**

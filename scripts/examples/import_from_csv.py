@@ -105,6 +105,104 @@ def parse_creators(creators_str: str) -> List[Dict[str, Any]]:
     return creators
 
 
+def parse_contributors(contributors_str: str) -> List[Dict[str, Any]]:
+    """
+    Parse contributors string into InvenioRDM contributor format.
+
+    Format: "Given Family; Affiliation; Role; ORCID | Given2 Family2; Affiliation2; Role2; ORCID2"
+    All fields except name are optional.
+
+    Args:
+        contributors_str: Pipe-separated contributor information
+
+    Returns:
+        List of contributor dictionaries
+    """
+    contributors = []
+
+    # Split by pipe for multiple contributors
+    contributor_groups = contributors_str.split("|")
+
+    for group in contributor_groups:
+        parts = [p.strip() for p in group.split(";")]
+        if not parts or not parts[0]:
+            continue
+
+        # Parse name (required)
+        name_parts = parts[0].strip().split()
+        if len(name_parts) < 2:
+            continue
+
+        given_name = " ".join(name_parts[:-1])
+        family_name = name_parts[-1]
+
+        contributor = {
+            "person_or_org": {
+                "given_name": given_name,
+                "family_name": family_name,
+                "type": "personal",
+                "name": f"{family_name}, {given_name}",
+            }
+        }
+
+        # Parse affiliation (optional, second element)
+        if len(parts) > 1 and parts[1].strip():
+            contributor["affiliations"] = [{"name": parts[1].strip()}]
+
+        # Parse role (optional, third element, default: "other")
+        role = "other"
+        if len(parts) > 2 and parts[2].strip():
+            role = parts[2].strip().lower()
+        contributor["role"] = {"id": role}
+
+        # Parse ORCID (optional, fourth element)
+        if len(parts) > 3 and parts[3].strip():
+            orcid = parts[3].strip()
+            contributor["person_or_org"]["identifiers"] = [
+                {"identifier": orcid, "scheme": "orcid"}
+            ]
+
+        contributors.append(contributor)
+
+    return contributors
+
+
+def parse_related_identifiers(related_ids_str: str) -> List[Dict[str, Any]]:
+    """
+    Parse related identifiers string.
+
+    Format: "identifier; scheme; relation_type | identifier2; scheme2; relation_type2"
+
+    Args:
+        related_ids_str: Pipe-separated related identifiers
+
+    Returns:
+        List of related identifier dictionaries
+    """
+    related_ids = []
+
+    if not related_ids_str:
+        return related_ids
+
+    # Split by pipe for multiple identifiers
+    id_groups = related_ids_str.split("|")
+
+    for group in id_groups:
+        parts = [p.strip() for p in group.split(";")]
+        if len(parts) < 2:  # Need at least identifier and scheme
+            continue
+
+        related_id = {"identifier": parts[0], "scheme": parts[1]}
+
+        # Parse relation type (optional, third element, default: "references")
+        if len(parts) > 2 and parts[2].strip():
+            related_id["relation_type"] = {"id": parts[2].strip().lower()}
+
+        related_ids.append(related_id)
+
+    return related_ids
+
+
 def parse_file_paths(file_paths_str: str) -> List[str]:
     """
     Parse file paths string into a list of paths.
@@ -182,6 +280,72 @@ def prepare_record_data(
 
     if description:
         metadata["description"] = description
+
+    # Publisher
+    publisher = row.get("publisher", "").strip()
+    if publisher:
+        metadata["publisher"] = publisher
+
+    # Version
+    version = row.get("version", "").strip()
+    if version:
+        metadata["version"] = version
+
+    # Languages (semicolon-separated language codes)
+    languages_str = row.get("languages", "").strip()
+    if languages_str:
+        lang_codes = [l.strip() for l in languages_str.split(";") if l.strip()]
+        if lang_codes:
+            metadata["languages"] = [{"id": code} for code in lang_codes]
+
+    # Subjects/Keywords (semicolon-separated)
+    subjects_str = row.get("subjects", "").strip()
+    if subjects_str:
+        subject_list = [s.strip() for s in subjects_str.split(";") if s.strip()]
+        if subject_list:
+            metadata["subjects"] = [{"subject": subj} for subj in subject_list]
+
+    # License
+    license_id = row.get("license", "").strip()
+    if license_id:
+        metadata["rights"] = [{"id": license_id}]
+
+    # Additional descriptions (pipe-separated: "text|type")
+    add_desc_str = row.get("additional_descriptions", "").strip()
+    if add_desc_str:
+        add_descs = []
+        for desc_item in add_desc_str.split("|"):
+            if ";" in desc_item:
+                parts = desc_item.split(";", 1)
+                desc_text = parts[0].strip()
+                desc_type = parts[1].strip() if len(parts) > 1 else "other"
+                if desc_text:
+                    add_descs.append(
+                        {"description": desc_text, "type": {"id": desc_type}}
+                    )
+        if add_descs:
+            metadata["additional_descriptions"] = add_descs
+
+    # References (semicolon-separated)
+    references_str = row.get("references", "").strip()
+    if references_str:
+        refs = [r.strip() for r in references_str.split(";") if r.strip()]
+        if refs:
+            metadata["references"] = [{"reference": ref} for ref in refs]
+
+    # Contributors (pipe-separated: "Name; ORCID; Affiliation; Role | Name2...")
+    contributors_str = row.get("contributors", "").strip()
+    if contributors_str:
+        contributors = parse_contributors(contributors_str)
+        if contributors:
+            metadata["contributors"] = contributors
+
+    # Related identifiers (pipe-separated: "identifier; scheme; relation | identifier2...")
+    related_ids_str = row.get("related_identifiers", "").strip()
+    if related_ids_str:
+        related_ids = parse_related_identifiers(related_ids_str)
+        if related_ids:
+            metadata["related_identifiers"] = related_ids
 
     # Prepare access settings
     access_record = row.get("access_record", "public").strip() or "public"
