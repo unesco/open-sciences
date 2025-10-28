@@ -1,0 +1,3 @@
+title,description,creators,resource_type,publication_date,access_record,access_files,publisher,subjects,license
+"Sample Dataset","This is a sample dataset for testing CSV import","John Doe;0000-0001-2345-6789;University of Example",dataset,2024-01-15,public,public,Example Publisher,climate change;data analysis,cc-by-4.0
+"Research Article","An example research article","Jane Smith;;Example Institute|Bob Johnson;0000-0002-3456-7890;Another University",publication,2024-02-20,public,restricted,Scientific Press,machine learning;AI,cc-by-nc-4.0

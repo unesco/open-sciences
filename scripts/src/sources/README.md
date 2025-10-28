@@ -27,6 +27,47 @@ sources/
 
 ## Available Sources
 
+### CSV (`csv/`)
+
+Import records from CSV files with flexible field mapping.
+
+**Features:**
+
+- ✅ Standard metadata (title, creators, dates, publisher, description)
+- ✅ Creator/contributor parsing with ORCID and affiliations
+- ✅ Related identifiers (DOI, ISBN, PMID, etc.)
+- ✅ File uploads
+- ✅ Publishing workflow
+- ✅ Create new records or update existing ones
+- ✅ Batch processing with error handling
+
+**Usage:**
+
+```bash
+# Dry run validation
+make scripts-import FILE='src/sources/csv/data/publications.csv' OPTS='--dry-run'
+
+# Import all records
+make scripts-import FILE='src/sources/csv/data/publications.csv'
+
+# Custom delimiter (tab-separated)
+make scripts-import FILE='data/records.tsv' OPTS="--delimiter $'\t'"
+
+# Skip errors and continue
+make scripts-import FILE='data/records.csv' OPTS='--skip-errors'
+
+# Direct module execution
+python -m src.sources.csv --file data/records.csv --verbose
+```
+
+**CSV Format:**
+
+Required columns: `title`, `creators`
+
+Optional columns: `record_id`, `description`, `resource_type`, `publication_date`, `access_record`, `access_files`, `publisher`, `version`, `languages`, `subjects`, `license`, `additional_descriptions`, `references`, `contributors`, `related_identifiers`, `file_paths`, `publish`
+
+See `src/sources/csv/data/publications.csv` for examples.
+
 ### Lens.org (`lens/`)
 
 Import publication records from Lens.org JSON exports.

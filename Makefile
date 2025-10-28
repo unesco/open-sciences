@@ -237,20 +237,19 @@ scripts-shell:
 
 scripts-import:
 	@echo "📥 Importing records from CSV..."
-	@if [ -z "$(CSV)" ]; then \
-		echo "❌ Error: Please specify CSV='path/to/file.csv'"; \
-		echo "Example: make scripts-import CSV='data/sample_records.csv'"; \
-		echo "Example: make scripts-import CSV='data/sample_records.csv' OPTS='--dry-run'"; \
-		echo "Example: make scripts-import CSV='data/sample_records.csv' OPTS='--skip-errors --verbose'"; \
+	@if [ -z "$(FILE)" ]; then \
+		echo "❌ Error: FILE parameter required"; \
+		echo "Usage:"; \
+		echo "  make scripts-import FILE='src/sources/csv/data/publications.csv'"; \
+		echo "  make scripts-import FILE='data/records.csv' OPTS='--dry-run'"; \
+		echo "  make scripts-import FILE='data/records.csv' OPTS='--skip-errors --verbose'"; \
 		exit 1; \
 	fi
-	@echo "📂 CSV file: $(CSV)"
-	@if [ -n "$(OPTS)" ]; then \
-		echo "⚙️  Options: $(OPTS)"; \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV) $(OPTS); \
-	else \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV); \
-	fi
+	@CMD="python -m src.sources.csv --file $(FILE)"; \
+	if [ -n "$(OPTS)" ]; then \
+		CMD="$$CMD $(OPTS)"; \
+	fi; \
+	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
 
 scripts-delete-all:
 	@echo "🗑️  Deleting all records from InvenioRDM..."
@@ -266,16 +265,16 @@ scripts-reset:
 	@docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/delete_all_records.py --confirm
 	@echo ""
 	@echo "📋 Step 2/2: Importing fresh records from CSV..."
-	@if [ -z "$(CSV)" ]; then \
-		echo "❌ Error: CSV parameter required"; \
-		echo "Usage: make scripts-reset CSV='data/publications.csv'"; \
+	@if [ -z "$(FILE)" ]; then \
+		echo "❌ Error: FILE parameter required"; \
+		echo "Usage: make scripts-reset FILE='src/sources/csv/data/publications.csv'"; \
 		exit 1; \
 	fi
-	@if [ -n "$(OPTS)" ]; then \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV) $(OPTS); \
-	else \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python examples/import_from_csv.py $(CSV); \
-	fi
+	@CMD="python -m src.sources.csv --file $(FILE)"; \
+	if [ -n "$(OPTS)" ]; then \
+		CMD="$$CMD $(OPTS)"; \
+	fi; \
+	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
 	@echo ""
 	@echo "✅ Reset complete!"
 
@@ -377,7 +376,7 @@ scripts-help:
 	@echo "    make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--batch-size 5 --verbose' # Custom batch"
 	@echo "    make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no-skip-existing'     # Reimport all"
 	@echo ""
-	@echo "  CSV file format (see scripts/data/sample_records.csv for example):"
+	@echo "  CSV file format (see src/sources/csv/data/publications.csv for example):"
 	@echo "    Required columns: title, creators"
 	@echo "    Optional: description, resource_type, publication_date, access_record,"
 	@echo "              access_files, file_paths, publish, record_id (for updates)"

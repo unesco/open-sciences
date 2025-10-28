@@ -110,17 +110,17 @@ python examples/search_records.py -q test
 Import or update records in bulk from a CSV file:
 
 ```bash
-# Import records from the sample CSV
-make scripts-import CSV='data/publications.csv'
+# Import records from the example CSV
+make scripts-import FILE='src/sources/csv/data/publications.csv'
 
 # Import with dry-run mode (validate without creating records)
-make scripts-import CSV='data/publications.csv' OPTS='--dry-run'
+make scripts-import FILE='src/sources/csv/data/publications.csv' OPTS='--dry-run'
 
 # Import with options
-make scripts-import CSV='data/publications.csv' OPTS='--skip-errors --verbose'
+make scripts-import FILE='src/sources/csv/data/publications.csv' OPTS='--skip-errors --verbose'
 
 # Import with custom delimiter
-make scripts-import CSV='data/publications.tsv' OPTS='--delimiter "\t"'
+make scripts-import FILE='data/publications.tsv' OPTS="--delimiter $'\t'"
 ```
 
 **CSV File Format**
@@ -338,12 +338,19 @@ results = client.search_records(q="test")
 
 - **search_records.py**: Search and display InvenioRDM records
 - **create_record.py**: Create new record drafts with files
-- **import_from_csv.py**: Import or update records in bulk from CSV files
 - **test_lens_mapping.py**: Test and validate Lens.org metadata mapping
 - **get_statistics.py**: Retrieve and display statistics
 - **invenio_cli.py**: Comprehensive CLI tool
 
 ### Data Source Importers
+
+- **CSV** (`src/sources/csv/`): Import records from CSV files
+
+  - Execute via: `python -m src.sources.csv` or `make scripts-import`
+  - Supports flexible field mapping and batch processing
+  - Create new records or update existing ones
+  - File uploads and publishing workflow
+  - Dry-run mode for validation
 
 - **Lens.org** (`src/sources/lens/`): Import publication records from Lens.org
   - Execute via: `python -m src.sources.lens` or `make scripts-import-lens`

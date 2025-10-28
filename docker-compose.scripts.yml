@@ -12,8 +12,6 @@ services:
     volumes:
       # Mount config directory for environment files
       - ./scripts/config:/app/config:ro
-      # Mount data directory for CSV files
-      - ./scripts/data:/app/data:rw
       # Mount source code for development
       - ./scripts/src:/app/src:ro
       # Mount examples directory
@@ -39,7 +37,6 @@ services:
       - ./scripts/config/.env
     volumes:
       - ./scripts/config:/app/config:ro
-      - ./scripts/data:/app/data:rw
       - ./scripts/src:/app/src:ro
       - ./scripts/examples:/app/examples:ro
       - ./uploads:/app/uploads:ro

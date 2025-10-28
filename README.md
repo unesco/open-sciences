@@ -393,6 +393,14 @@ scripts/
 
 The `src/sources/` directory contains importers for external data sources:
 
+- **CSV** (`csv/`): Import records from CSV files
+
+  - Execute: `python -m src.sources.csv` or `make scripts-import`
+  - Flexible field mapping for standard and custom metadata
+  - Support for creators, contributors, related identifiers
+  - File uploads and publishing workflow
+  - Create new records or update existing ones
+
 - **Lens.org** (`lens/`): Import publication records from Lens.org JSON exports
   - Execute: `python -m src.sources.lens` or `make scripts-import-lens`
   - Standard metadata mapping (titles, creators, dates)
