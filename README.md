@@ -85,6 +85,22 @@ Visit https://127.0.0.1:5000 in your browser once the server is running.
 >
 > This command will delete all existing records and import only the high-quality scientific publications from the CSV, ensuring a clean and controlled dataset. See the [Scripts Microservice](#scripts-microservice) section for more details.
 
+> **🌐 Tip - Import from Zenodo.org**  
+> You can import records directly from Zenodo.org with all metadata and files:
+>
+> ```bash
+> # Import a specific record by ID
+> make scripts-import-zenodo RECORD='17462748'
+>
+> # Import without downloading files (metadata only)
+> make scripts-import-zenodo RECORD='17462748' OPTS='--skip-files'
+>
+> # Search and import multiple records
+> make scripts-import-zenodo SEARCH='climate data' MAX=5
+> ```
+>
+> This allows you to populate your instance with real scientific data from Zenodo, including all creators, contributors, related identifiers, keywords, and files. Perfect for testing or bootstrapping your repository!
+
 ### Login Credentials
 
 The system comes with three ready-to-use user accounts:

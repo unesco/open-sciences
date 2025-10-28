@@ -279,6 +279,30 @@ scripts-reset:
 	@echo ""
 	@echo "✅ Reset complete!"
 
+scripts-import-zenodo:
+	@echo "📥 Importing from Zenodo..."
+	@if [ -z "$(RECORD)" ] && [ -z "$(SEARCH)" ]; then \
+		echo "❌ Error: RECORD or SEARCH parameter required"; \
+		echo "Usage:"; \
+		echo "  make scripts-import-zenodo RECORD='17462748'"; \
+		echo "  make scripts-import-zenodo SEARCH='climate data' MAX=5"; \
+		exit 1; \
+	fi
+	@CMD="python examples/import_from_zenodo.py"; \
+	if [ -n "$(RECORD)" ]; then \
+		CMD="$$CMD --record-id $(RECORD)"; \
+	fi; \
+	if [ -n "$(SEARCH)" ]; then \
+		CMD="$$CMD --search '$(SEARCH)'"; \
+	fi; \
+	if [ -n "$(MAX)" ]; then \
+		CMD="$$CMD --max-results $(MAX)"; \
+	fi; \
+	if [ -n "$(OPTS)" ]; then \
+		CMD="$$CMD $(OPTS)"; \
+	fi; \
+	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
+
 scripts-help:
 	@echo "📚 InvenioRDM Scripts Microservice Help"
 	@echo "======================================"
@@ -315,6 +339,16 @@ scripts-help:
 	@echo "  Reset records (delete all + import CSV):"
 	@echo "    make scripts-reset CSV='data/publications.csv'"
 	@echo "    make scripts-reset CSV='data/publications.csv' OPTS='--verbose'"
+	@echo ""
+	@echo "📡 Import from Zenodo:"
+	@echo "  Import a specific record by ID:"
+	@echo "    make scripts-import-zenodo RECORD='17462748'"
+	@echo "    make scripts-import-zenodo RECORD='17462748' OPTS='--skip-files'  # Metadata only"
+	@echo "    make scripts-import-zenodo RECORD='17462748' OPTS='--dry-run'     # Preview"
+	@echo ""
+	@echo "  Search and import multiple records:"
+	@echo "    make scripts-import-zenodo SEARCH='climate data' MAX=5"
+	@echo "    make scripts-import-zenodo SEARCH='COVID-19' MAX=3 OPTS='--skip-files'"
 	@echo ""
 	@echo "  CSV file format (see scripts/data/sample_records.csv for example):"
 	@echo "    Required columns: title, creators"

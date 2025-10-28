@@ -80,7 +80,14 @@ class InvenioRDMClient:
             response.raise_for_status()
             return response
         except requests.RequestException as e:
-            logger.error(f"Request failed: {method} {url} - {e}")
+            error_msg = f"Request failed: {method} {url} - {e}"
+            try:
+                error_details = response.json()
+                logger.error(
+                    f"{error_msg}\nDetails: {json.dumps(error_details, indent=2)}"
+                )
+            except:
+                logger.error(error_msg)
             raise
 
     def get_info(self) -> Dict[str, Any]:
@@ -306,7 +313,7 @@ class InvenioRDMClient:
         headers = {"Content-Type": "application/octet-stream"}
         response = self.session.put(
             urljoin(
-                self.api_url, f"/records/{record_id}/draft/files/{filename}/content"
+                self.api_url, f"records/{record_id}/draft/files/{filename}/content"
             ),
             data=file_data,
             headers=headers,
