@@ -1,0 +1,343 @@
+{#
+  Custom override of details.html to handle Lens.org custom fields specially
+  This template renders Lens.org section with full-width layout
+#}
+{% from "invenio_app_rdm/records/macros/detail.html" import show_files_preview, show_record_management_menu, show_detail, show_list, show_funding, show_location, show_license, show_dates, show_section_custom_fields %}
+
+{# Identifiers #}
+{% if record_ui["pids"] %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Identifiers') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {% for scheme, pid in record_ui["pids"].items() %}
+          {% if scheme != "oai" %}
+            <dt class="ui tiny header">{{ pid["provider"]["display_label"] or pid["provider"]["pid_label"] or scheme | upper }}</dt>
+            <dd>
+              <a class="external-url" href="{{ pid["provider"]["url"] }}" target="_blank" rel="noopener noreferrer">{{ pid["identifier"] }}</a>
+            </dd>
+          {% endif %}
+        {% endfor %}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Contributors #}
+{% if metadata.contributors %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Contributors') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_detail(metadata.contributors, 'person_or_org') }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Subjects #}
+{% if metadata.subjects %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Subjects') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_detail(metadata.subjects, 'subject') }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Languages #}
+{% if metadata.languages %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Languages') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_list(metadata.languages, 'title_l10n') }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Sizes #}
+{% if metadata.sizes %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Sizes') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_list(metadata.sizes) }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Formats #}
+{% if metadata.formats %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Formats') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_list(metadata.formats) }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Version #}
+{% if metadata.version %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Version') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        <dd>{{ metadata.version }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Publisher #}
+{% if metadata.publisher %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Publisher') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        <dd>{{ metadata.publisher }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Related identifiers #}
+{% if metadata.related_identifiers %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Related works') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_detail(metadata.related_identifiers, 'related_identifier') }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Funding #}
+{% if metadata.funding %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Funding') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_funding(metadata.funding) }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Locations #}
+{% if metadata.locations %}
+  {% if metadata.locations.features %}
+    <div class="ui grid">
+      <div class="sixteen wide mobile four wide tablet three wide computer column">
+        <h3 class="ui header">{{ _('Locations') }}</h3>
+      </div>
+      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+        <dl class="details-list">
+          {{ show_location(metadata.locations.features) }}
+        </dl>
+      </div>
+    </div>
+    <div class="ui divider"></div>
+  {% endif %}
+{% endif %}
+
+{# License #}
+{% if metadata.rights %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Rights') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_license(metadata.rights) }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Dates #}
+{% if record_ui["ui"]["dates"] %}
+  {% if record_ui["ui"]["dates"]|length > 0 %}
+    <div class="ui grid">
+      <div class="sixteen wide mobile four wide tablet three wide computer column">
+        <h3 class="ui header">{{ _('Dates') }}</h3>
+      </div>
+      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+        <dl class="details-list">
+          {{ show_dates(record_ui["ui"]["dates"]) }}
+        </dl>
+      </div>
+    </div>
+    <div class="ui divider"></div>
+  {% endif %}
+{% endif %}
+
+{# Custom fields - SPECIAL HANDLING FOR LENS.ORG #}
+{% if record_ui["custom_fields"] %}
+  {%- for section_cfg in custom_fields_ui %}
+    {% set section_has_fields = namespace(value=false) %}
+    {% set section_format = section_cfg.section | replace(" ", "-") %}
+    {# Show the section if at least one of its fields is in record #}
+    {% for field_cfg in section_cfg.fields %}
+      {% if record_ui["custom_fields"].get(field_cfg.field) %}
+        {% set section_has_fields.value = true %}
+      {% endif %}
+    {% endfor %}
+
+    {% if section_has_fields.value %}
+      <div class="ui fluid accordion padded grid rel-mb-1">
+        <div class="active title sixteen wide mobile four wide tablet three wide computer column">
+          <h3 class="ui header">
+            <div
+              id="custom-fields-accordion-trigger"
+              role="button"
+              tabindex="0"
+              aria-expanded="true"
+              aria-controls="custom-fields-panel"
+              class="trigger"
+            >
+              <i class="caret right icon" aria-hidden="true"></i>{{ section_cfg.section }}
+            </div>
+          </h3>
+        </div>
+        
+        {# SPECIAL HANDLING: Check if this is Lens.org section #}
+        {% if section_cfg.section == "Lens.org" %}
+          {# Full-width content for Lens.org #}
+          <div
+            id="custom-fields-panel"
+            role="region"
+            aria-labelledby="custom-fields-accordion-trigger"
+            class="active content sixteen wide column"
+            style="width: 100% !important; max-width: 100% !important;"
+          >
+            {# Render each field individually #}
+            {% for field_cfg in section_cfg.fields %}
+              {% set field_value = record_ui["custom_fields"].get(field_cfg.field) %}
+              {% if field_value %}
+                {% if field_cfg.template %}
+                  {# Custom template (like lens:open_access) - renders without dl wrapper #}
+                  {% include field_cfg.template %}
+                {% else %}
+                  {# Standard fields - render with dl wrapper #}
+                  <dl class="details-list">
+                    <dt class="ui tiny header">
+                      {{ field_cfg.props.label }}
+                      {% if config.RDM_NAMESPACES.get(field_cfg.field.split(':')[0]) %}
+                        <a href="{{ config.RDM_NAMESPACES[field_cfg.field.split(':')[0]] }}{{ field_cfg.field.split(':')[1] }}" aria-label="{{ config.RDM_NAMESPACES[field_cfg.field.split(':')[0]] }}{{ field_cfg.field.split(':')[1] }}">
+                          <i class="icon external" aria-hidden="true"></i>
+                        </a>
+                      {% endif %}
+                    </dt>
+                    <dd>
+                      <a href="/search?q=custom_fields.{{ field_cfg.field | replace(':', '%5C:') }}:{{ field_value }}">{{ field_value }}</a>
+                    </dd>
+                  </dl>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% else %}
+          {# Default handling for non-Lens.org sections #}
+          <div
+            id="custom-fields-panel"
+            role="region"
+            aria-labelledby="custom-fields-accordion-trigger"
+            class="active content sixteen wide mobile twelve wide tablet thirteen wide computer column"
+          >
+            <dl class="details-list">
+              {{ show_section_custom_fields(record_ui["ui"]["custom_fields"], section_cfg.fields) }}
+            </dl>
+          </div>
+        {% endif %}
+      </div>
+      <div class="ui divider"></div>
+    {% endif %}
+  {%- endfor %}
+{% endif %}
+
+{# References #}
+{% if metadata.references %}
+  {% if metadata.references|length > 5 %}
+    <div class="ui fluid accordion padded grid rel-mb-1">
+      <div class="active title sixteen wide mobile four wide tablet three wide computer column">
+        <h3 class="ui header">
+          <div
+            id="references-accordion-trigger"
+            role="button"
+            tabindex="0"
+            aria-expanded="true"
+            aria-controls="references-panel"
+            class="trigger"
+          >
+            <i class="caret right icon" aria-hidden="true"></i>{{ _('References') }}
+          </div>
+        </h3>
+      </div>
+      <div
+        id="references-panel"
+        role="region"
+        aria-labelledby="references-accordion-trigger"
+        class="active content sixteen wide mobile twelve wide tablet thirteen wide computer column text-break"
+      >
+        <ol class="references-list">
+          {% for reference in metadata.references %}
+            <li>{{ reference.reference }}</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  {% else %}
+    <div class="ui grid">
+      <div class="sixteen wide mobile four wide tablet three wide computer column">
+        <h3 class="ui header">{{ _('References') }}</h3>
+      </div>
+      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column text-break">
+        <ol class="references-list">
+          {% for reference in metadata.references %}
+            <li>{{ reference.reference }}</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  {% endif %}
+  <div class="ui divider"></div>
+{% endif %}

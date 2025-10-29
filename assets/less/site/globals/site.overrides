@@ -2,6 +2,9 @@
  * Open Science Portal Theme Overrides
  */
 
+/* Import Lens.org custom fields styles */
+@import 'lens-custom-fields.overrides';
+
 /* Import Inter font from Google Fonts - UNESCO Official Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 

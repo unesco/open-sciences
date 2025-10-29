@@ -1,0 +1,19 @@
+{# 
+  Template for displaying Lens.org ID with correct external link
+  Variables available:
+  - field_value: The Lens ID value
+  - field_cfg: Configuration for this field
+#}
+
+{%- if field_value -%}
+<dl class="details-list">
+  <dt class="ui tiny header">
+    {{ field_cfg.props.label }}
+  </dt>
+  <dd>
+    <a href="https://www.lens.org/lens/scholar/article/{{ field_value }}/main" target="_blank" rel="noopener noreferrer" class="external-url">
+      {{ field_value }}
+    </a>
+  </dd>
+</dl>
+{%- endif -%}
