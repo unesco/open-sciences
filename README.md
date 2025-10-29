@@ -78,7 +78,13 @@ Visit https://127.0.0.1:5000 in your browser.
 
 **2. (Optional) Reset with curated data:**
 
-After the server is running, you can optionally reset all records and load fresh data from various sources:
+After the server is running, you can optionally reset all records and load fresh data from various sources. First wait for some minutes after the first `make up` (to let Invenio finish the default data import), then run:
+
+```bash
+make scripts-setup-env
+```
+
+and select `N` to generate a new token that will be used to interact with Invenio's API. After that, you can:
 
 ```bash
 # Option A: Reset with CSV data (recommended for development)

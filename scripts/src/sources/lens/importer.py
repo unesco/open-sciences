@@ -126,13 +126,11 @@ class LensOrgImporter:
             metadata_dict = full_metadata.get("metadata", {})
             custom_fields = metadata_dict.pop("custom_fields", None)
 
-            # TODO: Custom fields need to be configured in InvenioRDM invenio.cfg first
-            # For now, we skip them to avoid 500 errors
+            # DEBUG: Log custom fields
             if custom_fields:
-                self.logger.debug(
-                    f"Skipping {len(custom_fields)} custom field groups (not configured in InvenioRDM)"
-                )
-                custom_fields = None
+                self.logger.info(f"Custom fields found: {list(custom_fields.keys())}")
+            else:
+                self.logger.warning("No custom fields found in mapped metadata")
 
             # TODO: Related identifiers seem to cause 500 errors - temporarily disable
             related_ids = metadata_dict.pop("related_identifiers", None)

@@ -10,12 +10,13 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init up stop stop-all build users ssl-certs check scripts-build scripts-up scripts-stop scripts-run scripts-shell scripts-help scripts-setup-env scripts-status scripts-import
+.PHONY: help destroy init init-custom-fields up stop stop-all build users ssl-certs check scripts-build scripts-up scripts-stop scripts-run scripts-shell scripts-help scripts-setup-env scripts-status scripts-import
 
 # Default target
 help:
 	@echo "UNESCO Science Portal - Available commands:"
 	@echo "  init         - Initialize the project (create virtualenv and setup)"
+	@echo "  init-custom-fields - Initialize custom fields in InvenioRDM database"
 	@echo "  ssl-certs    - Generate SSL certificates for development"
 	@echo "  users        - Create ready-to-use users with predefined passwords"
 	@echo "  up           - Start the development server and services"
@@ -46,9 +47,9 @@ help:
 # Initialize the project
 init:
 	@echo "🚀 Initializing UNESCO Science Portal..."
-	@echo "� Checking Docker environment..."
+	@echo "🔍 Checking Docker environment..."
 	$(MAKE) check
-	@echo "�📦 Creating Python virtual environment..."
+	@echo "📦 Creating Python virtual environment..."
 	python3 -m venv $(VENV_PATH)
 	@echo "🔧 Activating virtual environment and installing dependencies..."
 	$(VENV_ACTIVATE) && pip install --upgrade pip
@@ -60,9 +61,17 @@ init:
 	$(VENV_ACTIVATE) && invenio-cli services setup
 	@echo "🔐 Setting up SSL certificates..."
 	$(MAKE) ssl-certs
-	@echo "👥 Creating ready-to-use users..."
+	@echo "� Initializing custom fields..."
+	$(MAKE) init-custom-fields
+	@echo "�👥 Creating ready-to-use users..."
 	$(MAKE) users
 	@echo "✅ Initialization complete! Use 'make up' to start the server."
+
+# Initialize custom fields in database
+init-custom-fields:
+	@echo "🔧 Initializing custom fields in InvenioRDM..."
+	$(VENV_ACTIVATE) && invenio rdm-records custom-fields init
+	@echo "✅ Custom fields initialized successfully!"
 
 # Start the development server
 up:

@@ -50,33 +50,10 @@ class CustomFieldsMapper(BaseMapper):
         custom_fields = {}
 
         try:
-            # Lens-specific identifiers
-            if identifiers := self._map_lens_identifiers(lens_record):
-                custom_fields["lens:identifiers"] = identifiers
-
-            # MeSH terms (medical subject headings)
-            if mesh_terms := self._map_mesh_terms(lens_record):
-                custom_fields["lens:mesh_terms"] = mesh_terms
-
-            # ASJC subjects (journal classification)
-            if asjc_subjects := self._map_asjc_subjects(lens_record):
-                custom_fields["lens:asjc_subjects"] = asjc_subjects
-
-            # Chemical substances
-            if chemicals := self._map_chemicals(lens_record):
-                custom_fields["lens:chemicals"] = chemicals
-
-            # Citation metrics
-            if metrics := self._map_metrics(lens_record):
-                custom_fields["lens:metrics"] = metrics
-
-            # Funding information
-            if funding := self._map_funding(lens_record):
-                custom_fields["lens:funding_details"] = funding
-
-            # Open access details
-            if open_access := self._map_open_access(lens_record):
-                custom_fields["lens:open_access"] = open_access
+            # Lens.org unique identifier
+            lens_id = lens_record.get("lens_id")
+            if lens_id:
+                custom_fields["lens:id"] = lens_id
 
             return custom_fields
 
@@ -323,13 +300,15 @@ class CustomFieldsMapper(BaseMapper):
         """
         open_access = {}
 
-        # License
-        license_str = self.safe_get(lens_record, "source", "license")
+        # License - try both open_access.license and source.license
+        license_str = self.safe_get(lens_record, "open_access", "license")
+        if not license_str:
+            license_str = self.safe_get(lens_record, "source", "license")
         if license_str:
             open_access["license"] = license_str
 
-        # OA color (gold, green, bronze, hybrid)
-        oa_color = self.safe_get(lens_record, "open_access", "color")
+        # OA color (note: Lens uses 'colour' with 'u')
+        oa_color = self.safe_get(lens_record, "open_access", "colour")
         if oa_color:
             open_access["color"] = oa_color
 
@@ -338,9 +317,11 @@ class CustomFieldsMapper(BaseMapper):
         if oa_type:
             open_access["type"] = oa_type
 
-        # OA URL
-        oa_url = self.safe_get(lens_record, "full_text_urls", 0)
-        if oa_url and isinstance(oa_url, str):
-            open_access["url"] = oa_url
+        # OA URL - from landing_page_urls
+        landing_pages = self.safe_get(
+            lens_record, "open_access", "locations", "landing_page_urls", default=[]
+        )
+        if landing_pages and isinstance(landing_pages, list) and len(landing_pages) > 0:
+            open_access["url"] = landing_pages[0]
 
         return open_access if open_access else None
