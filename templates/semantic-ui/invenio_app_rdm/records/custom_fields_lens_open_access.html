@@ -1,0 +1,249 @@
+{# 
+  Template for displaying Lens.org Open Access information
+  Variables available:
+  - field_value: The JSON string containing open access data
+  - field_cfg: Configuration for this field
+#}
+
+{%- if field_value -%}
+  {# Extract license from JSON string #}
+  {%- set license = namespace(value='') -%}
+  {%- if '"license":' in field_value -%}
+    {%- set license_part = field_value.split('"license":')[1].split(',')[0].strip() -%}
+    {%- set license.value = license_part.replace('"', '').strip() -%}
+  {%- endif -%}
+  
+  {# Extract colour from JSON string #}
+  {%- set colour = namespace(value='') -%}
+  {%- if '"colour":' in field_value -%}
+    {%- set colour_part = field_value.split('"colour":')[1].split(',')[0].split('}')[0].strip() -%}
+    {%- set colour.value = colour_part.replace('"', '').strip() -%}
+  {%- endif -%}
+  
+  {# Extract URLs from JSON string #}
+  {%- set urls = namespace(list=[]) -%}
+  {%- if '"landing_page_urls":' in field_value -%}
+    {%- set urls_part = field_value.split('"landing_page_urls":')[1].split(']')[0] -%}
+    {%- for url_item in urls_part.replace('[', '').split(',') -%}
+      {%- set clean_url = url_item.replace('"', '').strip() -%}
+      {%- if clean_url and clean_url.startswith('http') -%}
+        {%- set _ = urls.list.append(clean_url) -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  {# Determine color class based on OA colour #}
+  {%- set color_class = 'grey' -%}
+  {%- if colour.value == 'gold' -%}
+    {%- set color_class = 'gold' -%}
+  {%- elif colour.value == 'green' -%}
+    {%- set color_class = 'green' -%}
+  {%- elif colour.value == 'bronze' -%}
+    {%- set color_class = 'bronze' -%}
+  {%- elif colour.value == 'hybrid' -%}
+    {%- set color_class = 'hybrid' -%}
+  {%- endif -%}
+
+<style>
+  .lens-oa-panel {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 15px 0;
+    overflow: hidden;
+  }
+  
+  .lens-oa-heading {
+    padding: 12px 15px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .lens-oa-heading.gold {
+    background-color: #f9a825;
+    color: #ffffff;
+  }
+  
+  .lens-oa-heading.green {
+    background-color: #66bb6a;
+    color: #ffffff;
+  }
+  
+  .lens-oa-heading.bronze {
+    background-color: #cd7f32;
+    color: #ffffff;
+  }
+  
+  .lens-oa-heading.hybrid {
+    background-color: #ff9800;
+    color: #ffffff;
+  }
+  
+  .lens-oa-heading.grey {
+    background-color: #757575;
+    color: #ffffff;
+  }
+  
+  .lens-oa-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  
+  .lens-oa-body {
+    padding: 0;
+  }
+  
+  .lens-oa-body ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .lens-oa-body li {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .lens-oa-body li:last-child {
+    border-bottom: none;
+  }
+  
+  .lens-oa-detail {
+    margin-bottom: 8px;
+  }
+  
+  .lens-oa-detail:last-child {
+    margin-bottom: 0;
+  }
+  
+  .lens-oa-detail strong {
+    color: #424242;
+    margin-right: 8px;
+  }
+  
+  .lens-oa-license-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  
+  .lens-oa-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background-color: #fafafa;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    text-decoration: none;
+    color: #1976d2;
+    transition: background-color 0.2s;
+  }
+  
+  .lens-oa-link:hover {
+    background-color: #e3f2fd;
+    text-decoration: none;
+  }
+  
+  .lens-oa-link-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .lens-oa-link-url {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .lens-oa-pdf-badge {
+    background-color: #d32f2f;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+</style>
+
+<dt class="ui tiny header" style="margin-top: 15px;">{{ field_cfg.props.label }}</dt>
+<dd>
+  <div class="lens-oa-panel">
+    <div class="lens-oa-heading {{ color_class }}">
+      <svg class="lens-oa-icon" viewBox="0 0 640 1000" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M609.5,559.9c-6.4-15-13.8-29.4-22.3-43.1V267.3c0-70.9-27.6-137.6-77.8-187.7C459.3,29.5,392.6,1.9,321.7,1.9c0,0,0,0-0.1,0c-70.9,0-137.6,27.6-187.7,77.7c-50.2,50.1-77.8,116.8-77.8,187.7v36.3h106.3v-36.3c0-42.5,16.6-82.5,46.7-112.6c30.1-30,70-46.6,112.5-46.6c0,0,0,0,0,0c87.7,0,159.1,71.4,159.1,159.1v145.1c-12.1-7.2-24.8-13.6-37.9-19.2c-38.6-16.3-79.6-24.6-121.9-24.6c-42.2,0-83.3,8.3-121.9,24.6c-37.3,15.8-70.8,38.3-99.5,67.1c-28.7,28.7-51.3,62.2-67.1,99.5C16.2,598.5,7.9,639.5,7.9,681.8c0,42.2,8.3,83.3,24.6,121.9c15.8,37.3,38.3,70.8,67.1,99.5c28.7,28.7,62.2,51.3,99.5,67.1c38.6,16.3,79.6,24.6,121.9,24.6c42.2,0,83.3-8.3,121.9-24.6c37.3-15.8,70.8-38.3,99.5-67.1c28.7-28.7,51.3-62.2,67.1-99.5c16.3-38.6,24.6-79.6,24.6-121.9C634.1,639.5,625.9,598.5,609.5,559.9z M321,888.6c-114,0-206.8-92.8-206.8-206.8S207,475,321,475s206.8,92.8,206.8,206.8S435.1,888.6,321,888.6z"/>
+        <circle fill="currentColor" cx="322.1" cy="682.7" r="87.7"/>
+      </svg>
+      <span>Open Access</span>
+      <i class="info circle icon"></i>
+    </div>
+    
+    <div class="lens-oa-body">
+      {%- if license.value -%}
+      <ul>
+        <li>
+          <div class="lens-oa-detail">
+            <strong>License:</strong>
+            <span class="lens-oa-license-badge">
+              {%- if license.value == 'cc-by' -%}
+                Attribution (CC BY)
+              {%- elif license.value == 'cc-by-sa' -%}
+                Attribution-ShareAlike (CC BY-SA)
+              {%- elif license.value == 'cc-by-nc' -%}
+                Attribution-NonCommercial (CC BY-NC)
+              {%- elif license.value == 'cc-by-nc-sa' -%}
+                Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)
+              {%- elif license.value == 'cc-by-nd' -%}
+                Attribution-NoDerivatives (CC BY-ND)
+              {%- elif license.value == 'cc-by-nc-nd' -%}
+                Attribution-NonCommercial-NoDerivatives (CC BY-NC-ND)
+              {%- else -%}
+                {{ license.value | upper }}
+              {%- endif -%}
+            </span>
+          </div>
+        </li>
+      </ul>
+      {%- endif -%}
+      
+      {%- if urls.list -%}
+      <ul>
+        {%- for url in urls.list -%}
+        <li>
+          <a href="{{ url }}" class="lens-oa-link" target="_blank" rel="noopener noreferrer">
+            <span class="lens-oa-link-text">
+              <i class="external alternate icon"></i>
+              <span class="lens-oa-link-url">
+                {%- if 'doi.org' in url -%}
+                  Publisher Website
+                {%- elif 'repository' in url.lower() or 'arxiv' in url.lower() or 'preprint' in url.lower() -%}
+                  Repository Website
+                {%- else -%}
+                  Access Link
+                {%- endif -%}
+              </span>
+            </span>
+            <span class="lens-oa-pdf-badge">
+              <i class="file pdf icon"></i> Full-Text
+            </span>
+          </a>
+        </li>
+        {%- endfor -%}
+      </ul>
+      {%- endif -%}
+    </div>
+  </div>
+</dd>
+{%- endif -%}

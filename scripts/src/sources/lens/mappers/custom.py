@@ -55,6 +55,14 @@ class CustomFieldsMapper(BaseMapper):
             if lens_id:
                 custom_fields["lens:id"] = lens_id
 
+            # Open access information
+            open_access_data = self._map_open_access(lens_record)
+            if open_access_data:
+                # TextCF requires a string, so we serialize to JSON
+                import json
+
+                custom_fields["lens:open_access"] = json.dumps(open_access_data)
+
             return custom_fields
 
         except Exception as e:
@@ -293,35 +301,30 @@ class CustomFieldsMapper(BaseMapper):
 
         Format: {
             "license": "cc-by-nc-nd",
-            "color": "green",
-            "type": "hybrid",
-            "url": "https://..."
+            "colour": "hybrid",
+            "landing_page_urls": ["https://..."]
         }
         """
+        oa_info = lens_record.get("open_access")
+        if not oa_info:
+            return None
+
         open_access = {}
 
-        # License - try both open_access.license and source.license
-        license_str = self.safe_get(lens_record, "open_access", "license")
-        if not license_str:
-            license_str = self.safe_get(lens_record, "source", "license")
+        # License
+        license_str = oa_info.get("license")
         if license_str:
             open_access["license"] = license_str
 
-        # OA color (note: Lens uses 'colour' with 'u')
-        oa_color = self.safe_get(lens_record, "open_access", "colour")
-        if oa_color:
-            open_access["color"] = oa_color
+        # OA colour (note: Lens uses British spelling 'colour')
+        oa_colour = oa_info.get("colour")
+        if oa_colour:
+            open_access["colour"] = oa_colour
 
-        # OA type
-        oa_type = self.safe_get(lens_record, "open_access", "type")
-        if oa_type:
-            open_access["type"] = oa_type
-
-        # OA URL - from landing_page_urls
-        landing_pages = self.safe_get(
-            lens_record, "open_access", "locations", "landing_page_urls", default=[]
-        )
-        if landing_pages and isinstance(landing_pages, list) and len(landing_pages) > 0:
-            open_access["url"] = landing_pages[0]
+        # Landing page URLs
+        locations = oa_info.get("locations", {})
+        landing_page_urls = locations.get("landing_page_urls", [])
+        if landing_page_urls:
+            open_access["landing_page_urls"] = landing_page_urls
 
         return open_access if open_access else None

@@ -1,0 +1,6 @@
+# Ignore Jinja2 templates (not pure HTML)
+templates/**/*.html
+
+# Ignore other template-like files if needed
+*.jinja
+*.jinja2
