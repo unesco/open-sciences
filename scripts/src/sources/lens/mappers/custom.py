@@ -70,6 +70,13 @@ class CustomFieldsMapper(BaseMapper):
 
                 custom_fields["lens:external_ids"] = json.dumps(external_ids_data)
 
+            # Source information (journal, publisher, ISSN, etc.)
+            source_data = self._map_source(lens_record)
+            if source_data:
+                import json
+
+                custom_fields["lens:source"] = json.dumps(source_data)
+
             return custom_fields
 
         except Exception as e:
@@ -383,3 +390,71 @@ class CustomFieldsMapper(BaseMapper):
             external_ids.append({"type": id_type, "value": str(value)})
 
         return external_ids if external_ids else None
+
+    def _map_source(self, lens_record: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Map source information (journal, publisher, ISSN, etc.).
+
+        Format: {
+            "title": "Disasters",
+            "type": "Journal",
+            "publisher": "Wiley",
+            "issn": [
+                {"type": "electronic", "value": "14677717"},
+                {"type": "print", "value": "03613666"}
+            ],
+            "country": "United Kingdom",
+            "asjc_subjects": ["General Social Sciences", "General Earth and Planetary Sciences"]
+        }
+        """
+        source = self.safe_get(lens_record, "source", default={})
+
+        if not source:
+            return None
+
+        source_data = {}
+
+        # Title (journal/book title)
+        title = self.safe_get(source, "title")
+        if title:
+            source_data["title"] = title
+
+        # Type (Journal, Book, etc.)
+        source_type = self.safe_get(source, "type")
+        if source_type:
+            source_data["type"] = source_type
+
+        # Publisher
+        publisher = self.safe_get(source, "publisher")
+        if publisher:
+            source_data["publisher"] = publisher
+
+        # ISSN (array of objects)
+        issn_list = self.safe_get(source, "issn", default=[])
+        if issn_list:
+            issn_data = []
+            for issn in issn_list:
+                if isinstance(issn, dict):
+                    issn_type = self.safe_get(issn, "type")
+                    issn_value = self.safe_get(issn, "value")
+                    if issn_value:
+                        issn_data.append(
+                            {
+                                "type": issn_type if issn_type else "unknown",
+                                "value": str(issn_value),
+                            }
+                        )
+            if issn_data:
+                source_data["issn"] = issn_data
+
+        # Country
+        country = self.safe_get(source, "country")
+        if country:
+            source_data["country"] = country
+
+        # ASJC subjects (simplified)
+        asjc_subjects = self.safe_get(source, "asjc_subjects", default=[])
+        if asjc_subjects:
+            source_data["asjc_subjects"] = asjc_subjects
+
+        return source_data if source_data else None
