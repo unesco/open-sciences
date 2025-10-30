@@ -77,6 +77,13 @@ class CustomFieldsMapper(BaseMapper):
 
                 custom_fields["lens:source"] = json.dumps(source_data)
 
+            # References (cited works)
+            references_data = self._map_references(lens_record)
+            if references_data:
+                import json
+
+                custom_fields["lens:references"] = json.dumps(references_data)
+
             return custom_fields
 
         except Exception as e:
@@ -458,3 +465,50 @@ class CustomFieldsMapper(BaseMapper):
             source_data["asjc_subjects"] = asjc_subjects
 
         return source_data if source_data else None
+
+    def _map_references(self, lens_record: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Map references (cited works).
+
+        Format: {
+            "count": 51,
+            "resolved_count": 51,
+            "items": [
+                {"lens_id": "000-260-354-529-51X"},
+                {"lens_id": "024-107-742-940-634", "text": "Zolin R. ..."}
+            ]
+        }
+        """
+        references = self.safe_get(lens_record, "references", default=[])
+
+        if not references:
+            return None
+
+        references_data = {
+            "count": self.safe_get(
+                lens_record, "references_count", default=len(references)
+            ),
+            "resolved_count": self.safe_get(
+                lens_record, "references_resolved_count", default=0
+            ),
+            "items": [],
+        }
+
+        # Limit to first 10 references for display (to avoid huge JSON)
+        for ref in references[:10]:
+            if isinstance(ref, dict):
+                ref_item = {}
+
+                lens_id = self.safe_get(ref, "lens_id")
+                if lens_id:
+                    ref_item["lens_id"] = lens_id
+
+                text = self.safe_get(ref, "text")
+                if text:
+                    # Truncate very long text
+                    ref_item["text"] = text[:500] if len(text) > 500 else text
+
+                if ref_item:
+                    references_data["items"].append(ref_item)
+
+        return references_data if references_data["items"] else None
