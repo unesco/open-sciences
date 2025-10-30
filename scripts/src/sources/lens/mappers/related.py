@@ -69,16 +69,6 @@ class RelatedIdentifiersMapper(BaseMapper):
                 }
             )
 
-        # PubMed Central ID
-        if pmcid := self._extract_pmcid(lens_record):
-            identifiers.append(
-                {
-                    "identifier": pmcid,
-                    "scheme": "pmcid",
-                    "relation_type": {"id": "isidenticalto"},
-                }
-            )
-
         # arXiv
         if arxiv := self._extract_arxiv(lens_record):
             identifiers.append(
@@ -119,9 +109,17 @@ class RelatedIdentifiersMapper(BaseMapper):
 
     def _extract_doi(self, lens_record: Dict[str, Any]) -> Optional[str]:
         """Extract and validate DOI."""
-        doi = self.safe_get(lens_record, "doi") or self.safe_get(
-            lens_record, "external_ids", "doi"
-        )
+        doi = self.safe_get(lens_record, "doi")
+
+        if not doi:
+            # Check in external_ids array
+            external_ids = self.safe_get(lens_record, "external_ids", default=[])
+            if external_ids:
+                for ext_id in external_ids:
+                    if isinstance(ext_id, dict):
+                        if ext_id.get("type") == "doi":
+                            doi = ext_id.get("value")
+                            break
 
         if not doi:
             return None
@@ -178,9 +176,12 @@ class RelatedIdentifiersMapper(BaseMapper):
 
         if pmcid:
             pmcid_str = str(pmcid).strip()
-            # Ensure it starts with PMC
-            if not pmcid_str.startswith("PMC"):
+            # Ensure it starts with PMC (case-insensitive check)
+            if not pmcid_str.upper().startswith("PMC"):
                 pmcid_str = f"PMC{pmcid_str}"
+            else:
+                # Normalize to uppercase PMC prefix
+                pmcid_str = "PMC" + pmcid_str[3:]
             return pmcid_str
 
         return None
@@ -243,10 +244,18 @@ class RelatedIdentifiersMapper(BaseMapper):
         """
         issn_list = []
 
-        # Check source.issn
+        # Check source.issn (can be array of objects with type/value)
         source_issn = self.safe_get(lens_record, "source", "issn")
         if source_issn:
-            issn_list.extend(self._normalize_issn_list(source_issn))
+            if isinstance(source_issn, list):
+                for item in source_issn:
+                    if isinstance(item, dict) and "value" in item:
+                        # Extract value from {type: "electronic", value: "1234567"}
+                        issn_list.extend(self._normalize_issn_list(item["value"]))
+                    elif isinstance(item, str):
+                        issn_list.extend(self._normalize_issn_list(item))
+            else:
+                issn_list.extend(self._normalize_issn_list(source_issn))
 
         # Check source.eissn
         source_eissn = self.safe_get(lens_record, "source", "eissn")
@@ -277,8 +286,18 @@ class RelatedIdentifiersMapper(BaseMapper):
 
         external_ids = self.safe_get(lens_record, "external_ids", default=[])
 
-        # Already handled schemes
-        handled_schemes = {"doi", "pmid", "pmcid", "arxiv", "isbn", "issn", "eissn"}
+        # Already handled schemes (standard + Lens-specific that we skip)
+        handled_schemes = {
+            "doi",
+            "pmid",
+            "pmcid",
+            "arxiv",
+            "isbn",
+            "issn",
+            "eissn",
+            "openalex",  # Not supported by InvenioRDM, stored in custom fields
+            "magid",  # Microsoft Academic Graph ID - not supported
+        }
 
         if external_ids:  # Add null check
             for ext_id in external_ids:
@@ -291,11 +310,11 @@ class RelatedIdentifiersMapper(BaseMapper):
                 if not scheme or not value:
                     continue
 
-                # Skip already handled
+                # Skip already handled or unsupported schemes
                 if scheme in handled_schemes:
                     continue
 
-                # Map to InvenioRDM scheme if known
+                # Only include if it's a known InvenioRDM scheme
                 if scheme in self.config.IDENTIFIER_SCHEMES:
                     identifiers.append(
                         {

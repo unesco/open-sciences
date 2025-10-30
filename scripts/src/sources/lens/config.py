@@ -69,21 +69,24 @@ class LensImportConfig:
     # ========================================================================
 
     # External ID types and their InvenioRDM schemes
+    # Only include schemes that InvenioRDM actually supports
     IDENTIFIER_SCHEMES: Dict[str, str] = {
         "doi": "doi",
         "pmid": "pmid",
-        "pmcid": "pmcid",
+        "pmcid": "pmc",  # Map pmcid to pmc (InvenioRDM scheme)
         "arxiv": "arxiv",
         "isbn": "isbn",
         "issn": "issn",
+        "url": "url",
         "purl": "url",
     }
 
-    # Lens.org specific identifier types (stored in custom fields)
+    # Lens.org specific identifier types (stored in custom fields, not related_identifiers)
+    # These are NOT valid InvenioRDM related_identifier schemes
     LENS_IDENTIFIER_TYPES: Set[str] = {
         "lens_id",
         "magid",
-        "openalex",
+        "openalex",  # OpenAlex IDs - keep in custom fields only
         "grid",
         "ror",
         "fundref",

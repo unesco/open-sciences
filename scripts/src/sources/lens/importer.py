@@ -115,6 +115,49 @@ class LensOrgImporter:
                 self.logger.info(
                     f"[DRY RUN] Would create record for Lens ID: {lens_id}"
                 )
+
+                # Log mapped metadata for verification
+                import json
+
+                metadata_dict = full_metadata.get("metadata", {})
+                self.logger.info("=== MAPPED METADATA ===")
+                self.logger.info(f"Title: {metadata_dict.get('title')}")
+                self.logger.info(
+                    f"Publication date: {metadata_dict.get('publication_date')}"
+                )
+                self.logger.info(f"Volume: {metadata_dict.get('volume')}")
+                self.logger.info(f"Issue: {metadata_dict.get('issue')}")
+                self.logger.info(f"Pages: {metadata_dict.get('pages')}")
+                self.logger.info(f"Publisher: {metadata_dict.get('publisher')}")
+                self.logger.info(f"Creators: {len(metadata_dict.get('creators', []))}")
+                self.logger.info(
+                    f"Subjects/Keywords: {len(metadata_dict.get('subjects', []))}"
+                )
+                self.logger.info(
+                    f"Related identifiers: {len(metadata_dict.get('related_identifiers', []))}"
+                )
+
+                # Show related identifiers detail
+                related_ids = metadata_dict.get("related_identifiers", [])
+                if related_ids:
+                    self.logger.info("Related identifiers:")
+                    for rid in related_ids:
+                        self.logger.info(
+                            f"  - {rid.get('scheme')}: {rid.get('identifier')}"
+                        )
+
+                # Show subjects detail
+                subjects = metadata_dict.get("subjects", [])
+                if subjects:
+                    self.logger.info(
+                        f"Subjects (first 5): {[s.get('subject') for s in subjects[:5]]}"
+                    )
+
+                # Show custom fields
+                custom_fields = metadata_dict.get("custom_fields", {})
+                if custom_fields:
+                    self.logger.info(f"Custom fields: {list(custom_fields.keys())}")
+
                 return {
                     "status": "dry_run",
                     "lens_id": lens_id,
@@ -126,32 +169,31 @@ class LensOrgImporter:
             metadata_dict = full_metadata.get("metadata", {})
             custom_fields = metadata_dict.pop("custom_fields", None)
 
-            # DEBUG: Log custom fields
+            # Log custom fields if present
             if custom_fields:
                 self.logger.info(f"Custom fields found: {list(custom_fields.keys())}")
-            else:
-                self.logger.warning("No custom fields found in mapped metadata")
 
-            # TODO: Related identifiers seem to cause 500 errors - temporarily disable
-            related_ids = metadata_dict.pop("related_identifiers", None)
+            # Log related identifiers if present
+            related_ids = metadata_dict.get("related_identifiers", [])
             if related_ids:
                 self.logger.debug(
-                    f"Temporarily skipping {len(related_ids)} related identifiers (debugging)"
+                    f"Including {len(related_ids)} related identifiers (DOI, PMID, ISSN, etc.)"
                 )
 
-            # TODO: Subjects might cause 500 errors - temporarily disable for testing
-            subjects = metadata_dict.pop("subjects", None)
+            # Log subjects/keywords if present
+            subjects = metadata_dict.get("subjects", [])
             if subjects:
-                self.logger.debug(
-                    f"Temporarily skipping {len(subjects)} subjects (debugging)"
-                )
+                self.logger.debug(f"Including {len(subjects)} subjects/keywords")
 
-            # TODO: Remove affiliations from creators for testing
-            if "creators" in metadata_dict:
-                for creator in metadata_dict["creators"]:
-                    if "affiliations" in creator:
-                        del creator["affiliations"]
-                self.logger.debug("Removed affiliations from creators (debugging)")
+            # Log creators with affiliations
+            creators = metadata_dict.get("creators", [])
+            creators_with_aff = sum(
+                1 for c in creators if "affiliations" in c and c["affiliations"]
+            )
+            if creators_with_aff:
+                self.logger.debug(
+                    f"{creators_with_aff}/{len(creators)} creators have affiliations"
+                )
 
             # DEBUG: Log the metadata being sent
             import json
@@ -159,6 +201,17 @@ class LensOrgImporter:
             self.logger.debug(
                 f"Metadata being sent to InvenioRDM:\n{json.dumps(metadata_dict, indent=2)}"
             )
+
+            # Log related_identifiers specifically for debugging
+            if "related_identifiers" in metadata_dict:
+                self.logger.info(
+                    f"Related identifiers ({len(metadata_dict['related_identifiers'])}):"
+                )
+                for idx, rel_id in enumerate(metadata_dict["related_identifiers"]):
+                    self.logger.info(
+                        f"  [{idx}] scheme={rel_id.get('scheme')}, "
+                        f"identifier={rel_id.get('identifier')[:50]}"
+                    )
 
             # Set access configuration for metadata-only records (no files)
             access = {"record": "public", "files": "public", "status": "metadata-only"}

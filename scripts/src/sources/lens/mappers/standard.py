@@ -92,6 +92,21 @@ class StandardFieldsMapper(BaseMapper):
             if version := self.safe_get(lens_record, "version"):
                 metadata["version"] = str(version)
 
+            # Volume (optional) - for journal articles
+            if volume := self.safe_get(lens_record, "volume"):
+                metadata["volume"] = str(volume)
+
+            # Issue (optional) - for journal articles
+            if issue := self.safe_get(lens_record, "issue"):
+                metadata["issue"] = str(issue)
+
+            # Pages (optional) - start_page and end_page
+            if start_page := self.safe_get(lens_record, "start_page"):
+                pages = str(start_page)
+                if end_page := self.safe_get(lens_record, "end_page"):
+                    pages += f"-{end_page}"
+                metadata["pages"] = pages
+
             return metadata
 
         except Exception as e:
@@ -249,11 +264,9 @@ class StandardFieldsMapper(BaseMapper):
                     if not ror_id:
                         ror_id = self.safe_get(aff, "ror_id")
 
-                    if ror_id:
-                        # InvenioRDM expects ROR IDs with "ror:" prefix
-                        if not ror_id.startswith("ror:"):
-                            ror_id = f"ror:{ror_id}"
-                        affiliation["id"] = ror_id
+                    # Skip ROR IDs - InvenioRDM validates against official registry
+                    # and many Lens.org ROR IDs are invalid/non-existent
+                    # Only import affiliation name
 
                     affiliations.append(affiliation)
 
