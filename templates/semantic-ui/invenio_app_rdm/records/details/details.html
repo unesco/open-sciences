@@ -49,7 +49,11 @@
     </div>
     <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
       <dl class="details-list">
-        {{ show_detail(metadata.subjects, 'subject') }}
+        {% for subject_item in metadata.subjects %}
+          {% if subject_item.subject %}
+            <dd>{{ subject_item.subject }}</dd>
+          {% endif %}
+        {% endfor %}
       </dl>
     </div>
   </div>
@@ -139,7 +143,30 @@
     </div>
     <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
       <dl class="details-list">
-        {{ show_detail(metadata.related_identifiers, 'related_identifier') }}
+        {% for rel_id in metadata.related_identifiers %}
+          <dt class="ui tiny header">
+            {% if rel_id.relation_type and rel_id.relation_type.title %}
+              {{ rel_id.relation_type.title.en or rel_id.relation_type.id }}
+            {% endif %}
+          </dt>
+          <dd>
+            {% if rel_id.scheme == 'doi' %}
+              <a href="https://doi.org/{{ rel_id.identifier }}" target="_blank" rel="noopener noreferrer" class="external-url">
+                {{ rel_id.identifier }}
+              </a>
+            {% elif rel_id.scheme == 'pmid' %}
+              <a href="https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}" target="_blank" rel="noopener noreferrer" class="external-url">
+                {{ rel_id.identifier }}
+              </a>
+            {% elif rel_id.scheme == 'url' %}
+              <a href="{{ rel_id.identifier }}" target="_blank" rel="noopener noreferrer" class="external-url">
+                {{ rel_id.identifier }}
+              </a>
+            {% else %}
+              {{ rel_id.identifier }} ({{ rel_id.scheme | upper }})
+            {% endif %}
+          </dd>
+        {% endfor %}
       </dl>
     </div>
   </div>
