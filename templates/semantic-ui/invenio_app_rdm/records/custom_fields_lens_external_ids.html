@@ -4,7 +4,7 @@
   - field_value: The JSON string containing external IDs data
   - field_cfg: Configuration for this field
   
-  Renders a clean list of external identifiers with icons and links
+  This template closes the surrounding <dl> to render in full-width
 #}
 
 {%- if field_value -%}
@@ -34,58 +34,60 @@
   {%- endif -%}
 
   {%- if ids.list -%}
-  <dl class="details-list">
-    <dt class="ui tiny header">External Identifiers</dt>
-    <dd>
-      <div class="ui relaxed divided list">
-        {%- for id in ids.list -%}
-        <div class="item">
-          <i class="large {% if id.type == 'doi' %}linkify{% elif id.type == 'pmid' or id.type == 'pmcid' %}medkit{% elif id.type == 'isbn' %}book{% elif id.type == 'issn' %}newspaper{% else %}tag{% endif %} middle aligned icon"></i>
-          <div class="content">
-            <div class="header">
-              {%- if id.type == 'doi' -%}
-                Digital Object Identifier (DOI)
-              {%- elif id.type == 'pmid' -%}
-                PubMed ID
-              {%- elif id.type == 'pmcid' -%}
-                PubMed Central ID
-              {%- elif id.type == 'isbn' -%}
-                International Standard Book Number
-              {%- elif id.type == 'issn' -%}
-                International Standard Serial Number
-              {%- elif id.type == 'arxiv' -%}
-                arXiv Identifier
-              {%- else -%}
-                {{ id.type | upper }}
-              {%- endif -%}
-            </div>
-            <div class="description">
-              {%- if id.type == 'doi' -%}
-                <a href="https://doi.org/{{ id.value }}" target="_blank" rel="noopener noreferrer" class="external-url">
-                  {{ id.value }}
-                </a>
-              {%- elif id.type == 'pmid' -%}
-                <a href="https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}" target="_blank" rel="noopener noreferrer" class="external-url">
-                  {{ id.value }}
-                </a>
-              {%- elif id.type == 'pmcid' -%}
-                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}" target="_blank" rel="noopener noreferrer" class="external-url">
-                  {{ id.value }}
-                </a>
-              {%- elif id.type == 'arxiv' -%}
-                <a href="https://arxiv.org/abs/{{ id.value }}" target="_blank" rel="noopener noreferrer" class="external-url">
-                  {{ id.value }}
-                </a>
-              {%- else -%}
-                <code>{{ id.value }}</code>
-              {%- endif -%}
-            </div>
+<div class="lens-oa-wrapper">
+  <div class="lens-oa-container">
+    <div class="lens-oa-card lens-oa-hybrid">
+      <div class="lens-oa-header">
+        <svg class="lens-oa-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM199.4 312.6c-31.2-31.2-31.2-81.9 0-113.1s81.9-31.2 113.1 0c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9c-50-50-131-50-181 0s-50 131 0 181s131 50 181 0c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0c-31.2 31.2-81.9 31.2-113.1 0z"/>
+        </svg>
+        <h3 class="lens-oa-title">External Identifiers</h3>
+        <span class="lens-oa-badge">{{ ids.list | length }}</span>
+      </div>
+      
+      <div class="lens-oa-content">
+        <div class="lens-oa-section">
+          <div class="lens-oa-section-title">
+            <i class="hashtag icon"></i>
+            Persistent Identifiers
+          </div>
+          <div class="lens-oa-links">
+            {%- for id in ids.list -%}
+            <a href="{% if id.type == 'doi' %}https://doi.org/{{ id.value }}{% elif id.type == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}{% elif id.type == 'pmcid' %}https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}{% elif id.type == 'arxiv' %}https://arxiv.org/abs/{{ id.value }}{% elif id.type == 'issn' %}https://portal.issn.org/resource/ISSN/{{ id.value }}{% else %}#{% endif %}" 
+               class="lens-oa-link" 
+               {% if id.type in ['doi', 'pmid', 'pmcid', 'arxiv', 'issn'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+              <div class="lens-oa-link-left">
+                <i class="{% if id.type == 'doi' %}linkify{% elif id.type == 'pmid' or id.type == 'pmcid' %}medkit{% elif id.type == 'isbn' %}book{% elif id.type == 'issn' %}newspaper{% elif id.type == 'arxiv' %}file alternate outline{% else %}hashtag{% endif %} icon lens-oa-link-icon"></i>
+                <span class="lens-oa-link-text">
+                  {%- if id.type == 'doi' -%}
+                    Digital Object Identifier
+                  {%- elif id.type == 'pmid' -%}
+                    PubMed ID
+                  {%- elif id.type == 'pmcid' -%}
+                    PubMed Central ID
+                  {%- elif id.type == 'isbn' -%}
+                    ISBN
+                  {%- elif id.type == 'issn' -%}
+                    ISSN
+                  {%- elif id.type == 'arxiv' -%}
+                    arXiv
+                  {%- else -%}
+                    {{ id.type | upper }}
+                  {%- endif -%}
+                </span>
+              </div>
+              <span class="lens-oa-link-badge">
+                <i class="{% if id.type == 'doi' %}certificate{% elif id.type == 'pmid' or id.type == 'pmcid' %}plus square{% else %}tag{% endif %} icon"></i>
+                {{ id.value }}
+              </span>
+            </a>
+            {%- endfor -%}
           </div>
         </div>
-        {%- endfor -%}
       </div>
-    </dd>
-  </dl>
+    </div>
+  </div>
+</div>
   {%- endif -%}
 
 {%- endif -%}
