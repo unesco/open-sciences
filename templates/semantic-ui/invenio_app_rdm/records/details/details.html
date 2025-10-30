@@ -6,24 +6,34 @@
 
 {# Identifiers #}
 {% if record_ui["pids"] %}
-  <div class="ui grid">
-    <div class="sixteen wide mobile four wide tablet three wide computer column">
-      <h3 class="ui header">{{ _('Identifiers') }}</h3>
+  {# Check if there are any non-oai PIDs to display #}
+  {% set has_visible_pids = namespace(value=false) %}
+  {% for scheme, pid in record_ui["pids"].items() %}
+    {% if scheme != "oai" %}
+      {% set has_visible_pids.value = true %}
+    {% endif %}
+  {% endfor %}
+  
+  {% if has_visible_pids.value %}
+    <div class="ui grid">
+      <div class="sixteen wide mobile four wide tablet three wide computer column">
+        <h3 class="ui header">{{ _('Identifiers') }}</h3>
+      </div>
+      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+        <dl class="details-list">
+          {% for scheme, pid in record_ui["pids"].items() %}
+            {% if scheme != "oai" %}
+              <dt class="ui tiny header">{{ pid["provider"]["display_label"] or pid["provider"]["pid_label"] or scheme | upper }}</dt>
+              <dd>
+                <a class="external-url" href="{{ pid["provider"]["url"] }}" target="_blank" rel="noopener noreferrer">{{ pid["identifier"] }}</a>
+              </dd>
+            {% endif %}
+          {% endfor %}
+        </dl>
+      </div>
     </div>
-    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
-      <dl class="details-list">
-        {% for scheme, pid in record_ui["pids"].items() %}
-          {% if scheme != "oai" %}
-            <dt class="ui tiny header">{{ pid["provider"]["display_label"] or pid["provider"]["pid_label"] or scheme | upper }}</dt>
-            <dd>
-              <a class="external-url" href="{{ pid["provider"]["url"] }}" target="_blank" rel="noopener noreferrer">{{ pid["identifier"] }}</a>
-            </dd>
-          {% endif %}
-        {% endfor %}
-      </dl>
-    </div>
-  </div>
-  <div class="ui divider"></div>
+    <div class="ui divider"></div>
+  {% endif %}
 {% endif %}
 
 {# Contributors #}

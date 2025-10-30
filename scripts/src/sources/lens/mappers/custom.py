@@ -63,6 +63,13 @@ class CustomFieldsMapper(BaseMapper):
 
                 custom_fields["lens:open_access"] = json.dumps(open_access_data)
 
+            # External identifiers (DOI, PMID, PMCID, etc.)
+            external_ids_data = self._map_external_ids(lens_record)
+            if external_ids_data:
+                import json
+
+                custom_fields["lens:external_ids"] = json.dumps(external_ids_data)
+
             return custom_fields
 
         except Exception as e:
@@ -328,3 +335,51 @@ class CustomFieldsMapper(BaseMapper):
             open_access["landing_page_urls"] = landing_page_urls
 
         return open_access if open_access else None
+
+    def _map_external_ids(
+        self, lens_record: Dict[str, Any]
+    ) -> Optional[List[Dict[str, str]]]:
+        """
+        Map external identifiers from Lens.org.
+
+        Format: [
+            {"type": "doi", "value": "10.1111/disa.12617"},
+            {"type": "pmid", "value": "38098176"},
+            {"type": "pmcid", "value": "PMC11640955"}
+        ]
+
+        Note: OpenAlex IDs are excluded as they're Lens-specific.
+        """
+        external_ids_raw = self.safe_get(lens_record, "external_ids", default=[])
+
+        if not external_ids_raw:
+            return None
+
+        external_ids = []
+
+        for ext_id in external_ids_raw:
+            if not isinstance(ext_id, dict):
+                continue
+
+            id_type = self.safe_get(ext_id, "type", default="").lower()
+            value = self.safe_get(ext_id, "value")
+
+            if not id_type or not value:
+                continue
+
+            # Skip openalex as it's Lens-specific
+            if id_type == "openalex":
+                continue
+
+            # Normalize PMCID to add PMC prefix if missing
+            if id_type == "pmcid":
+                value_str = str(value).strip()
+                if not value_str.upper().startswith("PMC"):
+                    value = f"PMC{value_str}"
+                else:
+                    # Normalize to uppercase PMC prefix
+                    value = "PMC" + value_str[3:]
+
+            external_ids.append({"type": id_type, "value": str(value)})
+
+        return external_ids if external_ids else None

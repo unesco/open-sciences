@@ -1,0 +1,91 @@
+{# 
+  Template for displaying Lens.org External Identifiers
+  Variables available:
+  - field_value: The JSON string containing external IDs data
+  - field_cfg: Configuration for this field
+  
+  Renders a clean list of external identifiers with icons and links
+#}
+
+{%- if field_value -%}
+  {# Parse JSON string to extract identifiers #}
+  {%- set ids = namespace(list=[]) -%}
+  
+  {# Extract all identifiers from JSON array #}
+  {%- if '"type":' in field_value -%}
+    {# Split by objects in array #}
+    {%- for item in field_value.split('{') -%}
+      {%- if '"type":' in item -%}
+        {# Extract type #}
+        {%- set type_part = item.split('"type":')[1].split(',')[0].strip() -%}
+        {%- set id_type = type_part.replace('"', '').strip() -%}
+        
+        {# Extract value #}
+        {%- if '"value":' in item -%}
+          {%- set value_part = item.split('"value":')[1].split('}')[0].split(']')[0].strip() -%}
+          {%- set id_value = value_part.replace('"', '').strip() -%}
+          
+          {%- if id_type and id_value -%}
+            {%- set _ = ids.list.append({'type': id_type, 'value': id_value}) -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- if ids.list -%}
+  <dl class="details-list">
+    <dt class="ui tiny header">External Identifiers</dt>
+    <dd>
+      <div class="ui relaxed divided list">
+        {%- for id in ids.list -%}
+        <div class="item">
+          <i class="large {% if id.type == 'doi' %}linkify{% elif id.type == 'pmid' or id.type == 'pmcid' %}medkit{% elif id.type == 'isbn' %}book{% elif id.type == 'issn' %}newspaper{% else %}tag{% endif %} middle aligned icon"></i>
+          <div class="content">
+            <div class="header">
+              {%- if id.type == 'doi' -%}
+                Digital Object Identifier (DOI)
+              {%- elif id.type == 'pmid' -%}
+                PubMed ID
+              {%- elif id.type == 'pmcid' -%}
+                PubMed Central ID
+              {%- elif id.type == 'isbn' -%}
+                International Standard Book Number
+              {%- elif id.type == 'issn' -%}
+                International Standard Serial Number
+              {%- elif id.type == 'arxiv' -%}
+                arXiv Identifier
+              {%- else -%}
+                {{ id.type | upper }}
+              {%- endif -%}
+            </div>
+            <div class="description">
+              {%- if id.type == 'doi' -%}
+                <a href="https://doi.org/{{ id.value }}" target="_blank" rel="noopener noreferrer" class="external-url">
+                  {{ id.value }}
+                </a>
+              {%- elif id.type == 'pmid' -%}
+                <a href="https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}" target="_blank" rel="noopener noreferrer" class="external-url">
+                  {{ id.value }}
+                </a>
+              {%- elif id.type == 'pmcid' -%}
+                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}" target="_blank" rel="noopener noreferrer" class="external-url">
+                  {{ id.value }}
+                </a>
+              {%- elif id.type == 'arxiv' -%}
+                <a href="https://arxiv.org/abs/{{ id.value }}" target="_blank" rel="noopener noreferrer" class="external-url">
+                  {{ id.value }}
+                </a>
+              {%- else -%}
+                <code>{{ id.value }}</code>
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+        {%- endfor -%}
+      </div>
+    </dd>
+  </dl>
+  {%- endif -%}
+
+{%- endif -%}

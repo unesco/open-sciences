@@ -331,6 +331,10 @@ class LensOrgImporter:
 
         Combines standard fields, custom fields, and related identifiers.
 
+        Note: DOI is mapped as a related_identifier (not PID) because InvenioRDM
+        only accepts PIDs with configured providers (DataCite, Crossref, etc.).
+        External DOIs should remain in related_identifiers.
+
         Args:
             lens_record: Raw Lens.org publication record
 
@@ -346,6 +350,7 @@ class LensOrgImporter:
             metadata["custom_fields"] = custom_fields
 
         # Map related identifiers (optional)
+        # This includes DOI, PMID, ISSN, etc.
         related_identifiers = self.related_mapper.map(lens_record)
         if related_identifiers:
             metadata["related_identifiers"] = related_identifiers
