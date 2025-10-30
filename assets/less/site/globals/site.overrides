@@ -291,23 +291,32 @@ article {
 }
 
 /* ====================
-   FIX: White button icon visibility
+   FIX: Basic button icon visibility
    ==================== */
-/* Fix for copy-to-clipboard and other white buttons */
-.ui.button.white,
-button.ui.button.white {
-  color: #333 !important;
-  
-  i.icon {
-    color: #333 !important;
+/* Fix for copy-to-clipboard and other basic buttons with low contrast icons */
+.ui.basic.button,
+.ui.basic.buttons .button {
+  i.icon, i {
+    color: rgba(0, 0, 0, 0.87) !important;
     opacity: 1 !important;
   }
   
   &:hover {
-    background: #f5f5f5 !important;
-    color: #000 !important;
-    
-    i.icon {
+    i.icon, i {
+      color: #000 !important;
+    }
+  }
+}
+
+/* Specific fix for copy button */
+button.copy.button {
+  i.copy.icon {
+    color: rgba(0, 0, 0, 0.87) !important;
+    opacity: 1 !important;
+  }
+  
+  &:hover {
+    i.copy.icon {
       color: #000 !important;
     }
   }
