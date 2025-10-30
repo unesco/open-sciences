@@ -51,24 +51,8 @@
   <div class="ui divider"></div>
 {% endif %}
 
-{# Subjects #}
-{% if metadata.subjects %}
-  <div class="ui grid">
-    <div class="sixteen wide mobile four wide tablet three wide computer column">
-      <h3 class="ui header">{{ _('Subjects') }}</h3>
-    </div>
-    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
-      <dl class="details-list">
-        {% for subject_item in metadata.subjects %}
-          {% if subject_item.subject %}
-            <dd>{{ subject_item.subject }}</dd>
-          {% endif %}
-        {% endfor %}
-      </dl>
-    </div>
-  </div>
-  <div class="ui divider"></div>
-{% endif %}
+{# Subjects - Card Style #}
+{% include "invenio_app_rdm/records/details/subjects_card.html" %}
 
 {# Languages #}
 {% if metadata.languages %}
@@ -130,58 +114,11 @@
   <div class="ui divider"></div>
 {% endif %}
 
-{# Publisher #}
-{% if metadata.publisher %}
-  <div class="ui grid">
-    <div class="sixteen wide mobile four wide tablet three wide computer column">
-      <h3 class="ui header">{{ _('Publisher') }}</h3>
-    </div>
-    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
-      <dl class="details-list">
-        <dd>{{ metadata.publisher }}</dd>
-      </dl>
-    </div>
-  </div>
-  <div class="ui divider"></div>
-{% endif %}
+{# Publisher - Card Style #}
+{% include "invenio_app_rdm/records/details/publisher_card.html" %}
 
-{# Related identifiers #}
-{% if metadata.related_identifiers %}
-  <div class="ui grid">
-    <div class="sixteen wide mobile four wide tablet three wide computer column">
-      <h3 class="ui header">{{ _('Related works') }}</h3>
-    </div>
-    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
-      <dl class="details-list">
-        {% for rel_id in metadata.related_identifiers %}
-          <dt class="ui tiny header">
-            {% if rel_id.relation_type and rel_id.relation_type.title %}
-              {{ rel_id.relation_type.title.en or rel_id.relation_type.id }}
-            {% endif %}
-          </dt>
-          <dd>
-            {% if rel_id.scheme == 'doi' %}
-              <a href="https://doi.org/{{ rel_id.identifier }}" target="_blank" rel="noopener noreferrer" class="external-url">
-                {{ rel_id.identifier }}
-              </a>
-            {% elif rel_id.scheme == 'pmid' %}
-              <a href="https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}" target="_blank" rel="noopener noreferrer" class="external-url">
-                {{ rel_id.identifier }}
-              </a>
-            {% elif rel_id.scheme == 'url' %}
-              <a href="{{ rel_id.identifier }}" target="_blank" rel="noopener noreferrer" class="external-url">
-                {{ rel_id.identifier }}
-              </a>
-            {% else %}
-              {{ rel_id.identifier }} ({{ rel_id.scheme | upper }})
-            {% endif %}
-          </dd>
-        {% endfor %}
-      </dl>
-    </div>
-  </div>
-  <div class="ui divider"></div>
-{% endif %}
+{# Related identifiers - Card Style #}
+{% include "invenio_app_rdm/records/details/related_works_card.html" %}
 
 {# Funding #}
 {% if metadata.funding %}
@@ -247,11 +184,10 @@
   {% endif %}
 {% endif %}
 
-{# Custom fields - SPECIAL HANDLING FOR LENS.ORG #}
+{# Custom fields - LENS.ORG SECTION (no accordion) #}
 {% if record_ui["custom_fields"] %}
   {%- for section_cfg in custom_fields_ui %}
     {% set section_has_fields = namespace(value=false) %}
-    {% set section_format = section_cfg.section | replace(" ", "-") %}
     {# Show the section if at least one of its fields is in record #}
     {% for field_cfg in section_cfg.fields %}
       {% if record_ui["custom_fields"].get(field_cfg.field) %}
@@ -260,60 +196,50 @@
     {% endfor %}
 
     {% if section_has_fields.value %}
-      <div class="ui fluid accordion padded grid rel-mb-1">
-        <div class="active title sixteen wide mobile four wide tablet three wide computer column">
-          <h3 class="ui header">
-            <div
-              id="custom-fields-accordion-trigger"
-              role="button"
-              tabindex="0"
-              aria-expanded="true"
-              aria-controls="custom-fields-panel"
-              class="trigger"
-            >
-              <i class="caret right icon" aria-hidden="true"></i>{{ section_cfg.section }}
-            </div>
-          </h3>
-        </div>
-        
-        {# SPECIAL HANDLING: Check if this is Lens.org section #}
-        {% if section_cfg.section == "Lens.org" %}
-          {# Full-width content for Lens.org #}
-          <div
-            id="custom-fields-panel"
-            role="region"
-            aria-labelledby="custom-fields-accordion-trigger"
-            class="active content sixteen wide column"
-            style="width: 100% !important; max-width: 100% !important;"
-          >
-            {# Render each field individually #}
-            {% for field_cfg in section_cfg.fields %}
-              {% set field_value = record_ui["custom_fields"].get(field_cfg.field) %}
-              {% if field_value %}
-                {% if field_cfg.template %}
-                  {# Custom template (like lens:open_access) - renders without dl wrapper #}
-                  {% include field_cfg.template %}
-                {% else %}
-                  {# Standard fields - render with dl wrapper #}
-                  <dl class="details-list">
-                    <dt class="ui tiny header">
-                      {{ field_cfg.props.label }}
-                      {% if config.RDM_NAMESPACES.get(field_cfg.field.split(':')[0]) %}
-                        <a href="{{ config.RDM_NAMESPACES[field_cfg.field.split(':')[0]] }}{{ field_cfg.field.split(':')[1] }}" aria-label="{{ config.RDM_NAMESPACES[field_cfg.field.split(':')[0]] }}{{ field_cfg.field.split(':')[1] }}">
-                          <i class="icon external" aria-hidden="true"></i>
-                        </a>
-                      {% endif %}
-                    </dt>
-                    <dd>
-                      <a href="/search?q=custom_fields.{{ field_cfg.field | replace(':', '%5C:') }}:{{ field_value }}">{{ field_value }}</a>
-                    </dd>
-                  </dl>
-                {% endif %}
-              {% endif %}
-            {% endfor %}
+      {# LENS.ORG: Render without accordion, full-width #}
+      {% if section_cfg.section == "Lens.org" %}
+        {# Render each field individually #}
+        {% for field_cfg in section_cfg.fields %}
+          {% set field_value = record_ui["custom_fields"].get(field_cfg.field) %}
+          {% if field_value %}
+            {% if field_cfg.template %}
+              {# Custom template (like lens:open_access) - renders without dl wrapper #}
+              {% include field_cfg.template %}
+            {% else %}
+              {# Standard fields - render with dl wrapper #}
+              <dl class="details-list">
+                <dt class="ui tiny header">
+                  {{ field_cfg.props.label }}
+                  {% if config.RDM_NAMESPACES.get(field_cfg.field.split(':')[0]) %}
+                    <a href="{{ config.RDM_NAMESPACES[field_cfg.field.split(':')[0]] }}{{ field_cfg.field.split(':')[1] }}" aria-label="{{ config.RDM_NAMESPACES[field_cfg.field.split(':')[0]] }}{{ field_cfg.field.split(':')[1] }}">
+                      <i class="icon external" aria-hidden="true"></i>
+                    </a>
+                  {% endif %}
+                </dt>
+                <dd>
+                  <a href="/search?q=custom_fields.{{ field_cfg.field | replace(':', '%5C:') }}:{{ field_value }}">{{ field_value }}</a>
+                </dd>
+              </dl>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {# OTHER SECTIONS: Keep accordion #}
+        <div class="ui fluid accordion padded grid rel-mb-1">
+          <div class="active title sixteen wide mobile four wide tablet three wide computer column">
+            <h3 class="ui header">
+              <div
+                id="custom-fields-accordion-trigger"
+                role="button"
+                tabindex="0"
+                aria-expanded="true"
+                aria-controls="custom-fields-panel"
+                class="trigger"
+              >
+                <i class="caret right icon" aria-hidden="true"></i>{{ section_cfg.section }}
+              </div>
+            </h3>
           </div>
-        {% else %}
-          {# Default handling for non-Lens.org sections #}
           <div
             id="custom-fields-panel"
             role="region"
@@ -324,9 +250,9 @@
               {{ show_section_custom_fields(record_ui["ui"]["custom_fields"], section_cfg.fields) }}
             </dl>
           </div>
-        {% endif %}
-      </div>
-      <div class="ui divider"></div>
+        </div>
+        <div class="ui divider"></div>
+      {% endif %}
     {% endif %}
   {%- endfor %}
 {% endif %}

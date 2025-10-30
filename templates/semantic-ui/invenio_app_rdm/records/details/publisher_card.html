@@ -1,0 +1,38 @@
+{# Template for displaying publisher in card style #}
+{%- if metadata.publisher -%}
+<div class="lens-oa-wrapper">
+  <div class="lens-oa-container">
+    <div class="lens-oa-card lens-oa-bronze">
+      <div class="lens-oa-header" style="background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%); color: white;">
+        <svg class="lens-oa-icon" style="color: white;" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M96 0C60.7 0 32 28.7 32 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H96zM208 288h64c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16H144c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zM512 80c0-8.8-7.2-16-16-16s-16 7.2-16 16v64c0 8.8 7.2 16 16 16s16-7.2 16-16V80zM496 192c-8.8 0-16 7.2-16 16v64c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm16 144c0-8.8-7.2-16-16-16s-16 7.2-16 16v64c0 8.8 7.2 16 16 16s16-7.2 16-16V336z"/>
+        </svg>
+        <h3 class="lens-oa-title" style="color: white;">Publisher</h3>
+        <span class="lens-oa-badge" style="background: rgba(255, 255, 255, 0.25); color: white;">Source</span>
+      </div>
+      
+      <div class="lens-oa-content">
+        <div class="lens-oa-section">
+          <div class="lens-oa-section-title">
+            <i class="building icon"></i>
+            Publishing Organization
+          </div>
+          <div class="lens-oa-links">
+            <a href="/search?q=metadata.publisher:{{ metadata.publisher | urlencode }}" 
+               class="lens-oa-link">
+              <div class="lens-oa-link-left">
+                <i class="industry icon lens-oa-link-icon"></i>
+                <span class="lens-oa-link-text">{{ metadata.publisher }}</span>
+              </div>
+              <span class="lens-oa-link-badge">
+                <i class="search icon"></i>
+                Find more
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{%- endif -%}
