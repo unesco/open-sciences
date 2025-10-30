@@ -321,3 +321,265 @@ button.copy.button {
     }
   }
 }
+
+/* ====================
+   Lens Open Access Component Styling - Compact Version
+   ==================== */
+
+/* Main wrapper */
+.lens-oa-wrapper {
+  margin: 1rem 0;
+}
+
+/* Card container - white background with subtle border */
+.lens-oa-card {
+  background: white;
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: visible !important;
+}
+
+/* Header section - compact */
+.lens-oa-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Open Access icon - inherits color from parent */
+.lens-oa-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+}
+
+/* Title - colored text, no background */
+.lens-oa-title {
+  margin: 0 !important;
+  font-size: 1.25rem;
+  font-weight: 700;
+  flex: 1;
+  line-height: 1.75rem;
+  letter-spacing: -0.02em;
+}
+
+/* Badge - subtle with matching color */
+.lens-oa-badge {
+  padding: 0.3rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Content area - no background, just content */
+.lens-oa-content {
+  padding: 0;
+  overflow: visible !important;
+}
+
+/* Section titles - more compact */
+.lens-oa-section {
+  margin-bottom: 0.75rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.lens-oa-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.65);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  i.icon {
+    margin: 0 !important;
+    line-height: 1;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.7;
+  }
+}
+
+/* License text - compact */
+.lens-oa-license {
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 0.9rem;
+  padding-left: 1.3rem;
+  font-weight: 500;
+}
+
+/* Divider - thinner and lighter */
+.lens-oa-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 0.75rem 0;
+}
+
+/* Links container - tighter spacing */
+.lens-oa-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Individual link - clean, no borders */
+.lens-oa-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  background: rgba(0, 0, 0, 0.02);
+  border: none !important;
+  border-radius: 6px;
+  text-decoration: none !important;
+  transition: all 0.15s ease;
+  
+  &:hover {
+    background: rgba(0, 115, 183, 0.08);
+    transform: translateX(3px);
+  }
+}
+
+/* Left side of link */
+.lens-oa-link-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+/* Link icon - smaller */
+.lens-oa-link-icon {
+  color: #0073b7 !important;
+  font-size: 0.9rem !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  opacity: 0.8;
+}
+
+/* Link text - cleaner */
+.lens-oa-link-text {
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* Link badge - minimal style */
+.lens-oa-link-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(0, 115, 183, 0.1);
+  color: #0073b7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  white-space: nowrap;
+  
+  i.icon {
+    margin: 0 !important;
+    font-size: 0.8rem !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+}
+
+/* Color variants - only title/icon/badge get colors, card stays white */
+.lens-oa-gold {
+  .lens-oa-title,
+  .lens-oa-icon {
+    color: #d97706;
+  }
+  
+  .lens-oa-badge {
+    background: rgba(217, 119, 6, 0.15);
+    color: #d97706;
+  }
+}
+
+.lens-oa-green {
+  .lens-oa-title,
+  .lens-oa-icon {
+    color: #059669;
+  }
+  
+  .lens-oa-badge {
+    background: rgba(5, 150, 105, 0.15);
+    color: #059669;
+  }
+}
+
+.lens-oa-bronze {
+  .lens-oa-title,
+  .lens-oa-icon {
+    color: #92400e;
+  }
+  
+  .lens-oa-badge {
+    background: rgba(146, 64, 14, 0.15);
+    color: #92400e;
+  }
+}
+
+.lens-oa-hybrid {
+  .lens-oa-title,
+  .lens-oa-icon {
+    color: #0284c7;
+  }
+  
+  .lens-oa-badge {
+    background: rgba(2, 132, 199, 0.15);
+    color: #0284c7;
+  }
+}
+
+/* Responsive adjustments */
+@media only screen and (max-width: 768px) {
+  .lens-oa-card {
+    padding: 0.875rem;
+  }
+  
+  .lens-oa-header {
+    gap: 0.6rem;
+  }
+  
+  .lens-oa-title {
+    font-size: 1.1rem;
+  }
+  
+  .lens-oa-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  .lens-oa-link {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0.4rem;
+    padding: 0.5rem 0.6rem;
+  }
+  
+  .lens-oa-link-badge {
+    align-self: flex-start;
+  }
+}
