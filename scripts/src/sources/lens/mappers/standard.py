@@ -92,21 +92,6 @@ class StandardFieldsMapper(BaseMapper):
             if version := self.safe_get(lens_record, "version"):
                 metadata["version"] = str(version)
 
-            # Volume (optional) - for journal articles
-            if volume := self.safe_get(lens_record, "volume"):
-                metadata["volume"] = str(volume)
-
-            # Issue (optional) - for journal articles
-            if issue := self.safe_get(lens_record, "issue"):
-                metadata["issue"] = str(issue)
-
-            # Pages (optional) - start_page and end_page
-            if start_page := self.safe_get(lens_record, "start_page"):
-                pages = str(start_page)
-                if end_page := self.safe_get(lens_record, "end_page"):
-                    pages += f"-{end_page}"
-                metadata["pages"] = pages
-
             # Funding (optional)
             if funding := self._map_funding(lens_record):
                 metadata["funding"] = funding

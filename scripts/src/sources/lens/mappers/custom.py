@@ -98,6 +98,18 @@ class CustomFieldsMapper(BaseMapper):
 
                 custom_fields["lens:scholarly_citations"] = json.dumps(citations_data)
 
+            # Chemical substances
+            chemicals_data = self._map_chemicals(lens_record)
+            if chemicals_data:
+                import json
+
+                custom_fields["lens:chemicals"] = json.dumps(chemicals_data)
+
+            # Journal information (volume, issue, pages)
+            journal_data = self._map_journal(lens_record)
+            if journal_data:
+                custom_fields["journal:journal"] = journal_data
+
             return custom_fields
 
         except Exception as e:
@@ -614,3 +626,108 @@ class CustomFieldsMapper(BaseMapper):
                 citations_data["items"].append({"lens_id": str(citation_id)})
 
         return citations_data if citations_data["count"] > 0 else None
+
+    def _map_chemicals(
+        self, lens_record: Dict[str, Any]
+    ) -> Optional[List[Dict[str, str]]]:
+        """
+        Map chemical substances from Lens.org to custom field.
+
+        Lens.org format:
+        {
+            "chemicals": [
+                {
+                    "substance_name": "Polyethylene",
+                    "registry_number": "9002-88-4",  # CAS Registry Number
+                    "mesh_id": "D020959"             # MeSH ID
+                }
+            ]
+        }
+
+        Returns list of chemical dictionaries with substance_name, registry_number, and mesh_id.
+        """
+        chemicals_data = self.safe_get(lens_record, "chemicals", default=[])
+
+        if not chemicals_data:
+            return None
+
+        chemicals_list = []
+
+        for chemical in chemicals_data:
+            if not isinstance(chemical, dict):
+                continue
+
+            chemical_item = {}
+
+            # Substance name (required)
+            substance_name = self.safe_get(chemical, "substance_name")
+            if substance_name:
+                chemical_item["substance_name"] = substance_name
+
+            # CAS Registry Number (optional)
+            registry_number = self.safe_get(chemical, "registry_number")
+            if registry_number:
+                chemical_item["registry_number"] = registry_number
+
+            # MeSH ID (optional)
+            mesh_id = self.safe_get(chemical, "mesh_id")
+            if mesh_id:
+                chemical_item["mesh_id"] = mesh_id
+
+            # Only add if we have at least the substance name
+            if chemical_item and "substance_name" in chemical_item:
+                chemicals_list.append(chemical_item)
+
+        return chemicals_list if chemicals_list else None
+
+    def _map_journal(self, lens_record: Dict[str, Any]) -> Optional[Dict[str, str]]:
+        """
+        Map journal information from Lens.org to InvenioRDM journal custom field.
+
+        InvenioRDM journal custom field structure:
+        {
+            "title": "Journal title",
+            "issn": "1234-5678",
+            "volume": "15",
+            "issue": "3",
+            "pages": "123-456"
+        }
+
+        Args:
+            lens_record: Raw Lens.org publication record
+
+        Returns:
+            Dictionary with journal information or None if no journal data
+        """
+        journal_data = {}
+
+        # Volume
+        if volume := self.safe_get(lens_record, "volume"):
+            journal_data["volume"] = str(volume)
+
+        # Issue
+        if issue := self.safe_get(lens_record, "issue"):
+            journal_data["issue"] = str(issue)
+
+        # Pages (combine start_page and end_page)
+        if start_page := self.safe_get(lens_record, "start_page"):
+            pages = str(start_page)
+            if end_page := self.safe_get(lens_record, "end_page"):
+                pages += f"-{end_page}"
+            journal_data["pages"] = pages
+
+        # Journal title (from source.title if available)
+        source_data = self.safe_get(lens_record, "source", default={})
+        if isinstance(source_data, dict):
+            if journal_title := self.safe_get(source_data, "title"):
+                journal_data["title"] = journal_title
+
+            # ISSN (from source if available)
+            if issn := self.safe_get(source_data, "issn"):
+                # Handle list of ISSNs
+                if isinstance(issn, list) and issn:
+                    journal_data["issn"] = issn[0]
+                elif isinstance(issn, str):
+                    journal_data["issn"] = issn
+
+        return journal_data if journal_data else None

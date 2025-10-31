@@ -31,6 +31,63 @@
             </a>
           </div>
         </div>
+        
+        {# Publication Details Section - Read from journal custom field #}
+        {%- set journal = record.ui.custom_fields.get('journal:journal', {}) -%}
+        {%- if journal.volume or journal.issue or journal.pages or journal.title -%}
+        <div class="lens-oa-section" style="margin-top: 16px;">
+          <div class="lens-oa-section-title">
+            <i class="book icon"></i>
+            Publication Details
+          </div>
+          <div style="padding: 12px; background: #f8f9fa; border-left: 3px solid #3498DB; border-radius: 4px;">
+            {# Journal title if available #}
+            {%- if journal.title -%}
+            <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #dee2e6;">
+              <div style="font-size: 0.95em; display: flex; align-items: center; gap: 6px;">
+                <i class="newspaper icon" style="color: #3498DB; margin: 0; vertical-align: middle;"></i>
+                <span style="color: #666; font-weight: 500;">Journal:</span>
+                <span style="color: #2c3e50; font-weight: 600;">{{ journal.title }}</span>
+              </div>
+            </div>
+            {%- endif -%}
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.95em;">
+              {%- if journal.volume -%}
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <i class="bookmark icon" style="color: #3498DB; margin: 0; vertical-align: middle;"></i>
+                <span style="color: #666; font-weight: 500;">Volume:</span>
+                <span style="color: #2c3e50; font-weight: 600;">{{ journal.volume }}</span>
+              </div>
+              {%- endif -%}
+              
+              {%- if journal.issue -%}
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <i class="file alternate icon" style="color: #3498DB; margin: 0; vertical-align: middle;"></i>
+                <span style="color: #666; font-weight: 500;">Issue:</span>
+                <span style="color: #2c3e50; font-weight: 600;">{{ journal.issue }}</span>
+              </div>
+              {%- endif -%}
+              
+              {%- if journal.pages -%}
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <i class="file text icon" style="color: #3498DB; margin: 0; vertical-align: middle;"></i>
+                <span style="color: #666; font-weight: 500;">Pages:</span>
+                <span style="color: #2c3e50; font-weight: 600; font-family: monospace;">{{ journal.pages }}</span>
+              </div>
+              {%- endif -%}
+            </div>
+            
+            {# Citation format hint #}
+            {%- if journal.volume and journal.issue and journal.pages -%}
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #dee2e6; font-size: 0.85em; color: #666;">
+              <i class="quote left icon" style="font-size: 0.9em;"></i>
+              <strong>Citation format:</strong> {{ journal.volume }}({{ journal.issue }}):{{ journal.pages }}
+            </div>
+            {%- endif -%}
+          </div>
+        </div>
+        {%- endif -%}
       </div>
     </div>
   </div>

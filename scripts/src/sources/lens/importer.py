@@ -185,6 +185,18 @@ class LensOrgImporter:
             if subjects:
                 self.logger.debug(f"Including {len(subjects)} subjects/keywords")
 
+            # Log publication details (journal custom field)
+            if custom_fields:
+                journal = custom_fields.get("journal:journal")
+                if journal:
+                    volume = journal.get("volume")
+                    issue = journal.get("issue")
+                    pages = journal.get("pages")
+                    journal_title = journal.get("title")
+                    self.logger.info(
+                        f"Journal info - Title: {journal_title}, Volume: {volume}, Issue: {issue}, Pages: {pages}"
+                    )
+
             # Log creators with affiliations
             creators = metadata_dict.get("creators", [])
             creators_with_aff = sum(
