@@ -281,6 +281,44 @@ header.theme.header,
 .jump-to-top {
   bottom: 20px !important;
   margin-bottom: 1rem !important;
+  
+  /* Ant Design style: white background with black text */
+  background-color: #ffffff !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  border: 1px solid #d9d9d9 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 6px !important;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+  
+  /* Icon color */
+  i.icon {
+    color: rgba(0, 0, 0, 0.85) !important;
+  }
+  
+  /* Hover state - Ant Design primary blue tint */
+  &:hover {
+    color: #1890ff !important;
+    border-color: #1890ff !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    
+    i.icon {
+      color: #1890ff !important;
+    }
+  }
+  
+  /* Active/pressed state */
+  &:active {
+    color: #096dd9 !important;
+    border-color: #096dd9 !important;
+  }
+  
+  /* Focus state */
+  &:focus {
+    outline: none !important;
+    border-color: #40a9ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+  }
 }
 
 /* Ensure content doesn't touch footer */
@@ -288,6 +326,66 @@ header.theme.header,
 .main-record-content,
 article {
   margin-bottom: 1rem !important;
+}
+
+/* ====================
+   Ant Design style for standard UI buttons (Export, etc.)
+   ==================== */
+.ui.button:not(.basic):not(.transparent):not(.jump-to-top):not(.labeled):not(.search) {
+  background-color: #ffffff !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  border: 1px solid #d9d9d9 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 6px !important;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+  font-weight: 400 !important;
+  
+  /* Icon color */
+  i.icon {
+    color: rgba(0, 0, 0, 0.85) !important;
+  }
+  
+  /* Hover state - Ant Design primary blue */
+  &:hover {
+    color: #1890ff !important;
+    border-color: #1890ff !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    
+    i.icon {
+      color: #1890ff !important;
+    }
+  }
+  
+  /* Active/pressed state */
+  &:active {
+    color: #096dd9 !important;
+    border-color: #096dd9 !important;
+    background-color: #ffffff !important;
+  }
+  
+  /* Focus state */
+  &:focus {
+    outline: none !important;
+    border-color: #40a9ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+  }
+  
+  /* Disabled state */
+  &.disabled,
+  &:disabled {
+    background-color: #f5f5f5 !important;
+    border-color: #d9d9d9 !important;
+    color: rgba(0, 0, 0, 0.25) !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    
+    &:hover {
+      background-color: #f5f5f5 !important;
+      border-color: #d9d9d9 !important;
+      color: rgba(0, 0, 0, 0.25) !important;
+    }
+  }
 }
 
 /* ====================
