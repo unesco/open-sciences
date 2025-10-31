@@ -120,20 +120,8 @@
 {# Related identifiers - Card Style #}
 {% include "invenio_app_rdm/records/details/related_works_card.html" %}
 
-{# Funding #}
-{% if metadata.funding %}
-  <div class="ui grid">
-    <div class="sixteen wide mobile four wide tablet three wide computer column">
-      <h3 class="ui header">{{ _('Funding') }}</h3>
-    </div>
-    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
-      <dl class="details-list">
-        {{ show_funding(metadata.funding) }}
-      </dl>
-    </div>
-  </div>
-  <div class="ui divider"></div>
-{% endif %}
+{# Funding - Card Style #}
+{% include "invenio_app_rdm/records/details/funding_card.html" %}
 
 {# Locations #}
 {% if metadata.locations %}

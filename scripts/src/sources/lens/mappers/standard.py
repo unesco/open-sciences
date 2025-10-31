@@ -107,6 +107,10 @@ class StandardFieldsMapper(BaseMapper):
                     pages += f"-{end_page}"
                 metadata["pages"] = pages
 
+            # Funding (optional)
+            if funding := self._map_funding(lens_record):
+                metadata["funding"] = funding
+
             return metadata
 
         except Exception as e:
@@ -440,3 +444,66 @@ class StandardFieldsMapper(BaseMapper):
                 "description": {"en": f"License: {license_str}"},
             }
         ]
+
+    def _map_funding(
+        self, lens_record: Dict[str, Any]
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        Map funding information to InvenioRDM funding field.
+
+        Lens.org format:
+        {
+            "funding": [
+                {
+                    "org": "European Commission",
+                    "org_id": "10.13039/501100000780",  # CrossRef Funder ID
+                    "funding_name": "H2020-12345"  # Optional grant number
+                }
+            ]
+        }
+
+        InvenioRDM format:
+        {
+            "funding": [
+                {
+                    "funder": {
+                        "name": "European Commission"
+                        # NOTE: "id" is omitted because InvenioRDM validates
+                        # CrossRef Funder IDs against its vocabulary, and many
+                        # Lens.org IDs are not in the InvenioRDM vocabulary.
+                        # To use IDs, funders must be loaded into the vocabulary first.
+                    },
+                    "award": {
+                        "number": "H2020-12345"
+                    }
+                }
+            ]
+        }
+        """
+        funding_data = self.safe_get(lens_record, "funding", default=[])
+
+        if not funding_data:
+            return None
+
+        funding_list = []
+
+        for fund in funding_data:
+            if not isinstance(fund, dict):
+                continue
+
+            org_name = self.safe_get(fund, "org")
+            if not org_name:
+                continue
+
+            # Use only the funder name, without ID
+            # InvenioRDM validates IDs against its funder vocabulary
+            funding_entry = {"funder": {"name": org_name}}
+
+            # Add award/grant number if available
+            funding_name = self.safe_get(fund, "funding_name")
+            if funding_name:
+                funding_entry["award"] = {"number": funding_name}
+
+            funding_list.append(funding_entry)
+
+        return funding_list if funding_list else None

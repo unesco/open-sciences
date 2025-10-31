@@ -1,0 +1,89 @@
+{# Template for displaying funding in card style #}
+{%- if metadata.funding -%}
+<div class="lens-oa-wrapper">
+  <div class="lens-oa-container">
+    <div class="lens-oa-card lens-oa-hybrid">
+      <div class="lens-oa-header" style="background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%); color: white;">
+        <svg class="lens-oa-icon" style="color: white;" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M512 80c0 18-14.3 34.6-38.4 48c-29.1 16.1-72.5 27.5-122.3 30.9c-3.7-1.8-7.4-3.5-11.3-5C300.6 137.4 248.2 128 192 128c-8.3 0-16.4 .2-24.5 .6l-1.1-.6C142.3 114.6 128 98 128 80c0-44.2 86-80 192-80S512 35.8 512 80zM160.7 161.1c10.2-.7 20.7-1.1 31.3-1.1c62.2 0 117.4 12.3 152.5 31.4C369.3 204.9 384 221.7 384 240c0 4-.7 7.9-2.1 11.7c-4.6 13.2-17 25.3-35 35.5c0 0 0 0 0 0c-.1 .1-.3 .1-.4 .2l0 0 0 0c-.3 .2-.6 .3-.9 .5c-35 19.4-90.8 32-153.6 32c-59.6 0-112.9-11.3-148.2-29.1c-1.9-.9-3.7-1.9-5.5-2.9C14.3 274.6 0 258 0 240c0-34.8 53.4-64.5 128-75.4c10.5-1.5 21.4-2.7 32.7-3.5zM416 240c0-21.9-10.6-39.9-24.1-53.4c28.3-4.4 54.2-11.4 76.2-20.5c16.3-6.8 31.5-15.2 43.9-25.5V176c0 19.3-16.5 37.1-43.8 50.9c-14.6 7.4-32.4 13.7-52.4 18.5c.1-1.8 .2-3.5 .2-5.3zm-32 96c0 18-14.3 34.6-38.4 48c-1.8 1-3.6 1.9-5.5 2.9C304.9 404.7 251.6 416 192 416c-62.8 0-118.6-12.6-153.6-32C14.3 370.6 0 354 0 336V300.6c12.5 10.3 27.6 18.7 43.9 25.5C83.4 342.6 135.8 352 192 352s108.6-9.4 148.1-25.9c7.8-3.2 15.3-6.9 22.4-10.9c6.1-3.4 11.8-7.2 17.2-11.2c1.5-1.1 2.9-2.3 4.3-3.4V304v5.7V336zm32 0V304 278.1c19-4.2 36.5-9.5 52.1-16c16.3-6.8 31.5-15.2 43.9-25.5V272c0 10.5-5 21-14.9 30.9c-16.3 16.3-45 29.7-81.3 38.4c.1-1.7 .2-3.5 .2-5.3zM192 448c56.2 0 108.6-9.4 148.1-25.9c16.3-6.8 31.5-15.2 43.9-25.5V432c0 44.2-86 80-192 80S0 476.2 0 432V396.6c12.5 10.3 27.6 18.7 43.9 25.5C83.4 438.6 135.8 448 192 448z"/>
+        </svg>
+        <h3 class="lens-oa-title" style="color: white;">Funding</h3>
+        <span class="lens-oa-badge" style="background: rgba(255, 255, 255, 0.25); color: white;">{{ metadata.funding | length }}</span>
+      </div>
+      
+      <div class="lens-oa-content">
+        <div class="lens-oa-section">
+          <div class="lens-oa-section-title">
+            <i class="money bill alternate icon"></i>
+            Financial Support
+          </div>
+          <div class="lens-oa-links">
+            {%- for funding_item in metadata.funding -%}
+            <div style="padding: 12px; margin-bottom: 8px; background: #f9f9f9; border-left: 3px solid #3498DB; border-radius: 4px;">
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                {# Funder information #}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <i class="university icon" style="color: #3498DB; font-size: 1.2em;"></i>
+                  <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #333; font-size: 1.05em;">
+                      {{ funding_item.funder.name }}
+                    </div>
+                    {%- if funding_item.funder.id -%}
+                    <div style="font-size: 0.85em; color: #666; font-family: monospace; margin-top: 2px;">
+                      ID: {{ funding_item.funder.id }}
+                    </div>
+                    {%- endif -%}
+                  </div>
+                  <a href="/search?q=metadata.funding.funder.name:{{ funding_item.funder.name | urlencode }}" 
+                     style="color: #3498DB; text-decoration: none; padding: 4px 10px; border: 1px solid #3498DB; border-radius: 4px; font-size: 0.9em; transition: all 0.2s;"
+                     onmouseover="this.style.background='#3498DB'; this.style.color='white';"
+                     onmouseout="this.style.background='transparent'; this.style.color='#3498DB';"
+                     title="Find more records funded by {{ funding_item.funder.name }}">
+                    <i class="search icon"></i>
+                    Find more
+                  </a>
+                </div>
+                
+                {# Award/Grant information #}
+                {%- if funding_item.award -%}
+                <div style="display: flex; align-items: center; gap: 10px; padding-left: 32px;">
+                  <i class="certificate icon" style="color: #f39c12; font-size: 1em;"></i>
+                  <div style="flex: 1;">
+                    {%- if funding_item.award.title -%}
+                    <div style="font-weight: 500; color: #555; font-size: 0.95em;">
+                      {{ funding_item.award.title.en if funding_item.award.title.en else funding_item.award.title }}
+                    </div>
+                    {%- endif -%}
+                    {%- if funding_item.award.number -%}
+                    <div style="font-size: 0.85em; color: #666; margin-top: 2px;">
+                      Grant: <span style="font-family: monospace; font-weight: 500;">{{ funding_item.award.number }}</span>
+                    </div>
+                    {%- endif -%}
+                    {%- if funding_item.award.identifiers -%}
+                    {%- for identifier in funding_item.award.identifiers -%}
+                    <div style="font-size: 0.8em; color: #999; margin-top: 2px;">
+                      {{ identifier.scheme | upper }}: {{ identifier.identifier }}
+                    </div>
+                    {%- endfor -%}
+                    {%- endif -%}
+                  </div>
+                </div>
+                {%- endif -%}
+              </div>
+            </div>
+            {%- endfor -%}
+          </div>
+          
+          {# Info box about funding sources #}
+          {%- if metadata.funding | length > 1 -%}
+          <div style="margin-top: 12px; padding: 10px; background: #e8f4f8; border-radius: 4px; font-size: 0.9em; color: #666;">
+            <i class="info circle icon" style="color: #3498DB;"></i>
+            This research is supported by <strong>{{ metadata.funding | length }}</strong> funding {{ 'sources' if metadata.funding | length > 1 else 'source' }}.
+          </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{%- endif -%}
