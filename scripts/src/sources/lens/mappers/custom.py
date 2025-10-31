@@ -84,6 +84,13 @@ class CustomFieldsMapper(BaseMapper):
 
                 custom_fields["lens:references"] = json.dumps(references_data)
 
+            # MeSH terms (Medical Subject Headings)
+            mesh_data = self._map_mesh_terms(lens_record)
+            if mesh_data:
+                import json
+
+                custom_fields["lens:mesh_terms"] = json.dumps(mesh_data)
+
             return custom_fields
 
         except Exception as e:
@@ -512,3 +519,60 @@ class CustomFieldsMapper(BaseMapper):
                     references_data["items"].append(ref_item)
 
         return references_data if references_data["items"] else None
+
+    def _map_mesh_terms(
+        self, lens_record: Dict[str, Any]
+    ) -> Optional[List[Dict[str, str]]]:
+        """
+        Map MeSH (Medical Subject Headings) terms.
+
+        Format: [
+            {
+                "mesh_heading": "Humans",
+                "mesh_id": "D006801"
+            },
+            {
+                "mesh_heading": "Commerce",
+                "mesh_id": "D003132",
+                "qualifier_name": "organization & administration",
+                "qualifier_id": "Q000458"
+            }
+        ]
+        """
+        mesh_terms_raw = self.safe_get(lens_record, "mesh_terms", default=[])
+
+        if not mesh_terms_raw:
+            return None
+
+        mesh_terms = []
+
+        for term in mesh_terms_raw:
+            if not isinstance(term, dict):
+                continue
+
+            mesh_item = {}
+
+            # Main heading
+            heading = self.safe_get(term, "mesh_heading")
+            if heading:
+                mesh_item["mesh_heading"] = heading
+
+            # MeSH ID (Descriptor)
+            mesh_id = self.safe_get(term, "mesh_id")
+            if mesh_id:
+                mesh_item["mesh_id"] = mesh_id
+
+            # Optional qualifier
+            qualifier_name = self.safe_get(term, "qualifier_name")
+            if qualifier_name:
+                mesh_item["qualifier_name"] = qualifier_name
+
+            # Optional qualifier ID
+            qualifier_id = self.safe_get(term, "qualifier_id")
+            if qualifier_id:
+                mesh_item["qualifier_id"] = qualifier_id
+
+            if mesh_item and "mesh_heading" in mesh_item and "mesh_id" in mesh_item:
+                mesh_terms.append(mesh_item)
+
+        return mesh_terms if mesh_terms else None
