@@ -91,6 +91,13 @@ class CustomFieldsMapper(BaseMapper):
 
                 custom_fields["lens:mesh_terms"] = json.dumps(mesh_data)
 
+            # Scholarly citations (articles citing this work)
+            citations_data = self._map_scholarly_citations(lens_record)
+            if citations_data:
+                import json
+
+                custom_fields["lens:scholarly_citations"] = json.dumps(citations_data)
+
             return custom_fields
 
         except Exception as e:
@@ -576,3 +583,34 @@ class CustomFieldsMapper(BaseMapper):
                 mesh_terms.append(mesh_item)
 
         return mesh_terms if mesh_terms else None
+
+    def _map_scholarly_citations(
+        self, lens_record: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Map scholarly citations (articles citing this work).
+
+        Format: {
+            "count": 4,
+            "items": [
+                {"lens_id": "006-264-642-615-283"},
+                {"lens_id": "084-815-691-268-940"}
+            ]
+        }
+        """
+        citations = self.safe_get(lens_record, "scholarly_citations", default=[])
+        citations_count = self.safe_get(
+            lens_record, "scholarly_citations_count", default=len(citations)
+        )
+
+        if not citations and citations_count == 0:
+            return None
+
+        citations_data = {"count": citations_count, "items": []}
+
+        # Limit to first 10 citations for display
+        for citation_id in citations[:10]:
+            if citation_id:
+                citations_data["items"].append({"lens_id": str(citation_id)})
+
+        return citations_data if citations_data["count"] > 0 else None

@@ -1,0 +1,106 @@
+{# 
+  Template for displaying Scholarly Citations (articles citing this work)
+  Variables available:
+  - field_value: The JSON string containing citations data
+  - field_cfg: Configuration for this field
+#}
+
+{%- if field_value -%}
+  {# Parse JSON string to extract citations information #}
+  {%- set cites = namespace(
+    count=0,
+    items=[]
+  ) -%}
+  
+  {# Extract count #}
+  {%- if '"count":' in field_value -%}
+    {%- set count_part = field_value.split('"count":')[1].split(',')[0].strip() -%}
+    {%- set cites.count = count_part | int -%}
+  {%- endif -%}
+  
+  {# Extract items (citing articles) #}
+  {%- if '"items":' in field_value -%}
+    {%- set items_list = namespace(citations=[]) -%}
+    {%- for item in field_value.split('{') -%}
+      {%- if '"lens_id":' in item -%}
+        {%- set lens_id = item.split('"lens_id":')[1].split('"')[1].strip() if '"lens_id":' in item else '' -%}
+        {%- if lens_id -%}
+          {%- set _ = items_list.citations.append({'lens_id': lens_id}) -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- set cites.items = items_list.citations -%}
+  {%- endif -%}
+
+<div class="lens-oa-wrapper">
+  <div class="lens-oa-container">
+    <div class="lens-oa-card lens-oa-gold">
+      <div class="lens-oa-header" style="background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%); color: white;">
+        <svg class="lens-oa-icon" style="color: white;" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M448 80v48c0 44.2-100.3 80-224 80S0 172.2 0 128V80C0 35.8 100.3 0 224 0S448 35.8 448 80zM393.2 214.7c20.8-7.4 39.9-16.9 54.8-28.6V288c0 44.2-100.3 80-224 80S0 332.2 0 288V186.1c14.9 11.8 34 21.2 54.8 28.6C99.7 230.7 159.5 240 224 240s124.3-9.3 169.2-25.3zM0 346.1c14.9 11.8 34 21.2 54.8 28.6C99.7 390.7 159.5 400 224 400s124.3-9.3 169.2-25.3c20.8-7.4 39.9-16.9 54.8-28.6V432c0 44.2-100.3 80-224 80S0 476.2 0 432V346.1z"/>
+        </svg>
+        <h3 class="lens-oa-title" style="color: white;">Scholarly Citations</h3>
+        <span class="lens-oa-badge" style="background: rgba(255, 255, 255, 0.25); color: white;">{{ cites.count }}</span>
+      </div>
+      
+      <div class="lens-oa-content">
+        <div class="lens-oa-section">
+          <div class="lens-oa-section-title">
+            <i class="quote right icon"></i>
+            Citing Articles
+          </div>
+          
+          {%- if cites.items -%}
+          <div style="margin-top: 12px;">
+            {%- for citation in cites.items -%}
+            <div style="padding: 12px; margin-bottom: 8px; background: #f9f9f9; border-left: 3px solid #3498DB; border-radius: 4px;">
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <div style="flex-shrink: 0;">
+                  <a href="https://www.lens.org/lens/scholar/article/{{ citation.lens_id }}/main" 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     style="color: #3498DB; font-size: 1.2em; transition: all 0.2s; text-decoration: none;"
+                     onmouseover="this.style.color='#2980B9'; this.style.transform='scale(1.1)';"
+                     onmouseout="this.style.color='#3498DB'; this.style.transform='scale(1)';"
+                     title="View on Lens.org">
+                    <i class="external alternate icon" style="margin: 0;"></i>
+                  </a>
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-size: 0.85em; color: #666; font-family: monospace;">
+                    {{ citation.lens_id }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {%- endfor -%}
+            
+            {%- if cites.count > 10 -%}
+            <div style="margin-top: 16px; padding: 12px; background: #e8f4f8; border-radius: 4px; text-align: center;">
+              <i class="info circle icon" style="color: #3498DB;"></i>
+              <span style="color: #666; font-size: 0.9em;">
+                Showing first 10 of {{ cites.count }} citing articles. 
+                <a href="https://www.lens.org/lens/scholar/article/{{ record.custom_fields.get('lens:id', '') }}/main#citations" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   style="color: #3498DB; font-weight: 500; text-decoration: none;">
+                  View all on Lens.org
+                  <i class="external alternate icon" style="font-size: 0.85em;"></i>
+                </a>
+              </span>
+            </div>
+            {%- endif -%}
+          </div>
+          {%- else -%}
+          <div style="margin-top: 12px; padding: 12px; background: #f9f9f9; border-radius: 4px; text-align: center; color: #666;">
+            <i class="info circle icon"></i>
+            No citation details available
+          </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{%- endif -%}
