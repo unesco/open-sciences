@@ -1,4 +1,7 @@
-{%- extends "invenio_theme/page.html" %} {%- block head_links %} {{ super() }}
+{%- extends "invenio_theme/page.html" %} 
+
+{%- block head_links %} 
+{{ super() }}
 <!-- Custom favicon -->
 <link
   rel="icon"
@@ -14,4 +17,23 @@
   href="{{ url_for('static', filename='images/favicon.ico') }}"
   color="#0073b7"
 />
+
+<!-- Custom CSS to hide duplicate sidebar sections -->
+<style>
+  /* Hide the default "Keywords and subjects" sidebar section */
+  #keywords-and-subjects {
+    display: none !important;
+  }
+  
+  /* Hide the default "Details" sidebar section */
+  #record-details {
+    display: none !important;
+  }
+  
+  /* Also hide their parent containers */
+  .sidebar-container:has(#keywords-and-subjects),
+  .sidebar-container:has(#record-details) {
+    display: none !important;
+  }
+</style>
 {%- endblock head_links %}

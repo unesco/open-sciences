@@ -1,0 +1,41 @@
+{#
+  Custom override of sidebar sections
+  We've moved Keywords/Subjects and Details into custom cards in the main content area
+  So we hide the default sidebar sections by only including the templates we want
+#}
+
+{# Manage menu - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/manage_menu.html" ignore missing %}
+
+{# Metrics section - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/metrics.html" ignore missing %}
+
+{# Versions section - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/versions.html" ignore missing %}
+
+{# External resources - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/external_resources.html" ignore missing %}
+
+{# Communities section - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/communities.html" ignore missing %}
+
+{# Keywords and subjects section - HIDE IT (we have our custom card) #}
+{# {% include "invenio_app_rdm/records/details/side_bar/keywords_subjects.html" ignore missing %} #}
+
+{# Details section - HIDE IT (we have our custom card) #}
+{# {% include "invenio_app_rdm/records/details/side_bar/details.html" ignore missing %} #}
+
+{# Locations - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/locations.html" ignore missing %}
+
+{# Licenses - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/licenses.html" ignore missing %}
+
+{# Citations section - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/citations.html" ignore missing %}
+
+{# Export section - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/export.html" ignore missing %}
+
+{# Technical metadata / Upload info section - keep it #}
+{% include "invenio_app_rdm/records/details/side_bar/technical_metadata.html" ignore missing %}
