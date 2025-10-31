@@ -180,7 +180,7 @@
   margin: 8px 0;
 }
 
-/* Color variants based on OA type */
+/* Color variants - Open Access cards keep their original border colors */
 .lens-oa-gold .lens-oa-header {
   background: linear-gradient(to right, #fff9c4, #ffffff);
 }
