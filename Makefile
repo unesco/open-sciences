@@ -40,6 +40,37 @@ help:
 	@echo "  scripts-shell        - Open an interactive shell in the scripts container"
 	@echo "  scripts-help         - Show scripts microservice help and examples"
 	@echo ""
+	@echo "Docker Deployment Commands (Full Stack):"
+	@echo "  docker-build         - Build production Docker image"
+	@echo "  docker-up            - Start full dockerized stack (all services)"
+	@echo "  docker-down          - Stop dockerized stack"
+	@echo "  docker-init          - Initialize database in Docker"
+	@echo "  docker-demo          - Create demo data in Docker"
+	@echo "  docker-restart       - Restart the stack"
+	@echo "  docker-logs          - View logs from all services"
+	@echo "  docker-logs-service  - View logs from specific service (SERVICE=name)"
+	@echo "  docker-shell         - Open bash shell in web-ui container"
+	@echo "  docker-exec          - Execute command in container (CMD='command')"
+	@echo "  docker-status        - Check status of all containers"
+	@echo "  docker-clean         - Stop and remove all volumes (destructive!)"
+	@echo "  docker-release       - Build, tag and push to registry"
+	@echo ""
+	@echo "Kind (Local Kubernetes) Commands:"
+	@echo "  kind-check           - Check if Kind, kubectl and helm are installed"
+	@echo "  kind-create          - Create local Kind cluster with Ingress"
+	@echo "  kind-load-image      - Build and load Docker image into Kind"
+	@echo "  kind-deploy          - Deploy InvenioRDM using Helm"
+	@echo "  kind-init            - Initialize database and create demo data"
+	@echo "  kind-up              - Complete setup (create + load + deploy + init)"
+	@echo "  kind-status          - Check deployment status"
+	@echo "  kind-logs            - View application logs"
+	@echo "  kind-shell           - Open shell in web-ui pod"
+	@echo "  kind-port-forward    - Forward port 5000 to localhost"
+	@echo "  kind-restart         - Restart all deployments"
+	@echo "  kind-clean           - Remove deployment (keep cluster)"
+	@echo "  kind-delete          - Delete entire Kind cluster"
+	@echo "  kind-down            - Complete teardown (clean + delete)"
+	@echo ""
 	@echo "Usage: make [command]"
 	@echo "Example: make scripts-run CMD='python -m src.tools.search -q test'"
 	@echo "Example: make scripts-import-csv FILE='data/sample_records.csv'"
@@ -452,3 +483,420 @@ scripts-help:
 	@echo "  INVENIO_TOKEN    - API Bearer token (automatically generated)"
 	@echo ""
 	@echo "📖 For more details, see scripts/README.md"
+
+#
+# ============================================================================
+# DOCKER COMMANDS - Full Dockerized Deployment
+# ============================================================================
+#
+
+.PHONY: docker-build docker-up docker-down docker-restart docker-logs docker-clean docker-build-production
+
+# Docker image name and tag
+DOCKER_IMAGE_NAME ?= sc-openscience
+DOCKER_IMAGE_TAG ?= latest
+DOCKER_REGISTRY ?= # Set your registry here (e.g., registry.example.com)
+
+# Build the Docker image for production
+docker-build:
+	@echo "🐳 Building Docker image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
+	@echo "📦 This will install all dependencies and build assets..."
+	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) \
+		--build-arg PIPENV_INSTALL_DEV=false \
+		-f Dockerfile .
+	@echo "✅ Docker image built successfully!"
+	@echo "🏷️  Image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
+
+# Build development image (includes dev dependencies)
+docker-build-dev:
+	@echo "🐳 Building development Docker image..."
+	docker build -t $(DOCKER_IMAGE_NAME):dev \
+		--build-arg PIPENV_INSTALL_DEV=true \
+		-f Dockerfile .
+	@echo "✅ Development Docker image built!"
+
+# Start full dockerized stack (all services + application)
+docker-up:
+	@echo "🚀 Starting full dockerized InvenioRDM stack..."
+	@echo "📋 This includes: Frontend, Web-UI, Web-API, Worker, Scheduler, and all backend services"
+	@if [ ! -f "$(PWD)/.env" ]; then \
+		echo "⚠️  Warning: .env file not found. Creating from .invenio..."; \
+		cp .invenio .env; \
+	fi
+	@if ! docker image inspect $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) >/dev/null 2>&1; then \
+		echo "🔨 Image not found. Building..."; \
+		$(MAKE) docker-build; \
+	fi
+	docker compose -f docker-compose.full.yml up -d
+	@echo ""
+	@echo "✅ Stack is starting up!"
+	@echo "🌐 Frontend will be available at:"
+	@echo "   - HTTP:  http://localhost"
+	@echo "   - HTTPS: https://localhost"
+	@echo ""
+	@echo "📊 Backend services:"
+	@echo "   - OpenSearch Dashboards: http://localhost:5601"
+	@echo "   - RabbitMQ Management:   http://localhost:15672 (guest/guest)"
+	@echo "   - PgAdmin:               http://localhost:5050"
+	@echo ""
+	@echo "📝 View logs with: make docker-logs"
+	@echo "🛑 Stop with: make docker-down"
+
+# Initialize the database in Docker
+docker-init:
+	@echo "🔧 Initializing InvenioRDM database in Docker..."
+	docker compose -f docker-compose.full.yml exec web-ui invenio db init
+	docker compose -f docker-compose.full.yml exec web-ui invenio db create
+	docker compose -f docker-compose.full.yml exec web-ui invenio index init
+	docker compose -f docker-compose.full.yml exec web-ui invenio index queue init purge
+	docker compose -f docker-compose.full.yml exec web-ui invenio files location create --default 'default-location' /opt/invenio/var/instance/data
+	docker compose -f docker-compose.full.yml exec web-ui invenio roles create admin
+	docker compose -f docker-compose.full.yml exec web-ui invenio access allow superuser-access role admin
+	@echo "✅ Database initialized!"
+
+# Create demo data in Docker
+docker-demo:
+	@echo "📚 Creating demo data in Docker..."
+	docker compose -f docker-compose.full.yml exec web-ui invenio rdm-records demo
+	@echo "✅ Demo data created!"
+
+# Stop the dockerized stack
+docker-down:
+	@echo "🛑 Stopping dockerized stack..."
+	docker compose -f docker-compose.full.yml down
+	@echo "✅ Stack stopped!"
+
+# Stop and remove volumes (destructive!)
+docker-clean:
+	@echo "🧹 Stopping and cleaning Docker stack..."
+	@echo "⚠️  This will remove all volumes (data will be lost)!"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		docker compose -f docker-compose.full.yml down -v; \
+		echo "✅ Stack cleaned!"; \
+	else \
+		echo "❌ Cancelled."; \
+	fi
+
+# Restart the stack
+docker-restart:
+	@echo "🔄 Restarting dockerized stack..."
+	$(MAKE) docker-down
+	$(MAKE) docker-up
+
+# View logs
+docker-logs:
+	@echo "📜 Showing logs (Ctrl+C to exit)..."
+	docker compose -f docker-compose.full.yml logs -f
+
+# View logs for specific service
+docker-logs-service:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "❌ Please specify SERVICE. Example: make docker-logs-service SERVICE=web-ui"; \
+		echo "Available services: web-ui, web-api, worker, scheduler, frontend, db, search, cache, mq"; \
+		exit 1; \
+	fi
+	docker compose -f docker-compose.full.yml logs -f $(SERVICE)
+
+# Execute command in web-ui container
+docker-exec:
+	@if [ -z "$(CMD)" ]; then \
+		echo "❌ Please specify CMD. Example: make docker-exec CMD='invenio shell'"; \
+		exit 1; \
+	fi
+	docker compose -f docker-compose.full.yml exec web-ui $(CMD)
+
+# Open bash shell in web-ui container
+docker-shell:
+	@echo "🐚 Opening shell in web-ui container..."
+	docker compose -f docker-compose.full.yml exec web-ui bash
+
+# Check status of all containers
+docker-status:
+	@echo "📊 Docker stack status:"
+	docker compose -f docker-compose.full.yml ps
+
+# Tag image for registry
+docker-tag:
+	@if [ -z "$(DOCKER_REGISTRY)" ]; then \
+		echo "❌ Please set DOCKER_REGISTRY. Example: make docker-tag DOCKER_REGISTRY=registry.example.com"; \
+		exit 1; \
+	fi
+	@echo "🏷️  Tagging image for registry..."
+	docker tag $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
+	@echo "✅ Tagged: $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
+
+# Push image to registry
+docker-push:
+	@if [ -z "$(DOCKER_REGISTRY)" ]; then \
+		echo "❌ Please set DOCKER_REGISTRY. Example: make docker-push DOCKER_REGISTRY=registry.example.com"; \
+		exit 1; \
+	fi
+	@echo "📤 Pushing image to registry..."
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
+	@echo "✅ Image pushed!"
+
+# Build and push (complete workflow for CI/CD)
+docker-release: docker-build docker-tag docker-push
+	@echo "🎉 Release complete!"
+	@echo "📦 Image available at: $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
+
+#
+# ============================================================================
+# KIND (Kubernetes in Docker) - Local K8s Cluster
+# ============================================================================
+#
+
+.PHONY: kind-check kind-create kind-delete kind-load-image kind-deploy kind-init kind-status kind-logs kind-shell kind-port-forward kind-restart kind-clean
+
+# Kind cluster name
+KIND_CLUSTER_NAME ?= unesco-rdm
+KIND_CONFIG ?= k8s/kind-config.yaml
+
+# Check if Kind is installed
+kind-check:
+	@echo "🔍 Checking Kind installation..."
+	@if ! command -v kind &> /dev/null; then \
+		echo "❌ Kind is not installed!"; \
+		echo ""; \
+		echo "📥 Install Kind:"; \
+		echo "  macOS:   brew install kind"; \
+		echo "  Linux:   curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64"; \
+		echo "           chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind"; \
+		echo "  Windows: choco install kind"; \
+		echo ""; \
+		echo "📚 More info: https://kind.sigs.k8s.io/docs/user/quick-start/#installation"; \
+		exit 1; \
+	fi
+	@if ! command -v kubectl &> /dev/null; then \
+		echo "❌ kubectl is not installed!"; \
+		echo ""; \
+		echo "📥 Install kubectl:"; \
+		echo "  macOS:   brew install kubectl"; \
+		echo "  Linux:   See https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@if ! command -v helm &> /dev/null; then \
+		echo "❌ Helm is not installed!"; \
+		echo ""; \
+		echo "📥 Install Helm:"; \
+		echo "  macOS:   brew install helm"; \
+		echo "  Linux:   See https://helm.sh/docs/intro/install/"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@echo "✅ All required tools installed!"
+	@echo "   - kind:    $$(kind version | head -1)"
+	@echo "   - kubectl: $$(kubectl version --client --short 2>/dev/null || kubectl version --client)"
+	@echo "   - helm:    $$(helm version --short)"
+
+# Create Kind cluster
+kind-create: kind-check
+	@echo "🚀 Creating Kind cluster: $(KIND_CLUSTER_NAME)"
+	@if kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
+		echo "⚠️  Cluster '$(KIND_CLUSTER_NAME)' already exists"; \
+		echo "   Use 'make kind-delete' to remove it first"; \
+		exit 1; \
+	fi
+	@echo "📋 Using config: $(KIND_CONFIG)"
+	@mkdir -p /tmp/kind-data-1 /tmp/kind-data-2
+	kind create cluster --name $(KIND_CLUSTER_NAME) --config $(KIND_CONFIG)
+	@echo ""
+	@echo "✅ Cluster created successfully!"
+	@echo ""
+	@echo "📊 Cluster info:"
+	kubectl cluster-info --context kind-$(KIND_CLUSTER_NAME)
+	@echo ""
+	@echo "🔧 Installing Ingress NGINX..."
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+	@echo "⏳ Waiting for Ingress NGINX to be ready..."
+	kubectl wait --namespace ingress-nginx \
+		--for=condition=ready pod \
+		--selector=app.kubernetes.io/component=controller \
+		--timeout=120s || echo "⚠️  Timeout waiting for ingress - it may need more time"
+	@echo ""
+	@echo "✅ Kind cluster ready!"
+	@echo "   Context: kind-$(KIND_CLUSTER_NAME)"
+
+# Delete Kind cluster
+kind-delete:
+	@echo "🗑️  Deleting Kind cluster: $(KIND_CLUSTER_NAME)"
+	@if ! kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
+		echo "⚠️  Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
+		exit 0; \
+	fi
+	kind delete cluster --name $(KIND_CLUSTER_NAME)
+	@echo "✅ Cluster deleted!"
+	@rm -rf /tmp/kind-data-1 /tmp/kind-data-2 || true
+
+# Build and load image into Kind
+kind-load-image: kind-check
+	@echo "🐳 Building Docker image for Kind..."
+	@if ! kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
+		echo "❌ Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
+		echo "   Run 'make kind-create' first"; \
+		exit 1; \
+	fi
+	@echo "📦 Building image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
+	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) -f Dockerfile .
+	@echo ""
+	@echo "📥 Loading image into Kind cluster..."
+	kind load docker-image $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) --name $(KIND_CLUSTER_NAME)
+	@echo "✅ Image loaded into Kind cluster!"
+
+# Deploy InvenioRDM on Kind
+kind-deploy: kind-check
+	@echo "🚀 Deploying InvenioRDM on Kind..."
+	@if ! kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
+		echo "❌ Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
+		echo "   Run 'make kind-create' first"; \
+		exit 1; \
+	fi
+	@echo "🔧 Setting up Helm repositories..."
+	helm repo add invenio https://inveniosoftware.github.io/helm-invenio/ || true
+	helm repo add bitnami https://charts.bitnami.com/bitnami || true
+	helm repo update
+	@echo ""
+	@echo "📦 Creating namespace..."
+	kubectl create namespace unesco-rdm --dry-run=client -o yaml | kubectl apply -f -
+	kubectl config set-context --current --namespace=unesco-rdm
+	@echo ""
+	@echo "🔐 Creating secrets..."
+	kubectl create secret generic unesco-rdm-secrets \
+		--from-literal=SECRET_KEY=$$(openssl rand -hex 32) \
+		--from-literal=SECURITY_LOGIN_SALT=$$(openssl rand -hex 32) \
+		--from-literal=SQLALCHEMY_DATABASE_URI="postgresql://invenio:invenio123@postgresql:5432/invenio" \
+		--from-literal=CELERY_BROKER_URL="amqp://invenio:invenio123@rabbitmq:5672/" \
+		--from-literal=CACHE_REDIS_URL="redis://redis:6379/0" \
+		--namespace=unesco-rdm \
+		--dry-run=client -o yaml | kubectl apply -f - || true
+	@echo ""
+	@echo "📋 Deploying with Helm..."
+	@echo "⚠️  Note: This deployment uses the official Helm chart with custom values."
+	@echo "   Some features may not work exactly as expected in local Kind environment."
+	@echo ""
+	helm upgrade --install unesco-rdm invenio/invenio \
+		--namespace unesco-rdm \
+		--create-namespace \
+		--values k8s/values-kind.yaml \
+		--wait \
+		--timeout 10m || \
+		(echo ""; \
+		 echo "⚠️  Helm install/upgrade encountered issues."; \
+		 echo "   This is normal for the first deployment."; \
+		 echo "   Check status with: make kind-status"; \
+		 echo "   View logs with: make kind-logs")
+	@echo ""
+	@echo "✅ Deployment command completed!"
+	@echo ""
+	@echo "📊 Checking deployment status..."
+	@$(MAKE) kind-status
+
+# Initialize database in Kind
+kind-init: kind-check
+	@echo "🔧 Initializing InvenioRDM database..."
+	@echo "⏳ Waiting for web-ui pod to be ready..."
+	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=web-ui --timeout=300s -n unesco-rdm || \
+		(echo "⚠️  Timeout waiting for pod. Checking current status:"; kubectl get pods -n unesco-rdm)
+	@echo ""
+	@echo "📦 Running database initialization..."
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- invenio db init || echo "⚠️  db init may have failed (might be ok if already initialized)"
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- invenio db create || echo "⚠️  db create may have failed (might be ok if already created)"
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- invenio index init || echo "⚠️  index init may have failed"
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- invenio index queue init purge || echo "⚠️  queue init may have failed"
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- invenio files location create --default 'default-location' /opt/invenio/var/instance/data || echo "⚠️  files location may have failed"
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- invenio roles create admin || echo "⚠️  roles create may have failed (might be ok if already exists)"
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- invenio access allow superuser-access role admin || echo "⚠️  access allow may have failed"
+	@echo ""
+	@echo "✅ Database initialization completed!"
+	@echo ""
+	@echo "🎨 Creating demo data (optional)..."
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- invenio rdm-records demo || echo "⚠️  Demo data creation may have failed"
+	@echo ""
+	@echo "✅ Initialization complete!"
+
+# Check Kind deployment status
+kind-status: kind-check
+	@echo "📊 Checking Kind cluster status..."
+	@echo ""
+	@echo "🔍 Cluster nodes:"
+	kubectl get nodes
+	@echo ""
+	@echo "📦 Pods in unesco-rdm namespace:"
+	kubectl get pods -n unesco-rdm -o wide
+	@echo ""
+	@echo "🌐 Services:"
+	kubectl get svc -n unesco-rdm
+	@echo ""
+	@echo "📋 Ingress:"
+	kubectl get ingress -n unesco-rdm
+	@echo ""
+	@echo "💾 Persistent Volume Claims:"
+	kubectl get pvc -n unesco-rdm
+
+# View logs from Kind deployment
+kind-logs: kind-check
+	@echo "📜 Showing logs from web-ui pod..."
+	@echo "   (Press Ctrl+C to exit)"
+	kubectl logs -f -l app.kubernetes.io/name=web-ui -n unesco-rdm --all-containers=true || \
+		kubectl logs -f deployment/unesco-rdm-web-ui -n unesco-rdm
+
+# Open shell in web-ui pod
+kind-shell: kind-check
+	@echo "🐚 Opening shell in web-ui pod..."
+	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- bash
+
+# Port forward to access locally
+kind-port-forward: kind-check
+	@echo "🌐 Setting up port forwarding..."
+	@echo "   Local access: http://localhost:5000"
+	@echo "   Press Ctrl+C to stop"
+	kubectl port-forward -n unesco-rdm service/unesco-rdm-web-ui 5000:5000
+
+# Restart deployment
+kind-restart: kind-check
+	@echo "🔄 Restarting deployments..."
+	kubectl rollout restart deployment -n unesco-rdm
+	@echo "✅ Restart triggered!"
+	@echo "⏳ Waiting for rollout to complete..."
+	kubectl rollout status deployment/unesco-rdm-web-ui -n unesco-rdm || true
+
+# Clean up Kind deployment (keep cluster)
+kind-clean: kind-check
+	@echo "🧹 Cleaning up Kind deployment..."
+	@read -p "This will delete the Helm release. Continue? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		helm uninstall unesco-rdm -n unesco-rdm || echo "Release not found"; \
+		kubectl delete namespace unesco-rdm || echo "Namespace not found"; \
+		echo "✅ Cleanup complete!"; \
+	else \
+		echo "❌ Cancelled."; \
+	fi
+
+# Complete Kind setup (create cluster, load image, deploy, init)
+kind-up: kind-create kind-load-image kind-deploy kind-init
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Kind cluster fully set up!"
+	@echo "=========================================="
+	@echo ""
+	@echo "🌐 Access methods:"
+	@echo "   1. Via Ingress:      http://localhost"
+	@echo "   2. Via port-forward: make kind-port-forward (then http://localhost:5000)"
+	@echo ""
+	@echo "📊 Useful commands:"
+	@echo "   Status:  make kind-status"
+	@echo "   Logs:    make kind-logs"
+	@echo "   Shell:   make kind-shell"
+	@echo "   Restart: make kind-restart"
+	@echo ""
+	@echo "🛑 To stop:"
+	@echo "   Clean up: make kind-clean"
+	@echo "   Delete:   make kind-delete"
+
+# Complete Kind teardown
+kind-down: kind-clean kind-delete
+	@echo "✅ Kind cluster completely removed!"

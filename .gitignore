@@ -104,4 +104,9 @@ docker-compose.override.yml
 .env.local
 .env.*.local
 
+# Kubernetes secrets (NEVER COMMIT!)
+.k8s-secrets
+k8s/values-production.local.yaml
+k8s/secrets/
+
 private/*

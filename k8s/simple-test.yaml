@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unesco-rdm-simple
+  namespace: unesco-rdm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unesco-rdm
+  template:
+    metadata:
+      labels:
+        app: unesco-rdm
+    spec:
+      containers:
+        - name: invenio
+          image: sc-openscience:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+          env:
+            - name: FLASK_ENV
+              value: "development"
+            - name: INVENIO_SECRET_KEY
+              value: "test-secret-key"
+          command:
+            [
+              "bash",
+              "-c",
+              "echo 'Starting InvenioRDM server...' && invenio run --host=0.0.0.0 --port=5000 --debug",
+            ]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unesco-rdm-simple
+  namespace: unesco-rdm
+spec:
+  selector:
+    app: unesco-rdm
+  ports:
+    - port: 80
+      targetPort: 5000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: unesco-rdm-simple
+  namespace: unesco-rdm
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: unesco-rdm-simple
+                port:
+                  number: 80

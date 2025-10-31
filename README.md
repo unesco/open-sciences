@@ -388,3 +388,154 @@ make stop-all
 - Increase Docker Desktop memory allocation in Settings → Resources
 - Close other memory-intensive applications
 - Consider upgrading your system RAM
+
+---
+
+## 🚀 Production Deployment
+
+### Docker Deployment (Local Testing)
+
+Build and run the complete stack with Docker:
+
+```bash
+# Build production Docker image
+make docker-build
+
+# Start full stack (all services + application)
+make docker-up
+
+# Initialize database
+make docker-init
+
+# View logs
+make docker-logs
+
+# Stop stack
+make docker-down
+```
+
+**Available services:**
+
+- Frontend: http://localhost (Nginx)
+- OpenSearch Dashboards: http://localhost:5601
+- RabbitMQ Management: http://localhost:15672
+
+For more details, see [Docker Commands](#docker-commands) section.
+
+### Kubernetes Deployment
+
+For production deployment on Kubernetes:
+
+1. **Prerequisites**: Kubernetes cluster, Helm 3.8+, kubectl configured
+2. **Setup**: Run initialization script
+3. **Deploy**: Use Helm charts
+4. **Initialize**: Set up database and indices
+
+```bash
+# Quick start
+cd k8s
+./setup.sh
+
+# Deploy
+helm install unesco-rdm invenio/invenio -f k8s/values-production.yaml
+
+# Initialize
+kubectl exec -it deployment/unesco-rdm-web-ui -- invenio db init
+```
+
+📚 **Full Documentation**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for:
+
+- Complete Kubernetes setup guide
+- Helm charts configuration
+- Docker image building and registry push
+- Monitoring and troubleshooting
+- Production best practices
+
+📁 **Kubernetes Files**: See [k8s/README.md](./k8s/README.md) for:
+
+- values-production.yaml configuration
+- Setup scripts
+- Common kubectl commands
+- Troubleshooting tips
+
+---
+
+## 🐳 Docker Commands
+
+The Makefile includes comprehensive Docker commands for full stack deployment:
+
+### Building Images
+
+```bash
+# Build production image
+make docker-build
+
+# Build development image (includes dev dependencies)
+make docker-build-dev
+
+# Build, tag, and push to registry (CI/CD workflow)
+make docker-release DOCKER_REGISTRY=registry.example.com
+```
+
+### Running Stack
+
+```bash
+# Start complete dockerized stack
+make docker-up
+
+# Initialize database in Docker
+make docker-init
+
+# Create demo data
+make docker-demo
+
+# Restart stack
+make docker-restart
+
+# Stop stack
+make docker-down
+
+# Stop and remove all volumes (⚠️ destructive!)
+make docker-clean
+```
+
+### Monitoring
+
+```bash
+# View logs from all services
+make docker-logs
+
+# View logs from specific service
+make docker-logs-service SERVICE=web-ui
+# Available services: web-ui, web-api, worker, scheduler, frontend, db, search, cache, mq
+
+# Check status of containers
+make docker-status
+
+# Execute command in container
+make docker-exec CMD="invenio shell"
+
+# Open bash shell
+make docker-shell
+```
+
+### Registry Operations
+
+```bash
+# Tag image for registry
+make docker-tag DOCKER_REGISTRY=registry.example.com
+
+# Push to registry
+make docker-push DOCKER_REGISTRY=registry.example.com
+
+# Complete release workflow
+make docker-release DOCKER_REGISTRY=registry.example.com
+```
+
+**Environment Variables:**
+
+- `DOCKER_IMAGE_NAME`: Image name (default: sc-openscience)
+- `DOCKER_IMAGE_TAG`: Image tag (default: latest)
+- `DOCKER_REGISTRY`: Docker registry URL
+
+---

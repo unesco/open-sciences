@@ -1,0 +1,321 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: unesco-rdm
+---
+# Redis Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: unesco-rdm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          command: ["redis-server"]
+          args: ["--appendonly", "yes"]
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: unesco-rdm
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+# PostgreSQL Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  namespace: unesco-rdm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: postgres:15
+          env:
+            - name: POSTGRES_DB
+              value: "unesco_rdm"
+            - name: POSTGRES_USER
+              value: "unesco_rdm"
+            - name: POSTGRES_PASSWORD
+              value: "unesco_rdm_password"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgresql-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgresql-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  namespace: unesco-rdm
+spec:
+  selector:
+    app: postgresql
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+# OpenSearch Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch
+  namespace: unesco-rdm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      containers:
+        - name: opensearch
+          image: opensearchproject/opensearch:2.11.1
+          env:
+            - name: discovery.type
+              value: "single-node"
+            - name: DISABLE_SECURITY_PLUGIN
+              value: "true"
+            - name: OPENSEARCH_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+          ports:
+            - containerPort: 9200
+            - containerPort: 9300
+          volumeMounts:
+            - name: opensearch-data
+              mountPath: /usr/share/opensearch/data
+      volumes:
+        - name: opensearch-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch
+  namespace: unesco-rdm
+spec:
+  selector:
+    app: opensearch
+  ports:
+    - name: http
+      port: 9200
+      targetPort: 9200
+    - name: transport
+      port: 9300
+      targetPort: 9300
+---
+# ConfigMap for InvenioRDM configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: invenio-config
+  namespace: unesco-rdm
+data:
+  invenio.cfg: |
+    # Database configuration
+    SQLALCHEMY_DATABASE_URI = "postgresql://unesco_rdm:unesco_rdm_password@postgresql:5432/unesco_rdm"
+
+    # Redis configuration
+    CACHE_REDIS_URL = "redis://redis:6379/0"
+    ACCOUNTS_SESSION_REDIS_URL = "redis://redis:6379/1"
+    BROKER_URL = "redis://redis:6379/2"
+    CELERY_RESULT_BACKEND = "redis://redis:6379/2"
+    RATELIMIT_STORAGE_URL = "redis://redis:6379/3"
+
+    # Search configuration
+    SEARCH_HOSTS = [{"host": "opensearch", "port": 9200}]
+    SEARCH_CLIENT_CONFIG = {"timeout": 30, "max_retries": 5}
+
+    # Security
+    SECRET_KEY = "super-secret-key-change-me-in-production"
+    SECURITY_PASSWORD_SALT = "super-secret-salt-change-me-in-production"
+
+    # Application configuration
+    PREFERRED_URL_SCHEME = "http"
+    SERVER_NAME = "localhost:5000"
+
+    # Files configuration  
+    FILES_REST_STORAGE_FACTORY = "invenio_files_rest.storage.pyfs:pyfs_storage_factory"
+    FILES_REST_DEFAULT_STORAGE_CLASS = "S"
+
+    # Disable some features for development
+    MAIL_SUPPRESS_SEND = True
+    WTF_CSRF_ENABLED = False
+---
+# InvenioRDM Application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unesco-rdm
+  namespace: unesco-rdm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unesco-rdm
+  template:
+    metadata:
+      labels:
+        app: unesco-rdm
+    spec:
+      initContainers:
+        # Wait for PostgreSQL to be ready
+        - name: wait-for-postgresql
+          image: postgres:15
+          command: ["sh", "-c"]
+          args:
+            - |
+              until pg_isready -h postgresql -p 5432 -U unesco_rdm; do
+                echo "Waiting for PostgreSQL to be ready..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+        # Wait for Redis to be ready
+        - name: wait-for-redis
+          image: redis:7-alpine
+          command: ["sh", "-c"]
+          args:
+            - |
+              until redis-cli -h redis -p 6379 ping; do
+                echo "Waiting for Redis to be ready..."
+                sleep 2
+              done
+              echo "Redis is ready!"
+        # Wait for OpenSearch to be ready
+        - name: wait-for-opensearch
+          image: curlimages/curl:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              until curl -f http://opensearch:9200/_cluster/health; do
+                echo "Waiting for OpenSearch to be ready..."
+                sleep 5
+              done
+              echo "OpenSearch is ready!"
+      containers:
+        - name: unesco-rdm
+          image: sc-openscience:latest
+          imagePullPolicy: Never
+          env:
+            - name: INVENIO_INSTANCE_PATH
+              value: "/opt/invenio/var/instance"
+          ports:
+            - containerPort: 5000
+          command: ["bash", "-c"]
+          args:
+            - |
+              echo "Initializing InvenioRDM..."
+              # Create instance directory
+              mkdir -p /opt/invenio/var/instance
+
+              # Copy configuration
+              cp /etc/invenio/invenio.cfg /opt/invenio/var/instance/
+
+              # Initialize database
+              echo "Creating database tables..."
+              invenio db init create
+
+              # Create search indices
+              echo "Creating search indices..."
+              invenio index init --force
+
+              # Collect and build static files
+              echo "Collecting static files..."
+              invenio collect -v
+              echo "Building webpack assets..."
+              invenio webpack buildall
+
+              # Load demo data (optional)
+              echo "Loading demo data..."
+              invenio rdm-records demo || echo "Demo data loading failed, continuing..."
+
+              echo "Starting InvenioRDM web server..."
+              invenio run --host=0.0.0.0 --port=5000 --debug
+          volumeMounts:
+            - name: invenio-config
+              mountPath: /etc/invenio
+            - name: invenio-data
+              mountPath: /opt/invenio/var
+      volumes:
+        - name: invenio-config
+          configMap:
+            name: invenio-config
+        - name: invenio-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unesco-rdm
+  namespace: unesco-rdm
+spec:
+  selector:
+    app: unesco-rdm
+  ports:
+    - port: 5000
+      targetPort: 5000
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: unesco-rdm-ingress
+  namespace: unesco-rdm
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: unesco-rdm
+                port:
+                  number: 5000
