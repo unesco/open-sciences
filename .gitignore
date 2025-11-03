@@ -47,6 +47,9 @@ coverage.xml
 *.mo
 *.pot
 
+# Kind cluster configuration with secrets
+scripts/config/.env.kind
+
 # Django stuff:
 *.log
 
