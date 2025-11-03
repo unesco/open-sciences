@@ -242,48 +242,87 @@ spec:
           env:
             - name: INVENIO_INSTANCE_PATH
               value: "/opt/invenio/var/instance"
+            - name: INVENIO_SQLALCHEMY_DATABASE_URI
+              value: "postgresql://unesco_rdm:unesco_rdm_password@postgresql:5432/unesco_rdm"
+            - name: INVENIO_CACHE_REDIS_URL
+              value: "redis://redis:6379/0"
+            - name: INVENIO_ACCOUNTS_SESSION_REDIS_URL
+              value: "redis://redis:6379/1"
+            - name: INVENIO_BROKER_URL
+              value: "redis://redis:6379/2"
+            - name: INVENIO_CELERY_RESULT_BACKEND
+              value: "redis://redis:6379/2"
+            - name: INVENIO_RATELIMIT_STORAGE_URL
+              value: "redis://redis:6379/3"
+            - name: INVENIO_SEARCH_HOSTS
+              value: '[{"host": "opensearch", "port": 9200}]'
+            - name: INVENIO_SECRET_KEY
+              value: "super-secret-key-change-me-in-production"
+            - name: INVENIO_SECURITY_PASSWORD_SALT
+              value: "super-secret-salt-change-me-in-production"
+            - name: INVENIO_SERVER_NAME
+              value: "localhost:5000"
           ports:
             - containerPort: 5000
           command: ["bash", "-c"]
           args:
             - |
-              echo "Initializing InvenioRDM..."
+              echo "🚀 Initializing UNESCO InvenioRDM..."
+
               # Create instance directory
               mkdir -p /opt/invenio/var/instance
 
-              # Copy configuration
-              cp /etc/invenio/invenio.cfg /opt/invenio/var/instance/
+              echo "📋 Copying custom configuration and files..."
+              # Use the REAL invenio.cfg from source (with custom fields!)
+              cp -v /opt/invenio/src/invenio.cfg /opt/invenio/var/instance/ || cp /etc/invenio/invenio.cfg /opt/invenio/var/instance/
+
+              # Copy custom Jinja templates (BEFORE invenio collect)
+              echo "📄 Copying custom Jinja templates..."
+              mkdir -p /opt/invenio/var/instance/templates
+              cp -rv /opt/invenio/src/templates/* /opt/invenio/var/instance/templates/ 2>/dev/null || true
+
+              # Copy static files (BEFORE invenio collect)
+              echo "🖼️  Copying custom static files..."
+              mkdir -p /opt/invenio/var/instance/static
+              cp -rv /opt/invenio/src/static/* /opt/invenio/var/instance/static/ 2>/dev/null || true
 
               # Initialize database
-              echo "Creating database tables..."
+              echo "🗄️  Creating database tables..."
               invenio db init create
 
               # Create search indices
-              echo "Creating search indices..."
+              echo "🔍 Creating search indices..."
               invenio index init --force
 
-              # Collect and build static files
-              echo "Collecting static files..."
+              # Collect static files from blueprints
+              echo "📦 Collecting static files from blueprints..."
               invenio collect -v
-              
-              # Copy custom assets AFTER collect (which recreates the assets directory)
-              echo "Copying custom templates and styles..."
+
+              # Copy custom webpack assets AFTER collect (which recreates the assets directory)
+              echo "⚙️  Copying custom webpack assets..."
               mkdir -p /opt/invenio/var/instance/assets/templates/custom_fields
               mkdir -p /opt/invenio/var/instance/assets/less
+              mkdir -p /opt/invenio/var/instance/assets/js
               cp -rv /opt/invenio/src/assets/templates/* /opt/invenio/var/instance/assets/templates/ 2>/dev/null || true
               cp -rv /opt/invenio/src/assets/less/* /opt/invenio/var/instance/assets/less/ 2>/dev/null || true
-              echo "Custom assets copied. Verifying:"
+              cp -rv /opt/invenio/src/assets/js/* /opt/invenio/var/instance/assets/js/ 2>/dev/null || true
+
+              echo "✅ Verification - Custom assets structure:"
+              echo "Templates:"
+              ls -la /opt/invenio/var/instance/templates/ | head -10
+              echo "Webpack templates:"
               ls -la /opt/invenio/var/instance/assets/templates/
+              echo "LESS styles:"
               ls -la /opt/invenio/var/instance/assets/less/
-              
-              echo "Building webpack assets..."
+
+              echo "🔨 Building webpack assets..."
               invenio webpack buildall
 
               # Load demo data (optional)
-              echo "Loading demo data..."
-              invenio rdm-records demo || echo "Demo data loading failed, continuing..."
+              echo "📚 Loading demo data..."
+              invenio rdm-records demo || echo "⚠️  Demo data loading failed, continuing..."
 
-              echo "Starting InvenioRDM web server..."
+              echo "🌐 Starting InvenioRDM web server..."
               invenio run --host=0.0.0.0 --port=5000 --debug
           volumeMounts:
             - name: invenio-config
