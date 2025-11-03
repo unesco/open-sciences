@@ -1,0 +1,144 @@
+Invenio is ready to rock 🚀
+
+Your release is named {{ .Release.Name }}.
+
+{{- if .Values.invenio.extra_config}}
+
+DEPRECATION WARNING:
+    `invenio.extra_config` has been renamed to `invenio.extraConfig` and will be
+    removed in a future release.
+
+{{- end }}
+
+{{- if .Values.invenio.sentry.existing_secret }}
+
+DEPRECATION WARNING:
+    `invenio.sentry.existing_secret` has been renamed to `invenio.sentry.existingSecret`
+    and its type has changed from boolean to string.
+    This key will be removed in a future release.
+
+{{- end }}
+
+{{- if .Values.invenio.sentry.secret_name }}
+
+DEPRECATION WARNING:
+    `invenio.sentry.secret_name` has been removed in favor of
+    `invenio.sentry.existingSecret` will be removed in a future release.
+
+{{- end }}
+
+{{- if or .Values.invenio.secret_key .Values.invenio.security_login_salt .Values.invenio.csrf_secret_salt }}
+
+DEPRECATION WARNING:
+    `invenio.secret_key`, `invenio.security_login_salt`, and `invenio.csrf_secret_salt`
+     have been deprecated and will be removed in future releases. Please use
+     `invenio.existingSecret` to set their values or let the chart generate random ones
+     for you.
+
+{{- end }}
+
+{{- if .Values.invenio.existing_secret }}
+
+DEPRECATION WARNING:
+    `invenio.existing_secret` has been removed in favor of
+    `invenio.existingSecret` and it will be removed in a future release.
+
+{{- end }}
+
+{{- if .Values.invenio.datacite.existing_secret }}
+
+DEPRECATION WARNING:
+    `invenio.datacite.existing_secret` has been renamed to `invenio.datacite.existingSecret`
+    and its type has changed from boolean to string.
+    This key will be removed in a future release.
+
+{{- end }}
+
+{{- if .Values.invenio.datacite.secret_name }}
+
+DEPRECATION WARNING:
+    `invenio.datacite.secret_name` has been renamed in favor of
+    `invenio.datacite.existingSecret` will be removed in a future release.
+
+{{- end }}
+
+{{/*
+BEGIN: Warning on unset resources.
+*/}}
+
+{{- $fieldsToCheckForResources := list
+"flower"
+"kerberos"
+"nginx"
+"web"
+"worker"
+"workerBeat"
+-}}
+
+{{- $fieldsWithResourcesUnset := list -}}
+
+{{- range $fieldsToCheckForResources -}}
+    {{- $path := splitList "." . -}}
+    {{- $values := $.Values -}}
+    {{- range $path -}}
+        {{- $values = index $values . -}}
+    {{- end -}}
+    {{- if or (not (hasKey $values "enabled")) $values.enabled -}}
+        {{- if not $values.resources -}}
+            {{ $fieldsWithResourcesUnset = append $fieldsWithResourcesUnset . -}}
+        {{- end -}}
+        {{- if (and $values.initContainers (not $values.initContainers.resources)) -}}
+            {{ $fieldsWithResourcesUnset = append $fieldsWithResourcesUnset (print . ".initContainers") -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+{{- with $fieldsWithResourcesUnset }}
+
+💡 MISSING RESOURCES: It seems like `resources` is unset for one or more containers. We strongly recommend that you set them. The `resources` field is unset in the following places:
+
+{{- "\n" -}}
+{{ range . }}
+.Values.{{ . }}
+{{- end }}
+
+You can read more about resource management in Kubernetes here:
+https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+
+{{- end }}
+
+{{/*
+END: Warning on unset resources.
+*/}}
+
+{{- if .Values.invenio.extra_env_from_secret }}
+
+DEPRECATION WARNING:
+    `invenio.extra_env_from_secret` will be removed in future a release.
+    Use `invenio.extraEnvFrom` or `invenio.extraEnvVars` instead.
+
+{{- end }}
+
+{{- if or .Values.web.image .Values.worker.image  }}
+
+DEPRECATION WARNING:
+    `<service>.image` has been removed in favor of `image` and it will be
+    removed in a future release.
+
+{{- end }}
+
+{{- if or .Values.web.imagePullSecret .Values.worker.imagePullSecret }}
+
+DEPRECATION WARNING:
+    `<service>.imagePullSecret` has been removed in favor of
+    `image.pullSecrets` and it will be removed in a future release.
+
+{{- end }}
+
+{{- if .Values.nginx.extra_server_config }}
+
+DEPRECATION WARNING:
+    `nginx.extra_server_config` has been renamed and will be removed in a future release.
+    Please use  `nginx.extraEnvFrom` instead.
+
+{{- end }}

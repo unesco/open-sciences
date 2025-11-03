@@ -71,9 +71,19 @@ help:
 	@echo "  kind-delete          - Delete entire Kind cluster"
 	@echo "  kind-down            - Complete teardown (clean + delete)"
 	@echo ""
+	@echo "Kind Scripts Commands (Data Import for Kind Cluster):"
+	@echo "  kind-scripts-setup-env      - Setup scripts environment for Kind"
+	@echo "  kind-scripts-import-csv     - Import CSV to Kind (FILE='...')"
+	@echo "  kind-scripts-import-lens    - Import Lens data to Kind (FILE='...')"
+	@echo "  kind-scripts-import-zenodo  - Import Zenodo to Kind (RECORD_ID/QUERY)"
+	@echo "  kind-scripts-reset          - Delete all + import to Kind"
+	@echo "  kind-scripts-delete-all     - Delete all records from Kind"
+	@echo "  kind-scripts-shell          - Shell in scripts container (Kind)"
+	@echo ""
 	@echo "Usage: make [command]"
 	@echo "Example: make scripts-run CMD='python -m src.tools.search -q test'"
 	@echo "Example: make scripts-import-csv FILE='data/sample_records.csv'"
+	@echo "Example: make kind-scripts-reset LENS='src/sources/lens/data/publications.json'"
 
 # Initialize the project
 init:
@@ -288,7 +298,7 @@ scripts-import-csv:
 		echo "  make scripts-import-csv FILE='data/records.csv' OPTS='--skip-errors --verbose'"; \
 		exit 1; \
 	fi
-	@CMD="python -m src.sources.csv --file $(FILE)"; \
+	@CMD="python -m src.sources.csv --file $(FILE:src/%=/project/%)"; \
 	if [ -n "$(OPTS)" ]; then \
 		CMD="$$CMD $(OPTS)"; \
 	fi; \
@@ -381,7 +391,7 @@ scripts-import-lens:
 		echo "  make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10 --verbose'"; \
 		exit 1; \
 	fi
-	@CMD="python -m src.sources.lens --file $(FILE)"; \
+	@CMD="python -m src.sources.lens --file $(FILE:src/%=/project/%)"; \
 	if [ -n "$(OPTS)" ]; then \
 		CMD="$$CMD $(OPTS)"; \
 	fi; \
@@ -483,164 +493,6 @@ scripts-help:
 	@echo "  INVENIO_TOKEN    - API Bearer token (automatically generated)"
 	@echo ""
 	@echo "📖 For more details, see scripts/README.md"
-
-#
-# ============================================================================
-# DOCKER COMMANDS - Full Dockerized Deployment
-# ============================================================================
-#
-
-.PHONY: docker-build docker-up docker-down docker-restart docker-logs docker-clean docker-build-production
-
-# Docker image name and tag
-DOCKER_IMAGE_NAME ?= sc-openscience
-DOCKER_IMAGE_TAG ?= latest
-DOCKER_REGISTRY ?= # Set your registry here (e.g., registry.example.com)
-
-# Build the Docker image for production
-docker-build:
-	@echo "🐳 Building Docker image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
-	@echo "📦 This will install all dependencies and build assets..."
-	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) \
-		--build-arg PIPENV_INSTALL_DEV=false \
-		-f Dockerfile .
-	@echo "✅ Docker image built successfully!"
-	@echo "🏷️  Image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
-
-# Build development image (includes dev dependencies)
-docker-build-dev:
-	@echo "🐳 Building development Docker image..."
-	docker build -t $(DOCKER_IMAGE_NAME):dev \
-		--build-arg PIPENV_INSTALL_DEV=true \
-		-f Dockerfile .
-	@echo "✅ Development Docker image built!"
-
-# Start full dockerized stack (all services + application)
-docker-up:
-	@echo "🚀 Starting full dockerized InvenioRDM stack..."
-	@echo "📋 This includes: Frontend, Web-UI, Web-API, Worker, Scheduler, and all backend services"
-	@if [ ! -f "$(PWD)/.env" ]; then \
-		echo "⚠️  Warning: .env file not found. Creating from .invenio..."; \
-		cp .invenio .env; \
-	fi
-	@if ! docker image inspect $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) >/dev/null 2>&1; then \
-		echo "🔨 Image not found. Building..."; \
-		$(MAKE) docker-build; \
-	fi
-	docker compose -f docker-compose.full.yml up -d
-	@echo ""
-	@echo "✅ Stack is starting up!"
-	@echo "🌐 Frontend will be available at:"
-	@echo "   - HTTP:  http://localhost"
-	@echo "   - HTTPS: https://localhost"
-	@echo ""
-	@echo "📊 Backend services:"
-	@echo "   - OpenSearch Dashboards: http://localhost:5601"
-	@echo "   - RabbitMQ Management:   http://localhost:15672 (guest/guest)"
-	@echo "   - PgAdmin:               http://localhost:5050"
-	@echo ""
-	@echo "📝 View logs with: make docker-logs"
-	@echo "🛑 Stop with: make docker-down"
-
-# Initialize the database in Docker
-docker-init:
-	@echo "🔧 Initializing InvenioRDM database in Docker..."
-	docker compose -f docker-compose.full.yml exec web-ui invenio db init
-	docker compose -f docker-compose.full.yml exec web-ui invenio db create
-	docker compose -f docker-compose.full.yml exec web-ui invenio index init
-	docker compose -f docker-compose.full.yml exec web-ui invenio index queue init purge
-	docker compose -f docker-compose.full.yml exec web-ui invenio files location create --default 'default-location' /opt/invenio/var/instance/data
-	docker compose -f docker-compose.full.yml exec web-ui invenio roles create admin
-	docker compose -f docker-compose.full.yml exec web-ui invenio access allow superuser-access role admin
-	@echo "✅ Database initialized!"
-
-# Create demo data in Docker
-docker-demo:
-	@echo "📚 Creating demo data in Docker..."
-	docker compose -f docker-compose.full.yml exec web-ui invenio rdm-records demo
-	@echo "✅ Demo data created!"
-
-# Stop the dockerized stack
-docker-down:
-	@echo "🛑 Stopping dockerized stack..."
-	docker compose -f docker-compose.full.yml down
-	@echo "✅ Stack stopped!"
-
-# Stop and remove volumes (destructive!)
-docker-clean:
-	@echo "🧹 Stopping and cleaning Docker stack..."
-	@echo "⚠️  This will remove all volumes (data will be lost)!"
-	@read -p "Are you sure? [y/N] " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		docker compose -f docker-compose.full.yml down -v; \
-		echo "✅ Stack cleaned!"; \
-	else \
-		echo "❌ Cancelled."; \
-	fi
-
-# Restart the stack
-docker-restart:
-	@echo "🔄 Restarting dockerized stack..."
-	$(MAKE) docker-down
-	$(MAKE) docker-up
-
-# View logs
-docker-logs:
-	@echo "📜 Showing logs (Ctrl+C to exit)..."
-	docker compose -f docker-compose.full.yml logs -f
-
-# View logs for specific service
-docker-logs-service:
-	@if [ -z "$(SERVICE)" ]; then \
-		echo "❌ Please specify SERVICE. Example: make docker-logs-service SERVICE=web-ui"; \
-		echo "Available services: web-ui, web-api, worker, scheduler, frontend, db, search, cache, mq"; \
-		exit 1; \
-	fi
-	docker compose -f docker-compose.full.yml logs -f $(SERVICE)
-
-# Execute command in web-ui container
-docker-exec:
-	@if [ -z "$(CMD)" ]; then \
-		echo "❌ Please specify CMD. Example: make docker-exec CMD='invenio shell'"; \
-		exit 1; \
-	fi
-	docker compose -f docker-compose.full.yml exec web-ui $(CMD)
-
-# Open bash shell in web-ui container
-docker-shell:
-	@echo "🐚 Opening shell in web-ui container..."
-	docker compose -f docker-compose.full.yml exec web-ui bash
-
-# Check status of all containers
-docker-status:
-	@echo "📊 Docker stack status:"
-	docker compose -f docker-compose.full.yml ps
-
-# Tag image for registry
-docker-tag:
-	@if [ -z "$(DOCKER_REGISTRY)" ]; then \
-		echo "❌ Please set DOCKER_REGISTRY. Example: make docker-tag DOCKER_REGISTRY=registry.example.com"; \
-		exit 1; \
-	fi
-	@echo "🏷️  Tagging image for registry..."
-	docker tag $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
-	@echo "✅ Tagged: $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
-
-# Push image to registry
-docker-push:
-	@if [ -z "$(DOCKER_REGISTRY)" ]; then \
-		echo "❌ Please set DOCKER_REGISTRY. Example: make docker-push DOCKER_REGISTRY=registry.example.com"; \
-		exit 1; \
-	fi
-	@echo "📤 Pushing image to registry..."
-	docker push $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
-	@echo "✅ Image pushed!"
-
-# Build and push (complete workflow for CI/CD)
-docker-release: docker-build docker-tag docker-push
-	@echo "🎉 Release complete!"
-	@echo "📦 Image available at: $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
 
 #
 # ============================================================================
@@ -900,3 +752,147 @@ kind-up: kind-create kind-load-image kind-deploy kind-init
 # Complete Kind teardown
 kind-down: kind-clean kind-delete
 	@echo "✅ Kind cluster completely removed!"
+
+#============================================================================
+# Kind Scripts Commands - Data Import for Kind Cluster
+#============================================================================
+
+.PHONY: kind-scripts-setup-env kind-scripts-import-csv kind-scripts-import-lens kind-scripts-import-zenodo kind-scripts-reset kind-scripts-delete-all kind-scripts-shell
+
+# Configure scripts environment for Kind cluster
+kind-scripts-setup-env:
+	@echo "🔧 Setting up scripts environment for Kind cluster..."
+	@echo "Creating Kind-specific .env file..."
+	@mkdir -p scripts/config
+	@echo "# Environment Configuration for InvenioRDM Scripts - Kind Cluster" > scripts/config/.env.kind
+	@echo "# Automatically generated for Kind deployment" >> scripts/config/.env.kind
+	@echo "" >> scripts/config/.env.kind
+	@echo "# InvenioRDM Instance Configuration" >> scripts/config/.env.kind
+	@echo "# Access Kind cluster via port-forward or localhost" >> scripts/config/.env.kind
+	@echo "INVENIO_BASE_URL=http://localhost:5000" >> scripts/config/.env.kind
+	@echo "" >> scripts/config/.env.kind
+	@echo "# API Authentication - Token from Kind cluster" >> scripts/config/.env.kind
+	@echo "# Note: You need to get a token from the Kind cluster" >> scripts/config/.env.kind
+	@echo "# Run: kubectl exec -n unesco-rdm deployment/unesco-rdm -- invenio tokens create -n kind-scripts -u admin@demo.org" >> scripts/config/.env.kind
+	@echo "INVENIO_TOKEN=REPLACE_WITH_TOKEN_FROM_KIND" >> scripts/config/.env.kind
+	@echo "" >> scripts/config/.env.kind
+	@echo "# Optional configurations" >> scripts/config/.env.kind
+	@echo "DEFAULT_RESOURCE_TYPE=dataset" >> scripts/config/.env.kind
+	@echo "DEFAULT_ACCESS_LEVEL=public" >> scripts/config/.env.kind
+	@echo "LOG_LEVEL=INFO" >> scripts/config/.env.kind
+	@echo ""
+	@echo "✅ Created scripts/config/.env.kind"
+	@echo ""
+	@echo "⚠️  Important: You need to generate an API token from Kind cluster:"
+	@echo "   1. Make sure port-forward is running: make kind-port-forward"
+	@echo "   2. Get a token:"
+	@echo "      kubectl exec -n unesco-rdm deployment/unesco-rdm -- invenio tokens create -n kind-scripts -u user@demo.org"
+	@echo "   3. Update scripts/config/.env.kind with the token"
+	@echo ""
+
+# Import from CSV to Kind cluster
+kind-scripts-import-csv:
+	@echo "📥 Importing records from CSV to Kind cluster..."
+	@if [ -z "$(FILE)" ]; then \
+		echo "❌ Error: FILE parameter required"; \
+		echo "Usage:"; \
+		echo "  make kind-scripts-import-csv FILE='src/sources/csv/data/publications.csv'"; \
+		echo "  make kind-scripts-import-csv FILE='data/records.csv' OPTS='--dry-run'"; \
+		exit 1; \
+	fi
+	@CMD="python -m src.sources.csv --file $(FILE:src/%=/project/%)"; \
+	if [ -n "$(OPTS)" ]; then \
+		CMD="$$CMD $(OPTS)"; \
+	fi; \
+	docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli $$CMD
+
+# Import from Lens.org to Kind cluster
+kind-scripts-import-lens:
+	@echo "🔬 Importing from Lens.org to Kind cluster..."
+	@if [ -z "$(FILE)" ]; then \
+		echo "❌ Error: FILE parameter required"; \
+		echo "Usage:"; \
+		echo "  make kind-scripts-import-lens FILE='src/sources/lens/data/publications.json'"; \
+		echo "  make kind-scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'"; \
+		exit 1; \
+	fi
+	@CMD="python -m src.sources.lens --file /project/$(FILE)"; \
+	if [ -n "$(OPTS)" ]; then \
+		CMD="$$CMD $(OPTS)"; \
+	fi; \
+	docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli $$CMD
+
+# Import from Zenodo to Kind cluster
+kind-scripts-import-zenodo:
+	@echo "📡 Importing from Zenodo to Kind cluster..."
+	@if [ -z "$(RECORD_ID)" ] && [ -z "$(QUERY)" ]; then \
+		echo "❌ Error: RECORD_ID or QUERY parameter required"; \
+		echo "Usage:"; \
+		echo "  make kind-scripts-import-zenodo RECORD_ID='17462748'"; \
+		echo "  make kind-scripts-import-zenodo QUERY='climate data' MAX=5"; \
+		exit 1; \
+	fi
+	@if [ -n "$(RECORD_ID)" ]; then \
+		docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --record-id $(RECORD_ID) $(OPTS); \
+	elif [ -n "$(QUERY)" ]; then \
+		if [ -n "$(MAX)" ]; then \
+			docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(QUERY)" --max-results $(MAX) $(OPTS); \
+		else \
+			docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(QUERY)" $(OPTS); \
+		fi; \
+	fi
+
+# Delete all records from Kind cluster
+kind-scripts-delete-all:
+	@echo "🗑️  Deleting all records from Kind cluster..."
+	@docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.tools.cleanup $(OPTS)
+
+# Reset and import data to Kind cluster
+kind-scripts-reset:
+	@echo "🔄 Resetting Kind cluster records..."
+	@if [ -z "$(CSV)" ] && [ -z "$(LENS)" ] && [ -z "$(ZENODO_ID)" ] && [ -z "$(ZENODO_QUERY)" ]; then \
+		echo "❌ Error: Source parameter required"; \
+		echo "Usage:"; \
+		echo "  CSV:    make kind-scripts-reset CSV='data/publications.csv'"; \
+		echo "  Lens:   make kind-scripts-reset LENS='src/sources/lens/data/publications.json'"; \
+		echo "  Zenodo: make kind-scripts-reset ZENODO_ID='17462748'"; \
+		echo "  Zenodo: make kind-scripts-reset ZENODO_QUERY='climate data' MAX=5"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "📋 Step 1/2: Deleting all existing records from Kind cluster..."
+	@docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.tools.cleanup --confirm
+	@echo ""
+	@echo "📋 Step 2/2: Importing fresh records to Kind cluster..."
+	@if [ -n "$(CSV)" ]; then \
+		echo "📥 Importing from CSV: $(CSV)"; \
+		CMD="python -m src.sources.csv --file $(CSV)"; \
+		if [ -n "$(OPTS)" ]; then \
+			CMD="$$CMD $(OPTS)"; \
+		fi; \
+		docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli $$CMD; \
+	elif [ -n "$(LENS)" ]; then \
+		echo "🔬 Importing from Lens: $(LENS)"; \
+		CMD="python -m src.sources.lens --file $(LENS)"; \
+		if [ -n "$(OPTS)" ]; then \
+			CMD="$$CMD $(OPTS)"; \
+		fi; \
+		docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli $$CMD; \
+	elif [ -n "$(ZENODO_ID)" ]; then \
+		echo "📡 Importing from Zenodo record: $(ZENODO_ID)"; \
+		docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --record-id $(ZENODO_ID) $(OPTS); \
+	elif [ -n "$(ZENODO_QUERY)" ]; then \
+		echo "📡 Importing from Zenodo search: $(ZENODO_QUERY)"; \
+		if [ -n "$(MAX)" ]; then \
+			docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" --max-results $(MAX) $(OPTS); \
+		else \
+			docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" $(OPTS); \
+		fi; \
+	fi
+	@echo ""
+	@echo "✅ Kind cluster reset complete!"
+
+# Open shell in scripts container connected to Kind cluster
+kind-scripts-shell:
+	@echo "🐚 Opening shell in scripts container (connected to Kind cluster)..."
+	@docker-compose -f docker-compose.scripts.kind.yml run --rm scripts-cli /bin/bash

@@ -1,0 +1,138 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "invenio.fullname" . }}-worker-beat
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker-beat
+spec:
+  {{- with .Values.workerBeat.deploymentSpec.minReadySeconds }}
+  minReadySeconds: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.workerBeat.deploymentSpec.paused }}
+  paused: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.workerBeat.deploymentSpec.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  replicas: 1 # For data safety, beat must never have more than 1 replica!
+  {{- with .Values.workerBeat.deploymentSpec.revisionHistoryLimit }}
+  revisionHistoryLimit: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: worker-beat
+  {{- with .Values.workerBeat.deploymentSpec.strategy }}
+  strategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.workerBeat.podAnnotations }}
+          {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/component: worker-beat
+        checksum/invenio-config: {{ include (print $.Template.BasePath "/invenio-configmap.yaml") . | sha256sum }}
+      labels:
+        {{- with .Values.workerBeat.podLabels }}
+          {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/component: worker-beat
+    spec:
+      {{- with .Values.workerBeat.nodeSelector }}
+      nodeSelector:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
+      {{- end }}
+      {{- with .Values.workerBeat.tolerations }}
+      tolerations:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
+      {{- end }}
+      containers:
+      - name: worker-beat
+        image: {{ default .Values.worker.image (include "invenio.image" .) }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        command: [
+          "/bin/bash",
+          "-c",
+          "celery -A {{ .Values.worker.app }} beat -l {{ .Values.worker.log_level }} -s {{ .Values.worker.celery_schedule }} --pidfile {{ .Values.worker.celery_pidfile }}"
+        ]
+        securityContext:
+          {{- with .Values.workerBeat.securityContext }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        volumeMounts:
+        - name: var-run-celery
+          mountPath: {{ .Values.worker.run_mount_path }}
+        {{- if .Values.persistence.enabled }}
+        - mountPath: /opt/invenio/var/instance/data
+          name: shared-volume
+        {{- end }}
+        {{- range $key, $value := .Values.invenio.vocabularies }}
+        - name: vocabularies
+          mountPath: "/opt/invenio/var/instance/app_data/vocabularies/{{ $key }}"
+          subPath: "{{ $key }}"
+        {{- end }}
+        envFrom:
+        - configMapRef:
+            name: {{ include "invenio.fullname" . }}-config
+        - secretRef:
+            name: {{ include "invenio.secretName" . }}
+        {{- with .Values.invenio.extraEnvFrom }}
+        {{- tpl (. | toYaml) $ | nindent 8 }}
+        {{- end }}
+        {{- with .Values.workerBeat.extraEnvFrom }}
+        {{- tpl (. | toYaml) $ | nindent 8 }}
+        {{- end }}
+        env:
+        - name: TZ
+          value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
+        {{- include "invenio.config.queue" . | nindent 8 }}
+        {{- include "invenio.config.database" . | nindent 8}}
+        {{- with .Values.invenio.extraEnvVars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.workerBeat.extraEnvVars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "invenio.config.sentry" . | nindent 8 }}
+        {{- include "invenio.config.datacite" . | nindent 8 }}
+        {{- range .Values.invenio.extra_env_from_secret }}
+        - name: {{ .name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .valueFrom.secretKeyRef.name }}
+              key: {{ .valueFrom.secretKeyRef.key }}
+        {{- end }}
+        livenessProbe: {{- tpl (.Values.workerBeat.livenessProbe | toYaml) $ | nindent 10 }}
+        readinessProbe: {{- tpl (.Values.workerBeat.readinessProbe | toYaml) $ | nindent 10 }}
+        startupProbe: {{- tpl (.Values.workerBeat.startupProbe | toYaml) $ | nindent 10 }}
+        resources: {{- toYaml .Values.workerBeat.resources | nindent 10 }}
+      securityContext:
+        {{- with .Values.workerBeat.podSecurityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+      - name: var-run-celery
+        emptyDir:
+          medium: Memory
+      {{- if .Values.persistence.enabled }}
+      - name: shared-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.name }}
+      {{- end }}
+      {{- if .Values.invenio.vocabularies }}
+      - name: vocabularies
+        configMap:
+          name: "{{ include "invenio.fullname" . }}-vocabularies"
+      {{- end }}
+      {{- if .Values.worker.imagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.worker.imagePullSecret }}
+      {{- end }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  strategy:
+    type: Recreate # For data safety, beat must never have more than 1 replica!

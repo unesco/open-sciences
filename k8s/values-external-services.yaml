@@ -1,0 +1,84 @@
+# UNESCO InvenioRDM - Minimal Helm Values
+# Deploy only InvenioRDM app, external services deployed separately
+
+# Host configuration
+invenio:
+  hostname: localhost
+  init: true
+  demo_data: false
+
+# Image - our custom build
+image:
+  registry: "docker.io"
+  repository: sc-openscience
+  tag: latest
+  pullPolicy: Never
+
+# Web service
+web:
+  replicas: 1
+
+# Workers
+worker:
+  enabled: true
+  replicas: 2
+  app: "invenio_app.celery"
+  concurrency: 2
+  log_level: INFO
+
+# Beat worker
+workerBeat:
+  enabled: true
+
+# DISABLE internal charts - use external services
+redis:
+  enabled: false
+
+postgresql:
+  enabled: false
+
+rabbitmq:
+  enabled: false
+
+opensearch:
+  enabled: false
+
+# External services configuration
+redisExternal:
+  hostname: redis
+
+postgresqlExternal:
+  hostname: postgresql
+  port: 5432
+  user: unesco_rdm
+  password: unesco_rdm_password
+  database: unesco_rdm
+
+rabbitmqExternal:
+  hostname: rabbitmq
+  username: guest
+  password: guest
+  amqpPort: 5672
+  managementPort: 15672
+  protocol: amqp
+  vhost: ""
+
+opensearchExternal:
+  hostname: opensearch
+  port: 9200
+
+# Ingress
+ingress:
+  enabled: true
+  class: nginx
+
+# Persistence
+persistence:
+  enabled: true
+  name: shared-volume
+  size: 5Gi
+  storage_class: ""
+
+# Flower disabled
+flower:
+  enabled: false

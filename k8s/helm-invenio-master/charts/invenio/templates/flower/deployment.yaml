@@ -1,0 +1,101 @@
+{{- if .Values.flower.enabled -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flower-management
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.flower.deploymentSpec.minReadySeconds }}
+  minReadySeconds: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.flower.deploymentSpec.paused }}
+  paused: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.flower.deploymentSpec.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  replicas: 1
+  {{- with .Values.flower.deploymentSpec.revisionHistoryLimit }}
+  revisionHistoryLimit: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: flower-management
+  {{- with .Values.flower.deploymentSpec.strategy }}
+  strategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: flower-management
+    spec:
+      containers:
+        - name: flower-management
+          image: {{ required "Missing .Values.flower.image" .Values.flower.image }}
+          command:
+              [
+                "celery",
+                "--config=/var/celery/celeryconfig.py",
+                "--broker=$(INVENIO_CELERY_BROKER_URL)",
+                "flower",
+                "--broker_api=$(RABBITMQ_API_URI)",
+                "--basic_auth=$(FLOWER_BASIC_AUTH_CREDENTIALS)",
+                "--conf=/var/flower/flowerconfig.py"
+              ]
+          ports:
+            - containerPort: 5555
+          livenessProbe: {{- tpl (.Values.flower.livenessProbe | toYaml) $ | nindent 12 }}
+          readinessProbe: {{- tpl (.Values.flower.readinessProbe | toYaml) $ | nindent 12 }}
+          startupProbe: {{- tpl (.Values.flower.startupProbe | toYaml) $ | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: TZ
+              value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
+            - name: FLOWER_BASIC_AUTH_CREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.flower.secret_name }}
+                  key: FLOWER_BASIC_AUTH_CREDENTIALS
+            {{- include "invenio.config.queue" . | nindent 12 }}
+          {{- with .Values.flower.extraEnvFrom }}
+          envFrom:
+            {{- tpl (. | toYaml) $ | nindent 12 }}
+          {{- end }}
+          resources: {{- toYaml .Values.flower.resources | nindent 12 }}
+          volumeMounts:
+            - name: celery-config-volume
+              mountPath: /var/celery
+            - name: flower-config-volume
+              mountPath: /var/flower
+      securityContext:
+        {{- with .Values.flower.securityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.flower.nodeSelector }}
+      nodeSelector:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
+      {{- end }}
+      {{- with .Values.flower.tolerations }}
+      tolerations:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
+      {{- end }}
+      volumes:
+        - name: celery-config-volume
+          configMap:
+            name: flower-celery-config
+            items:
+              - key: celeryconfig.py
+                path: celeryconfig.py
+        - name: flower-config-volume
+          configMap:
+            name: flower-config
+            items:
+              - key: flowerconfig.py
+                path: flowerconfig.py
+{{- end -}}

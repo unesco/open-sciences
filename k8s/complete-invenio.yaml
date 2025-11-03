@@ -147,6 +147,58 @@ spec:
       port: 9300
       targetPort: 9300
 ---
+# RabbitMQ Message Queue
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: unesco-rdm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management-alpine
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: "guest"
+            - name: RABBITMQ_DEFAULT_PASS
+              value: "guest"
+          ports:
+            - containerPort: 5672
+              name: amqp
+            - containerPort: 15672
+              name: management
+          volumeMounts:
+            - name: rabbitmq-data
+              mountPath: /var/lib/rabbitmq
+      volumes:
+        - name: rabbitmq-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: unesco-rdm
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: 5672
+    - name: management
+      port: 15672
+      targetPort: 15672
+---
 # ConfigMap for InvenioRDM configuration
 apiVersion: v1
 kind: ConfigMap
@@ -235,6 +287,20 @@ spec:
                 sleep 5
               done
               echo "OpenSearch is ready!"
+        # Wait for RabbitMQ to be ready
+        - name: wait-for-rabbitmq
+          image: busybox:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Waiting for RabbitMQ AMQP service to be ready..."
+              until nc -z rabbitmq 5672; do
+                echo "RabbitMQ port 5672 not ready yet..."
+                sleep 3
+              done
+              echo "RabbitMQ port 5672 is open, waiting 10 more seconds for full initialization..."
+              sleep 10
+              echo "RabbitMQ is ready!"
       containers:
         - name: unesco-rdm
           image: sc-openscience:latest
@@ -248,8 +314,14 @@ spec:
               value: "redis://redis:6379/0"
             - name: INVENIO_ACCOUNTS_SESSION_REDIS_URL
               value: "redis://redis:6379/1"
-            - name: INVENIO_BROKER_URL
+            - name: INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL
+              value: "redis://redis:6379/4"
+            - name: INVENIO_RATELIMIT_STORAGE_URI
+              value: "redis://redis:6379/3"
+            - name: INVENIO_CELERY_RESULT_BACKEND
               value: "redis://redis:6379/2"
+            - name: INVENIO_BROKER_URL
+              value: "amqp://guest:guest@rabbitmq:5672/"
             - name: INVENIO_CELERY_RESULT_BACKEND
               value: "redis://redis:6379/2"
             - name: INVENIO_RATELIMIT_STORAGE_URL
@@ -276,6 +348,14 @@ spec:
               # Use the REAL invenio.cfg from source (with custom fields!)
               cp -v /opt/invenio/src/invenio.cfg /opt/invenio/var/instance/ || cp /etc/invenio/invenio.cfg /opt/invenio/var/instance/
 
+              # Comment out hardcoded DB/Redis configs (use env vars instead)
+              echo "🔧 Configuring to use environment variables for DB/Redis..."
+              sed -i 's/^SQLALCHEMY_DATABASE_URI=/#SQLALCHEMY_DATABASE_URI=/g' /opt/invenio/var/instance/invenio.cfg
+              sed -i 's/^CACHE_REDIS_URL=/#CACHE_REDIS_URL=/g' /opt/invenio/var/instance/invenio.cfg
+              sed -i 's/^ACCOUNTS_SESSION_REDIS_URL=/#ACCOUNTS_SESSION_REDIS_URL=/g' /opt/invenio/var/instance/invenio.cfg
+              sed -i 's/^BROKER_URL=/#BROKER_URL=/g' /opt/invenio/var/instance/invenio.cfg
+              sed -i 's/^CELERY_RESULT_BACKEND=/#CELERY_RESULT_BACKEND=/g' /opt/invenio/var/instance/invenio.cfg
+
               # Copy custom Jinja templates (BEFORE invenio collect)
               echo "📄 Copying custom Jinja templates..."
               mkdir -p /opt/invenio/var/instance/templates
@@ -293,6 +373,10 @@ spec:
               # Create search indices
               echo "🔍 Creating search indices..."
               invenio index init --force
+
+              # Create files location
+              echo "📁 Setting up files location..."
+              invenio files location create --default 'default-location' /opt/invenio/var/instance/data || true
 
               # Collect static files from blueprints
               echo "📦 Collecting static files from blueprints..."
@@ -318,10 +402,12 @@ spec:
               echo "🔨 Building webpack assets..."
               invenio webpack buildall
 
-              # Load demo data (optional)
-              echo "📚 Loading demo data..."
-              invenio rdm-records demo || echo "⚠️  Demo data loading failed, continuing..."
+              # Note: Demo data requires Celery workers which are not running
+              # Use the scripts system to import data instead:
+              #   make kind-scripts-import-lens FILE='src/sources/lens/data/publications.json'
 
+              echo "✅ UNESCO InvenioRDM initialization complete!"
+              echo ""
               echo "🌐 Starting InvenioRDM web server..."
               invenio run --host=0.0.0.0 --port=5000 --debug
           volumeMounts:
@@ -347,6 +433,87 @@ spec:
   ports:
     - port: 5000
       targetPort: 5000
+---
+# Celery Worker Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  namespace: unesco-rdm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: celery-worker
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      initContainers:
+        # Wait for services to be ready
+        - name: wait-for-services
+          image: busybox:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Waiting for RabbitMQ..."
+              until nc -z rabbitmq 5672; do sleep 2; done
+              echo "Waiting for Redis..."
+              until nc -z redis 6379; do sleep 2; done
+              echo "Services ready!"
+      containers:
+        - name: celery-worker
+          image: sc-openscience:latest
+          imagePullPolicy: Never
+          env:
+            - name: INVENIO_INSTANCE_PATH
+              value: "/opt/invenio/var/instance"
+            - name: INVENIO_SQLALCHEMY_DATABASE_URI
+              value: "postgresql://unesco_rdm:unesco_rdm_password@postgresql:5432/unesco_rdm"
+            - name: INVENIO_CACHE_REDIS_URL
+              value: "redis://redis:6379/0"
+            - name: INVENIO_ACCOUNTS_SESSION_REDIS_URL
+              value: "redis://redis:6379/1"
+            - name: INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL
+              value: "redis://redis:6379/4"
+            - name: INVENIO_RATELIMIT_STORAGE_URI
+              value: "redis://redis:6379/3"
+            - name: INVENIO_CELERY_RESULT_BACKEND
+              value: "redis://redis:6379/2"
+            - name: INVENIO_BROKER_URL
+              value: "amqp://guest:guest@rabbitmq:5672/"
+            - name: INVENIO_SEARCH_HOSTS
+              value: '[{"host": "opensearch", "port": 9200}]'
+            - name: INVENIO_SECRET_KEY
+              value: "super-secret-key-change-me-in-production"
+            - name: INVENIO_SECURITY_PASSWORD_SALT
+              value: "super-secret-salt-change-me-in-production"
+          command: ["bash", "-c"]
+          args:
+            - |
+              echo "🔧 Setting up Celery worker environment..."
+              mkdir -p /opt/invenio/var/instance
+
+              # Copy invenio.cfg with custom fields
+              cp -v /opt/invenio/src/invenio.cfg /opt/invenio/var/instance/ 2>/dev/null || true
+
+              # Comment out hardcoded configs (use env vars)
+              sed -i 's/^SQLALCHEMY_DATABASE_URI=/#SQLALCHEMY_DATABASE_URI=/g' /opt/invenio/var/instance/invenio.cfg 2>/dev/null || true
+              sed -i 's/^BROKER_URL=/#BROKER_URL=/g' /opt/invenio/var/instance/invenio.cfg 2>/dev/null || true
+              sed -i 's/^CELERY_BROKER_URL=/#CELERY_BROKER_URL=/g' /opt/invenio/var/instance/invenio.cfg 2>/dev/null || true
+
+              # Export broker URL for Celery
+              export CELERY_BROKER_URL="${INVENIO_BROKER_URL}"
+
+              echo "🚀 Starting Celery worker..."
+              celery -A invenio_app.celery worker --loglevel=INFO --concurrency=2
+          volumeMounts:
+            - name: invenio-data
+              mountPath: /opt/invenio/var
+      volumes:
+        - name: invenio-data
+          emptyDir: {}
 ---
 # Ingress
 apiVersion: networking.k8s.io/v1

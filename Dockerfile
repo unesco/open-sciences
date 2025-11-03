@@ -56,7 +56,13 @@ RUN echo "📦 Copying static assets and templates to instance path..." && \
     if [ -d ./static ]; then cp -rv ./static/. ${INVENIO_INSTANCE_PATH}/static/; fi && \
     echo "📋 Listing what was copied:" && \
     ls -la ${INVENIO_INSTANCE_PATH}/assets/ && \
-    echo "✅ Assets copied. Webpack build will happen at container startup."
+    echo "✅ Assets copied."
+
+# Build webpack assets
+RUN echo "🔨 Building webpack assets..." && \
+    invenio webpack buildall && \
+    invenio collect -v && \
+    echo "✅ Webpack assets built and collected"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \

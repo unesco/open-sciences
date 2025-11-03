@@ -1,0 +1,15 @@
+{{- if .Values.flower.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flower-config
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+data:
+  flowerconfig.py: |-
+    # looks like not really working
+    accept_content = ["json", "msgpack", "yaml"]
+    task_serializer = "msgpack"
+    result_serializer = "msgpack"
+{{- end }}
