@@ -265,6 +265,17 @@ spec:
               # Collect and build static files
               echo "Collecting static files..."
               invenio collect -v
+              
+              # Copy custom assets AFTER collect (which recreates the assets directory)
+              echo "Copying custom templates and styles..."
+              mkdir -p /opt/invenio/var/instance/assets/templates/custom_fields
+              mkdir -p /opt/invenio/var/instance/assets/less
+              cp -rv /opt/invenio/src/assets/templates/* /opt/invenio/var/instance/assets/templates/ 2>/dev/null || true
+              cp -rv /opt/invenio/src/assets/less/* /opt/invenio/var/instance/assets/less/ 2>/dev/null || true
+              echo "Custom assets copied. Verifying:"
+              ls -la /opt/invenio/var/instance/assets/templates/
+              ls -la /opt/invenio/var/instance/assets/less/
+              
               echo "Building webpack assets..."
               invenio webpack buildall
 

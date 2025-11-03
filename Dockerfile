@@ -46,12 +46,17 @@ COPY ./translations/ ${INVENIO_INSTANCE_PATH}/translations/
 # Copy application code
 COPY ./ .
 
-# Build static assets
-RUN echo "🎨 Building static assets..." && \
-    cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
-    cp -r ./assets/. ${INVENIO_INSTANCE_PATH}/assets/ && \
-    invenio collect --verbose && \
-    invenio webpack buildall
+# Copy static assets and templates directly to instance path
+# This must happen AFTER copying application code to ensure correct paths
+RUN echo "📦 Copying static assets and templates to instance path..." && \
+    mkdir -p ${INVENIO_INSTANCE_PATH}/assets/templates ${INVENIO_INSTANCE_PATH}/assets/less && \
+    if [ -d ./assets/templates ]; then cp -rv ./assets/templates ${INVENIO_INSTANCE_PATH}/assets/; fi && \
+    if [ -d ./assets/less ]; then cp -rv ./assets/less ${INVENIO_INSTANCE_PATH}/assets/; fi && \
+    if [ -d ./assets/js ]; then cp -rv ./assets/js ${INVENIO_INSTANCE_PATH}/assets/; fi && \
+    if [ -d ./static ]; then cp -rv ./static/. ${INVENIO_INSTANCE_PATH}/static/; fi && \
+    echo "📋 Listing what was copied:" && \
+    ls -la ${INVENIO_INSTANCE_PATH}/assets/ && \
+    echo "✅ Assets copied. Webpack build will happen at container startup."
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
