@@ -10,62 +10,44 @@
 
 FROM registry.cern.ch/inveniosoftware/almalinux:1
 
-# Build arguments
-ARG PIPENV_INSTALL_DEV=false
+# Declare proxy build arguments
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
 
-# Labels for image metadata
-LABEL maintainer="UNESCO Science Portal Team"
-LABEL description="InvenioRDM instance for UNESCO Science Portal"
-LABEL org.opencontainers.image.source="https://github.com/your-org/sc-openscience"
+# Set proxy environment variables for pip/pipenv
+ENV HTTP_PROXY=${HTTP_PROXY} \
+    HTTPS_PROXY=${HTTPS_PROXY} \
+    NO_PROXY=${NO_PROXY} \
+    http_proxy=${http_proxy} \
+    https_proxy=${https_proxy} \
+    no_proxy=${no_proxy}
 
-# Install Python dependencies
+# Install Python 3.12 and update alternatives
+RUN dnf install -y python3.12 python3.12-pip python3.12-devel && \
+    alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 && \
+    alternatives --set python3 /usr/bin/python3.12 && \
+    python3 -m pip install --upgrade pip pipenv
+
 COPY site ./site
 COPY Pipfile Pipfile.lock ./
+RUN pipenv install --deploy --system
 
-# Install dependencies (skip dev dependencies in production)
-RUN echo "🔍 Python version: $(python --version)" && \
-    echo "📦 Installing dependencies with pipenv..." && \
-    pip install --upgrade pip setuptools wheel pipenv && \
-    if [ "$PIPENV_INSTALL_DEV" = "true" ]; then \
-        echo "📦 Installing all dependencies (including dev)..."; \
-        pipenv install --deploy --system --dev --skip-lock; \
-    else \
-        echo "📦 Installing production dependencies only..."; \
-        pipenv install --deploy --system --skip-lock; \
-    fi && \
-    echo "✅ Dependencies installed successfully" && \
-    python -c "import click; print('✅ Click module available')"
-
-# Copy configuration and templates
 COPY ./docker/uwsgi/ ${INVENIO_INSTANCE_PATH}
-COPY ./invenio.cfg ${INVENIO_INSTANCE_PATH}
+# Copy invenio.cfg.example as invenio.cfg (template with default values for build)
+# In production, this will be replaced by server-specific invenio.cfg via volume mount
+COPY ./invenio.cfg.example ${INVENIO_INSTANCE_PATH}/invenio.cfg
 COPY ./templates/ ${INVENIO_INSTANCE_PATH}/templates/
 COPY ./app_data/ ${INVENIO_INSTANCE_PATH}/app_data/
 COPY ./translations/ ${INVENIO_INSTANCE_PATH}/translations/
-
-# Copy application code
 COPY ./ .
 
-# Copy static assets and templates directly to instance path
-# This must happen AFTER copying application code to ensure correct paths
-RUN echo "📦 Copying static assets and templates to instance path..." && \
-    mkdir -p ${INVENIO_INSTANCE_PATH}/assets/templates ${INVENIO_INSTANCE_PATH}/assets/less && \
-    if [ -d ./assets/templates ]; then cp -rv ./assets/templates ${INVENIO_INSTANCE_PATH}/assets/; fi && \
-    if [ -d ./assets/less ]; then cp -rv ./assets/less ${INVENIO_INSTANCE_PATH}/assets/; fi && \
-    if [ -d ./assets/js ]; then cp -rv ./assets/js ${INVENIO_INSTANCE_PATH}/assets/; fi && \
-    if [ -d ./static ]; then cp -rv ./static/. ${INVENIO_INSTANCE_PATH}/static/; fi && \
-    echo "📋 Listing what was copied:" && \
-    ls -la ${INVENIO_INSTANCE_PATH}/assets/ && \
-    echo "✅ Assets copied."
-
-# Build webpack assets
-RUN echo "🔨 Building webpack assets..." && \
-    invenio webpack buildall && \
-    invenio collect -v && \
-    echo "✅ Webpack assets built and collected"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:5000/ping || exit 1
+RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
+    cp -r ./assets/. ${INVENIO_INSTANCE_PATH}/assets/ && \
+    invenio collect --verbose  && \
+    invenio webpack buildall
 
 ENTRYPOINT [ "bash", "-c"]

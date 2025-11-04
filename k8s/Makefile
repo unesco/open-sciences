@@ -4,7 +4,7 @@
 # ============================================================================
 #
 
-.PHONY: kind-check kind-context kind-create kind-delete kind-load-image kind-deploy kind-deploy-services kind-deploy-helm kind-init kind-create-admin kind-full-deploy kind-status kind-logs kind-shell kind-port-forward kind-restart kind-clean kind-reset-lens
+.PHONY: kind-check kind-context kind-create kind-delete kind-build-image kind-load-image kind-deploy kind-deploy-services kind-helm-versions kind-deploy-helm kind-init kind-create-admin kind-full-deploy kind-status kind-logs kind-shell kind-port-forward kind-restart kind-restart-all kind-clean kind-reset-lens
 
 # Kind cluster name
 KIND_CLUSTER_NAME ?= unesco-rdm
@@ -15,6 +15,10 @@ KIND_CONTEXT ?= kind-$(KIND_CLUSTER_NAME)
 # Docker image settings
 DOCKER_IMAGE_NAME ?= sc-openscience
 DOCKER_IMAGE_TAG ?= latest
+
+# Helm chart versions (pinned for stability)
+HELM_INVENIO_VERSION ?= 0.8.1
+HELM_INGRESS_NGINX_VERSION ?= 4.8.3
 
 # Set kubectl context to Kind cluster
 kind-context:
@@ -106,6 +110,20 @@ kind-delete:
 	@echo "✅ Cluster deleted!"
 	@rm -rf /tmp/kind-data-1 /tmp/kind-data-2 || true
 
+# Build Docker image (without loading into Kind)
+kind-build-image:
+	@echo "🐳 Building Docker image for Kind..."
+	@echo "📦 Building image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
+	@echo "   Using Dockerfile: k8s/Dockerfile"
+	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) -f Dockerfile ..
+	@echo ""
+	@echo "✅ Image built successfully!"
+	@echo ""
+	@echo "🔍 Image details:"
+	@docker images $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
+	@echo ""
+	@echo "💡 To load into Kind cluster, run: make kind-load-image"
+
 # Build and load image into Kind
 kind-load-image: kind-check kind-context
 	@echo "🐳 Building Docker image for Kind..."
@@ -115,11 +133,15 @@ kind-load-image: kind-check kind-context
 		exit 1; \
 	fi
 	@echo "📦 Building image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"
-	cd .. && docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) -f Dockerfile .
+	@echo "   Using Dockerfile: k8s/Dockerfile"
+	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) -f Dockerfile ..
 	@echo ""
 	@echo "📥 Loading image into Kind cluster..."
 	kind load docker-image $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) --name $(KIND_CLUSTER_NAME)
 	@echo "✅ Image loaded into Kind cluster!"
+	@echo ""
+	@echo "🔍 Verifying image in Kind:"
+	@docker exec -it $(KIND_CLUSTER_NAME)-control-plane crictl images | grep $(DOCKER_IMAGE_NAME) || echo "⚠️  Image verification failed"
 
 # Deploy InvenioRDM on Kind
 kind-deploy: kind-check
@@ -148,11 +170,12 @@ kind-deploy: kind-check
 		--namespace=unesco-rdm \
 		--dry-run=client -o yaml | kubectl apply -f - || true
 	@echo ""
-	@echo "📋 Deploying with Helm..."
+	@echo "📋 Deploying with Helm (version: $(HELM_INVENIO_VERSION))..."
 	@echo "⚠️  Note: This deployment uses the official Helm chart with custom values."
 	@echo "   Some features may not work exactly as expected in local Kind environment."
 	@echo ""
 	helm upgrade --install unesco-rdm invenio/invenio \
+		--version $(HELM_INVENIO_VERSION) \
 		--namespace unesco-rdm \
 		--create-namespace \
 		--values values-kind.yaml \
@@ -207,13 +230,47 @@ kind-port-forward: kind-check kind-context
 	@echo "   Press Ctrl+C to stop"
 	kubectl port-forward -n unesco-rdm service/unesco-rdm-invenio-web 8080:80
 
-# Restart deployment
+# Restart deployment (only InvenioRDM components, not external services)
 kind-restart: kind-check kind-context
-	@echo "🔄 Restarting deployments..."
-	kubectl rollout restart deployment -n unesco-rdm
+	@echo "🔄 Restarting InvenioRDM deployments..."
+	@echo "   (External services will not be restarted to preserve data)"
+	@echo ""
+	@echo "🌐 Restarting web..."
+	kubectl rollout restart deployment/unesco-rdm-invenio-web -n unesco-rdm || echo "⚠️  Web deployment not found"
+	@echo ""
+	@echo "👷 Restarting workers..."
+	kubectl rollout restart deployment/unesco-rdm-invenio-worker -n unesco-rdm || echo "⚠️  Worker deployment not found"
+	@echo ""
+	@echo "⏰ Restarting worker-beat..."
+	kubectl rollout restart deployment/unesco-rdm-invenio-worker-beat -n unesco-rdm || echo "⚠️  Worker-beat deployment not found"
+	@echo ""
 	@echo "✅ Restart triggered!"
 	@echo "⏳ Waiting for rollout to complete..."
-	kubectl rollout status deployment/unesco-rdm-web-ui -n unesco-rdm || true
+	kubectl rollout status deployment/unesco-rdm-invenio-web -n unesco-rdm --timeout=3m || true
+	@echo ""
+	@echo "📊 Current status:"
+	@kubectl get pods -n unesco-rdm
+
+# Restart ALL deployments (including external services - will lose data!)
+kind-restart-all: kind-check kind-context
+	@echo "⚠️  WARNING: This will restart ALL deployments including external services!"
+	@echo "   Data in PostgreSQL and OpenSearch will be PRESERVED using PVCs."
+	@echo ""
+	@read -p "Continue? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo "🔄 Restarting all deployments..."; \
+		kubectl rollout restart deployment -n unesco-rdm; \
+		echo "✅ Restart triggered!"; \
+		echo "⏳ Waiting for services to be ready..."; \
+		kubectl wait --for=condition=available deployment --all -n unesco-rdm --timeout=5m || true; \
+		echo ""; \
+		echo "📊 Current status:"; \
+		kubectl get pods -n unesco-rdm; \
+	else \
+		echo "❌ Cancelled."; \
+		echo "💡 Tip: Use 'make kind-restart' to restart only InvenioRDM components"; \
+	fi
 
 # Clean up Kind deployment (keep cluster)
 kind-clean: kind-check kind-context
@@ -255,6 +312,18 @@ kind-deploy-services: kind-check kind-context
 	@echo "📊 Service status:"
 	@kubectl get pods -n unesco-rdm
 
+# List available Helm chart versions
+kind-helm-versions:
+	@echo "📊 Checking available Helm chart versions..."
+	@echo ""
+	@echo "🔍 InvenioRDM Helm chart versions:"
+	@echo "   Current: $(HELM_INVENIO_VERSION)"
+	@echo "   Available versions:"
+	@helm search repo invenio/invenio --versions | head -10
+	@echo ""
+	@echo "💡 To upgrade, update HELM_INVENIO_VERSION in Makefile"
+	@echo "   Then run: make kind-deploy-helm"
+
 # Deploy Helm chart
 kind-deploy-helm: kind-check kind-context
 	@echo "🚀 Deploying InvenioRDM Helm chart..."
@@ -266,8 +335,9 @@ kind-deploy-helm: kind-check kind-context
 	helm repo add invenio https://inveniosoftware.github.io/helm-invenio/ 2>/dev/null || true
 	helm repo update
 	@echo ""
-	@echo "📦 Deploying with Helm..."
+	@echo "📦 Deploying with Helm (version: $(HELM_INVENIO_VERSION))..."
 	helm upgrade --install unesco-rdm invenio/invenio \
+		--version $(HELM_INVENIO_VERSION) \
 		--namespace unesco-rdm \
 		--values values-unesco.yaml \
 		--wait \
@@ -276,6 +346,7 @@ kind-deploy-helm: kind-check kind-context
 		 kubectl get pods -n unesco-rdm)
 	@echo ""
 	@echo "✅ Helm chart deployed!"
+	@echo "   Chart version: $(HELM_INVENIO_VERSION)"
 
 # Initialize InvenioRDM (vocabularies, database, indices)
 kind-init: kind-check kind-context

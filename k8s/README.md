@@ -22,10 +22,11 @@ Complete guide for deploying InvenioRDM on **Kind (Kubernetes in Docker)** for l
 This deployment uses:
 
 - **Kind**: Local Kubernetes cluster running in Docker
-- **Official Helm Chart**: InvenioRDM from `inveniosoftware/helm-invenio`
+- **Official Helm Chart**: InvenioRDM from `inveniosoftware/helm-invenio` (v0.8.1)
 - **External Services**: PostgreSQL, Redis, RabbitMQ, OpenSearch with public images
 - **Custom Image**: Your customized InvenioRDM with compiled assets
 - **HTTP Mode**: Simplified for local development (no TLS)
+- **Pinned Versions**: Helm chart versions are fixed to prevent breaking changes
 
 ### Why This Approach?
 
@@ -719,6 +720,12 @@ make kind-full-deploy
 | `make kind-scripts-delete-all`           | Delete all records            |
 | `make kind-scripts-import-lens FILE=...` | Import from Lens file         |
 
+### Version Management
+
+| Command                   | Description                         |
+| ------------------------- | ----------------------------------- |
+| `make kind-helm-versions` | Check available Helm chart versions |
+
 ### Cleanup
 
 | Command            | Description                       |
@@ -729,7 +736,54 @@ make kind-full-deploy
 
 ---
 
-## 🚦 Best Practices
+## � Version Management
+
+### Pinned Helm Chart Versions
+
+To ensure stability and prevent breaking changes, Helm chart versions are pinned in the Makefile:
+
+- **InvenioRDM Helm Chart**: v0.8.1
+
+### Checking Available Versions
+
+```bash
+# List available versions
+make kind-helm-versions
+
+# Or manually
+helm search repo invenio/invenio --versions
+```
+
+### Updating Helm Chart Version
+
+1. **Check available versions**:
+
+   ```bash
+   make kind-helm-versions
+   ```
+
+2. **Update version in Makefile**:
+   Edit `k8s/Makefile` and change:
+
+   ```makefile
+   HELM_INVENIO_VERSION ?= 0.8.1  # Change to desired version
+   ```
+
+3. **Redeploy**:
+   ```bash
+   make kind-deploy-helm
+   ```
+
+### Why Pin Versions?
+
+✅ **Predictable deployments**: Same chart version every time  
+✅ **Prevent breaking changes**: Avoid unexpected updates  
+✅ **Easier troubleshooting**: Known configuration  
+✅ **Controlled upgrades**: Test before updating
+
+---
+
+## �🚦 Best Practices
 
 ### Development Workflow
 
@@ -757,6 +811,7 @@ make kind-full-deploy
 
 ## 📚 Additional Resources
 
+- [Version History](VERSIONS.md) - Helm chart versions and upgrade notes
 - [InvenioRDM Documentation](https://inveniordm.docs.cern.ch/)
 - [Helm Chart Repository](https://github.com/inveniosoftware/helm-invenio)
 - [Kind Documentation](https://kind.sigs.k8s.io/)
