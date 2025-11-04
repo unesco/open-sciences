@@ -319,7 +319,7 @@ kind-init: kind-check kind-context
 kind-create-admin: kind-check kind-context
 	@echo "👤 Creating admin user..."
 	@kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- bash -c "\
-		invenio users create admin@unesco.org --password=admin123 --active || echo 'User may already exist'" 2>/dev/null || true
+		invenio users create admin@unesco.org --password=admin123 --active --confirm || echo 'User may already exist'" 2>/dev/null || true
 	@kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- bash -c "\
 		invenio roles add admin@unesco.org admin || echo 'Role may already be assigned'" 2>/dev/null || true
 	@kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- bash -c "\

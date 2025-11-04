@@ -5,14 +5,14 @@ global:
   timezone: Europe/Rome
 
 invenio:
-  hostname: localhost:5000
+  hostname: localhost:8080
   init: true
   demo_data: false
   default_users:
     "user@demo.org": "demo123"
   extraConfig:
-    INVENIO_SITE_UI_URL: "http://localhost:5000"
-    INVENIO_SITE_API_URL: "http://localhost:5000/api"
+    INVENIO_SITE_UI_URL: "http://localhost:8080"
+    INVENIO_SITE_API_URL: "http://localhost:8080/api"
     INVENIO_APP_ENABLE_SECURE_HEADERS: "False"
     INVENIO_REQUIRE_HTTPS: "False"
     SESSION_COOKIE_SECURE: "False"
