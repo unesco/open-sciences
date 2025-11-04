@@ -4,15 +4,30 @@
 # ============================================================================
 #
 
-.PHONY: kind-check kind-create kind-delete kind-load-image kind-deploy kind-deploy-services kind-deploy-helm kind-init kind-create-admin kind-full-deploy kind-status kind-logs kind-shell kind-port-forward kind-restart kind-clean kind-reset-lens
+.PHONY: kind-check kind-context kind-create kind-delete kind-load-image kind-deploy kind-deploy-services kind-deploy-helm kind-init kind-create-admin kind-full-deploy kind-status kind-logs kind-shell kind-port-forward kind-restart kind-clean kind-reset-lens
 
 # Kind cluster name
 KIND_CLUSTER_NAME ?= unesco-rdm
+KIND_NAMESPACE ?= unesco-rdm
 KIND_CONFIG ?= kind-config.yaml
+KIND_CONTEXT ?= kind-$(KIND_CLUSTER_NAME)
 
 # Docker image settings
 DOCKER_IMAGE_NAME ?= sc-openscience
 DOCKER_IMAGE_TAG ?= latest
+
+# Set kubectl context to Kind cluster
+kind-context:
+	@echo "🔧 Setting kubectl context to Kind cluster..."
+	@if ! kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
+		echo "❌ Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
+		echo "   Run 'make kind-create' first"; \
+		exit 1; \
+	fi
+	kubectl config use-context $(KIND_CONTEXT)
+	kubectl config set-context --current --namespace=$(KIND_NAMESPACE)
+	@echo "✅ Context set to: $(KIND_CONTEXT)"
+	@echo "   Namespace: $(KIND_NAMESPACE)"
 
 # Check if Kind is installed
 kind-check:
@@ -92,7 +107,7 @@ kind-delete:
 	@rm -rf /tmp/kind-data-1 /tmp/kind-data-2 || true
 
 # Build and load image into Kind
-kind-load-image: kind-check
+kind-load-image: kind-check kind-context
 	@echo "🐳 Building Docker image for Kind..."
 	@if ! kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
 		echo "❌ Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
@@ -155,7 +170,7 @@ kind-deploy: kind-check
 	@$(MAKE) kind-status
 
 # Check Kind deployment status
-kind-status: kind-check
+kind-status: kind-check kind-context
 	@echo "📊 Checking Kind cluster status..."
 	@echo ""
 	@echo "🔍 Cluster nodes:"
@@ -174,26 +189,26 @@ kind-status: kind-check
 	kubectl get pvc -n unesco-rdm
 
 # View logs from Kind deployment
-kind-logs: kind-check
+kind-logs: kind-check kind-context
 	@echo "📜 Showing logs from web-ui pod..."
 	@echo "   (Press Ctrl+C to exit)"
 	kubectl logs -f -l app.kubernetes.io/name=web-ui -n unesco-rdm --all-containers=true || \
 		kubectl logs -f deployment/unesco-rdm-web-ui -n unesco-rdm
 
-# Open shell in web-ui pod
-kind-shell: kind-check
+# Open shell in web pod
+kind-shell: kind-check kind-context
 	@echo "🐚 Opening shell in web-ui pod..."
 	kubectl exec -it deployment/unesco-rdm-web-ui -n unesco-rdm -- bash
 
 # Port forward to access locally
-kind-port-forward: kind-check
+kind-port-forward: kind-check kind-context
 	@echo "🌐 Setting up port forwarding..."
 	@echo "   Local access: http://localhost:8080"
 	@echo "   Press Ctrl+C to stop"
 	kubectl port-forward -n unesco-rdm service/unesco-rdm-invenio-web 8080:80
 
 # Restart deployment
-kind-restart: kind-check
+kind-restart: kind-check kind-context
 	@echo "🔄 Restarting deployments..."
 	kubectl rollout restart deployment -n unesco-rdm
 	@echo "✅ Restart triggered!"
@@ -201,7 +216,7 @@ kind-restart: kind-check
 	kubectl rollout status deployment/unesco-rdm-web-ui -n unesco-rdm || true
 
 # Clean up Kind deployment (keep cluster)
-kind-clean: kind-check
+kind-clean: kind-check kind-context
 	@echo "🧹 Cleaning up Kind deployment..."
 	@read -p "This will delete the Helm release. Continue? [y/N] " -n 1 -r; \
 	echo; \
@@ -214,7 +229,7 @@ kind-clean: kind-check
 	fi
 
 # Deploy external services (PostgreSQL, Redis, RabbitMQ, OpenSearch)
-kind-deploy-services: kind-check
+kind-deploy-services: kind-check kind-context
 	@echo "🚀 Deploying external services to Kind cluster..."
 	@if ! kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
 		echo "❌ Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
@@ -241,7 +256,7 @@ kind-deploy-services: kind-check
 	@kubectl get pods -n unesco-rdm
 
 # Deploy Helm chart
-kind-deploy-helm: kind-check
+kind-deploy-helm: kind-check kind-context
 	@echo "🚀 Deploying InvenioRDM Helm chart..."
 	@if ! kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
 		echo "❌ Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
@@ -263,7 +278,7 @@ kind-deploy-helm: kind-check
 	@echo "✅ Helm chart deployed!"
 
 # Initialize InvenioRDM (vocabularies, database, indices)
-kind-init: kind-check
+kind-init: kind-check kind-context
 	@echo "🔧 Initializing InvenioRDM..."
 	@echo "⏳ Waiting for web pod to be ready..."
 	kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=web --timeout=300s -n unesco-rdm || \
@@ -301,7 +316,7 @@ kind-init: kind-check
 		echo "⚠️  Vocabulary verification failed - may need more time"
 
 # Create admin user with API token
-kind-create-admin: kind-check
+kind-create-admin: kind-check kind-context
 	@echo "👤 Creating admin user..."
 	@kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- bash -c "\
 		invenio users create admin@unesco.org --password=admin123 --active || echo 'User may already exist'" 2>/dev/null || true
