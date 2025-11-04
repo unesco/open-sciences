@@ -24,13 +24,13 @@ From the project root directory:
 make up
 
 # Auto-configure environment with API token generation
-make scripts-setup-env
+make tools-setup-env
 
 # Build the microservice container
-make scripts-build
+make tools-build
 
 # Test the connection
-make scripts-run CMD='python -m src.tools.cli test-connection'
+make tools-run CMD='python -m src.tools.cli test-connection'
 ```
 
 This automated setup will:
@@ -47,7 +47,7 @@ If you prefer manual configuration:
 ```bash
 cp config/.env.example config/.env
 # Edit config/.env with your settings
-make scripts-build
+make tools-build
 ```
 
 ## Usage Examples
@@ -56,62 +56,62 @@ make scripts-build
 
 ```bash
 # Basic search
-make scripts-run CMD='python -m src.tools.search -q "climate data" -s 10'
+make tools-run CMD='python -m src.tools.search -q "climate data" -s 10'
 
 # Detailed view
-make scripts-run CMD='python -m src.tools.search -q "test" --detailed'
+make tools-run CMD='python -m src.tools.search -q "test" --detailed'
 
 # With pagination
-make scripts-run CMD='python -m src.tools.search -q "dataset" --page 2 --size 20'
+make tools-run CMD='python -m src.tools.search -q "dataset" --page 2 --size 20'
 ```
 
 ### View Record Details
 
 ```bash
 # View formatted output
-make scripts-run CMD='python -m src.tools.view abc-123'
+make tools-run CMD='python -m src.tools.view abc-123'
 
 # View as JSON
-make scripts-run CMD='python -m src.tools.view abc-123 --format json'
+make tools-run CMD='python -m src.tools.view abc-123 --format json'
 ```
 
 ### Get Statistics
 
 ```bash
 # Record statistics
-make scripts-run CMD='python -m src.tools.stats --record-id abc-123'
+make tools-run CMD='python -m src.tools.stats --record-id abc-123'
 
 # System statistics
-make scripts-run CMD='python -m src.tools.stats'
+make tools-run CMD='python -m src.tools.stats'
 ```
 
 ### Manage Records
 
 ```bash
 # Delete all records (with confirmation)
-make scripts-delete-all
+make tools-delete-all
 
 # Delete all (dry-run)
-make scripts-run CMD='python -m src.tools.cleanup --dry-run'
+make tools-run CMD='python -m src.tools.cleanup --dry-run'
 
 # Delete with confirmation flag
-make scripts-run CMD='python -m src.tools.cleanup --confirm'
+make tools-run CMD='python -m src.tools.cleanup --confirm'
 ```
 
 ### Use CLI Tool
 
 ```bash
 # Test connection
-make scripts-run CMD='python -m src.tools.cli test-connection'
+make tools-run CMD='python -m src.tools.cli test-connection'
 
 # Search records
-make scripts-run CMD='python -m src.tools.cli search -q "machine learning" -s 5'
+make tools-run CMD='python -m src.tools.cli search -q "machine learning" -s 5'
 
 # Get record details
-make scripts-run CMD='python -m src.tools.cli get abc-123'
+make tools-run CMD='python -m src.tools.cli get abc-123'
 
 # Create a new record
-make scripts-run CMD='python -m src.tools.cli create \
+make tools-run CMD='python -m src.tools.cli create \
   --title "New Dataset" \
   --creator "Jane Smith" \
   --type dataset \
@@ -122,72 +122,12 @@ make scripts-run CMD='python -m src.tools.cli create \
 
 ```bash
 # Open interactive shell for development
-make scripts-shell
+make tools-shell
 
 # Inside the container, you can run tools directly:
 python -m src.tools.search -q test
 python -m src.tools.view abc-123
 ```
-
-### Import Records from CSV
-
-Import or update records in bulk from a CSV file:
-
-```bash
-# Import records from the example CSV
-make scripts-import-csv FILE='src/sources/csv/data/publications.csv'
-
-# Import with dry-run mode (validate without creating records)
-make scripts-import-csv FILE='src/sources/csv/data/publications.csv' OPTS='--dry-run'
-
-# Import with options
-make scripts-import-csv FILE='src/sources/csv/data/publications.csv' OPTS='--skip-errors --verbose'
-
-# Import with custom delimiter
-make scripts-import-csv FILE='data/publications.tsv' OPTS="--delimiter $'\t'"
-```
-
-**CSV File Format**
-
-The CSV file should contain the following columns:
-
-**Required columns:**
-
-- `title`: Record title
-- `creators`: Semicolon and pipe-separated list of creators
-  - Format: `"Given Family; ORCID; Affiliation | Given2 Family2; ORCID2; Affiliation2"`
-  - ORCID and Affiliation are optional
-  - Example: `"John Doe;0000-0001-2345-6789;MIT | Jane Smith;;Harvard"`
-
-**Optional columns:**
-
-- `record_id`: Existing record ID for updates (leave empty for new records)
-- `description`: Record description
-- `resource_type`: Resource type (default: `dataset`)
-  - Options: `dataset`, `publication-article`, `software`, `image-photo`, etc.
-- `publication_date`: Publication date in YYYY-MM-DD format (default: today)
-- `access_record`: Record access level (`public` or `restricted`, default: `public`)
-- `access_files`: Files access level (`public` or `restricted`, default: `public`)
-- `file_paths`: Semicolon-separated list of file paths to upload
-  - Example: `"/path/to/file1.csv;/path/to/file2.txt"`
-- `publish`: Whether to publish immediately (`yes`/`no`, default: `no`)
-
-**Example CSV:**
-
-```csv
-title,description,creators,resource_type,publication_date,access_record,access_files,publish
-"Climate Dataset","Climate change data","Maria Rossi;0000-0001-2345-6789;University of Rome",dataset,2024-01-15,public,public,yes
-"AI Research","Deep learning study","Alice Smith;;MIT | Bob Johnson;0000-0002-3456-7890;Stanford",publication-article,2024-02-20,public,restricted,no
-```
-
-See `scripts/data/sample_records.csv` for a complete example.
-
-**Import Options:**
-
-- `--dry-run`: Validate CSV and show what would be created without making changes
-- `--skip-errors`: Continue processing even if some records fail
-- `--verbose`: Show detailed information for each record
-- `--delimiter`: Specify CSV delimiter (default: comma)
 
 ### Import from External Data Sources
 
@@ -199,22 +139,22 @@ Import publications from Lens.org JSON exports:
 
 ```bash
 # Validate without creating records (dry-run)
-make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'
+make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'
 
 # Import all records from JSON file
-make scripts-import-lens FILE='src/sources/lens/data/publications.json'
+make tools-import-lens FILE='src/sources/lens/data/publications.json'
 
 # Import first 10 records
-make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10'
+make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10'
 
 # Import with offset (skip first 10, import next 20)
-make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--offset 10 --limit 20'
+make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--offset 10 --limit 20'
 
 # Custom batch size with verbose output
-make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--batch-size 5 --verbose'
+make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--batch-size 5 --verbose'
 
 # Force reimport of existing records
-make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no-skip-existing'
+make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no-skip-existing'
 ```
 
 **Lens.org Import Features:**
@@ -226,62 +166,26 @@ make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--
 - ⚠️ Related identifiers (DOI, PMID, PMCID, arXiv, etc.)
 - ⚠️ Subject classification (MeSH terms, ASJC codes)
 
-#### Zenodo
-
-Import records from Zenodo.org via their public API:
-
-```bash
-# Import a specific record by ID
-make scripts-import-zenodo RECORD_ID='17462748'
-
-# Import without files (metadata only)
-make scripts-import-zenodo RECORD_ID='17462748' OPTS='--skip-files'
-
-# Dry run (validate without importing)
-make scripts-import-zenodo RECORD_ID='17462748' OPTS='--dry-run'
-
-# Search and import multiple records
-make scripts-import-zenodo QUERY='climate data' MAX=5
-
-# Search with file skipping
-make scripts-import-zenodo QUERY='COVID-19' MAX=3 OPTS='--skip-files'
-
-# Verbose output
-make scripts-import-zenodo RECORD_ID='17462748' OPTS='--verbose'
-```
-
-**Zenodo Import Features:**
-
-- ✅ Import by Zenodo record ID
-- ✅ Search and bulk import
-- ✅ Complete metadata (creators, contributors, identifiers, keywords)
-- ✅ Automatic file download and upload
-- ✅ ORCID identifier preservation
-- ✅ License mapping
-- ✅ HTML description cleaning
-- ✅ Related identifiers (DOI, arXiv, etc.)
-- ✅ Dry-run mode for validation
-
 ### Reset Records (Delete All + Import)
 
-The `scripts-reset` command combines record deletion with import from any source:
+The `tools-reset` command combines record deletion with import from any source:
 
 ```bash
 # Reset with CSV import
-make scripts-reset CSV='src/sources/csv/data/publications.csv'
-make scripts-reset CSV='data/my_records.csv' OPTS='--verbose'
+make tools-reset CSV='src/sources/csv/data/publications.csv'
+make tools-reset CSV='data/my_records.csv' OPTS='--verbose'
 
 # Reset with Lens import
-make scripts-reset LENS='src/sources/lens/data/publications.json'
-make scripts-reset LENS='data/my_lens_export.json' OPTS='--limit 10'
+make tools-reset LENS='src/sources/lens/data/publications.json'
+make tools-reset LENS='data/my_lens_export.json' OPTS='--limit 10'
 
 # Reset with Zenodo import (by record ID)
-make scripts-reset ZENODO_ID='17462748'
-make scripts-reset ZENODO_ID='17462748' OPTS='--skip-files'
+make tools-reset ZENODO_ID='17462748'
+make tools-reset ZENODO_ID='17462748' OPTS='--skip-files'
 
 # Reset with Zenodo import (by search query)
-make scripts-reset ZENODO_QUERY='climate data' MAX=5
-make scripts-reset ZENODO_QUERY='COVID-19' MAX=3 OPTS='--skip-files --verbose'
+make tools-reset ZENODO_QUERY='climate data' MAX=5
+make tools-reset ZENODO_QUERY='COVID-19' MAX=3 OPTS='--skip-files --verbose'
 ```
 
 **Reset Features:**
@@ -350,19 +254,19 @@ The project includes convenient Make commands for Docker operations:
 
 ```bash
 # Auto-setup environment (generates .env with API token)
-make scripts-setup-env
+make tools-setup-env
 
 # Build the container
-make scripts-build
+make tools-build
 
 # Run tools
-make scripts-run CMD='python -m src.tools.search -q test'
+make tools-run CMD='python -m src.tools.search -q test'
 
 # Interactive shell
-make scripts-shell
+make tools-shell
 
 # Show all available commands
-make scripts-help
+make tools-help
 ```
 
 ### Direct Docker Commands
@@ -497,10 +401,10 @@ Most scripts support these common options:
 make up
 
 # Auto-configure the scripts environment
-make scripts-setup-env
+make tools-setup-env
 
 # Build the development container
-make scripts-build
+make tools-build
 ```
 
 ### Development Workflow
@@ -518,13 +422,13 @@ Edit files in the `scripts/` directory:
 
 ```bash
 # Test individual tools
-make scripts-run CMD='python -m src.tools.your_new_tool'
+make tools-run CMD='python -m src.tools.your_new_tool'
 
 # Test import sources
-make scripts-import-zenodo DRY_RUN=true
+make tools-import-zenodo DRY_RUN=true
 
 # Use interactive shell for development
-make scripts-shell
+make tools-shell
 # Inside container:
 python -m src.tools.search -q test
 ```
@@ -534,7 +438,7 @@ python -m src.tools.search -q test
 If you modify the Dockerfile or requirements.txt:
 
 ```bash
-make scripts-build
+make tools-build
 ```
 
 **4. Environment Regeneration**
@@ -542,7 +446,7 @@ make scripts-build
 If you need a fresh API token or environment:
 
 ```bash
-make scripts-setup-env
+make tools-setup-env
 ```
 
 ### Creating New Tools
@@ -609,7 +513,7 @@ nano scripts/src/tools/my_new_tool.py
 # Add documentation to src/tools/README.md
 
 # Test it
-make scripts-run CMD='python -m src.tools.my_new_tool -q test'
+make tools-run CMD='python -m src.tools.my_new_tool -q test'
 ```
 
 **Creating New Import Sources:**
@@ -667,19 +571,19 @@ cp lens/mappers/*.py datacite/mappers/
 **4. Update Makefile:**
 
 ```makefile
-scripts-import-datacite:
+tools-import-datacite:
 	@echo "🔬 Importing from DataCite..."
 	@CMD="python -m src.sources.datacite --file $(FILE)"; \
 	if [ -n "$(OPTS)" ]; then \
 		CMD="$$CMD $(OPTS)"; \
 	fi; \
-	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
+	docker-compose -f docker-compose.scripts.yml run --rm tools-cli $$CMD
 ```
 
 **5. Test your importer:**
 
 ```bash
-make scripts-import-datacite FILE='src/sources/datacite/data/sample.json' OPTS='--dry-run'
+make tools-import-datacite FILE='src/sources/datacite/data/sample.json' OPTS='--dry-run'
 ```
 
 See `src/sources/README.md` for detailed documentation and patterns.
@@ -689,7 +593,7 @@ See `src/sources/README.md` for detailed documentation and patterns.
 **Interactive Python Shell:**
 
 ```bash
-make scripts-shell
+make tools-shell
 # Inside container:
 python3
 >>> from src.invenio_client import create_client_from_env
@@ -701,17 +605,17 @@ python3
 
 ```bash
 # Run any Python command in the container
-make scripts-run CMD='python -c "from src.invenio_client import create_client_from_env; print(create_client_from_env().base_url)"'
+make tools-run CMD='python -c "from src.invenio_client import create_client_from_env; print(create_client_from_env().base_url)"'
 ```
 
 **Environment Debugging:**
 
 ```bash
 # Check environment variables
-make scripts-run CMD='python -c "import os; print(os.environ.get(\"INVENIO_BASE_URL\"))"'
+make tools-run CMD='python -c "import os; print(os.environ.get(\"INVENIO_BASE_URL\"))"'
 
 # Test connection
-make scripts-run CMD='python -m src.tools.cli test-connection'
+make tools-run CMD='python -m src.tools.cli test-connection'
 ```
 
 ## API Coverage

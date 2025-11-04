@@ -1,0 +1,47 @@
+# InvenioRDM OpenScience Tools
+# Additional Docker Compose configuration for the Python API tools service
+
+services:
+  openscience-tools:
+    build:
+      context: ./openscience-tools
+      dockerfile: Dockerfile
+    container_name: invenio-openscience-tools
+    env_file:
+      - ./openscience-tools/config/.env
+    volumes:
+      # Mount config directory for environment files
+      - ./openscience-tools/config:/app/config:ro
+      # Mount source code for development
+      - ./openscience-tools/src:/app/src:ro
+      # Mount a volume for file uploads (optional)
+      - ./uploads:/app/uploads:ro
+    networks:
+      - default
+    restart: unless-stopped
+    # Interactive mode for development
+    stdin_open: true
+    tty: true
+    # Default command shows help
+    command: ["python", "main.py"]
+
+  # Alternative service for running specific tools/scripts
+  openscience-tools-cli:
+    build:
+      context: ./openscience-tools
+      dockerfile: Dockerfile
+    container_name: invenio-openscience-tools-cli
+    env_file:
+      - ./openscience-tools/config/.env
+    volumes:
+      - ./openscience-tools/config:/app/config:ro
+      - ./openscience-tools/src:/app/src:ro
+      - ./uploads:/app/uploads:ro
+    network_mode: host
+    # This service is designed to be run with specific commands
+    # Example: docker-compose -f docker-compose.openscience-tools.yml run openscience-tools-cli python examples/search_records.py -q "test"
+
+# Optional volumes for data persistence
+volumes:
+  openscience_tools_data:
+    driver: local

@@ -75,7 +75,7 @@ def activate_venv_and_run(cmd):
 
 def get_existing_token():
     """Searches for existing token in .env file"""
-    env_file = Path("scripts/config/.env")
+    env_file = Path("openscience-tools/config/.env")
     if env_file.exists():
         with open(env_file, "r") as f:
             for line in f:
@@ -143,7 +143,7 @@ def create_env_file(token):
     """Creates or updates .env file with token"""
     print("📝 Creating/updating .env file...")
 
-    config_dir = Path("scripts/config")
+    config_dir = Path("openscience-tools/config")
     config_dir.mkdir(parents=True, exist_ok=True)
 
     env_file = config_dir / ".env"

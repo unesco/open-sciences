@@ -339,7 +339,7 @@ kind-deploy-helm: kind-check kind-context
 	helm upgrade --install unesco-rdm invenio/invenio \
 		--version $(HELM_INVENIO_VERSION) \
 		--namespace unesco-rdm \
-		--values values-unesco.yaml \
+		--values values.yaml \
 		--wait \
 		--timeout 10m || \
 		(echo "⚠️  Helm deployment encountered issues - checking status..."; \
@@ -403,34 +403,34 @@ kind-create-admin: kind-check kind-context
 		grep -E '^[A-Za-z0-9]{40,}$$' | head -1); \
 	echo "Extracted token: $$TOKEN"; \
 	if [ -n "$$TOKEN" ] && [ "$$TOKEN" != "" ]; then \
-		mkdir -p ../scripts/config; \
-		if [ -f ../scripts/config/.env.kind ]; then \
+		mkdir -p ../openscience-tools/config; \
+		if [ -f ../openscience-tools/config/.env.kind ]; then \
 			echo "📝 Updating existing .env.kind file..."; \
-			sed -i.bak "s/INVENIO_TOKEN=.*/INVENIO_TOKEN=$$TOKEN/" ../scripts/config/.env.kind && rm -f ../scripts/config/.env.kind.bak; \
+			sed -i.bak "s/INVENIO_TOKEN=.*/INVENIO_TOKEN=$$TOKEN/" ../openscience-tools/config/.env.kind && rm -f ../openscience-tools/config/.env.kind.bak; \
 		else \
 			echo "📝 Creating new .env.kind file..."; \
-			echo "# UNESCO RDM - Kind Cluster Configuration" > ../scripts/config/.env.kind; \
-			echo "" >> ../scripts/config/.env.kind; \
-			echo "# API Configuration" >> ../scripts/config/.env.kind; \
-			echo "INVENIO_BASE_URL=http://localhost:8080" >> ../scripts/config/.env.kind; \
-			echo "INVENIO_TOKEN=$$TOKEN" >> ../scripts/config/.env.kind; \
-			echo "" >> ../scripts/config/.env.kind; \
-			echo "# Admin User" >> ../scripts/config/.env.kind; \
-			echo "ADMIN_EMAIL=admin@unesco.org" >> ../scripts/config/.env.kind; \
-			echo "ADMIN_PASSWORD=admin123" >> ../scripts/config/.env.kind; \
-			echo "" >> ../scripts/config/.env.kind; \
-			echo "# Test User (from init)" >> ../scripts/config/.env.kind; \
-			echo "USER_EMAIL=user@demo.org" >> ../scripts/config/.env.kind; \
-			echo "USER_PASSWORD=demo123" >> ../scripts/config/.env.kind; \
+			echo "# UNESCO RDM - Kind Cluster Configuration" > ../openscience-tools/config/.env.kind; \
+			echo "" >> ../openscience-tools/config/.env.kind; \
+			echo "# API Configuration" >> ../openscience-tools/config/.env.kind; \
+			echo "INVENIO_BASE_URL=http://localhost:8080" >> ../openscience-tools/config/.env.kind; \
+			echo "INVENIO_TOKEN=$$TOKEN" >> ../openscience-tools/config/.env.kind; \
+			echo "" >> ../openscience-tools/config/.env.kind; \
+			echo "# Admin User" >> ../openscience-tools/config/.env.kind; \
+			echo "ADMIN_EMAIL=admin@unesco.org" >> ../openscience-tools/config/.env.kind; \
+			echo "ADMIN_PASSWORD=admin123" >> ../openscience-tools/config/.env.kind; \
+			echo "" >> ../openscience-tools/config/.env.kind; \
+			echo "# Test User (from init)" >> ../openscience-tools/config/.env.kind; \
+			echo "USER_EMAIL=user@demo.org" >> ../openscience-tools/config/.env.kind; \
+			echo "USER_PASSWORD=demo123" >> ../openscience-tools/config/.env.kind; \
 		fi; \
-		echo "✅ Token saved to ../scripts/config/.env.kind"; \
+		echo "✅ Token saved to ../openscience-tools/config/.env.kind"; \
 		echo "📁 New token: $$TOKEN"; \
 	else \
 		echo "❌ Could not extract token. Generating manually..."; \
 		kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- \
 			invenio tokens create -n 'Admin Token' -u admin@unesco.org; \
 		echo ""; \
-		echo "⚠️  Please copy the token above and update ../scripts/config/.env.kind manually"; \
+		echo "⚠️  Please copy the token above and update ../openscience-tools/config/.env.kind manually"; \
 	fi
 	@echo ""
 	@echo "✅ Admin user created!"
@@ -483,75 +483,75 @@ kind-down: kind-clean kind-delete
 # Kind Scripts Commands - Data Import for Kind Cluster
 #============================================================================
 
-.PHONY: kind-scripts-setup-env kind-scripts-import-lens kind-scripts-reset kind-scripts-delete-all kind-scripts-shell kind-reset-lens
+.PHONY: kind-tools-setup-env kind-tools-import-lens kind-tools-reset kind-tools-delete-all kind-tools-shell kind-reset-lens
 
-# Configure scripts environment for Kind cluster
-kind-scripts-setup-env:
-	@echo "🔧 Setting up scripts environment for Kind cluster..."
+# Configure tools environment for Kind cluster
+kind-tools-setup-env:
+	@echo "🔧 Setting up OpenScience Tools environment for Kind cluster..."
 	@echo "Creating Kind-specific .env file..."
-	@mkdir -p scripts/config
-	@echo "# Environment Configuration for InvenioRDM Scripts - Kind Cluster" > scripts/config/.env.kind
-	@echo "# Automatically generated for Kind deployment" >> scripts/config/.env.kind
-	@echo "" >> scripts/config/.env.kind
-	@echo "# InvenioRDM Instance Configuration" >> scripts/config/.env.kind
-	@echo "# Access Kind cluster via port-forward or localhost" >> scripts/config/.env.kind
-	@echo "INVENIO_BASE_URL=http://localhost:5000" >> scripts/config/.env.kind
-	@echo "" >> scripts/config/.env.kind
-	@echo "# API Authentication - Token from Kind cluster" >> scripts/config/.env.kind
-	@echo "# Note: You need to get a token from the Kind cluster" >> scripts/config/.env.kind
-	@echo "# Run: kubectl exec -n unesco-rdm deployment/unesco-rdm -- invenio tokens create -n kind-scripts -u admin@demo.org" >> scripts/config/.env.kind
-	@echo "INVENIO_TOKEN=REPLACE_WITH_TOKEN_FROM_KIND" >> scripts/config/.env.kind
-	@echo "" >> scripts/config/.env.kind
-	@echo "# Optional configurations" >> scripts/config/.env.kind
-	@echo "DEFAULT_RESOURCE_TYPE=dataset" >> scripts/config/.env.kind
-	@echo "DEFAULT_ACCESS_LEVEL=public" >> scripts/config/.env.kind
-	@echo "LOG_LEVEL=INFO" >> scripts/config/.env.kind
+	@mkdir -p ../openscience-tools/config
+	@echo "# Environment Configuration for InvenioRDM OpenScience Tools - Kind Cluster" > ../openscience-tools/config/.env.kind
+	@echo "# Automatically generated for Kind deployment" >> ../openscience-tools/config/.env.kind
+	@echo "" >> ../openscience-tools/config/.env.kind
+	@echo "# InvenioRDM Instance Configuration" >> ../openscience-tools/config/.env.kind
+	@echo "# Access Kind cluster via port-forward or localhost" >> ../openscience-tools/config/.env.kind
+	@echo "INVENIO_BASE_URL=http://localhost:5000" >> ../openscience-tools/config/.env.kind
+	@echo "" >> ../openscience-tools/config/.env.kind
+	@echo "# API Authentication - Token from Kind cluster" >> ../openscience-tools/config/.env.kind
+	@echo "# Note: You need to get a token from the Kind cluster" >> ../openscience-tools/config/.env.kind
+	@echo "# Run: kubectl exec -n unesco-rdm deployment/unesco-rdm -- invenio tokens create -n kind-tools -u admin@demo.org" >> ../openscience-tools/config/.env.kind
+	@echo "INVENIO_TOKEN=REPLACE_WITH_TOKEN_FROM_KIND" >> ../openscience-tools/config/.env.kind
+	@echo "" >> ../openscience-tools/config/.env.kind
+	@echo "# Optional configurations" >> ../openscience-tools/config/.env.kind
+	@echo "DEFAULT_RESOURCE_TYPE=dataset" >> ../openscience-tools/config/.env.kind
+	@echo "DEFAULT_ACCESS_LEVEL=public" >> ../openscience-tools/config/.env.kind
+	@echo "LOG_LEVEL=INFO" >> ../openscience-tools/config/.env.kind
 	@echo ""
-	@echo "✅ Created scripts/config/.env.kind"
+	@echo "✅ Created openscience-tools/config/.env.kind"
 	@echo ""
 	@echo "⚠️  Important: You need to generate an API token from Kind cluster:"
 	@echo "   1. Make sure port-forward is running: make kind-port-forward"
 	@echo "   2. Get a token:"
-	@echo "      kubectl exec -n unesco-rdm deployment/unesco-rdm -- invenio tokens create -n kind-scripts -u user@demo.org"
-	@echo "   3. Update scripts/config/.env.kind with the token"
+	@echo "      kubectl exec -n unesco-rdm deployment/unesco-rdm -- invenio tokens create -n kind-tools -u user@demo.org"
+	@echo "   3. Update openscience-tools/config/.env.kind with the token"
 	@echo ""
 
 # Import from Lens.org to Kind cluster
-kind-scripts-import-lens:
+kind-tools-import-lens:
 	@echo "🔬 Importing from Lens.org to Kind cluster..."
 	@if [ -z "$(FILE)" ]; then \
 		echo "❌ Error: FILE parameter required"; \
 		echo "Usage:"; \
-		echo "  make kind-scripts-import-lens FILE='src/sources/lens/data/publications.json'"; \
-		echo "  make kind-scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'"; \
+		echo "  make kind-tools-import-lens FILE='src/sources/lens/data/publications.json'"; \
+		echo "  make kind-tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'"; \
 		exit 1; \
 	fi
 	@CMD="python -m src.sources.lens --file /project/$(FILE)"; \
 	if [ -n "$(OPTS)" ]; then \
 		CMD="$$CMD $(OPTS)"; \
 	fi; \
-	docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli $$CMD
+	docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli $$CMD
 
 # Delete all records from Kind cluster
-kind-scripts-delete-all:
+kind-tools-delete-all:
 	@echo "🗑️  Deleting all records from Kind cluster..."
-	@docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.tools.cleanup $(OPTS)
+	@docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.tools.cleanup $(OPTS)
 
 # Reset and import data to Kind cluster
-kind-scripts-reset:
+kind-tools-reset:
 	@echo "🔄 Resetting Kind cluster records..."
 	@if [ -z "$(CSV)" ] && [ -z "$(LENS)" ] && [ -z "$(ZENODO_ID)" ] && [ -z "$(ZENODO_QUERY)" ]; then \
 		echo "❌ Error: Source parameter required"; \
 		echo "Usage:"; \
-		echo "  CSV:    make kind-scripts-reset CSV='data/publications.csv'"; \
-		echo "  Lens:   make kind-scripts-reset LENS='src/sources/lens/data/publications.json'"; \
-		echo "  Zenodo: make kind-scripts-reset ZENODO_ID='17462748'"; \
-		echo "  Zenodo: make kind-scripts-reset ZENODO_QUERY='climate data' MAX=5"; \
+		echo "  CSV:    make kind-tools-reset CSV='data/publications.csv'"; \
+		echo "  Lens:   make kind-tools-reset LENS='src/sources/lens/data/publications.json'"; \
+		echo "  Zenodo: make kind-tools-reset ZENODO_ID='17462748'"; \
+		echo "  Zenodo: make kind-tools-reset ZENODO_QUERY='climate data' MAX=5"; \
 		exit 1; \
 	fi
 	@echo ""
 	@echo "📋 Step 1/2: Deleting all existing records from Kind cluster..."
-	@docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.tools.cleanup --confirm
+	@docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.tools.cleanup --confirm
 	@echo ""
 	@echo "📋 Step 2/2: Importing fresh records to Kind cluster..."
 	@if [ -n "$(CSV)" ]; then \
@@ -560,42 +560,42 @@ kind-scripts-reset:
 		if [ -n "$(OPTS)" ]; then \
 			CMD="$$CMD $(OPTS)"; \
 		fi; \
-		docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli $$CMD; \
+		docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli $$CMD; \
 	elif [ -n "$(LENS)" ]; then \
 		echo "🔬 Importing from Lens: $(LENS)"; \
 		CMD="python -m src.sources.lens --file $(LENS)"; \
 		if [ -n "$(OPTS)" ]; then \
 			CMD="$$CMD $(OPTS)"; \
 		fi; \
-		docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli $$CMD; \
+		docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli $$CMD; \
 	elif [ -n "$(ZENODO_ID)" ]; then \
 		echo "📡 Importing from Zenodo record: $(ZENODO_ID)"; \
-		docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --record-id $(ZENODO_ID) $(OPTS); \
+		docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.sources.zenodo --record-id $(ZENODO_ID) $(OPTS); \
 	elif [ -n "$(ZENODO_QUERY)" ]; then \
 		echo "📡 Importing from Zenodo search: $(ZENODO_QUERY)"; \
 		if [ -n "$(MAX)" ]; then \
-			docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" --max-results $(MAX) $(OPTS); \
+			docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" --max-results $(MAX) $(OPTS); \
 		else \
-			docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" $(OPTS); \
+			docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" $(OPTS); \
 		fi; \
 	fi
 	@echo ""
 	@echo "✅ Kind cluster reset complete!"
 
-# Open shell in scripts container connected to Kind cluster
-kind-scripts-shell:
-	@echo "🐚 Opening shell in scripts container (connected to Kind cluster)..."
-	@docker-compose -f ../docker-compose.scripts.kind.yml run --rm scripts-cli /bin/bash
+# Open shell in tools container connected to Kind cluster
+kind-tools-shell:
+	@echo "🐚 Opening shell in tools container (connected to Kind cluster)..."
+	@docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli /bin/bash
 
 # Quick reset with Lens.org data (delete all + import)
 kind-reset-lens:
 	@echo "🔄 Resetting Kind cluster with Lens.org data..."
 	@echo ""
 	@echo "📋 Step 1/2: Deleting all existing records..."
-	@$(MAKE) kind-scripts-delete-all
+	@$(MAKE) kind-tools-delete-all
 	@echo ""
 	@echo "📋 Step 2/2: Importing Lens.org publications..."
-	@$(MAKE) kind-scripts-import-lens FILE='scripts/src/sources/lens/data/publications.json'
+	@$(MAKE) kind-tools-import-lens FILE='openscience-tools/src/sources/lens/data/publications.json'
 	@echo ""
 	@echo "✅ Reset complete!"
 	@echo "   26 publications imported from Lens.org"

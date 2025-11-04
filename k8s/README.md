@@ -8,12 +8,11 @@ Complete guide for deploying InvenioRDM on **Kind (Kubernetes in Docker)** for l
 
 1. [Overview](#overview)
 2. [Prerequisites](#prerequisites)
-3. [Quick Start](#quick-start)
-4. [Step-by-Step Guide](#step-by-step-guide)
-5. [Data Import](#data-import)
-6. [Daily Operations](#daily-operations)
-7. [Troubleshooting](#troubleshooting)
-8. [Architecture](#architecture)
+3. [Step-by-Step Guide](#step-by-step-guide)
+4. [Data Import](#data-import)
+5. [Daily Operations](#daily-operations)
+6. [Troubleshooting](#troubleshooting)
+7. [Architecture](#architecture)
 
 ---
 
@@ -74,36 +73,9 @@ This verifies all tools are installed and shows their versions.
 
 ---
 
-## ⚡ Quick Start
-
-The fastest way to get everything running:
-
-```bash
-cd k8s
-
-# 1. Deploy everything (takes ~10 minutes)
-make kind-full-deploy
-
-# 2. In another terminal, start port forwarding
-make kind-port-forward
-
-# 3. Open browser at http://localhost:8080
-
-# 4. Login with:
-#    Email: admin@unesco.org
-#    Password: admin123
-
-# 5. Import sample data
-make kind-reset-lens
-```
-
-**Done!** You now have a fully functional InvenioRDM instance with 26 publications.
-
----
-
 ## 📖 Step-by-Step Guide
 
-For more control, deploy step by step:
+Following the steps to deploy the app.
 
 ### Step 1: Create Kind Cluster
 
@@ -187,7 +159,7 @@ make kind-deploy-helm
 **What it does:**
 
 - Adds InvenioRDM Helm repository
-- Installs chart with custom values (`values-unesco.yaml`)
+- Installs chart with custom values (`values.yaml`)
 - Deploys web, workers, and beat pods
 - Configures to use external services
 - Sets HTTP-only mode for local dev
@@ -241,7 +213,7 @@ make kind-create-admin
 - Creates user `admin@unesco.org` with password `admin123`
 - Assigns admin role and superuser permissions
 - Generates API token
-- Saves token to `../scripts/config/.env.kind`
+- Saves token to `../openscience-tools/config/.env.kind`
 
 **Time:** ~30 seconds
 
@@ -284,23 +256,13 @@ make kind-reset-lens
 
 ```bash
 # From CSV
-make kind-scripts-import-lens FILE='../scripts/src/sources/csv/data/publications.csv'
+make kind-tools-import-lens FILE='../openscience-tools/src/sources/csv/data/publications.csv'
 
 # From Zenodo (single record)
-make kind-scripts-import-zenodo RECORD_ID='17462748'
+make kind-tools-import-zenodo RECORD_ID='17462748'
 
 # From Zenodo (search)
-make kind-scripts-import-zenodo QUERY='climate data' MAX=5
-```
-
-### Manual Import Steps
-
-```bash
-# 1. Delete all existing records
-make kind-scripts-delete-all
-
-# 2. Import specific file
-make kind-scripts-import-lens FILE='../scripts/src/sources/lens/data/publications.json'
+make kind-tools-import-zenodo QUERY='climate data' MAX=5
 ```
 
 ---
@@ -385,180 +347,6 @@ make kind-status
 
 ---
 
-## 🐛 Troubleshooting
-
-### Pods Not Starting
-
-**Symptoms:** Pods in `Pending`, `CrashLoopBackOff`, or `Error` state
-
-**Diagnose:**
-
-```bash
-# Check pod details
-kubectl describe pod <pod-name> -n unesco-rdm
-
-# Check logs
-kubectl logs <pod-name> -n unesco-rdm --previous
-
-# Check events
-kubectl get events -n unesco-rdm --sort-by='.lastTimestamp' | tail -20
-```
-
-**Common fixes:**
-
-1. Increase Docker memory (Settings → Resources → Memory: 8GB)
-2. Wait for external services to be ready: `kubectl get pods -n unesco-rdm`
-3. Restart: `make kind-restart`
-
----
-
-### Import Fails: "Invalid value"
-
-**Error:** `Invalid value publication-article` or similar
-
-**Cause:** Vocabularies not loaded yet
-
-**Fix:**
-
-```bash
-# Re-run initialization
-make kind-init
-
-# Wait 2 minutes for workers to process
-
-# Verify vocabularies loaded
-kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- \
-  invenio vocabularies search resourcetypes | head -20
-```
-
----
-
-### Port Already in Use
-
-**Error:** Port 8080 already allocated
-
-**Fix:**
-
-```bash
-# Find what's using the port
-lsof -ti:8080
-
-# Kill it
-kill -9 $(lsof -ti:8080)
-
-# Or use different port
-kubectl port-forward -n unesco-rdm svc/unesco-rdm-invenio 9000:5000
-```
-
----
-
-### Cannot Access Application
-
-**Symptoms:** http://localhost:8080 not responding
-
-**Checks:**
-
-```bash
-# 1. Is port-forward running?
-# Should see: "Forwarding from 127.0.0.1:8080 -> 5000"
-# If not, run: make kind-port-forward
-
-# 2. Are pods running?
-kubectl get pods -n unesco-rdm
-# Web pod should be "Running" with "2/2" ready
-
-# 3. Check web logs
-make kind-logs
-```
-
----
-
-### Web Pod Killed (Exit Code 137)
-
-**Cause:** Out of memory (OOM)
-
-**Fix:**
-
-1. Increase Docker memory allocation to 8-10GB
-2. Or edit `values-unesco.yaml`:
-
-```yaml
-web:
-  resources:
-    limits:
-      memory: "3Gi" # Increase from 2Gi
-```
-
-3. Redeploy: `make kind-deploy-helm`
-
----
-
-### Database Connection Errors
-
-**Symptoms:** Cannot connect to PostgreSQL
-
-**Fix:**
-
-```bash
-# Check PostgreSQL pod
-kubectl get pod -n unesco-rdm postgresql-0
-
-# Check logs
-kubectl logs -n unesco-rdm postgresql-0
-
-# Restart if needed
-kubectl delete pod -n unesco-rdm postgresql-0
-# It will automatically recreate
-```
-
----
-
-### Workers Not Processing Tasks
-
-**Symptoms:** Background tasks stuck
-
-**Fix:**
-
-```bash
-# Check worker pods
-kubectl get pods -n unesco-rdm | grep worker
-
-# Check logs
-kubectl logs -f deployment/unesco-rdm-invenio-worker -n unesco-rdm
-
-# Check RabbitMQ
-kubectl exec -n unesco-rdm deployment/rabbitmq -- rabbitmqctl list_queues
-
-# Restart workers
-kubectl rollout restart deployment/unesco-rdm-invenio-worker -n unesco-rdm
-kubectl rollout restart deployment/unesco-rdm-invenio-worker-beat -n unesco-rdm
-```
-
----
-
-### Search Not Working
-
-**Symptoms:** No results or search errors
-
-**Fix:**
-
-```bash
-# Check OpenSearch
-kubectl get pod -n unesco-rdm opensearch-0
-
-# Check indices
-kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- \
-  invenio index list
-
-# Reindex all records
-kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- \
-  invenio index reindex --yes
-```
-
----
-
-## 🧹 Cleanup
-
 ### Remove Deployment (Keep Cluster)
 
 ```bash
@@ -576,18 +364,6 @@ make kind-down
 ```
 
 This deletes the entire Kind cluster. All data is lost.
-
----
-
-### Start Fresh
-
-```bash
-# Complete removal
-make kind-down
-
-# Full redeployment
-make kind-full-deploy
-```
 
 ---
 
@@ -671,7 +447,7 @@ make kind-full-deploy
 - Uses public Docker images
 - Single replica with emptyDir volumes (not persistent)
 
-### `values-unesco.yaml`
+### `values.yaml`
 
 - Helm chart overrides
 - HTTP-only configuration
@@ -736,79 +512,6 @@ make kind-full-deploy
 
 ---
 
-## � Version Management
-
-### Pinned Helm Chart Versions
-
-To ensure stability and prevent breaking changes, Helm chart versions are pinned in the Makefile:
-
-- **InvenioRDM Helm Chart**: v0.8.1
-
-### Checking Available Versions
-
-```bash
-# List available versions
-make kind-helm-versions
-
-# Or manually
-helm search repo invenio/invenio --versions
-```
-
-### Updating Helm Chart Version
-
-1. **Check available versions**:
-
-   ```bash
-   make kind-helm-versions
-   ```
-
-2. **Update version in Makefile**:
-   Edit `k8s/Makefile` and change:
-
-   ```makefile
-   HELM_INVENIO_VERSION ?= 0.8.1  # Change to desired version
-   ```
-
-3. **Redeploy**:
-   ```bash
-   make kind-deploy-helm
-   ```
-
-### Why Pin Versions?
-
-✅ **Predictable deployments**: Same chart version every time  
-✅ **Prevent breaking changes**: Avoid unexpected updates  
-✅ **Easier troubleshooting**: Known configuration  
-✅ **Controlled upgrades**: Test before updating
-
----
-
-## �🚦 Best Practices
-
-### Development Workflow
-
-1. **Start fresh**: `make kind-full-deploy`
-2. **Make changes**: Edit code in parent directory
-3. **Rebuild**: `make kind-load-image`
-4. **Restart**: `make kind-restart`
-5. **Test**: Access at http://localhost:8080
-6. **Import data**: `make kind-reset-lens`
-7. **Check logs**: `make kind-logs`
-
-### Resource Management
-
-- Monitor usage: `kubectl top pods -n unesco-rdm`
-- Adjust limits in `values-unesco.yaml` if needed
-- Keep Docker memory allocation ≥ 8GB
-
-### Data Management
-
-- Always test imports with `--limit 10` first
-- Use `kind-scripts-delete-all` before large imports
-- Keep backup of data files outside cluster
-
----
-
 ## 📚 Additional Resources
 
 - [Version History](VERSIONS.md) - Helm chart versions and upgrade notes
@@ -823,9 +526,7 @@ helm search repo invenio/invenio --versions
 
 1. **Check logs**: `make kind-logs`
 2. **Check status**: `make kind-status`
-3. **Review this guide**: Especially [Troubleshooting](#troubleshooting)
-4. **Check InvenioRDM docs**: https://inveniordm.docs.cern.ch/
-5. **Clean and retry**: `make kind-down && make kind-full-deploy`
+3. **Check InvenioRDM docs**: https://inveniordm.docs.cern.ch/
 
 ---
 

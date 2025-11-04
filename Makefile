@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields up stop stop-all build users ssl-certs check scripts-build scripts-up scripts-stop scripts-run scripts-shell scripts-help scripts-setup-env scripts-status scripts-import
+.PHONY: help destroy init init-custom-fields up stop stop-all build users ssl-certs check tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import
 
 # Default target
 help:
@@ -26,64 +26,20 @@ help:
 	@echo "  check        - Check and fix Docker services if needed"
 	@echo "  destroy      - Completely destroy the instance and virtualenv"
 	@echo ""
-	@echo "Scripts Microservice Commands:"
-	@echo "  scripts-setup-env    - Auto-setup environment with API token generation"
-	@echo "  scripts-status       - Check scripts microservice configuration status"
-	@echo "  scripts-build        - Build the scripts microservice container"
-	@echo "  scripts-up           - Start the scripts microservice"
-	@echo "  scripts-stop         - Stop the scripts microservice containers"
-	@echo "  scripts-run          - Run a specific script or tool"
-	@echo "  scripts-import-csv   - Import records from CSV (use FILE='path/to/file.csv')"
-	@echo "  scripts-import-lens  - Import from Lens.org (use FILE='path/to/file.json')"
-	@echo "  scripts-import-zenodo - Import from Zenodo (use RECORD_ID or QUERY)"
-	@echo "  scripts-reset        - Delete all + import from source (CSV/Lens/Zenodo)"
-	@echo "  scripts-shell        - Open an interactive shell in the scripts container"
-	@echo "  scripts-help         - Show scripts microservice help and examples"
-	@echo ""
-	@echo "Docker Deployment Commands (Full Stack):"
-	@echo "  docker-build         - Build production Docker image"
-	@echo "  docker-up            - Start full dockerized stack (all services)"
-	@echo "  docker-down          - Stop dockerized stack"
-	@echo "  docker-init          - Initialize database in Docker"
-	@echo "  docker-demo          - Create demo data in Docker"
-	@echo "  docker-restart       - Restart the stack"
-	@echo "  docker-logs          - View logs from all services"
-	@echo "  docker-logs-service  - View logs from specific service (SERVICE=name)"
-	@echo "  docker-shell         - Open bash shell in web-ui container"
-	@echo "  docker-exec          - Execute command in container (CMD='command')"
-	@echo "  docker-status        - Check status of all containers"
-	@echo "  docker-clean         - Stop and remove all volumes (destructive!)"
-	@echo "  docker-release       - Build, tag and push to registry"
-	@echo ""
-	@echo "Kind (Local Kubernetes) Commands:"
-	@echo "  kind-check           - Check if Kind, kubectl and helm are installed"
-	@echo "  kind-create          - Create local Kind cluster with Ingress"
-	@echo "  kind-load-image      - Build and load Docker image into Kind"
-	@echo "  kind-deploy          - Deploy InvenioRDM using Helm"
-	@echo "  kind-init            - Initialize database and create demo data"
-	@echo "  kind-up              - Complete setup (create + load + deploy + init)"
-	@echo "  kind-status          - Check deployment status"
-	@echo "  kind-logs            - View application logs"
-	@echo "  kind-shell           - Open shell in web-ui pod"
-	@echo "  kind-port-forward    - Forward port 5000 to localhost"
-	@echo "  kind-restart         - Restart all deployments"
-	@echo "  kind-clean           - Remove deployment (keep cluster)"
-	@echo "  kind-delete          - Delete entire Kind cluster"
-	@echo "  kind-down            - Complete teardown (clean + delete)"
-	@echo ""
-	@echo "Kind Scripts Commands (Data Import for Kind Cluster):"
-	@echo "  kind-scripts-setup-env      - Setup scripts environment for Kind"
-	@echo "  kind-scripts-import-csv     - Import CSV to Kind (FILE='...')"
-	@echo "  kind-scripts-import-lens    - Import Lens data to Kind (FILE='...')"
-	@echo "  kind-scripts-import-zenodo  - Import Zenodo to Kind (RECORD_ID/QUERY)"
-	@echo "  kind-scripts-reset          - Delete all + import to Kind"
-	@echo "  kind-scripts-delete-all     - Delete all records from Kind"
-	@echo "  kind-scripts-shell          - Shell in scripts container (Kind)"
+	@echo "OpenScience Tools Commands:"
+	@echo "  tools-setup-env      - Auto-setup environment with API token generation"
+	@echo "  tools-status         - Check tools microservice configuration status"
+	@echo "  tools-build          - Build the tools microservice container"
+	@echo "  tools-up             - Start the tools microservice"
+	@echo "  tools-stop           - Stop the tools microservice containers"
+	@echo "  tools-run            - Run a specific script or tool"
+	@echo "  tools-import-lens    - Import from Lens.org (use FILE='path/to/file.json')"
+	@echo "  tools-reset          - Delete all + import from source (Lens)"
+	@echo "  tools-shell          - Open an interactive shell in the tools container"
+	@echo "  tools-help           - Show tools microservice help and examples"
 	@echo ""
 	@echo "Usage: make [command]"
-	@echo "Example: make scripts-run CMD='python -m src.tools.search -q test'"
-	@echo "Example: make scripts-import-csv FILE='data/sample_records.csv'"
-	@echo "Example: make kind-scripts-reset LENS='src/sources/lens/data/publications.json'"
+	@echo "Example: make tools-run CMD='python -m src.tools.search -q test'"
 
 # Initialize the project
 init:
@@ -128,8 +84,8 @@ stop:
 	@echo "⏹️  Stopping UNESCO Science Portal..."
 	@echo "🐳 Stopping containerized services..."
 	-$(VENV_ACTIVATE) && invenio-cli services stop
-	@echo "📦 Stopping Scripts microservice containers..."
-	-docker-compose -f docker-compose.scripts.yml stop
+	@echo "📦 Stopping OpenScience Tools microservice containers..."
+	-docker-compose -f docker-compose.openscience-tools.yml stop
 	@echo "✅ All services and processes stopped."
 
 # Build assets
@@ -212,36 +168,36 @@ destroy:
 	-rm -rf .invenio.private
 	@echo "✅ Instance completely destroyed!"
 
-# Scripts microservice targets
+# OpenScience Tools microservice targets
 
-scripts-status:
-	@echo "📊 Scripts Microservice Status"
+tools-status:
+	@echo "📊 OpenScience Tools Microservice Status"
 	@echo "==============================="
 	@echo ""
 	@echo "🔍 Checking environment configuration..."
-	@if [ -f scripts/config/.env ]; then \
-		echo "✅ Configuration file exists: scripts/config/.env"; \
-		if grep -q "INVENIO_TOKEN=.*[A-Za-z0-9]" scripts/config/.env 2>/dev/null; then \
+	@if [ -f openscience-tools/config/.env ]; then \
+		echo "✅ Configuration file exists: openscience-tools/config/.env"; \
+		if grep -q "INVENIO_TOKEN=.*[A-Za-z0-9]" openscience-tools/config/.env 2>/dev/null; then \
 			echo "✅ API token configured"; \
 		else \
 			echo "❌ API token not configured or empty"; \
 		fi; \
-		if grep -q "INVENIO_BASE_URL=https" scripts/config/.env 2>/dev/null; then \
+		if grep -q "INVENIO_BASE_URL=https" openscience-tools/config/.env 2>/dev/null; then \
 			echo "✅ HTTPS URL configured"; \
 		else \
 			echo "⚠️  HTTP URL configured (HTTPS recommended)"; \
 		fi; \
 	else \
-		echo "❌ Configuration file missing: scripts/config/.env"; \
-		echo "   Run 'make scripts-setup-env' to configure automatically"; \
+		echo "❌ Configuration file missing: openscience-tools/config/.env"; \
+		echo "   Run 'make tools-setup-env' to configure automatically"; \
 	fi
 	@echo ""
 	@echo "🐳 Checking Docker container..."
-	@if docker images sc-openscience-scripts:latest --format "table {{.Repository}}" 2>/dev/null | grep -q "sc-openscience-scripts"; then \
+	@if docker images sc-openscience-tools:latest --format "table {{.Repository}}" 2>/dev/null | grep -q "sc-openscience-tools"; then \
 		echo "✅ Docker container built"; \
 	else \
 		echo "❌ Docker container not built"; \
-		echo "   Run 'make scripts-build' to build the container"; \
+		echo "   Run 'make tools-build' to build the container"; \
 	fi
 	@echo ""
 	@echo "🌐 Checking InvenioRDM connectivity..."
@@ -253,243 +209,148 @@ scripts-status:
 	fi
 	@echo ""
 
-scripts-setup-env:
-	@echo "🔧 Automatic environment configuration for Scripts Microservice..."
+tools-setup-env:
+	@echo "🔧 Automatic environment configuration for OpenScience Tools Microservice..."
 	@echo "🔑 Generating API token and configuring .env..."
-	$(VENV_ACTIVATE) && python scripts/setup_env.py
+	$(VENV_ACTIVATE) && python openscience-tools/setup_env.py
 	@echo "✅ Environment setup completed!"
 
-scripts-build:
-	@echo "🔨 Building InvenioRDM Scripts microservice..."
-	docker-compose -f docker-compose.scripts.yml build scripts
-	@echo "✅ Scripts microservice built successfully!"
+tools-build:
+	@echo "🔨 Building InvenioRDM OpenScience Tools microservice..."
+	docker-compose -f docker-compose.openscience-tools.yml build openscience-tools
+	@echo "✅ OpenScience Tools microservice built successfully!"
 
-scripts-up:
-	@echo "🚀 Starting InvenioRDM Scripts microservice..."
+tools-up:
+	@echo "🚀 Starting InvenioRDM OpenScience Tools microservice..."
 	@echo "📋 Starting with interactive help..."
-	docker-compose -f docker-compose.scripts.yml up scripts
+	docker-compose -f docker-compose.openscience-tools.yml up openscience-tools
 
-scripts-stop:
-	@echo "⏹️  Stopping Scripts microservice..."
-	@echo "🐳 Stopping scripts containers..."
-	-docker-compose -f docker-compose.scripts.yml down 2>/dev/null || true
-	@echo "✅ Scripts microservice stopped."
+tools-stop:
+	@echo "⏹️  Stopping OpenScience Tools microservice..."
+	@echo "🐳 Stopping tools containers..."
+	-docker-compose -f docker-compose.openscience-tools.yml down 2>/dev/null || true
+	@echo "✅ OpenScience Tools microservice stopped."
 
-scripts-run:
-	@echo "🏃 Running script command: $(CMD)"
+tools-run:
+	@echo "🏃 Running tools command: $(CMD)"
 	@if [ -z "$(CMD)" ]; then \
 		echo "❌ Error: Please specify CMD='command to run'"; \
-		echo "Example: make scripts-run CMD='python -m src.tools.search -q test'"; \
+		echo "Example: make tools-run CMD='python -m src.tools.search -q test'"; \
 		exit 1; \
 	fi
-	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $(CMD)
+	docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli $(CMD)
 
-scripts-shell:
-	@echo "🐚 Opening interactive shell in scripts container..."
-	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli /bin/bash
+tools-shell:
+	@echo "🐚 Opening interactive shell in tools container..."
+	docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli /bin/bash
 
-scripts-import-csv:
-	@echo "📥 Importing records from CSV..."
-	@if [ -z "$(FILE)" ]; then \
-		echo "❌ Error: FILE parameter required"; \
-		echo "Usage:"; \
-		echo "  make scripts-import-csv FILE='src/sources/csv/data/publications.csv'"; \
-		echo "  make scripts-import-csv FILE='data/records.csv' OPTS='--dry-run'"; \
-		echo "  make scripts-import-csv FILE='data/records.csv' OPTS='--skip-errors --verbose'"; \
-		exit 1; \
-	fi
-	@CMD="python -m src.sources.csv --file $(FILE:src/%=/project/%)"; \
-	if [ -n "$(OPTS)" ]; then \
-		CMD="$$CMD $(OPTS)"; \
-	fi; \
-	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
-
-scripts-delete-all:
+tools-delete-all:
 	@echo "🗑️  Deleting all records from InvenioRDM..."
 	@if [ -n "$(OPTS)" ]; then \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.tools.cleanup $(OPTS); \
+		docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli python -m src.tools.cleanup $(OPTS); \
 	else \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.tools.cleanup; \
+		docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli python -m src.tools.cleanup; \
 	fi
 
-scripts-reset:
+tools-reset:
 	@echo "🔄 Resetting InvenioRDM records..."
-	@if [ -z "$(CSV)" ] && [ -z "$(LENS)" ] && [ -z "$(ZENODO_ID)" ] && [ -z "$(ZENODO_QUERY)" ]; then \
+	@if [ -z "$(LENS)" ]; then \
 		echo "❌ Error: Source parameter required"; \
 		echo "Usage:"; \
-		echo "  CSV:    make scripts-reset CSV='data/publications.csv'"; \
-		echo "  Lens:   make scripts-reset LENS='data/publications.json'"; \
-		echo "  Zenodo: make scripts-reset ZENODO_ID='17462748'"; \
-		echo "  Zenodo: make scripts-reset ZENODO_QUERY='climate data' MAX=5"; \
+		echo "  Lens:   make tools-reset LENS='data/publications.json'"; \
 		echo ""; \
 		echo "With options:"; \
-		echo "  make scripts-reset CSV='data/publications.csv' OPTS='--verbose'"; \
-		echo "  make scripts-reset LENS='data/publications.json' OPTS='--limit 10'"; \
-		echo "  make scripts-reset ZENODO_ID='17462748' OPTS='--skip-files'"; \
+		echo "  make tools-reset LENS='data/publications.json' OPTS='--limit 10'"; \
 		exit 1; \
 	fi
 	@echo ""
 	@echo "📋 Step 1/2: Deleting all existing records..."
-	@docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.tools.cleanup --confirm
+	@docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli python -m src.tools.cleanup --confirm
 	@echo ""
 	@echo "📋 Step 2/2: Importing fresh records..."
-	@if [ -n "$(CSV)" ]; then \
-		echo "📥 Importing from CSV: $(CSV)"; \
-		CMD="python -m src.sources.csv --file $(CSV)"; \
-		if [ -n "$(OPTS)" ]; then \
-			CMD="$$CMD $(OPTS)"; \
-		fi; \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD; \
-	elif [ -n "$(LENS)" ]; then \
+	@if [ -n "$(LENS)" ]; then \
 		echo "🔬 Importing from Lens: $(LENS)"; \
 		CMD="python -m src.sources.lens --file $(LENS)"; \
 		if [ -n "$(OPTS)" ]; then \
 			CMD="$$CMD $(OPTS)"; \
 		fi; \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD; \
-	elif [ -n "$(ZENODO_ID)" ]; then \
-		echo "📡 Importing from Zenodo record: $(ZENODO_ID)"; \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --record-id $(ZENODO_ID) $(OPTS); \
-	elif [ -n "$(ZENODO_QUERY)" ]; then \
-		echo "📡 Importing from Zenodo search: $(ZENODO_QUERY)"; \
-		if [ -n "$(MAX)" ]; then \
-			docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" --max-results $(MAX) $(OPTS); \
-		else \
-			docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" $(OPTS); \
-		fi; \
+		docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli $$CMD; \
 	fi
 	@echo ""
 	@echo "✅ Reset complete!"
 
-scripts-import-zenodo:
-	@echo "📥 Importing from Zenodo..."
-	@if [ -z "$(RECORD_ID)" ] && [ -z "$(QUERY)" ]; then \
-		echo "❌ Error: RECORD_ID or QUERY parameter required"; \
-		echo "Usage:"; \
-		echo "  make scripts-import-zenodo RECORD_ID='17462748'"; \
-		echo "  make scripts-import-zenodo QUERY='climate data' MAX=5"; \
-		echo "  make scripts-import-zenodo RECORD_ID='17462748' OPTS='--skip-files --dry-run'"; \
-		exit 1; \
-	fi
-	@if [ -n "$(RECORD_ID)" ]; then \
-		docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --record-id $(RECORD_ID) $(OPTS); \
-	elif [ -n "$(QUERY)" ]; then \
-		if [ -n "$(MAX)" ]; then \
-			docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(QUERY)" --max-results $(MAX) $(OPTS); \
-		else \
-			docker-compose -f docker-compose.scripts.yml run --rm scripts-cli python -m src.sources.zenodo --search "$(QUERY)" $(OPTS); \
-		fi; \
-	fi
-
-scripts-import-lens:
+tools-import-lens:
 	@echo "🔬 Importing from Lens.org..."
 	@if [ -z "$(FILE)" ]; then \
 		echo "❌ Error: FILE parameter required"; \
 		echo "Usage:"; \
-		echo "  make scripts-import-lens FILE='src/sources/lens/data/publications.json'"; \
-		echo "  make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'"; \
-		echo "  make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10 --verbose'"; \
+		echo "  make tools-import-lens FILE='src/sources/lens/data/publications.json'"; \
+		echo "  make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'"; \
+		echo "  make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10 --verbose'"; \
 		exit 1; \
 	fi
 	@CMD="python -m src.sources.lens --file $(FILE:src/%=/project/%)"; \
 	if [ -n "$(OPTS)" ]; then \
 		CMD="$$CMD $(OPTS)"; \
 	fi; \
-	docker-compose -f docker-compose.scripts.yml run --rm scripts-cli $$CMD
+	docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli $$CMD
 
-scripts-help:
-	@echo "📚 InvenioRDM Scripts Microservice Help"
+tools-help:
+	@echo "📚 InvenioRDM OpenScience Tools Microservice Help"
 	@echo "======================================"
 	@echo ""
 	@echo "🚀 Quick Start (Automated Setup):"
 	@echo "1. Ensure InvenioRDM is running: make up"
-	@echo "2. Automatically configure environment: make scripts-setup-env"
-	@echo "3. Build the container: make scripts-build"
-	@echo "4. Test the connection: make scripts-run CMD='python -m src.tools.cli test-connection'"
-	@echo "5. Stop when done: make scripts-stop"
+	@echo "2. Automatically configure environment: make tools-setup-env"
+	@echo "3. Build the container: make tools-build"
+	@echo "4. Test the connection: make tools-run CMD='python -m src.tools.cli test-connection'"
+	@echo "5. Stop when done: make tools-stop"
 	@echo ""
 	@echo "🔧 Manual Setup (if needed):"
-	@echo "1. Copy the template: cp scripts/config/.env.example scripts/config/.env"
-	@echo "2. Edit scripts/config/.env with your settings"
-	@echo "3. Build the container: make scripts-build"
+	@echo "1. Copy the template: cp openscience-tools/config/.env.example openscience-tools/config/.env"
+	@echo "2. Edit openscience-tools/config/.env with your settings"
+	@echo "3. Build the container: make tools-build"
 	@echo ""
 	@echo "📊 Diagnostics and Status:"
-	@echo "  scripts-status    - Check system configuration and status"
-	@echo "  scripts-setup-env - Regenerate configuration and API token"
-	@echo ""
-	@echo "📥 CSV Import:"
-	@echo "  Import records from CSV file:"
-	@echo "    make scripts-import-csv FILE='data/publications.csv'"
-	@echo ""
-	@echo "  Import with options:"
-	@echo "    make scripts-import-csv FILE='data/my_records.csv' OPTS='--dry-run'"
-	@echo "    make scripts-import-csv FILE='data/my_records.csv' OPTS='--skip-errors --verbose'"
+	@echo "  tools-status    - Check system configuration and status"
+	@echo "  tools-setup-env - Regenerate configuration and API token"
 	@echo ""
 	@echo "🗑️  Record Management:"
 	@echo "  Delete all records:"
-	@echo "    make scripts-delete-all OPTS='--dry-run'  # Preview deletions"
-	@echo "    make scripts-delete-all OPTS='--confirm'  # Delete without prompt"
+	@echo "    make tools-delete-all OPTS='--dry-run'  # Preview deletions"
+	@echo "    make tools-delete-all OPTS='--confirm'  # Delete without prompt"
 	@echo ""
 	@echo "  Reset records (delete all + import from source):"
-	@echo "    make scripts-reset CSV='data/publications.csv'"
-	@echo "    make scripts-reset LENS='data/publications.json'"
-	@echo "    make scripts-reset ZENODO_ID='17462748'"
-	@echo "    make scripts-reset ZENODO_QUERY='climate data' MAX=5"
+	@echo "    make tools-reset LENS='data/publications.json'"
 	@echo ""
 	@echo "  Reset with options:"
-	@echo "    make scripts-reset CSV='data/publications.csv' OPTS='--verbose'"
-	@echo "    make scripts-reset LENS='data/publications.json' OPTS='--limit 10'"
-	@echo "    make scripts-reset ZENODO_ID='17462748' OPTS='--skip-files'"
-	@echo ""
-	@echo "📡 Import from Zenodo:"
-	@echo "  Import a specific record by ID:"
-	@echo "    make scripts-import-zenodo RECORD_ID='17462748'"
-	@echo "    make scripts-import-zenodo RECORD_ID='17462748' OPTS='--skip-files'  # Metadata only"
-	@echo "    make scripts-import-zenodo RECORD_ID='17462748' OPTS='--dry-run'     # Preview"
-	@echo ""
-	@echo "  Search and import multiple records:"
-	@echo "    make scripts-import-zenodo QUERY='climate data' MAX=5"
-	@echo "    make scripts-import-zenodo QUERY='COVID-19' MAX=3 OPTS='--skip-files'"
+	@echo "    make tools-reset LENS='data/publications.json' OPTS='--limit 10'"
 	@echo ""
 	@echo "🔬 Import from Lens.org:"
 	@echo "  Import publications from Lens.org JSON export:"
-	@echo "    make scripts-import-lens FILE='src/sources/lens/data/publications.json'"
-	@echo "    make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'  # Validate only"
-	@echo "    make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10' # Import first 10"
+	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json'"
+	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'  # Validate only"
+	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10' # Import first 10"
 	@echo ""
 	@echo "  Advanced options:"
-	@echo "    make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 20 --offset 10'  # Skip first 10"
-	@echo "    make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--batch-size 5 --verbose' # Custom batch"
-	@echo "    make scripts-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no-skip-existing'     # Reimport all"
+	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 20 --offset 10'  # Skip first 10"
+	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--batch-size 5 --verbose' # Custom batch"
+	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no-skip-existing'     # Reimport all"
 	@echo ""
-	@echo "  CSV file format (see src/sources/csv/data/publications.csv for example):"
-	@echo "    Required columns: title, creators"
-	@echo "    Optional: description, resource_type, publication_date, access_record,"
-	@echo "              access_files, file_paths, publish, record_id (for updates)"
-	@echo ""
-	@echo "💡 Usage Examples:"
-	@echo "  Search records:"
-	@echo "    make scripts-run CMD='python -m src.tools.search -q \"climate data\" -s 5 --detailed'"
-	@echo ""
-	@echo "  Create a record:"
-	@echo "    make scripts-run CMD='python examples/create_record.py -t \"My Dataset\" --creator \"John Doe\" --description \"Test record\"'"
-	@echo ""
-	@echo "  Get statistics:"
-	@echo "    make scripts-run CMD='python -m src.tools.stats --record-id abcd-1234'"
 	@echo ""
 		@echo "  Use the CLI tool:"
-	@echo "    make scripts-run CMD='python -m src.tools.cli test-connection'"
-	@echo "    make scripts-run CMD='python -m src.tools.cli search -q test'"
-	@echo "    make scripts-run CMD='python -m src.tools.cli get abcd-1234'"
+	@echo "    make tools-run CMD='python -m src.tools.cli test-connection'"
+	@echo "    make tools-run CMD='python -m src.tools.cli search -q test'"
+	@echo "    make tools-run CMD='python -m src.tools.cli get abcd-1234'"
 	@echo ""
 	@echo "🐚 Interactive Shell:"
-	@echo "    make scripts-shell"
+	@echo "    make tools-shell"
 	@echo ""
 	@echo "🔄 Regenerate Token:"
-	@echo "    make scripts-setup-env"
+	@echo "    make tools-setup-env"
 	@echo ""
-	@echo "🔧 Environment Variables (automatically configured in scripts/config/.env):"
+	@echo "🔧 Environment Variables (automatically configured in openscience-tools/config/.env):"
 	@echo "  INVENIO_BASE_URL - Your InvenioRDM instance URL"
 	@echo "  INVENIO_TOKEN    - API Bearer token (automatically generated)"
 	@echo ""
-	@echo "📖 For more details, see scripts/README.md"
+	@echo "📖 For more details, see openscience-tools/README.md"

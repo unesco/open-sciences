@@ -81,23 +81,14 @@ Visit https://127.0.0.1:5000 in your browser.
 After the server is running, you can optionally reset all records and load fresh data from various sources. First wait for some minutes after the first `make up` (to let Invenio finish the default data import), then run:
 
 ```bash
-make scripts-setup-env
+make tools-setup-env
 ```
 
 and select `N` to generate a new token that will be used to interact with Invenio's API. After that, you can:
 
 ```bash
-# Option A: Reset with CSV data (recommended for development)
-make scripts-reset CSV='src/sources/csv/data/publications.csv'
-
-# Option B: Reset with Lens.org publications
-make scripts-reset LENS='src/sources/lens/data/publications.json'
-
-# Option C: Reset with Zenodo record
-make scripts-reset ZENODO_ID='17462748'
-
-# Option D: Reset with Zenodo search results
-make scripts-reset ZENODO_QUERY='climate data' MAX=5
+# Reset with Lens.org publications
+make tools-reset LENS='src/sources/lens/data/publications.json'
 ```
 
 This command:
@@ -193,14 +184,14 @@ The project includes a Python microservice for programmatic interaction with Inv
 # 1. Start InvenioRDM
 make up
 
-# 2. Configure scripts environment (auto-generates API token)
-make scripts-setup-env
+# 2. Configure tools environment (auto-generates API token)
+make tools-setup-env
 
-# 3. Build the scripts container
-make scripts-build
+# 3. Build the tools container
+make tools-build
 
 # 4. Test connection
-make scripts-run CMD='python -m src.tools.cli test-connection'
+make tools-run CMD='python -m src.tools.cli test-connection'
 ```
 
 ### Common Operations
@@ -208,76 +199,58 @@ make scripts-run CMD='python -m src.tools.cli test-connection'
 **Import Data:**
 
 ```bash
-# From CSV
-make scripts-import-csv FILE='src/sources/csv/data/publications.csv'
-
 # From Lens.org JSON export
-make scripts-import-lens FILE='src/sources/lens/data/publications.json'
-
-# From Zenodo (by ID)
-make scripts-import-zenodo RECORD_ID='17462748'
-
-# From Zenodo (by search)
-make scripts-import-zenodo QUERY='climate data' MAX=5
+make tools-import-lens FILE='src/sources/lens/data/publications.json'
 ```
 
 **Search and Browse:**
 
 ```bash
 # Search records
-make scripts-run CMD='python -m src.tools.search -q "climate" -s 10'
+make tools-run CMD='python -m src.tools.search -q "climate" -s 10'
 
 # View record details
-make scripts-run CMD='python -m src.tools.view RECORD_ID'
+make tools-run CMD='python -m src.tools.view RECORD_ID'
 
 # Get statistics
-make scripts-run CMD='python -m src.tools.stats'
+make tools-run CMD='python -m src.tools.stats'
 ```
 
 **Reset Data:**
 
 ```bash
-# Delete all records and import from CSV
-make scripts-reset CSV='src/sources/csv/data/publications.csv'
-
 # Delete all records and import from Lens.org JSON export
-make scripts-reset LENS='src/sources/lens/data/publications.json'
-
-# Delete all records and import a specific Zenodo record
-make scripts-reset ZENODO_ID='17462748'
-
-# Delete all records and import from Zenodo search
-make scripts-reset ZENODO_QUERY='climate data' MAX=5
+make tools-reset LENS='src/sources/lens/data/publications.json'
 ```
 
 **Interactive Shell:**
 
 ```bash
-make scripts-shell
+make tools-shell
 ```
 
 ### Available Commands
 
-| Command                      | Description                         |
-| ---------------------------- | ----------------------------------- |
-| `make scripts-setup-env`     | Auto-configure with API token       |
-| `make scripts-build`         | Build scripts container             |
-| `make scripts-run`           | Run any script or tool              |
-| `make scripts-import-csv`    | Import from CSV file                |
-| `make scripts-import-lens`   | Import from Lens.org                |
-| `make scripts-import-zenodo` | Import from Zenodo                  |
-| `make scripts-reset`         | Delete all + import from any source |
-| `make scripts-delete-all`    | Delete all records                  |
-| `make scripts-shell`         | Interactive shell                   |
-| `make scripts-help`          | Detailed help with examples         |
+| Command                    | Description                         |
+| -------------------------- | ----------------------------------- |
+| `make tools-setup-env`     | Auto-configure with API token       |
+| `make tools-build`         | Build tools container               |
+| `make tools-run`           | Run any script or tool              |
+| `make tools-import-csv`    | Import from CSV file                |
+| `make tools-import-lens`   | Import from Lens.org                |
+| `make tools-import-zenodo` | Import from Zenodo                  |
+| `make tools-reset`         | Delete all + import from any source |
+| `make tools-delete-all`    | Delete all records                  |
+| `make tools-shell`         | Interactive shell                   |
+| `make tools-help`          | Detailed help with examples         |
 
 ### Documentation
 
 For complete documentation, see:
 
-- `scripts/README.md` - Full scripts documentation
-- `scripts/src/tools/README.md` - Management tools guide
-- `scripts/src/sources/README.md` - Data importers guide
+- `openscience-tools/README.md` - Full tools documentation
+- `openscience-tools/src/tools/README.md` - Management tools guide
+- `openscience-tools/src/sources/README.md` - Data importers guide
 
 ## Available Make Commands
 
@@ -322,220 +295,20 @@ This UNESCO Science Portal instance includes:
 - Custom footer with UNESCO links
 - Favicon and logo customizations
 
-## Documentation
-
-For detailed InvenioRDM documentation, visit:
-
-- [InvenioRDM Documentation](https://inveniordm.docs.cern.ch/)
-- [InvenioRDM CLI Reference](https://inveniordm.docs.cern.ch/reference/cli/)
-
-## Troubleshooting
-
-### Common Issues
-
-#### Redis/Services Not Starting After Destroy
-
-If you encounter errors like "Unable to boot up redis" after running `make destroy`:
-
-**Problem**: Docker containers or volumes remain in an inconsistent state.
-
-**Solution**:
-
-```bash
-# Method 1: Use the check command to clean up
-make check
-
-# Then re-initialize
-make init
-
-# Method 2: Manual cleanup
-docker-compose -f docker-compose.full.yml down --remove-orphans
-docker volume prune -f
-docker network prune -f
-make init
-```
-
-#### Permission Issues
-
-**Problem**: Ensure Docker is running and you have proper permissions.
-
-**Solution**:
-
-- Make sure Docker Desktop is running
-- Check that your user has Docker permissions
-- On Linux, you may need to add your user to the docker group: `sudo usermod -aG docker $USER`
-
-#### Port Conflicts
-
-**Problem**: Default ports (5000, 5432, 9200, 6379) must be available.
-
-**Solution**:
-
-```bash
-# Check which process is using a port
-lsof -i :5000  # Replace 5000 with the conflicting port
-
-# Stop all services to free ports
-make stop-all
-```
-
-#### Memory Issues
-
-**Problem**: Ensure sufficient RAM (minimum 4GB recommended).
-
-**Solution**:
-
-- Increase Docker Desktop memory allocation in Settings → Resources
-- Close other memory-intensive applications
-- Consider upgrading your system RAM
-
----
-
 ## 🚀 Production Deployment
-
-### Docker Deployment (Local Testing)
-
-Build and run the complete stack with Docker:
-
-```bash
-# Build production Docker image
-make docker-build
-
-# Start full stack (all services + application)
-make docker-up
-
-# Initialize database
-make docker-init
-
-# View logs
-make docker-logs
-
-# Stop stack
-make docker-down
-```
-
-**Available services:**
-
-- Frontend: http://localhost (Nginx)
-- OpenSearch Dashboards: http://localhost:5601
-- RabbitMQ Management: http://localhost:15672
-
-For more details, see [Docker Commands](#docker-commands) section.
 
 ### Kubernetes Deployment
 
-For production deployment on Kubernetes:
-
-1. **Prerequisites**: Kubernetes cluster, Helm 3.8+, kubectl configured
-2. **Setup**: Run initialization script
-3. **Deploy**: Use Helm charts
-4. **Initialize**: Set up database and indices
-
-```bash
-# Quick start
-cd k8s
-./setup.sh
-
-# Deploy
-helm install unesco-rdm invenio/invenio -f k8s/values-production.yaml
-
-# Initialize
-kubectl exec -it deployment/unesco-rdm-web-ui -- invenio db init
-```
-
-📚 **Full Documentation**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for:
-
-- Complete Kubernetes setup guide
-- Helm charts configuration
-- Docker image building and registry push
-- Monitoring and troubleshooting
-- Production best practices
-
-📁 **Kubernetes Files**: See [k8s/README.md](./k8s/README.md) for:
+For production deployment on Kubernetes, see [k8s/README.md](./k8s/README.md) for:
 
 - values-production.yaml configuration
 - Setup scripts
 - Common kubectl commands
 - Troubleshooting tips
 
----
+## Documentation
 
-## 🐳 Docker Commands
+For detailed InvenioRDM documentation, visit:
 
-The Makefile includes comprehensive Docker commands for full stack deployment:
-
-### Building Images
-
-```bash
-# Build production image
-make docker-build
-
-# Build development image (includes dev dependencies)
-make docker-build-dev
-
-# Build, tag, and push to registry (CI/CD workflow)
-make docker-release DOCKER_REGISTRY=registry.example.com
-```
-
-### Running Stack
-
-```bash
-# Start complete dockerized stack
-make docker-up
-
-# Initialize database in Docker
-make docker-init
-
-# Create demo data
-make docker-demo
-
-# Restart stack
-make docker-restart
-
-# Stop stack
-make docker-down
-
-# Stop and remove all volumes (⚠️ destructive!)
-make docker-clean
-```
-
-### Monitoring
-
-```bash
-# View logs from all services
-make docker-logs
-
-# View logs from specific service
-make docker-logs-service SERVICE=web-ui
-# Available services: web-ui, web-api, worker, scheduler, frontend, db, search, cache, mq
-
-# Check status of containers
-make docker-status
-
-# Execute command in container
-make docker-exec CMD="invenio shell"
-
-# Open bash shell
-make docker-shell
-```
-
-### Registry Operations
-
-```bash
-# Tag image for registry
-make docker-tag DOCKER_REGISTRY=registry.example.com
-
-# Push to registry
-make docker-push DOCKER_REGISTRY=registry.example.com
-
-# Complete release workflow
-make docker-release DOCKER_REGISTRY=registry.example.com
-```
-
-**Environment Variables:**
-
-- `DOCKER_IMAGE_NAME`: Image name (default: sc-openscience)
-- `DOCKER_IMAGE_TAG`: Image tag (default: latest)
-- `DOCKER_REGISTRY`: Docker registry URL
-
----
+- [InvenioRDM Documentation](https://inveniordm.docs.cern.ch/)
+- [InvenioRDM CLI Reference](https://inveniordm.docs.cern.ch/reference/cli/)
