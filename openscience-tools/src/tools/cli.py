@@ -16,7 +16,7 @@ import json
 import click
 from colorama import Fore, Style, init
 
-from src.invenio_client import create_client_from_env
+from ..invenio_client import create_client_from_env
 
 # Initialize colorama for colored output
 init(autoreset=True)

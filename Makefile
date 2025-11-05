@@ -27,19 +27,16 @@ help:
 	@echo "  destroy      - Completely destroy the instance and virtualenv"
 	@echo ""
 	@echo "OpenScience Tools Commands:"
-	@echo "  tools-setup-env      - Auto-setup environment with API token generation"
-	@echo "  tools-status         - Check tools microservice configuration status"
-	@echo "  tools-build          - Build the tools microservice container"
-	@echo "  tools-up             - Start the tools microservice"
-	@echo "  tools-stop           - Stop the tools microservice containers"
-	@echo "  tools-run            - Run a specific script or tool"
+	@echo "  tools-install        - Install openscience-tools package"
+	@echo "  tools-setup-env      - Setup environment variables for tools"
+	@echo "  tools-search         - Search records (use QUERY='search term')"
+	@echo "  tools-view           - View record details (use RECORD_ID='abc-123')"
+	@echo "  tools-cleanup        - Delete all records"
 	@echo "  tools-import-lens    - Import from Lens.org (use FILE='path/to/file.json')"
-	@echo "  tools-reset          - Delete all + import from source (Lens)"
-	@echo "  tools-shell          - Open an interactive shell in the tools container"
-	@echo "  tools-help           - Show tools microservice help and examples"
+	@echo "  tools-help           - Show tools help and examples"
 	@echo ""
 	@echo "Usage: make [command]"
-	@echo "Example: make tools-run CMD='python -m src.tools.search -q test'"
+	@echo "Example: make tools-search QUERY='climate data'"
 
 # Initialize the project
 init:
@@ -60,10 +57,12 @@ init:
 	$(VENV_ACTIVATE) && invenio-cli services setup
 	@echo "🔐 Setting up SSL certificates..."
 	$(MAKE) ssl-certs
-	@echo "� Initializing custom fields..."
+	@echo "📋 Initializing custom fields..."
 	$(MAKE) init-custom-fields
-	@echo "�👥 Creating ready-to-use users..."
+	@echo "👥 Creating ready-to-use users..."
 	$(MAKE) users
+	@echo "🔧 Installing openscience-tools package..."
+	$(MAKE) tools-install
 	@echo "✅ Initialization complete! Use 'make up' to start the server."
 
 # Initialize custom fields in database
@@ -86,9 +85,7 @@ stop:
 	@echo "⏹️  Stopping UNESCO Science Portal..."
 	@echo "🐳 Stopping containerized services..."
 	-$(VENV_ACTIVATE) && invenio-cli services stop
-	@echo "📦 Stopping OpenScience Tools microservice containers..."
-	-docker-compose -f docker-compose.openscience-tools.yml stop
-	@echo "✅ All services and processes stopped."
+	@echo "✅ All services stopped."
 
 # Build assets
 build:
@@ -198,189 +195,116 @@ destroy:
 	-rm -rf .invenio.private
 	@echo "✅ Instance completely destroyed!"
 
-# OpenScience Tools microservice targets
+# OpenScience Tools package targets
 
-tools-status:
-	@echo "📊 OpenScience Tools Microservice Status"
-	@echo "==============================="
-	@echo ""
-	@echo "🔍 Checking environment configuration..."
-	@if [ -f openscience-tools/config/.env ]; then \
-		echo "✅ Configuration file exists: openscience-tools/config/.env"; \
-		if grep -q "INVENIO_TOKEN=.*[A-Za-z0-9]" openscience-tools/config/.env 2>/dev/null; then \
-			echo "✅ API token configured"; \
-		else \
-			echo "❌ API token not configured or empty"; \
-		fi; \
-		if grep -q "INVENIO_BASE_URL=https" openscience-tools/config/.env 2>/dev/null; then \
-			echo "✅ HTTPS URL configured"; \
-		else \
-			echo "⚠️  HTTP URL configured (HTTPS recommended)"; \
-		fi; \
-	else \
-		echo "❌ Configuration file missing: openscience-tools/config/.env"; \
-		echo "   Run 'make tools-setup-env' to configure automatically"; \
+tools-install:
+	@echo "� Installing openscience-tools package..."
+	@if [ ! -d "$(VENV_PATH)" ]; then \
+		echo "❌ Virtual environment not found. Run 'make init' first."; \
+		exit 1; \
 	fi
-	@echo ""
-	@echo "🐳 Checking Docker container..."
-	@if docker images sc-openscience-tools:latest --format "table {{.Repository}}" 2>/dev/null | grep -q "sc-openscience-tools"; then \
-		echo "✅ Docker container built"; \
-	else \
-		echo "❌ Docker container not built"; \
-		echo "   Run 'make tools-build' to build the container"; \
-	fi
-	@echo ""
-	@echo "🌐 Checking InvenioRDM connectivity..."
-	@if curl -k -s --max-time 5 https://127.0.0.1:5000/ > /dev/null 2>&1; then \
-		echo "✅ InvenioRDM is running and reachable"; \
-	else \
-		echo "❌ InvenioRDM is not reachable"; \
-		echo "   Run 'make up' to start InvenioRDM"; \
-	fi
-	@echo ""
+	$(VENV_ACTIVATE) && cd openscience-tools && pip install -e .
+	@echo "✅ openscience-tools installed successfully!"
 
 tools-setup-env:
-	@echo "🔧 Automatic environment configuration for OpenScience Tools Microservice..."
-	@echo "🔑 Generating API token and configuring .env..."
+	@echo "🔧 Setting up environment variables for OpenScience Tools..."
+	@echo "🔑 Generating API token..."
 	$(VENV_ACTIVATE) && python openscience-tools/setup_env.py
+	@echo ""
 	@echo "✅ Environment setup completed!"
+	@echo "� Export variables before using tools:"
+	@echo "   export INVENIO_BASE_URL=https://127.0.0.1:5000"
+	@echo "   export INVENIO_TOKEN=\$$(grep INVENIO_TOKEN openscience-tools/config/.env | cut -d= -f2)"
 
-tools-build:
-	@echo "🔨 Building InvenioRDM OpenScience Tools microservice..."
-	docker-compose -f docker-compose.openscience-tools.yml build openscience-tools
-	@echo "✅ OpenScience Tools microservice built successfully!"
-
-tools-up:
-	@echo "🚀 Starting InvenioRDM OpenScience Tools microservice..."
-	@echo "📋 Starting with interactive help..."
-	docker-compose -f docker-compose.openscience-tools.yml up openscience-tools
-
-tools-stop:
-	@echo "⏹️  Stopping OpenScience Tools microservice..."
-	@echo "🐳 Stopping tools containers..."
-	-docker-compose -f docker-compose.openscience-tools.yml down 2>/dev/null || true
-	@echo "✅ OpenScience Tools microservice stopped."
-
-tools-run:
-	@echo "🏃 Running tools command: $(CMD)"
-	@if [ -z "$(CMD)" ]; then \
-		echo "❌ Error: Please specify CMD='command to run'"; \
-		echo "Example: make tools-run CMD='python -m src.tools.search -q test'"; \
-		exit 1; \
-	fi
-	docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli $(CMD)
-
-tools-shell:
-	@echo "🐚 Opening interactive shell in tools container..."
-	docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli /bin/bash
-
-tools-delete-all:
-	@echo "🗑️  Deleting all records from InvenioRDM..."
-	@if [ -n "$(OPTS)" ]; then \
-		docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli python -m src.tools.cleanup $(OPTS); \
+tools-search:
+	@echo "� Searching InvenioRDM records..."
+	@if [ -z "$(QUERY)" ]; then \
+		QUERY=""; \
+	fi; \
+	if [ -f openscience-tools/config/.env ]; then \
+		export $$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && \
+		$(VENV_ACTIVATE) && openscience-tools search -q "$$QUERY" $(OPTS); \
 	else \
-		docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli python -m src.tools.cleanup; \
-	fi
-
-tools-reset:
-	@echo "🔄 Resetting InvenioRDM records..."
-	@if [ -z "$(LENS)" ]; then \
-		echo "❌ Error: Source parameter required"; \
-		echo "Usage:"; \
-		echo "  Lens:   make tools-reset LENS='data/publications.json'"; \
-		echo ""; \
-		echo "With options:"; \
-		echo "  make tools-reset LENS='data/publications.json' OPTS='--limit 10'"; \
+		echo "❌ Configuration not found. Run 'make tools-setup-env' first."; \
 		exit 1; \
 	fi
-	@echo ""
-	@echo "📋 Step 1/2: Deleting all existing records..."
-	@docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli python -m src.tools.cleanup --confirm
-	@echo ""
-	@echo "📋 Step 2/2: Importing fresh records..."
-	@if [ -n "$(LENS)" ]; then \
-		echo "🔬 Importing from Lens: $(LENS)"; \
-		CMD="python -m src.sources.lens --file $(LENS)"; \
-		if [ -n "$(OPTS)" ]; then \
-			CMD="$$CMD $(OPTS)"; \
-		fi; \
-		docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli $$CMD; \
+
+tools-view:
+	@echo "�️  Viewing record details..."
+	@if [ -z "$(RECORD_ID)" ]; then \
+		echo "❌ Error: RECORD_ID parameter required"; \
+		echo "Usage: make tools-view RECORD_ID='abc-123'"; \
+		exit 1; \
+	fi; \
+	if [ -f openscience-tools/config/.env ]; then \
+		export $$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && \
+		$(VENV_ACTIVATE) && openscience-tools view $(RECORD_ID) $(OPTS); \
+	else \
+		echo "❌ Configuration not found. Run 'make tools-setup-env' first."; \
+		exit 1; \
 	fi
-	@echo ""
-	@echo "✅ Reset complete!"
+
+tools-cleanup:
+	@echo "�️  Deleting all records from InvenioRDM..."
+	@if [ -f openscience-tools/config/.env ]; then \
+		export $$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && \
+		$(VENV_ACTIVATE) && openscience-tools cleanup $(OPTS); \
+	else \
+		echo "❌ Configuration not found. Run 'make tools-setup-env' first."; \
+		exit 1; \
+	fi
 
 tools-import-lens:
 	@echo "🔬 Importing from Lens.org..."
 	@if [ -z "$(FILE)" ]; then \
 		echo "❌ Error: FILE parameter required"; \
 		echo "Usage:"; \
-		echo "  make tools-import-lens FILE='src/sources/lens/data/publications.json'"; \
-		echo "  make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'"; \
-		echo "  make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10 --verbose'"; \
+		echo "  make tools-import-lens FILE='path/to/publications.json'"; \
+		echo "  make tools-import-lens FILE='path/to/publications.json' OPTS='--dry-run'"; \
+		echo "  make tools-import-lens FILE='path/to/publications.json' OPTS='--limit 10'"; \
+		exit 1; \
+	fi; \
+	if [ -f openscience-tools/config/.env ]; then \
+		export $$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && \
+		$(VENV_ACTIVATE) && openscience-tools import-lens --file $(FILE) $(OPTS); \
+	else \
+		echo "❌ Configuration not found. Run 'make tools-setup-env' first."; \
 		exit 1; \
 	fi
-	@CMD="python -m src.sources.lens --file $(FILE:src/%=/project/%)"; \
-	if [ -n "$(OPTS)" ]; then \
-		CMD="$$CMD $(OPTS)"; \
-	fi; \
-	docker-compose -f docker-compose.openscience-tools.yml run --rm openscience-tools-cli $$CMD
 
 tools-help:
-	@echo "📚 InvenioRDM OpenScience Tools Microservice Help"
+	@echo "📚 OpenScience Tools - Usage Guide"
 	@echo "======================================"
 	@echo ""
-	@echo "🚀 Quick Start (Automated Setup):"
+	@echo "🚀 Quick Start:"
 	@echo "1. Ensure InvenioRDM is running: make up"
-	@echo "2. Automatically configure environment: make tools-setup-env"
-	@echo "3. Build the container: make tools-build"
-	@echo "4. Test the connection: make tools-run CMD='python -m src.tools.cli test-connection'"
-	@echo "5. Stop when done: make tools-stop"
+	@echo "2. Install the package: make tools-install"
+	@echo "3. Setup environment: make tools-setup-env"
+	@echo "4. Use the tools: make tools-search QUERY='test'"
 	@echo ""
-	@echo "🔧 Manual Setup (if needed):"
-	@echo "1. Copy the template: cp openscience-tools/config/.env.example openscience-tools/config/.env"
-	@echo "2. Edit openscience-tools/config/.env with your settings"
-	@echo "3. Build the container: make tools-build"
+	@echo "� Search Records:"
+	@echo "  make tools-search QUERY='climate data'"
+	@echo "  make tools-search QUERY='test' OPTS='--detailed'"
+	@echo "  make tools-search OPTS='--size 20 --page 2'"
 	@echo ""
-	@echo "📊 Diagnostics and Status:"
-	@echo "  tools-status    - Check system configuration and status"
-	@echo "  tools-setup-env - Regenerate configuration and API token"
+	@echo "�️  View Record Details:"
+	@echo "  make tools-view RECORD_ID='abc-123'"
+	@echo "  make tools-view RECORD_ID='abc-123' OPTS='--format json'"
 	@echo ""
-	@echo "🗑️  Record Management:"
-	@echo "  Delete all records:"
-	@echo "    make tools-delete-all OPTS='--dry-run'  # Preview deletions"
-	@echo "    make tools-delete-all OPTS='--confirm'  # Delete without prompt"
-	@echo ""
-	@echo "  Reset records (delete all + import from source):"
-	@echo "    make tools-reset LENS='data/publications.json'"
-	@echo ""
-	@echo "  Reset with options:"
-	@echo "    make tools-reset LENS='data/publications.json' OPTS='--limit 10'"
+	@echo "🗑️  Delete All Records:"
+	@echo "  make tools-cleanup OPTS='--dry-run'   # Preview deletions"
+	@echo "  make tools-cleanup OPTS='--confirm'   # Delete all"
 	@echo ""
 	@echo "🔬 Import from Lens.org:"
-	@echo "  Import publications from Lens.org JSON export:"
-	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json'"
-	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'  # Validate only"
-	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10' # Import first 10"
+	@echo "  make tools-import-lens FILE='data/publications.json'"
+	@echo "  make tools-import-lens FILE='data/publications.json' OPTS='--dry-run'"
+	@echo "  make tools-import-lens FILE='data/publications.json' OPTS='--limit 10'"
+	@echo "  make tools-import-lens FILE='data/publications.json' OPTS='--offset 10 --limit 20'"
 	@echo ""
-	@echo "  Advanced options:"
-	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 20 --offset 10'  # Skip first 10"
-	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--batch-size 5 --verbose' # Custom batch"
-	@echo "    make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no-skip-existing'     # Reimport all"
+	@echo "🔧 Direct Usage (after tools-setup-env):"
+	@echo "  $(VENV_ACTIVATE) && export \$$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && openscience-tools search -q test"
 	@echo ""
-	@echo ""
-		@echo "  Use the CLI tool:"
-	@echo "    make tools-run CMD='python -m src.tools.cli test-connection'"
-	@echo "    make tools-run CMD='python -m src.tools.cli search -q test'"
-	@echo "    make tools-run CMD='python -m src.tools.cli get abcd-1234'"
-	@echo ""
-	@echo "🐚 Interactive Shell:"
-	@echo "    make tools-shell"
-	@echo ""
-	@echo "🔄 Regenerate Token:"
-	@echo "    make tools-setup-env"
-	@echo ""
-	@echo "🔧 Environment Variables (automatically configured in openscience-tools/config/.env):"
-	@echo "  INVENIO_BASE_URL - Your InvenioRDM instance URL"
-	@echo "  INVENIO_TOKEN    - API Bearer token (automatically generated)"
+	@echo "🔄 Regenerate API Token:"
+	@echo "  make tools-setup-env"
 	@echo ""
 	@echo "📖 For more details, see openscience-tools/README.md"

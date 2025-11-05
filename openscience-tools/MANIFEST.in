@@ -1,0 +1,19 @@
+# Include documentation and configuration files
+include README.md
+include LICENSE
+include requirements.txt
+
+# Include configuration examples
+recursive-include config *.example *.yaml *.yml
+
+# Include data files for sources
+recursive-include src/sources *.json *.csv *.yaml *.yml
+
+# Exclude development and build files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+recursive-exclude tests *
+exclude .dockerignore
+exclude Dockerfile
+exclude docker-compose*.yml

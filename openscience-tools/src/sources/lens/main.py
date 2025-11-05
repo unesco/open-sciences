@@ -26,9 +26,9 @@ if __name__ == "__main__" and __package__ is None:
     script_dir = Path(__file__).parent.parent.parent.parent
     if str(script_dir) not in sys.path:
         sys.path.insert(0, str(script_dir))
-    from src.sources.lens.config import LensImportConfig
-    from src.sources.lens.reader import create_reader
-    from src.sources.lens.importer import create_importer
+    from ..config import LensImportConfig
+    from ..reader import create_reader
+    from ..importer import create_importer
 else:
     # Package import: use relative imports
     from .config import LensImportConfig
@@ -42,30 +42,21 @@ init(autoreset=True)
 logger = logging.getLogger(__name__)
 
 
-def setup_environment():
+def setup_environment(base_url: str, token: str):
     """
-    Check required environment variables.
+    Validate required parameters.
+
+    Args:
+        base_url: InvenioRDM base URL
+        token: InvenioRDM API token
 
     Raises:
-        SystemExit: If required environment variables are missing
+        ValueError: If parameters are missing or invalid
     """
-    # Environment variables are loaded by docker-compose via env_file
-    # No need to load .env manually when running in container
+    if not base_url or not token:
+        raise ValueError("Both base_url and token are required")
 
-    # Check required environment variables
-    required_vars = ["INVENIO_BASE_URL", "INVENIO_TOKEN"]
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-
-    if missing_vars:
-        logger.error(
-            f"Missing required environment variables: {', '.join(missing_vars)}"
-        )
-        logger.error(
-            "Please set them in scripts/config/.env or as environment variables"
-        )
-        sys.exit(1)
-
-    logger.info(f"Environment configured: {os.getenv('INVENIO_BASE_URL')}")
+    logger.info(f"Environment configured: {base_url}")
 
 
 def print_header(title: str):
@@ -96,6 +87,8 @@ def print_info(message: str):
 
 
 def run_import(
+    base_url: str,
+    token: str,
     file: Path,
     dry_run: bool = False,
     skip_existing: bool = True,
@@ -108,6 +101,8 @@ def run_import(
     Execute the Lens.org import process.
 
     Args:
+        base_url: InvenioRDM base URL
+        token: InvenioRDM API token
         file: Path to Lens.org JSON export file
         dry_run: If True, validate without creating records
         skip_existing: If True, skip records with existing DOI
@@ -125,7 +120,7 @@ def run_import(
         logger.debug("Verbose logging enabled")
 
     # Setup environment
-    setup_environment()
+    setup_environment(base_url, token)
 
     # Print header
     print_header("LENS.ORG TO INVENIO RDM IMPORTER")
@@ -169,8 +164,8 @@ def run_import(
 
         print_success(f"Loaded {len(all_records)} records to import\n")
 
-        # Create importer
-        importer = create_importer()
+        # Create importer with base_url and token
+        importer = create_importer(base_url=base_url, token=token)
 
         # Import records
         if dry_run:
@@ -220,7 +215,7 @@ def run_import(
             print_header("IMPORTED RECORDS")
             print_info(f"Created {len(result.imported_ids)} new records:")
             for i, record_id in enumerate(result.imported_ids[:10], 1):
-                invenio_url = os.getenv("INVENIO_BASE_URL", "").rstrip("/")
+                invenio_url = base_url.rstrip("/")
                 print(f"{i}. {Fore.GREEN}{invenio_url}/records/{record_id}")
 
             if len(result.imported_ids) > 10:
@@ -297,7 +292,9 @@ def run_import(
     default=False,
     help="Enable verbose logging (DEBUG level)",
 )
+@click.pass_context
 def main(
+    ctx,
     file: Path,
     dry_run: bool,
     skip_existing: bool,
@@ -322,18 +319,20 @@ def main(
 
     \b
         # Import all records
-        python -m src.sources.lens.main --file publications.json
+        openscience-tools import-lens --file publications.json
 
         # Dry run validation
-        python -m src.sources.lens.main --file publications.json --dry-run
+        openscience-tools import-lens --file publications.json --dry-run
 
         # Import first 10 records
-        python -m src.sources.lens.main --file publications.json --limit 10
+        openscience-tools import-lens --file publications.json --limit 10
 
         # Skip first 10, import next 20
-        python -m src.sources.lens.main --file publications.json --offset 10 --limit 20
+        openscience-tools import-lens --file publications.json --offset 10 --limit 20
     """
     exit_code = run_import(
+        base_url=ctx.obj["base_url"],
+        token=ctx.obj["token"],
         file=file,
         dry_run=dry_run,
         skip_existing=skip_existing,

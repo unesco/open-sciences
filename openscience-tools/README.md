@@ -1,160 +1,119 @@
-# InvenioRDM API Scripts
+````markdown
+# OpenScience Tools
 
-A containerized Python microservice for interacting with InvenioRDM REST API.
+A Python package providing command-line tools for interacting with InvenioRDM REST API.
 
 ## Features
 
 - **Comprehensive API Client**: Full-featured Python client for InvenioRDM REST API
-- **Search & Discovery**: Search records, users, and communities
-- **Record Management**: Create, update, and publish record drafts
-- **File Management**: Upload and manage files associated with records
-- **Statistics**: Retrieve usage statistics and analytics
-- **CLI Tools**: Command-line interface for common operations
-- **Containerized**: Ready to run in Docker containers
-- **Auto-Setup**: Automatic environment configuration with API token generation
+- **Search & Discovery**: Search and browse records
+- **Record Management**: View record details and cleanup operations
+- **Lens.org Import**: Import publications from Lens.org JSON exports
+- **CLI Tools**: Unified command-line interface for all operations
+- **Flexible Configuration**: Pass credentials via environment variables or command-line options
+
+## Installation
+
+### From GitLab Package Registry
+
+```bash
+pip install openscience-tools --index-url https://gitlab.example.com/api/v4/projects/YOUR_PROJECT_ID/packages/pypi/simple
+```
+
+### From Source (Development)
+
+```bash
+# Clone the repository
+git clone https://gitlab.example.com/your-group/sc-openscience.git
+cd sc-openscience/openscience-tools
+
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install in editable mode
+pip install -e .
+```
 
 ## Quick Start
 
-### 1. Automated Setup (Recommended)
+All commands require InvenioRDM connection credentials:
 
-From the project root directory:
+- `--base-url`: InvenioRDM instance URL (e.g., `https://127.0.0.1:5000`)
+- `--token`: InvenioRDM API token
 
-```bash
-# Ensure InvenioRDM is running
-make up
+These can be provided via:
 
-# Auto-configure environment with API token generation
-make tools-setup-env
-
-# Build the microservice container
-make tools-build
-
-# Test the connection
-make tools-run CMD='python -m src.tools.cli test-connection'
-```
-
-This automated setup will:
-
-- Check if InvenioRDM is running
-- Create an API token for the admin user
-- Generate the `.env` configuration file automatically
-- No manual token creation required!
-
-### 2. Manual Setup (if needed)
-
-If you prefer manual configuration:
-
-```bash
-cp config/.env.example config/.env
-# Edit config/.env with your settings
-make tools-build
-```
+1. Command-line options: `openscience-tools --base-url URL --token TOKEN <command>`
+2. Environment variables: `export INVENIO_BASE_URL=URL INVENIO_TOKEN=TOKEN`
 
 ## Usage Examples
 
 ### Search Records
 
 ```bash
+# Using environment variables
+export INVENIO_BASE_URL=https://127.0.0.1:5000
+export INVENIO_TOKEN=your-api-token
+
 # Basic search
-make tools-run CMD='python -m src.tools.search -q "climate data" -s 10'
+openscience-tools search -q "climate data" -s 10
 
 # Detailed view
-make tools-run CMD='python -m src.tools.search -q "test" --detailed'
+openscience-tools search -q "test" --detailed
 
 # With pagination
-make tools-run CMD='python -m src.tools.search -q "dataset" --page 2 --size 20'
+openscience-tools search -q "dataset" --page 2 --size 20
+
+# Or pass credentials as options
+openscience-tools --base-url https://127.0.0.1:5000 --token your-token search -q "test"
 ```
 
 ### View Record Details
 
 ```bash
 # View formatted output
-make tools-run CMD='python -m src.tools.view abc-123'
+openscience-tools view abc-123
 
 # View as JSON
-make tools-run CMD='python -m src.tools.view abc-123 --format json'
-```
-
-### Get Statistics
-
-```bash
-# Record statistics
-make tools-run CMD='python -m src.tools.stats --record-id abc-123'
-
-# System statistics
-make tools-run CMD='python -m src.tools.stats'
+openscience-tools view abc-123 --format json
 ```
 
 ### Manage Records
 
 ```bash
-# Delete all records (with confirmation)
-make tools-delete-all
+# Delete all records (dry-run)
+openscience-tools cleanup --dry-run
 
-# Delete all (dry-run)
-make tools-run CMD='python -m src.tools.cleanup --dry-run'
+# Delete all (with confirmation)
+openscience-tools cleanup --confirm
 
-# Delete with confirmation flag
-make tools-run CMD='python -m src.tools.cleanup --confirm'
+# Verbose output
+openscience-tools cleanup --confirm --verbose
 ```
 
-### Use CLI Tool
-
-```bash
-# Test connection
-make tools-run CMD='python -m src.tools.cli test-connection'
-
-# Search records
-make tools-run CMD='python -m src.tools.cli search -q "machine learning" -s 5'
-
-# Get record details
-make tools-run CMD='python -m src.tools.cli get abc-123'
-
-# Create a new record
-make tools-run CMD='python -m src.tools.cli create \
-  --title "New Dataset" \
-  --creator "Jane Smith" \
-  --type dataset \
-  --publish'
-```
-
-### Interactive Development
-
-```bash
-# Open interactive shell for development
-make tools-shell
-
-# Inside the container, you can run tools directly:
-python -m src.tools.search -q test
-python -m src.tools.view abc-123
-```
-
-### Import from External Data Sources
-
-Import publication records from various external data sources:
-
-#### Lens.org
+### Import from Lens.org
 
 Import publications from Lens.org JSON exports:
 
 ```bash
 # Validate without creating records (dry-run)
-make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'
+openscience-tools import-lens --file publications.json --dry-run
 
 # Import all records from JSON file
-make tools-import-lens FILE='src/sources/lens/data/publications.json'
+openscience-tools import-lens --file publications.json
 
 # Import first 10 records
-make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--limit 10'
+openscience-tools import-lens --file publications.json --limit 10
 
 # Import with offset (skip first 10, import next 20)
-make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--offset 10 --limit 20'
+openscience-tools import-lens --file publications.json --offset 10 --limit 20
 
 # Custom batch size with verbose output
-make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--batch-size 5 --verbose'
+openscience-tools import-lens --file publications.json --batch-size 5 --verbose
 
 # Force reimport of existing records
-make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no-skip-existing'
+openscience-tools import-lens --file publications.json --no-skip-existing
 ```
 
 **Lens.org Import Features:**
@@ -162,69 +121,7 @@ make tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--no
 - ✅ Standard metadata (title, creators, publication_date, publisher, description)
 - ✅ Author identifiers (ORCID)
 - ✅ Institutional affiliations (ROR IDs)
-- ⚠️ Custom fields (requires InvenioRDM configuration)
-- ⚠️ Related identifiers (DOI, PMID, PMCID, arXiv, etc.)
-- ⚠️ Subject classification (MeSH terms, ASJC codes)
-
-### Reset Records (Delete All + Import)
-
-The `tools-reset` command combines record deletion with import from any source:
-
-```bash
-# Reset with CSV import
-make tools-reset CSV='src/sources/csv/data/publications.csv'
-make tools-reset CSV='data/my_records.csv' OPTS='--verbose'
-
-# Reset with Lens import
-make tools-reset LENS='src/sources/lens/data/publications.json'
-make tools-reset LENS='data/my_lens_export.json' OPTS='--limit 10'
-
-# Reset with Zenodo import (by record ID)
-make tools-reset ZENODO_ID='17462748'
-make tools-reset ZENODO_ID='17462748' OPTS='--skip-files'
-
-# Reset with Zenodo import (by search query)
-make tools-reset ZENODO_QUERY='climate data' MAX=5
-make tools-reset ZENODO_QUERY='COVID-19' MAX=3 OPTS='--skip-files --verbose'
-```
-
-**Reset Features:**
-
-- ✅ Deletes all existing records first
-- ✅ Imports fresh data from any source (CSV, Lens, or Zenodo)
-- ✅ Supports all source-specific options via `OPTS`
-- ✅ Useful for development, testing, and data refresh workflows
-- ⚠️ **Warning**: Permanently deletes all records before import
-
-**Data Sources Architecture:**
-
-All data source importers are organized under `src/sources/`:
-
-```
-src/sources/
-├── README.md              # Documentation on adding new sources
-├── csv/                   # CSV importer
-│   ├── config.py
-│   ├── reader.py
-│   ├── mapper.py
-│   ├── parsers.py
-│   ├── importer.py
-│   ├── main.py
-│   └── data/publications.csv
-├── lens/                  # Lens.org importer
-│   ├── config.py
-│   ├── reader.py
-│   ├── importer.py
-│   ├── main.py
-│   ├── data/publications.json
-│   └── mappers/
-│       ├── standard.py
-│       ├── custom.py
-│       └── related.py
-└── zenodo/                # Zenodo.org importer
-    ├── config.py
-    ├── fetcher.py         # API client
-    ├── mapper.py
-    ├── importer.py
-    └── main.py
-```
+- ✅ Related identifiers (DOI, PMID, PMCID, arXiv, etc.)
+- ✅ Subject classification (MeSH terms, ASJC codes)
+- ✅ Custom fields mapping (requires InvenioRDM configuration)
+````

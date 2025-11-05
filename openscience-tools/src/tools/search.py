@@ -16,8 +16,6 @@ from tabulate import tabulate
 from colorama import Fore, Style, init
 from typing import List, Dict, Any
 
-from src.invenio_client import create_client_from_env
-
 # Initialize colorama
 init(autoreset=True)
 
@@ -128,9 +126,7 @@ def display_detailed_view(records: List[Dict[str, Any]]) -> None:
         # Resource type and date
         resource_type = metadata.get("resource_type", {})
         if isinstance(resource_type.get("title"), dict):
-            type_name = resource_type["title"].get(
-                "en", resource_type.get("id", "Unknown")
-            )
+            type_name = resource_type["title"].get("en", resource_type.get("id", "Unknown"))
         else:
             type_name = resource_type.get("id", "Unknown")
 
@@ -180,6 +176,8 @@ def display_detailed_view(records: List[Dict[str, Any]]) -> None:
 
 
 def search_records(
+    base_url: str,
+    token: str,
     query: str = "",
     size: int = 10,
     sort: str = "bestmatch",
@@ -191,6 +189,8 @@ def search_records(
     Search and display InvenioRDM records.
 
     Args:
+        base_url: InvenioRDM base URL
+        token: API authentication token
         query: Search query string
         size: Number of results to display
         sort: Sort order (bestmatch, newest, oldest, etc.)
@@ -208,7 +208,9 @@ def search_records(
 
     try:
         # Create client
-        client = create_client_from_env()
+        from ..invenio_client import InvenioRDMClient
+
+        client = InvenioRDMClient(base_url, token)
 
         # Display search parameters
         print(f"\n{Fore.BLUE}{'='*70}")
@@ -225,9 +227,7 @@ def search_records(
         print()
 
         # Execute search
-        logger.debug(
-            f"Executing search: q={query}, size={size}, sort={sort}, page={page}"
-        )
+        logger.debug(f"Executing search: q={query}, size={size}, sort={sort}, page={page}")
         results = client.search_records(q=query, size=size, sort=sort, page=page)
 
         # Extract results
@@ -240,9 +240,7 @@ def search_records(
         print(f"  Showing {len(records)} records on page {page}\n")
 
         if not records:
-            print(
-                f"{Fore.YELLOW}⚠ No records found matching your criteria.{Style.RESET_ALL}"
-            )
+            print(f"{Fore.YELLOW}⚠ No records found matching your criteria.{Style.RESET_ALL}")
             return
 
         # Display records
@@ -284,11 +282,10 @@ def search_records(
     help="Sort order: bestmatch, newest, oldest (default: bestmatch)",
 )
 @click.option("--page", "-p", default=1, type=int, help="Page number (default: 1)")
-@click.option(
-    "--detailed", "-d", is_flag=True, help="Show detailed information for each record"
-)
+@click.option("--detailed", "-d", is_flag=True, help="Show detailed information for each record")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
-def main(query: str, size: int, sort: str, page: int, detailed: bool, verbose: bool):
+@click.pass_context
+def main(ctx, query: str, size: int, sort: str, page: int, detailed: bool, verbose: bool):
     """
     Search and display InvenioRDM records.
 
@@ -296,21 +293,23 @@ def main(query: str, size: int, sort: str, page: int, detailed: bool, verbose: b
 
     \b
     # Search for climate-related records
-    python -m src.tools.search --query "climate"
+    openscience-tools search --query "climate"
 
     \b
     # Show detailed view with 5 results
-    python -m src.tools.search -q "test" -s 5 --detailed
+    openscience-tools search -q "test" -s 5 --detailed
 
     \b
     # Browse all records, page 2
-    python -m src.tools.search --page 2 --size 20
+    openscience-tools search --page 2 --size 20
 
     \b
     # Sort by newest
-    python -m src.tools.search --sort newest
+    openscience-tools search --sort newest
     """
     search_records(
+        base_url=ctx.obj["base_url"],
+        token=ctx.obj["token"],
         query=query,
         size=size,
         sort=sort,

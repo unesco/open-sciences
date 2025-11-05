@@ -11,12 +11,11 @@ Usage:
 
 import sys
 import logging
-import os
 import click
 from colorama import Fore, Style, init
 from typing import List, Dict, Any, Tuple
 
-from src.invenio_client import InvenioRDMClient
+from ..invenio_client import InvenioRDMClient
 
 # Initialize colorama
 init(autoreset=True)
@@ -56,9 +55,7 @@ def fetch_all_records(
         all_records.extend(hits)
 
         if verbose:
-            print(
-                f"{Fore.CYAN}   Fetched page {page}: {len(hits)} records{Style.RESET_ALL}"
-            )
+            print(f"{Fore.CYAN}   Fetched page {page}: {len(hits)} records{Style.RESET_ALL}")
 
         # Check if there are more pages
         total = response.get("hits", {}).get("total", 0)
@@ -127,14 +124,14 @@ def delete_records(
             logger.error(f"Failed to delete {record_id}: {e}")
 
             if verbose:
-                print(
-                    f"{Fore.RED}✗ Failed [{idx}/{total}]: {error_msg}{Style.RESET_ALL}"
-                )
+                print(f"{Fore.RED}✗ Failed [{idx}/{total}]: {error_msg}{Style.RESET_ALL}")
 
     return deleted_count, failed_count, errors
 
 
 def cleanup_all_records(
+    base_url: str,
+    token: str,
     confirm: bool = False,
     dry_run: bool = False,
     verbose: bool = False,
@@ -144,6 +141,8 @@ def cleanup_all_records(
     Delete all records from InvenioRDM instance.
 
     Args:
+        base_url: InvenioRDM base URL
+        token: API authentication token
         confirm: Skip confirmation prompt
         dry_run: Simulate without actually deleting
         verbose: Show detailed progress
@@ -167,20 +166,7 @@ def cleanup_all_records(
     print(f"{'='*70}{Style.RESET_ALL}\n")
 
     if dry_run:
-        print(
-            f"{Fore.YELLOW}⚠ {mode_text} - No actual deletions will be made{Style.RESET_ALL}\n"
-        )
-
-    # Load configuration
-    base_url = os.getenv("INVENIO_BASE_URL", "https://127.0.0.1:5000")
-    token = os.getenv("INVENIO_TOKEN")
-
-    if not token:
-        print(
-            f"{Fore.RED}❌ Error: INVENIO_TOKEN environment variable not set{Style.RESET_ALL}"
-        )
-        print(f"{Fore.YELLOW}💡 Run: make scripts-setup-env{Style.RESET_ALL}")
-        sys.exit(1)
+        print(f"{Fore.YELLOW}⚠ {mode_text} - No actual deletions will be made{Style.RESET_ALL}\n")
 
     # Initialize client
     logger.info(f"Connecting to {base_url}")
@@ -217,9 +203,7 @@ def cleanup_all_records(
             f"{Fore.RED}⚠️  WARNING: This will permanently delete ALL {total_records} records!{Style.RESET_ALL}"
         )
         print(f"{Fore.YELLOW}This action cannot be undone.{Style.RESET_ALL}\n")
-        response = input(
-            f"{Fore.YELLOW}Type 'DELETE ALL' to confirm: {Style.RESET_ALL}"
-        )
+        response = input(f"{Fore.YELLOW}Type 'DELETE ALL' to confirm: {Style.RESET_ALL}")
 
         if response != "DELETE ALL":
             print(f"\n{Fore.YELLOW}❌ Deletion cancelled{Style.RESET_ALL}")
@@ -259,22 +243,17 @@ def cleanup_all_records(
 
 
 @click.command()
-@click.option(
-    "--confirm", is_flag=True, help="Skip confirmation prompt and delete immediately"
-)
-@click.option(
-    "--dry-run", is_flag=True, help="Simulate deletions without actually deleting"
-)
-@click.option(
-    "--verbose", "-v", is_flag=True, help="Show detailed progress information"
-)
+@click.option("--confirm", is_flag=True, help="Skip confirmation prompt and delete immediately")
+@click.option("--dry-run", is_flag=True, help="Simulate deletions without actually deleting")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed progress information")
 @click.option(
     "--batch-size",
     default=100,
     type=int,
     help="Number of records to fetch per request (default: 100)",
 )
-def main(confirm: bool, dry_run: bool, verbose: bool, batch_size: int):
+@click.pass_context
+def main(ctx, confirm: bool, dry_run: bool, verbose: bool, batch_size: int):
     """
     Delete all records from InvenioRDM instance.
 
@@ -289,21 +268,23 @@ def main(confirm: bool, dry_run: bool, verbose: bool, batch_size: int):
 
     \b
     # Dry run (see what would be deleted)
-    python -m src.tools.cleanup --dry-run
+    openscience-tools cleanup --dry-run
 
     \b
     # Delete with confirmation prompt
-    python -m src.tools.cleanup
+    openscience-tools cleanup
 
     \b
     # Delete without confirmation (use with caution!)
-    python -m src.tools.cleanup --confirm
+    openscience-tools cleanup --confirm
 
     \b
     # Verbose output
-    python -m src.tools.cleanup --confirm --verbose
+    openscience-tools cleanup --confirm --verbose
     """
     cleanup_all_records(
+        base_url=ctx.obj["base_url"],
+        token=ctx.obj["token"],
         confirm=confirm,
         dry_run=dry_run,
         verbose=verbose,

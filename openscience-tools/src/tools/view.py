@@ -16,8 +16,6 @@ import click
 from colorama import Fore, Style, init
 from typing import Optional, Dict, Any
 
-from src.invenio_client import create_client_from_env
-
 # Initialize colorama
 init(autoreset=True)
 
@@ -142,9 +140,7 @@ def display_record_formatted(record: Dict[str, Any]) -> None:
                 size = entry.get("size", 0)
                 size_mb = size / (1024 * 1024)
                 checksum = (
-                    entry.get("checksum", "").split(":")[-1][:8]
-                    if entry.get("checksum")
-                    else "N/A"
+                    entry.get("checksum", "").split(":")[-1][:8] if entry.get("checksum") else "N/A"
                 )
 
                 print(f"  - {key}")
@@ -169,6 +165,8 @@ def display_record_formatted(record: Dict[str, Any]) -> None:
 
 
 def view_record(
+    base_url: str,
+    token: str,
     record_id: str,
     output_format: str = "text",
     verbose: bool = False,
@@ -177,6 +175,8 @@ def view_record(
     View record details.
 
     Args:
+        base_url: InvenioRDM base URL
+        token: API authentication token
         record_id: Record ID to view
         output_format: Output format (text or json)
         verbose: Enable verbose output
@@ -191,7 +191,9 @@ def view_record(
 
     try:
         # Create client
-        client = create_client_from_env()
+        from ..invenio_client import InvenioRDMClient
+
+        client = InvenioRDMClient(base_url, token)
 
         logger.info(f"Fetching record {record_id}")
         print(f"\n{Fore.BLUE}📥 Fetching record {record_id}...{Style.RESET_ALL}")
@@ -221,7 +223,8 @@ def view_record(
     help="Output format: text (default) or json",
 )
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
-def main(record_id: str, output_format: str, verbose: bool):
+@click.pass_context
+def main(ctx, record_id: str, output_format: str, verbose: bool):
     """
     View InvenioRDM record details.
 
@@ -231,17 +234,19 @@ def main(record_id: str, output_format: str, verbose: bool):
 
     \b
     # View record in formatted text
-    python -m src.tools.view abc-123
+    openscience-tools view abc-123
 
     \b
     # View record as JSON
-    python -m src.tools.view abc-123 --format json
+    openscience-tools view abc-123 --format json
 
     \b
     # View with verbose output
-    python -m src.tools.view abc-123 --verbose
+    openscience-tools view abc-123 --verbose
     """
     view_record(
+        base_url=ctx.obj["base_url"],
+        token=ctx.obj["token"],
         record_id=record_id,
         output_format=output_format,
         verbose=verbose,
