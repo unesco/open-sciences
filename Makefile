@@ -10,18 +10,18 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields up stop stop-all build users ssl-certs check tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import
+.PHONY: help destroy init init-custom-fields up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import
 
 # Default target
 help:
 	@echo "UNESCO Science Portal - Available commands:"
-	@echo "  init         - Initialize the project (create virtualenv and setup)"
+	@echo "  init         - Initialize the project (config, virtualenv, services)"
+	@echo "  config       - Generate .env and invenio.cfg from templates"
 	@echo "  init-custom-fields - Initialize custom fields in InvenioRDM database"
 	@echo "  ssl-certs    - Generate SSL certificates for development"
 	@echo "  users        - Create ready-to-use users with predefined passwords"
 	@echo "  up           - Start the development server and services"
 	@echo "  stop         - Stop all services and processes"
-	@echo "  stop-all     - Force stop all services, containers and processes"
 	@echo "  build        - Build assets (CSS, JS, etc.)"
 	@echo "  check        - Check and fix Docker services if needed"
 	@echo "  destroy      - Completely destroy the instance and virtualenv"
@@ -44,6 +44,8 @@ help:
 # Initialize the project
 init:
 	@echo "🚀 Initializing UNESCO Science Portal..."
+	@echo "⚙️  Generating configuration files..."
+	$(MAKE) config
 	@echo "🔍 Checking Docker environment..."
 	$(MAKE) check
 	@echo "📦 Creating Python virtual environment..."
@@ -131,6 +133,34 @@ check:
 	-docker network rm $$(docker network ls -q --filter "name=sc-openscience") 2>/dev/null || true
 	@echo "✅ Docker cleanup complete. Ready for fresh setup."
 
+# Generate configuration files (.env and invenio.cfg) from templates
+config:
+	@echo "⚙️  Generating configuration files from templates..."
+	@if [ ! -f .env.example ]; then \
+		echo "❌ .env.example file not found."; \
+		exit 1; \
+	fi
+	@if [ ! -f invenio.cfg.template ]; then \
+		echo "❌ invenio.cfg.template not found."; \
+		exit 1; \
+	fi
+	@if [ ! -f .env ]; then \
+		echo "📝 Creating .env from .env.example..."; \
+		cp .env.example .env; \
+		echo "✅ .env created successfully!"; \
+	else \
+		echo "ℹ️  .env already exists, skipping creation."; \
+	fi
+	@echo "📝 Loading environment variables and generating invenio.cfg..."
+	@while IFS='=' read -r key value; do \
+		if [ -n "$$key" ] && [ "$${key:0:1}" != "#" ]; then \
+			export "$$key=$$value"; \
+		fi; \
+	done < .env && \
+	envsubst < invenio.cfg.template > invenio.cfg
+	@echo "✅ invenio.cfg generated successfully!"
+	@echo "⚠️  Remember: Both .env and invenio.cfg are gitignored. Do not commit sensitive data!"
+
 # Generate SSL certificates for development
 ssl-certs:
 	@echo "🔐 Generating SSL certificates for development..."
@@ -152,7 +182,7 @@ destroy:
 	@echo "⚠️  This will permanently delete all data!"
 	@read -p "Are you sure? Type 'yes' to continue: " confirm && [ "$$confirm" = "yes" ]
 	@echo "� Stopping all services first..."
-	-$(MAKE) stop-all
+	-$(MAKE) stop
 	@echo "�🐳 Destroying containerized services..."
 	-$(VENV_ACTIVATE) && invenio-cli services destroy
 	@echo "🧹 Performing global cleanup..."

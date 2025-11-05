@@ -104,10 +104,12 @@ docker-compose.override.yml
 *.swo
 *~
 
-# Local environment files
-.env
-.env.local
-.env.*.local
+# Local environment files (ignore all .env* except .env.example)
+.env*
+!.env.example
+
+# Generated configuration files (from templates)
+invenio.cfg
 
 # Kubernetes secrets (NEVER COMMIT!)
 .k8s-secrets

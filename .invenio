@@ -17,8 +17,6 @@ development_tools = yes
 site_code = yes
 use_reduced_vocabs = no
 _template = https://github.com/inveniosoftware/cookiecutter-invenio-rdm.git
-_output_dir = /Users/francescosasso/Documents/repositories/unesco-science-portal
-_repo_dir = /Users/francescosasso/.cookiecutters/cookiecutter-invenio-rdm
 _checkout = v13.0
 
 [files]
