@@ -33,6 +33,7 @@ help:
 	@echo "  tools-view           - View record details (use RECORD_ID='abc-123')"
 	@echo "  tools-cleanup        - Delete all records"
 	@echo "  tools-import-lens    - Import from Lens.org (use FILE='path/to/file.json')"
+	@echo "  tools-reset          - Delete all + import from Lens (use FILE='path/to/file.json')"
 	@echo "  tools-help           - Show tools help and examples"
 	@echo ""
 	@echo "Usage: make [command]"
@@ -212,45 +213,59 @@ tools-setup-env:
 	$(VENV_ACTIVATE) && python openscience-tools/setup_env.py
 	@echo ""
 	@echo "✅ Environment setup completed!"
-	@echo "� Export variables before using tools:"
-	@echo "   export INVENIO_BASE_URL=https://127.0.0.1:5000"
-	@echo "   export INVENIO_TOKEN=\$$(grep INVENIO_TOKEN openscience-tools/config/.env | cut -d= -f2)"
+	@echo "💡 Credentials stored in .env file"
+	@echo "   OPENSCIENCE_TOOLS_BASE_URL and OPENSCIENCE_TOOLS_TOKEN"
 
 tools-search:
-	@echo "� Searching InvenioRDM records..."
+	@echo "🔍 Searching InvenioRDM records..."
 	@if [ -z "$(QUERY)" ]; then \
 		QUERY=""; \
 	fi; \
-	if [ -f openscience-tools/config/.env ]; then \
-		export $$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && \
-		$(VENV_ACTIVATE) && openscience-tools search -q "$$QUERY" $(OPTS); \
+	if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		$(VENV_ACTIVATE) && openscience-tools --base-url "$$BASE_URL" --token "$$TOKEN" search -q "$$QUERY" $(OPTS); \
 	else \
-		echo "❌ Configuration not found. Run 'make tools-setup-env' first."; \
+		echo "❌ .env file not found. Run 'make config' first."; \
 		exit 1; \
 	fi
 
 tools-view:
-	@echo "�️  Viewing record details..."
+	@echo "👁️  Viewing record details..."
 	@if [ -z "$(RECORD_ID)" ]; then \
 		echo "❌ Error: RECORD_ID parameter required"; \
 		echo "Usage: make tools-view RECORD_ID='abc-123'"; \
 		exit 1; \
 	fi; \
-	if [ -f openscience-tools/config/.env ]; then \
-		export $$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && \
-		$(VENV_ACTIVATE) && openscience-tools view $(RECORD_ID) $(OPTS); \
+	if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		$(VENV_ACTIVATE) && openscience-tools --base-url "$$BASE_URL" --token "$$TOKEN" view $(RECORD_ID) $(OPTS); \
 	else \
-		echo "❌ Configuration not found. Run 'make tools-setup-env' first."; \
+		echo "❌ .env file not found. Run 'make config' first."; \
 		exit 1; \
 	fi
 
 tools-cleanup:
-	@echo "�️  Deleting all records from InvenioRDM..."
-	@if [ -f openscience-tools/config/.env ]; then \
-		export $$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && \
-		$(VENV_ACTIVATE) && openscience-tools cleanup $(OPTS); \
+	@echo "🗑️  Deleting all records from InvenioRDM..."
+	@if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		$(VENV_ACTIVATE) && openscience-tools --base-url "$$BASE_URL" --token "$$TOKEN" cleanup $(OPTS); \
 	else \
-		echo "❌ Configuration not found. Run 'make tools-setup-env' first."; \
+		echo "❌ .env file not found. Run 'make config' first."; \
 		exit 1; \
 	fi
 
@@ -264,11 +279,46 @@ tools-import-lens:
 		echo "  make tools-import-lens FILE='path/to/publications.json' OPTS='--limit 10'"; \
 		exit 1; \
 	fi; \
-	if [ -f openscience-tools/config/.env ]; then \
-		export $$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && \
-		$(VENV_ACTIVATE) && openscience-tools import-lens --file $(FILE) $(OPTS); \
+	if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		$(VENV_ACTIVATE) && openscience-tools --base-url "$$BASE_URL" --token "$$TOKEN" import-lens --file $(FILE) $(OPTS); \
 	else \
-		echo "❌ Configuration not found. Run 'make tools-setup-env' first."; \
+		echo "❌ .env file not found. Run 'make config' first."; \
+		exit 1; \
+	fi
+
+tools-reset:
+	@echo "🔄 Resetting InvenioRDM records (delete all + import from Lens)..."
+	@if [ -z "$(FILE)" ]; then \
+		echo "❌ Error: FILE parameter required"; \
+		echo "Usage:"; \
+		echo "  make tools-reset FILE='path/to/publications.json'"; \
+		echo "  make tools-reset FILE='path/to/publications.json' OPTS='--limit 10'"; \
+		echo "  make tools-reset FILE='path/to/publications.json' BASE_URL='https://...' TOKEN='...'"; \
+		exit 1; \
+	fi
+	@if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		echo ""; \
+		echo "📋 Step 1/2: Deleting all existing records..."; \
+		$(VENV_ACTIVATE) && openscience-tools --base-url "$$BASE_URL" --token "$$TOKEN" cleanup --confirm; \
+		echo ""; \
+		echo "📋 Step 2/2: Importing fresh records from Lens..."; \
+		$(VENV_ACTIVATE) && openscience-tools --base-url "$$BASE_URL" --token "$$TOKEN" import-lens --file $(FILE) $(OPTS); \
+		echo ""; \
+		echo "✅ Reset complete!"; \
+	else \
+		echo "❌ .env file not found. Run 'make config' first."; \
 		exit 1; \
 	fi
 
@@ -301,8 +351,16 @@ tools-help:
 	@echo "  make tools-import-lens FILE='data/publications.json' OPTS='--limit 10'"
 	@echo "  make tools-import-lens FILE='data/publications.json' OPTS='--offset 10 --limit 20'"
 	@echo ""
-	@echo "🔧 Direct Usage (after tools-setup-env):"
-	@echo "  $(VENV_ACTIVATE) && export \$$(cat openscience-tools/config/.env | grep -v '^#' | xargs) && openscience-tools search -q test"
+	@echo "� Reset (Delete All + Import from Lens):"
+	@echo "  make tools-reset FILE='data/publications.json'"
+	@echo "  make tools-reset FILE='data/publications.json' OPTS='--limit 10'"
+	@echo ""
+	@echo " Override Credentials (optional):"
+	@echo "  make tools-search QUERY='test' BASE_URL='https://...' TOKEN='...'"
+	@echo "  make tools-reset FILE='data.json' BASE_URL='https://...' TOKEN='...'"
+	@echo ""
+	@echo "💻 Direct CLI Usage:"
+	@echo "  $(VENV_ACTIVATE) && openscience-tools --base-url \$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2) --token \$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2) search -q test"
 	@echo ""
 	@echo "🔄 Regenerate API Token:"
 	@echo "  make tools-setup-env"

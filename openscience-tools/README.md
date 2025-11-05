@@ -1,18 +1,41 @@
-````markdown
 # OpenScience Tools
 
 A Python package providing command-line tools for interacting with InvenioRDM REST API.
 
+## Overview
+
+OpenScience Tools is a comprehensive toolkit for managing and importing data into InvenioRDM instances. It provides a unified command-line interface for common operations such as searching, viewing, managing records, and importing publications from external sources like Lens.org.
+
 ## Features
 
-- **Comprehensive API Client**: Full-featured Python client for InvenioRDM REST API
-- **Search & Discovery**: Search and browse records
-- **Record Management**: View record details and cleanup operations
-- **Lens.org Import**: Import publications from Lens.org JSON exports
-- **CLI Tools**: Unified command-line interface for all operations
-- **Flexible Configuration**: Pass credentials via environment variables or command-line options
+- **🔍 Search & Discovery**: Search and browse records with flexible filters
+- **👁️ Record Management**: View detailed record information and manage records
+- **🗑️ Cleanup Operations**: Delete records with dry-run support
+- **📚 Lens.org Import**: Import publications from Lens.org JSON exports with full metadata mapping
+- **🔧 Flexible Configuration**: Use environment variables or command-line options
+- **⚡ Fast & Lightweight**: No Docker overhead, direct Python package
 
 ## Installation
+
+### From Project Root (Recommended)
+
+If you're working within the sc-openscience project:
+
+```bash
+# From project root
+cd /path/to/sc-openscience
+
+# Ensure virtual environment is created and activated
+source .venv/bin/activate
+
+# Install the package in editable mode
+cd openscience-tools
+pip install -e .
+
+# Or use the Makefile
+cd ..
+make tools-install
+```
 
 ### From GitLab Package Registry
 
@@ -20,108 +43,305 @@ A Python package providing command-line tools for interacting with InvenioRDM RE
 pip install openscience-tools --index-url https://gitlab.example.com/api/v4/projects/YOUR_PROJECT_ID/packages/pypi/simple
 ```
 
-### From Source (Development)
+## Configuration
+
+The package requires two configuration values:
+
+- **Base URL**: Your InvenioRDM instance URL (e.g., `https://127.0.0.1:5000`)
+- **API Token**: An InvenioRDM API token with appropriate permissions
+
+### Method 1: Environment Variables (Recommended)
+
+Add these to your `.env` file in the project root:
 
 ```bash
-# Clone the repository
-git clone https://gitlab.example.com/your-group/sc-openscience.git
-cd sc-openscience/openscience-tools
-
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install in editable mode
-pip install -e .
+OPENSCIENCE_TOOLS_BASE_URL=https://127.0.0.1:5000
+OPENSCIENCE_TOOLS_TOKEN=your-api-token-here
 ```
 
-## Quick Start
+To generate a token automatically:
 
-All commands require InvenioRDM connection credentials:
+```bash
+make tools-setup-env
+```
 
-- `--base-url`: InvenioRDM instance URL (e.g., `https://127.0.0.1:5000`)
-- `--token`: InvenioRDM API token
+### Method 2: Command-Line Options
 
-These can be provided via:
+Pass credentials directly to each command:
 
-1. Command-line options: `openscience-tools --base-url URL --token TOKEN <command>`
-2. Environment variables: `export INVENIO_BASE_URL=URL INVENIO_TOKEN=TOKEN`
+```bash
+openscience-tools --base-url https://127.0.0.1:5000 --token your-token search -q "test"
+```
 
-## Usage Examples
+## Usage
 
 ### Search Records
 
-```bash
-# Using environment variables
-export INVENIO_BASE_URL=https://127.0.0.1:5000
-export INVENIO_TOKEN=your-api-token
+Search and display records from your InvenioRDM instance:
 
+```bash
 # Basic search
-openscience-tools search -q "climate data" -s 10
+openscience-tools search -q "climate data"
+
+# Search with size limit
+openscience-tools search -q "test" --size 5
 
 # Detailed view
-openscience-tools search -q "test" --detailed
+openscience-tools search -q "machine learning" --detailed
 
 # With pagination
 openscience-tools search -q "dataset" --page 2 --size 20
 
-# Or pass credentials as options
-openscience-tools --base-url https://127.0.0.1:5000 --token your-token search -q "test"
+# Sort by newest
+openscience-tools search -q "covid" --sort newest
 ```
+
+**Available sort options**: `bestmatch`, `newest`, `oldest`
 
 ### View Record Details
 
+Display detailed information about a specific record:
+
 ```bash
-# View formatted output
+# View record (formatted output)
 openscience-tools view abc-123
 
 # View as JSON
 openscience-tools view abc-123 --format json
+
+# Verbose output with debug info
+openscience-tools view abc-123 --verbose
 ```
 
-### Manage Records
+### Delete Records
+
+Remove all records from your InvenioRDM instance:
 
 ```bash
-# Delete all records (dry-run)
+# Dry-run (preview what would be deleted)
 openscience-tools cleanup --dry-run
 
-# Delete all (with confirmation)
+# Delete all records (interactive confirmation)
+openscience-tools cleanup
+
+# Delete with automatic confirmation
 openscience-tools cleanup --confirm
 
 # Verbose output
 openscience-tools cleanup --confirm --verbose
 ```
 
+⚠️ **Warning**: This operation is irreversible. Always use `--dry-run` first!
+
 ### Import from Lens.org
 
-Import publications from Lens.org JSON exports:
+Import publications from Lens.org JSON export files:
 
 ```bash
-# Validate without creating records (dry-run)
+# Validate metadata without creating records (dry-run)
 openscience-tools import-lens --file publications.json --dry-run
 
-# Import all records from JSON file
+# Import all records
 openscience-tools import-lens --file publications.json
 
 # Import first 10 records
 openscience-tools import-lens --file publications.json --limit 10
 
-# Import with offset (skip first 10, import next 20)
+# Skip first 10, import next 20
 openscience-tools import-lens --file publications.json --offset 10 --limit 20
 
-# Custom batch size with verbose output
-openscience-tools import-lens --file publications.json --batch-size 5 --verbose
+# Custom batch size (default: 10)
+openscience-tools import-lens --file publications.json --batch-size 5
 
 # Force reimport of existing records
 openscience-tools import-lens --file publications.json --no-skip-existing
+
+# Verbose output with debug info
+openscience-tools import-lens --file publications.json --verbose
 ```
 
 **Lens.org Import Features:**
 
-- ✅ Standard metadata (title, creators, publication_date, publisher, description)
+- ✅ Standard bibliographic metadata (title, authors, date, publisher, description)
 - ✅ Author identifiers (ORCID)
-- ✅ Institutional affiliations (ROR IDs)
+- ✅ Institutional affiliations with ROR/GRID IDs
 - ✅ Related identifiers (DOI, PMID, PMCID, arXiv, etc.)
 - ✅ Subject classification (MeSH terms, ASJC codes)
+- ✅ Citation metrics
 - ✅ Custom fields mapping (requires InvenioRDM configuration)
-````
+- ✅ Automatic DOI duplicate detection
+- ✅ Batch processing with progress tracking
+- ✅ Comprehensive error reporting
+
+## Using with Makefile
+
+If you're working within the sc-openscience project, you can use convenient Makefile commands:
+
+```bash
+# Setup (generate API token)
+make tools-setup-env
+
+# Search
+make tools-search QUERY='climate data'
+make tools-search QUERY='test' OPTS='--detailed'
+
+# View record
+make tools-view RECORD_ID='abc-123'
+
+# Cleanup
+make tools-cleanup OPTS='--dry-run'
+make tools-cleanup OPTS='--confirm'
+
+# Import from Lens
+make tools-import-lens FILE='data/publications.json'
+make tools-import-lens FILE='data/publications.json' OPTS='--limit 10'
+
+# Reset (delete all + import)
+make tools-reset FILE='data/publications.json'
+make tools-reset FILE='data/publications.json' OPTS='--limit 10'
+
+# Override credentials
+make tools-search QUERY='test' BASE_URL='https://...' TOKEN='...'
+```
+
+## API Client
+
+For programmatic access, use the InvenioRDM client directly:
+
+```python
+from openscience_tools import InvenioRDMClient
+
+# Initialize client
+client = InvenioRDMClient(
+    base_url="https://127.0.0.1:5000",
+    token="your-api-token"
+)
+
+# Search records
+results = client.search_records(q="climate", size=10)
+for record in results["hits"]["hits"]:
+    print(record["metadata"]["title"])
+
+# Get specific record
+record = client.get_record("abc-123")
+print(record["metadata"]["title"])
+
+# Create draft
+draft = client.create_draft({
+    "metadata": {
+        "title": "My Dataset",
+        "resource_type": {"id": "dataset"},
+        "creators": [{"person_or_org": {"name": "Smith, John"}}],
+        "publication_date": "2024-01-01"
+    }
+})
+
+# Publish draft
+published = client.publish_draft(draft["id"])
+```
+
+## Development
+
+### Project Structure
+
+```
+openscience-tools/
+├── src/                      # Source code
+│   ├── __init__.py          # Package initialization
+│   ├── cli.py               # CLI entry point
+│   ├── invenio_client.py    # InvenioRDM API client
+│   ├── tools/               # CLI tools
+│   │   ├── search.py        # Search command
+│   │   ├── view.py          # View command
+│   │   └── cleanup.py       # Cleanup command
+│   └── sources/             # Import sources
+│       └── lens/            # Lens.org importer
+├── pyproject.toml           # Package configuration
+├── setup.py                 # Setup script
+├── README.md                # This file
+└── LICENSE                  # MIT License
+```
+
+### Building the Package
+
+```bash
+# Install build dependencies
+pip install build
+
+# Build distribution files
+python -m build
+
+# Output: dist/openscience_tools-0.1.0-py3-none-any.whl
+#         dist/openscience_tools-0.1.0.tar.gz
+```
+
+### Running Tests
+
+```bash
+# Install test dependencies
+pip install pytest pytest-cov
+
+# Run tests
+pytest
+
+# With coverage
+pytest --cov=openscience_tools
+```
+
+## Troubleshooting
+
+### "Command not found: openscience-tools"
+
+Make sure the package is installed and your virtual environment is activated:
+
+```bash
+source .venv/bin/activate
+pip install -e .
+openscience-tools --version
+```
+
+### "Missing option '--base-url' / '--token'"
+
+Ensure your `.env` file contains the required variables:
+
+```bash
+grep OPENSCIENCE_TOOLS .env
+
+# Should show:
+# OPENSCIENCE_TOOLS_BASE_URL=https://127.0.0.1:5000
+# OPENSCIENCE_TOOLS_TOKEN=your-token
+```
+
+Run `make tools-setup-env` to generate a token automatically.
+
+### "SSL Certificate Verification Failed"
+
+InvenioRDM development instances use self-signed certificates. The client automatically disables SSL verification warnings for localhost/127.0.0.1.
+
+For production instances with valid certificates, ensure your system's CA certificates are up to date.
+
+### Import Fails with "Token not configured"
+
+Generate a new API token:
+
+```bash
+make tools-setup-env
+```
+
+Or create one manually via InvenioRDM CLI:
+
+```bash
+invenio tokens create -n "OpenScience Tools" -u admin@example.org -i
+```
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+This package is part of the UNESCO Science Portal project. For contributions, please follow the project's contribution guidelines.
+
+## Support
+
+For issues, questions, or contributions, please refer to the main project repository.
