@@ -252,19 +252,6 @@ make kind-reset-lens
 
 **Time:** ~2-3 minutes
 
-### Import from Other Sources
-
-```bash
-# From CSV
-make kind-tools-import-lens FILE='../openscience-tools/src/sources/csv/data/publications.csv'
-
-# From Zenodo (single record)
-make kind-tools-import-zenodo RECORD_ID='17462748'
-
-# From Zenodo (search)
-make kind-tools-import-zenodo QUERY='climate data' MAX=5
-```
-
 ---
 
 ## 🔧 Daily Operations
@@ -490,11 +477,9 @@ This deletes the entire Kind cluster. All data is lost.
 
 ### Data Management
 
-| Command                                  | Description                   |
-| ---------------------------------------- | ----------------------------- |
-| `make kind-reset-lens`                   | Delete all + import Lens data |
-| `make kind-scripts-delete-all`           | Delete all records            |
-| `make kind-scripts-import-lens FILE=...` | Import from Lens file         |
+| Command                | Description                   |
+| ---------------------- | ----------------------------- |
+| `make kind-reset-lens` | Delete all + import Lens data |
 
 ### Version Management
 
