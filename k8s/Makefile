@@ -454,15 +454,16 @@ kind-full-deploy: kind-create kind-deploy-services kind-load-image kind-deploy-h
 	@echo "   ✓ API token generated"
 	@echo ""
 	@echo "🌐 Next steps:"
-	@echo "   1. Start port forwarding: make kind-port-forward"
+	@echo "   1. Start port forwarding (in separate terminal): make kind-port-forward"
 	@echo "   2. Access application at: http://localhost:8080"
-	@echo "   3. Import data: make kind-reset-lens"
+	@echo "   3. Import Lens.org data: make kind-reset-lens"
 	@echo ""
 	@echo "📊 Useful commands:"
-	@echo "   Status:  make kind-status"
-	@echo "   Logs:    make kind-logs"
-	@echo "   Shell:   make kind-shell"
-	@echo "   Restart: make kind-restart"
+	@echo "   Status:      make kind-status"
+	@echo "   Logs:        make kind-logs"
+	@echo "   Shell:       make kind-shell"
+	@echo "   Restart:     make kind-restart"
+	@echo "   Import data: make kind-reset-lens FILE='path/to/file.json' OPTS='--limit 10'"
 	@echo ""
 	@echo "🛑 To clean up:"
 	@echo "   Remove deployment: make kind-clean"
@@ -480,123 +481,52 @@ kind-down: kind-clean kind-delete
 	@echo "✅ Kind cluster completely removed!"
 
 #============================================================================
-# Kind Scripts Commands - Data Import for Kind Cluster
+# Kind Data Import - Using OpenScience Tools Python Package
 #============================================================================
 
-.PHONY: kind-tools-setup-env kind-tools-import-lens kind-tools-reset kind-tools-delete-all kind-tools-shell kind-reset-lens
+.PHONY: kind-reset-lens
 
-# Configure tools environment for Kind cluster
-kind-tools-setup-env:
-	@echo "🔧 Setting up OpenScience Tools environment for Kind cluster..."
-	@echo "Creating Kind-specific .env file..."
-	@mkdir -p ../openscience-tools/config
-	@echo "# Environment Configuration for InvenioRDM OpenScience Tools - Kind Cluster" > ../openscience-tools/config/.env.kind
-	@echo "# Automatically generated for Kind deployment" >> ../openscience-tools/config/.env.kind
-	@echo "" >> ../openscience-tools/config/.env.kind
-	@echo "# InvenioRDM Instance Configuration" >> ../openscience-tools/config/.env.kind
-	@echo "# Access Kind cluster via port-forward or localhost" >> ../openscience-tools/config/.env.kind
-	@echo "INVENIO_BASE_URL=http://localhost:5000" >> ../openscience-tools/config/.env.kind
-	@echo "" >> ../openscience-tools/config/.env.kind
-	@echo "# API Authentication - Token from Kind cluster" >> ../openscience-tools/config/.env.kind
-	@echo "# Note: You need to get a token from the Kind cluster" >> ../openscience-tools/config/.env.kind
-	@echo "# Run: kubectl exec -n unesco-rdm deployment/unesco-rdm -- invenio tokens create -n kind-tools -u admin@demo.org" >> ../openscience-tools/config/.env.kind
-	@echo "INVENIO_TOKEN=REPLACE_WITH_TOKEN_FROM_KIND" >> ../openscience-tools/config/.env.kind
-	@echo "" >> ../openscience-tools/config/.env.kind
-	@echo "# Optional configurations" >> ../openscience-tools/config/.env.kind
-	@echo "DEFAULT_RESOURCE_TYPE=dataset" >> ../openscience-tools/config/.env.kind
-	@echo "DEFAULT_ACCESS_LEVEL=public" >> ../openscience-tools/config/.env.kind
-	@echo "LOG_LEVEL=INFO" >> ../openscience-tools/config/.env.kind
-	@echo ""
-	@echo "✅ Created openscience-tools/config/.env.kind"
-	@echo ""
-	@echo "⚠️  Important: You need to generate an API token from Kind cluster:"
-	@echo "   1. Make sure port-forward is running: make kind-port-forward"
-	@echo "   2. Get a token:"
-	@echo "      kubectl exec -n unesco-rdm deployment/unesco-rdm -- invenio tokens create -n kind-tools -u user@demo.org"
-	@echo "   3. Update openscience-tools/config/.env.kind with the token"
-	@echo ""
-
-# Import from Lens.org to Kind cluster
-kind-tools-import-lens:
-	@echo "🔬 Importing from Lens.org to Kind cluster..."
-	@if [ -z "$(FILE)" ]; then \
-		echo "❌ Error: FILE parameter required"; \
-		echo "Usage:"; \
-		echo "  make kind-tools-import-lens FILE='src/sources/lens/data/publications.json'"; \
-		echo "  make kind-tools-import-lens FILE='src/sources/lens/data/publications.json' OPTS='--dry-run'"; \
-		exit 1; \
-	fi
-	@CMD="python -m src.sources.lens --file /project/$(FILE)"; \
-	if [ -n "$(OPTS)" ]; then \
-		CMD="$$CMD $(OPTS)"; \
-	fi; \
-	docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli $$CMD
-
-# Delete all records from Kind cluster
-kind-tools-delete-all:
-	@echo "🗑️  Deleting all records from Kind cluster..."
-	@docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.tools.cleanup $(OPTS)
-
-# Reset and import data to Kind cluster
-kind-tools-reset:
-	@echo "🔄 Resetting Kind cluster records..."
-	@if [ -z "$(CSV)" ] && [ -z "$(LENS)" ] && [ -z "$(ZENODO_ID)" ] && [ -z "$(ZENODO_QUERY)" ]; then \
-		echo "❌ Error: Source parameter required"; \
-		echo "Usage:"; \
-		echo "  CSV:    make kind-tools-reset CSV='data/publications.csv'"; \
-		echo "  Lens:   make kind-tools-reset LENS='src/sources/lens/data/publications.json'"; \
-		echo "  Zenodo: make kind-tools-reset ZENODO_ID='17462748'"; \
-		echo "  Zenodo: make kind-tools-reset ZENODO_QUERY='climate data' MAX=5"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "📋 Step 1/2: Deleting all existing records from Kind cluster..."
-	@docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.tools.cleanup --confirm
-	@echo ""
-	@echo "📋 Step 2/2: Importing fresh records to Kind cluster..."
-	@if [ -n "$(CSV)" ]; then \
-		echo "📥 Importing from CSV: $(CSV)"; \
-		CMD="python -m src.sources.csv --file $(CSV)"; \
-		if [ -n "$(OPTS)" ]; then \
-			CMD="$$CMD $(OPTS)"; \
-		fi; \
-		docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli $$CMD; \
-	elif [ -n "$(LENS)" ]; then \
-		echo "🔬 Importing from Lens: $(LENS)"; \
-		CMD="python -m src.sources.lens --file $(LENS)"; \
-		if [ -n "$(OPTS)" ]; then \
-			CMD="$$CMD $(OPTS)"; \
-		fi; \
-		docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli $$CMD; \
-	elif [ -n "$(ZENODO_ID)" ]; then \
-		echo "📡 Importing from Zenodo record: $(ZENODO_ID)"; \
-		docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.sources.zenodo --record-id $(ZENODO_ID) $(OPTS); \
-	elif [ -n "$(ZENODO_QUERY)" ]; then \
-		echo "📡 Importing from Zenodo search: $(ZENODO_QUERY)"; \
-		if [ -n "$(MAX)" ]; then \
-			docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" --max-results $(MAX) $(OPTS); \
-		else \
-			docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli python -m src.sources.zenodo --search "$(ZENODO_QUERY)" $(OPTS); \
-		fi; \
-	fi
-	@echo ""
-	@echo "✅ Kind cluster reset complete!"
-
-# Open shell in tools container connected to Kind cluster
-kind-tools-shell:
-	@echo "🐚 Opening shell in tools container (connected to Kind cluster)..."
-	@docker-compose -f ../docker-compose.openscience-tools.kind.yml run --rm openscience-tools-cli /bin/bash
-
-# Quick reset with Lens.org data (delete all + import)
+# Reset Kind cluster with Lens.org data (delete all + import)
 kind-reset-lens:
-	@echo "🔄 Resetting Kind cluster with Lens.org data..."
+	@echo "� Resetting Kind cluster with Lens.org data..."
 	@echo ""
-	@echo "📋 Step 1/2: Deleting all existing records..."
-	@$(MAKE) kind-tools-delete-all
+	@echo "🔍 Checking Kind cluster and port-forward..."
+	@if ! kind get clusters | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
+		echo "❌ Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
+		echo "   Run 'make kind-create' first"; \
+		exit 1; \
+	fi
+	@if ! nc -z localhost 8080 2>/dev/null; then \
+		echo "⚠️  Port-forward not detected on localhost:8080"; \
+		echo "   Start it with: make kind-port-forward"; \
+		echo "   Then run this command again in a new terminal"; \
+		exit 1; \
+	fi
+	@echo "✅ Kind cluster is accessible via localhost:8080"
 	@echo ""
-	@echo "📋 Step 2/2: Importing Lens.org publications..."
-	@$(MAKE) kind-tools-import-lens FILE='openscience-tools/src/sources/lens/data/publications.json'
-	@echo ""
-	@echo "✅ Reset complete!"
-	@echo "   26 publications imported from Lens.org"
-	@echo "   Access at: http://localhost:8080"
+	@echo "🔑 Generating temporary API token..."
+	@TOKEN=$$(kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- \
+		invenio tokens create -n 'Temp Import Token' -u admin@unesco.org 2>/dev/null | \
+		grep -v "WARNING\|UserWarning\|pkg_resources\|deprecated" | \
+		grep -E '^[A-Za-z0-9_-]{40,}$$' | head -1); \
+	if [ -z "$$TOKEN" ]; then \
+		echo "❌ Failed to generate token"; \
+		echo "   Make sure admin user exists: make kind-create-admin"; \
+		exit 1; \
+	fi; \
+	echo "✅ Token generated: $${TOKEN:0:20}..."; \
+	echo ""; \
+	echo "📋 Step 1/2: Deleting all existing records..."; \
+	cd .. && openscience-tools/.venv/bin/openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" cleanup --confirm; \
+	echo ""; \
+	echo "📋 Step 2/2: Importing Lens.org publications..."; \
+	FILE=$${FILE:-openscience-tools/src/sources/lens/data/publications.json}; \
+	OPTS=$${OPTS:-}; \
+	openscience-tools/.venv/bin/openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
+	echo ""; \
+	echo "🔑 Revoking temporary token..."; \
+	kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- \
+		invenio tokens delete "$$TOKEN" 2>/dev/null || true; \
+	echo ""; \
+	echo "✅ Reset complete!"; \
+	echo "   Access at: http://localhost:8080"
