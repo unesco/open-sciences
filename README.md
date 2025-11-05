@@ -88,7 +88,7 @@ and select `N` to generate a new token that will be used to interact with Inveni
 
 ```bash
 # Reset with Lens.org publications
-make tools-reset LENS='src/sources/lens/data/publications.json'
+make tools-reset FILE='openscience-tools/src/sources/lens/data/publications.json'
 ```
 
 This command:
@@ -174,9 +174,9 @@ make build
 
 **Note**: Python code changes reload automatically, but assets require `make build`.
 
-## Scripts Microservice
+## OpenScience Tools
 
-The project includes a Python microservice for programmatic interaction with InvenioRDM.
+The project includes a Python package for programmatic interaction with InvenioRDM.
 
 ### Quick Setup
 
@@ -184,73 +184,101 @@ The project includes a Python microservice for programmatic interaction with Inv
 # 1. Start InvenioRDM
 make up
 
-# 2. Configure tools environment (auto-generates API token)
+# 2. Install the tools package
+make tools-install
+
+# 3. Generate API token and configure environment
 make tools-setup-env
-
-# 3. Build the tools container
-make tools-build
-
-# 4. Test connection
-make tools-run CMD='python -m src.tools.cli test-connection'
 ```
 
 ### Common Operations
 
+**Search Records:**
+
+```bash
+# Search all records
+make tools-search
+
+# Search with query
+make tools-search QUERY='climate data'
+
+# Search with options
+make tools-search QUERY='test' OPTS='--detailed --size 20'
+```
+
+**View Record Details:**
+
+```bash
+# View specific record
+make tools-view RECORD_ID='abc-123'
+
+# View as JSON
+make tools-view RECORD_ID='abc-123' OPTS='--format json'
+```
+
 **Import Data:**
 
 ```bash
-# From Lens.org JSON export
-make tools-import-lens FILE='src/sources/lens/data/publications.json'
+# Import from Lens.org JSON export
+make tools-import-lens FILE='openscience-tools/src/sources/lens/data/publications.json'
+
+# Import with limit
+make tools-import-lens FILE='openscience-tools/src/sources/lens/data/publications.json' OPTS='--limit 10'
+
+# Dry run (preview without importing)
+make tools-import-lens FILE='openscience-tools/src/sources/lens/data/publications.json' OPTS='--dry-run'
 ```
 
-**Search and Browse:**
+**Delete Records:**
 
 ```bash
-# Search records
-make tools-run CMD='python -m src.tools.search -q "climate" -s 10'
+# Preview deletions
+make tools-cleanup OPTS='--dry-run'
 
-# View record details
-make tools-run CMD='python -m src.tools.view RECORD_ID'
-
-# Get statistics
-make tools-run CMD='python -m src.tools.stats'
+# Delete all records (requires confirmation)
+make tools-cleanup OPTS='--confirm'
 ```
 
 **Reset Data:**
 
 ```bash
-# Delete all records and import from Lens.org JSON export
-make tools-reset LENS='src/sources/lens/data/publications.json'
-```
+# Delete all records and import fresh data from Lens.org
+make tools-reset FILE='openscience-tools/src/sources/lens/data/publications.json'
 
-**Interactive Shell:**
-
-```bash
-make tools-shell
+# Reset with limited records
+make tools-reset FILE='openscience-tools/src/sources/lens/data/publications.json' OPTS='--limit 10'
 ```
 
 ### Available Commands
 
-| Command                    | Description                         |
-| -------------------------- | ----------------------------------- |
-| `make tools-setup-env`     | Auto-configure with API token       |
-| `make tools-build`         | Build tools container               |
-| `make tools-run`           | Run any script or tool              |
-| `make tools-import-csv`    | Import from CSV file                |
-| `make tools-import-lens`   | Import from Lens.org                |
-| `make tools-import-zenodo` | Import from Zenodo                  |
-| `make tools-reset`         | Delete all + import from any source |
-| `make tools-delete-all`    | Delete all records                  |
-| `make tools-shell`         | Interactive shell                   |
-| `make tools-help`          | Detailed help with examples         |
+| Command                  | Description                                  |
+| ------------------------ | -------------------------------------------- |
+| `make tools-install`     | Install openscience-tools Python package     |
+| `make tools-setup-env`   | Generate API token and configure environment |
+| `make tools-search`      | Search records (use QUERY='...')             |
+| `make tools-view`        | View record details (use RECORD_ID='...')    |
+| `make tools-cleanup`     | Delete all records                           |
+| `make tools-import-lens` | Import from Lens.org (use FILE='...')        |
+| `make tools-reset`       | Delete all + import from Lens                |
+| `make tools-help`        | Show detailed help with examples             |
+
+### Override Credentials (Optional)
+
+You can override the default credentials stored in `.env`:
+
+```bash
+# Use different InvenioRDM instance
+make tools-search QUERY='test' BASE_URL='https://myinstance.org' TOKEN='my-token'
+
+# Reset data on different instance
+make tools-reset FILE='data.json' BASE_URL='https://myinstance.org' TOKEN='my-token'
+```
 
 ### Documentation
 
 For complete documentation, see:
 
-- `openscience-tools/README.md` - Full tools documentation
-- `openscience-tools/src/tools/README.md` - Management tools guide
-- `openscience-tools/src/sources/README.md` - Data importers guide
+- `openscience-tools/README.md` - Full package documentation with installation, usage, and troubleshooting
 
 ## Available Make Commands
 
