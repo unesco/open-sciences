@@ -135,7 +135,7 @@ make kind-load-image
 
 **What it does:**
 
-- Builds custom InvenioRDM image from `../Dockerfile`
+- Builds custom InvenioRDM image from `Dockerfile`
 - Compiles webpack assets during build
 - Loads image into Kind cluster
 - Tags as `sc-openscience:latest`
