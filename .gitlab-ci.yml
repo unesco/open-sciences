@@ -150,8 +150,8 @@ publish:
     - python -m twine --version
     - echo "Checking package metadata before upload..."
     - echo "=== Checking tarball ==="
-    - tar -xzf dist/openscience-tools-0.1.0.tar.gz openscience-tools-0.1.0/PKG-INFO
-    - cat openscience-tools-0.1.0/PKG-INFO | head -15
+    - tar -xzf dist/openscience_tools-0.1.0.tar.gz openscience_tools-0.1.0/PKG-INFO
+    - cat openscience_tools-0.1.0/PKG-INFO | head -15
     - echo "=== Checking wheel ==="
     - unzip -q dist/openscience_tools-0.1.0-py3-none-any.whl -d /tmp/wheel_check
     - cat /tmp/wheel_check/openscience_tools-0.1.0.dist-info/METADATA | head -15 || echo "METADATA not found in wheel"
