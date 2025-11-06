@@ -94,6 +94,8 @@ ost_build:
     paths:
       - openscience_tools/dist/
     expire_in: 1 week
+  only:
+    - ost
 
 # Publish stage - Upload to GitLab Package Registry (manual trigger only)
 ost_publish:
@@ -135,3 +137,5 @@ ost_publish:
   artifacts:
     paths:
       - openscience_tools/dist/
+  only:
+    - ost
