@@ -17,7 +17,7 @@ Before setting up the UNESCO Open Science Portal, ensure your system meets these
 
 - **Python 3.9+**: Required for InvenioRDM
   ```bash
-  python3 --version  # Should show Python 3.9 or higher
+  python3 --version  # Should show Python 3.9 or higher.
   ```
 - **Docker & Docker Compose**: For containerized services
   ```bash
