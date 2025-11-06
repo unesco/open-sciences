@@ -57,8 +57,6 @@ ost_build_publish_image:
     - echo "Pushing image to registry..."
     - docker push ${DOCKER_IMAGE}
     - echo "Publish image ready at ${DOCKER_IMAGE}"
-  only:
-    - ost
   when: manual
   allow_failure: true
 
@@ -66,9 +64,6 @@ ost_build_publish_image:
 ost_build:
   stage: ost_build
   image: python:3.11
-  needs:
-    - job: ost_build_publish_image
-      optional: true
   # Disable cache to ensure fresh build with new package structure
   cache: {}
   variables:
@@ -103,8 +98,6 @@ ost_build:
     paths:
       - openscience_tools/dist/
     expire_in: 1 week
-  only:
-    - ost
 
 # Publish stage - Upload to GitLab Package Registry (manual trigger only)
 ost_publish:
@@ -146,6 +139,4 @@ ost_publish:
   artifacts:
     paths:
       - openscience_tools/dist/
-  only:
-    - ost
   when: manual
