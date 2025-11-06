@@ -93,6 +93,8 @@ test:
 build:
   stage: build
   image: python:3.11
+  # Disable cache to ensure fresh build with new package structure
+  cache: {}
   variables:
     # UNESCO proxy configuration (may be needed for some operations)
     HTTP_PROXY: "http://proxy.unesco.org:8080"
@@ -117,6 +119,9 @@ build:
     - echo "Building package..."
     - python -m build --no-isolation 2>&1 || python setup.py sdist bdist_wheel
     - ls -lh dist/
+    - echo "Verifying built package metadata..."
+    - tar -xzf dist/openscience-tools-0.1.0.tar.gz openscience-tools-0.1.0/PKG-INFO 2>/dev/null || true
+    - cat openscience-tools-0.1.0/PKG-INFO 2>/dev/null | head -10 || echo "Could not extract PKG-INFO"
     - echo "Package built successfully!"
   artifacts:
     paths:
