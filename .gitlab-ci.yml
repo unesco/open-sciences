@@ -83,10 +83,14 @@ build:
 publish:
   stage: publish
   image: python:3.11
+  retry:
+    max: 2
+    when:
+      - script_failure
   before_script:
     - cd openscience-tools
-    # Skip pip upgrade - use pre-installed twine or install without upgrade
-    - python -m pip install twine --no-deps || echo "Using pre-installed twine"
+    # Try to install twine with extended timeout and retries
+    - pip install twine --timeout 300 --retries 10 || (echo "Failed to install twine" && exit 1)
   script:
     - echo "Publishing package to GitLab Package Registry..."
     - |
