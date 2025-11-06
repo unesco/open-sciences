@@ -1,0 +1,16 @@
+# Custom Docker image for publishing Python packages to GitLab Package Registry
+# This image includes twine pre-installed to avoid network issues during CI/CD
+
+FROM python:3.11-slim
+
+# Install twine and its dependencies
+RUN pip install --no-cache-dir twine==5.1.1
+
+# Verify installation
+RUN python -m twine --version
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command
+CMD ["/bin/bash"]
