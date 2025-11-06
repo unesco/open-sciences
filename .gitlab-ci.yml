@@ -1,6 +1,12 @@
 # GitLab CI/CD Pipeline for openscience_tools package
 # Builds, tests, and publishes the package to GitLab Package Registry
 
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "ost"'
+      when: always
+    - when: never
+
 stages:
   # SECTION: Custom stages for openscience_tools package
   - ost_prepare
