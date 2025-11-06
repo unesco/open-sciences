@@ -2,9 +2,11 @@
 # Builds, tests, and publishes the package to GitLab Package Registry
 
 stages:
-  - prepare
-  - build
-  - publish
+  # SECTION: Custom stages for openscience_tools package
+  - ost_prepare
+  - ost_build
+  - ost_publish
+  # !SECTION
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -20,13 +22,13 @@ cache:
     - .venv/
 
 # Prepare stage - Build custom Docker image with twine pre-installed
-build-publish-image:
-  stage: prepare
+ost_build_publish_image:
+  stage: ost_prepare
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
   variables:
-    DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}/publish-tool:latest
+    DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}/ost-publish-tool:latest
     # UNESCO proxy configuration for external internet access
     HTTP_PROXY: "http://proxy.unesco.org:8080"
     HTTPS_PROXY: "http://proxy.unesco.org:8080"
@@ -45,22 +47,22 @@ build-publish-image:
   script:
     - echo "Building custom publish image with twine..."
     # Build with proxy arguments to allow package installation from PyPI
-    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f .gitlab/Dockerfile.publish -t ${DOCKER_IMAGE} .
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f .gitlab/Dockerfile.ost -t ${DOCKER_IMAGE} .
     - echo "Pushing image to registry..."
     - docker push ${DOCKER_IMAGE}
     - echo "Publish image ready at ${DOCKER_IMAGE}"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      changes:
-        - .gitlab/Dockerfile.publish
-        - .gitlab-ci.yml
-      when: manual
-    - when: manual # Can also be triggered manually anytime
+  only:
+    - ost
+  when: manual
+  allow_failure: true
 
 # Build stage - Create distribution packages
-build:
-  stage: build
+ost_build:
+  stage: ost_build
   image: python:3.11
+  needs:
+    - job: ost_build_publish_image
+      optional: true
   # Disable cache to ensure fresh build with new package structure
   cache: {}
   variables:
@@ -96,14 +98,16 @@ build:
       - openscience_tools/dist/
     expire_in: 1 week
   only:
-    - branches
-    - tags
+    - ost
 
 # Publish stage - Upload to GitLab Package Registry (manual trigger only)
-publish:
-  stage: publish
+ost_publish:
+  stage: ost_publish
   # Use custom image with twine pre-installed to bypass runner network issues
-  image: ${CI_REGISTRY_IMAGE}/publish-tool:latest
+  image: ${CI_REGISTRY_IMAGE}/ost-publish-tool:latest
+  needs:
+    - job: ost_build
+      artifacts: true
   retry:
     max: 2
     when:
@@ -136,7 +140,6 @@ publish:
   artifacts:
     paths:
       - openscience_tools/dist/
-  when: manual # Always require manual trigger
   only:
-    - branches
-    - tags
+    - ost
+  when: manual

@@ -17,7 +17,7 @@ OpenScience Tools is a comprehensive toolkit for managing and importing data int
 
 ## Installation
 
-### From Project Root (Recommended)
+### From Project Root
 
 If you're working within the sc-openscience project:
 
@@ -39,9 +39,39 @@ make tools-install
 
 ### From GitLab Package Registry
 
+To install the published package from the GitLab Package Registry, you need to authenticate with a Personal Access Token.
+
+#### Option 1: Using pip configuration file (Recommended)
+
+Create a `pip.conf` file with your credentials:
+
 ```bash
-pip install openscience_tools --index-url https://gitlab.example.com/api/v4/projects/YOUR_PROJECT_ID/packages/pypi/simple
+# Create pip.conf
+cat > pip.conf << 'EOF'
+[global]
+index-url = https://gitlab-ci-token:YOUR_TOKEN@repository.unesco.org/gitlab/api/v4/projects/488/packages/pypi/simple
+extra-index-url = https://pypi.org/simple
+EOF
+
+# Install using the configuration
+PIP_CONFIG_FILE=pip.conf pip install openscience-tools
 ```
+
+#### Option 2: Direct installation with token
+
+```bash
+pip install openscience-tools \
+  --index-url https://gitlab-ci-token:YOUR_TOKEN@repository.unesco.org/gitlab/api/v4/projects/488/packages/pypi/simple \
+  --extra-index-url https://pypi.org/simple
+```
+
+> **Note**: Replace `YOUR_TOKEN` with an authentication token. If you don't have one, ask your tech lead for a token. If you have access to the GitLab repository, you can generate a Personal Access Token:
+>
+> 1. Go to: https://repository.unesco.org/gitlab/-/profile/personal_access_tokens
+> 2. Click **"Add new token"**
+> 3. Set a **token name** (e.g., `openscience-tools`) and **expiration date**
+> 4. Select scopes: **`read_api`** and **`read_repository`**
+> 5. Click **"Create personal access token"** and **copy it immediately** (shown only once!)
 
 ## Configuration
 
@@ -50,7 +80,7 @@ The package requires two configuration values:
 - **Base URL**: Your InvenioRDM instance URL (e.g., `https://127.0.0.1:5000`)
 - **API Token**: An InvenioRDM API token with appropriate permissions
 
-### Method 1: Environment Variables (Recommended)
+### Method 1: Environment Variables
 
 Add these to your `.env` file in the project root:
 
@@ -59,18 +89,20 @@ OPENSCIENCE_TOOLS_BASE_URL=https://127.0.0.1:5000
 OPENSCIENCE_TOOLS_TOKEN=your-api-token-here
 ```
 
-To generate a token automatically:
+To generate a token automatically during development, run:
 
 ```bash
 make tools-setup-env
 ```
+
+In cases other than development, if you don't have one, ask your tech lead for the above token.
 
 ### Method 2: Command-Line Options
 
 Pass credentials directly to each command:
 
 ```bash
-openscience_tools --base-url https://127.0.0.1:5000 --token your-token search -q "test"
+openscience-tools --base-url https://127.0.0.1:5000 --token your-token search -q "test"
 ```
 
 ## Usage
@@ -81,19 +113,19 @@ Search and display records from your InvenioRDM instance:
 
 ```bash
 # Basic search
-openscience_tools search -q "climate data"
+openscience-tools search -q "climate data"
 
 # Search with size limit
-openscience_tools search -q "test" --size 5
+openscience-tools search -q "test" --size 5
 
 # Detailed view
-openscience_tools search -q "machine learning" --detailed
+openscience-tools search -q "machine learning" --detailed
 
 # With pagination
-openscience_tools search -q "dataset" --page 2 --size 20
+openscience-tools search -q "dataset" --page 2 --size 20
 
 # Sort by newest
-openscience_tools search -q "covid" --sort newest
+openscience-tools search -q "covid" --sort newest
 ```
 
 **Available sort options**: `bestmatch`, `newest`, `oldest`
@@ -104,13 +136,13 @@ Display detailed information about a specific record:
 
 ```bash
 # View record (formatted output)
-openscience_tools view abc-123
+openscience-tools view abc-123
 
 # View as JSON
-openscience_tools view abc-123 --format json
+openscience-tools view abc-123 --format json
 
 # Verbose output with debug info
-openscience_tools view abc-123 --verbose
+openscience-tools view abc-123 --verbose
 ```
 
 ### Delete Records
@@ -119,16 +151,16 @@ Remove all records from your InvenioRDM instance:
 
 ```bash
 # Dry-run (preview what would be deleted)
-openscience_tools cleanup --dry-run
+openscience-tools cleanup --dry-run
 
 # Delete all records (interactive confirmation)
-openscience_tools cleanup
+openscience-tools cleanup
 
 # Delete with automatic confirmation
-openscience_tools cleanup --confirm
+openscience-tools cleanup --confirm
 
 # Verbose output
-openscience_tools cleanup --confirm --verbose
+openscience-tools cleanup --confirm --verbose
 ```
 
 ⚠️ **Warning**: This operation is irreversible. Always use `--dry-run` first!
@@ -139,25 +171,25 @@ Import publications from Lens.org JSON export files:
 
 ```bash
 # Validate metadata without creating records (dry-run)
-openscience_tools import-lens --file publications.json --dry-run
+openscience-tools import-lens --file publications.json --dry-run
 
 # Import all records
-openscience_tools import-lens --file publications.json
+openscience-tools import-lens --file publications.json
 
 # Import first 10 records
-openscience_tools import-lens --file publications.json --limit 10
+openscience-tools import-lens --file publications.json --limit 10
 
 # Skip first 10, import next 20
-openscience_tools import-lens --file publications.json --offset 10 --limit 20
+openscience-tools import-lens --file publications.json --offset 10 --limit 20
 
 # Custom batch size (default: 10)
-openscience_tools import-lens --file publications.json --batch-size 5
+openscience-tools import-lens --file publications.json --batch-size 5
 
 # Force reimport of existing records
-openscience_tools import-lens --file publications.json --no-skip-existing
+openscience-tools import-lens --file publications.json --no-skip-existing
 
 # Verbose output with debug info
-openscience_tools import-lens --file publications.json --verbose
+openscience-tools import-lens --file publications.json --verbose
 ```
 
 **Lens.org Import Features:**
@@ -204,331 +236,79 @@ make tools-reset FILE='data/publications.json' OPTS='--limit 10'
 make tools-search QUERY='test' BASE_URL='https://...' TOKEN='...'
 ```
 
-## API Client
-
-For programmatic access, use the InvenioRDM client directly:
-
-```python
-from openscience_tools import InvenioRDMClient
-
-# Initialize client
-client = InvenioRDMClient(
-    base_url="https://127.0.0.1:5000",
-    token="your-api-token"
-)
-
-# Search records
-results = client.search_records(q="climate", size=10)
-for record in results["hits"]["hits"]:
-    print(record["metadata"]["title"])
-
-# Get specific record
-record = client.get_record("abc-123")
-print(record["metadata"]["title"])
-
-# Create draft
-draft = client.create_draft({
-    "metadata": {
-        "title": "My Dataset",
-        "resource_type": {"id": "dataset"},
-        "creators": [{"person_or_org": {"name": "Smith, John"}}],
-        "publication_date": "2024-01-01"
-    }
-})
-
-# Publish draft
-published = client.publish_draft(draft["id"])
-```
-
-## Development
-
-### Project Structure
-
-```
-openscience_tools/
-├── src/                      # Source code
-│   ├── __init__.py          # Package initialization
-│   ├── cli.py               # CLI entry point
-│   ├── invenio_client.py    # InvenioRDM API client
-│   ├── tools/               # CLI tools
-│   │   ├── search.py        # Search command
-│   │   ├── view.py          # View command
-│   │   └── cleanup.py       # Cleanup command
-│   └── sources/             # Import sources
-│       └── lens/            # Lens.org importer
-├── pyproject.toml           # Package configuration
-├── setup.py                 # Setup script
-├── README.md                # This file
-└── LICENSE                  # MIT License
-```
-
-### Building the Package
-
-```bash
-# Install build dependencies
-pip install build
-
-# Build distribution files
-python -m build
-
-# Output: dist/openscience_tools-0.1.0-py3-none-any.whl
-#         dist/openscience_tools-0.1.0.tar.gz
-```
-
-### Running Tests
-
-```bash
-# Install test dependencies
-pip install pytest pytest-cov
-
-# Run tests
-pytest
-
-# With coverage
-pytest --cov=openscience_tools
-```
-
-## Troubleshooting
-
-### "Command not found: openscience_tools"
-
-Make sure the package is installed and your virtual environment is activated:
-
-```bash
-source .venv/bin/activate
-pip install -e .
-openscience_tools --version
-```
-
-### "Missing option '--base-url' / '--token'"
-
-Ensure your `.env` file contains the required variables:
-
-```bash
-grep OPENSCIENCE_TOOLS .env
-
-# Should show:
-# OPENSCIENCE_TOOLS_BASE_URL=https://127.0.0.1:5000
-# OPENSCIENCE_TOOLS_TOKEN=your-token
-```
-
-Run `make tools-setup-env` to generate a token automatically.
-
-### "SSL Certificate Verification Failed"
-
-InvenioRDM development instances use self-signed certificates. The client automatically disables SSL verification warnings for localhost/127.0.0.1.
-
-For production instances with valid certificates, ensure your system's CA certificates are up to date.
-
-### Import Fails with "Token not configured"
-
-Generate a new API token:
-
-```bash
-make tools-setup-env
-```
-
-Or create one manually via InvenioRDM CLI:
-
-```bash
-invenio tokens create -n "OpenScience Tools" -u admin@example.org -i
-```
-
 ## Publishing to GitLab Package Registry
 
-This section explains how to publish the package to GitLab Package Registry for distribution.
+This package is automatically published to the GitLab Package Registry via CI/CD pipeline.
 
-### Automatic Publishing via GitLab CI/CD (Recommended)
+### Pipeline Overview
 
-The project includes a `.gitlab-ci.yml` pipeline that automatically builds and publishes the package.
+The GitLab CI/CD pipeline (`ost_*` jobs) runs on the `openscience_tools` branch and consists of three stages:
 
-#### Workflow
+1. **ost_prepare** - Builds custom Docker image with twine pre-installed (manual trigger)
+2. **ost_build** - Creates distribution packages (.whl and .tar.gz) (automatic)
+3. **ost_publish** - Uploads to GitLab Package Registry (manual trigger)
 
-1. **On every commit** to any branch:
+All jobs use the `ost_` prefix to avoid conflicts with other pipelines in the repository.
 
-   - Runs tests (if available)
-   - Runs linting checks
-   - Builds the package
+### How to Publish
 
-2. **On `develop` or `main` branches**:
+#### Step 1: Push Changes to Branch
 
-   - Same as above, plus:
-   - **Manual action required**: Click "Publish" in GitLab CI/CD pipeline to publish to registry
+```bash
+# Make your changes in openscience_tools/
+cd openscience_tools
+# ... edit files ...
 
-3. **On Git tags** (e.g., `v0.1.0`):
-   - Automatically builds and publishes the release
+# Commit and push to the openscience_tools branch
+git add .
+git commit -m "feat: add new feature"
+git push origin openscience_tools
+```
 
-#### Publishing a New Release
+#### Step 2: Monitor Pipeline
+
+The pipeline will automatically trigger on push to `openscience_tools` branch:
+
+1. Go to: https://repository.unesco.org/gitlab/icc/openscience-tools/-/pipelines
+2. Find the latest pipeline for `openscience_tools` branch
+3. The **ost_build** job will run automatically
+4. Wait for it to complete successfully
+
+#### Step 3: Manually Trigger Publish
+
+Once the build completes:
+
+1. In the pipeline view, locate the **ost_publish** job
+2. Click the ▶️ **Play** button to manually trigger publishing
+3. Monitor the job logs to verify successful upload
+4. Package will be available at: https://repository.unesco.org/gitlab/icc/openscience-tools/-/packages
+
+### Updating Package Version
+
+Before publishing a new version:
 
 ```bash
 # 1. Update version in pyproject.toml
+cd openscience_tools
 # Edit: version = "0.2.0"
 
-# 2. Commit the change
-git add pyproject.toml
+# 2. Update version in .gitlab-ci.yml
+# Edit: PACKAGE_VERSION: "0.2.0"
+
+# 3. Commit version bump
+git add pyproject.toml ../.gitlab-ci.yml
 git commit -m "chore: bump version to 0.2.0"
-
-# 3. Create and push a tag
-git tag v0.2.0
-git push origin develop  # or main
-git push origin v0.2.0
-
-# 4. GitLab CI/CD will automatically build and publish!
+git push origin openscience_tools
 ```
 
-#### Manual Publish from Branch
+### Pipeline Configuration Details
 
-```bash
-# 1. Push to develop or main
-git push origin develop
+The pipeline is configured in `.gitlab-ci.yml` at the repository root:
 
-# 2. Go to GitLab > CI/CD > Pipelines
-# 3. Wait for build to complete
-# 4. Click the "Play" button on the "publish" job
-```
-
-### Manual Publishing (Without CI/CD)
-
-If you prefer to publish manually from your local machine:
-
-#### Prerequisites
-
-```bash
-pip install --upgrade build twine
-```
-
-#### Build and Publish
-
-```bash
-# Clean previous builds
-rm -rf dist/ build/ *.egg-info
-
-# Build the package
-python -m build
-
-# Verify the build
-ls -lh dist/
-# Should show:
-# openscience_tools-0.1.0-py3-none-any.whl
-# openscience_tools-0.1.0.tar.gz
-
-# Set credentials (get token from GitLab: User Settings > Access Tokens)
-export TWINE_USERNAME=<your-gitlab-username>
-export TWINE_PASSWORD=<your-personal-access-token>
-export PROJECT_ID=<your-project-id>  # From GitLab Settings > General
-
-# Publish
-python -m twine upload \
-  --repository-url https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi \
-  dist/*
-```
-
-#### Generate GitLab Personal Access Token
-
-1. Go to GitLab > User Settings > Access Tokens
-2. Create a new token with scopes: `api`, `write_repository`, `read_repository`
-3. Save the token securely
-
-### Installing from GitLab Package Registry
-
-Once published, users can install the package:
-
-#### Option 1: Direct Installation
-
-```bash
-pip install openscience_tools \
-  --index-url https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi/simple
-```
-
-#### Option 2: Configure pip Permanently
-
-Create/edit `~/.pip/pip.conf` (Linux/macOS) or `%APPDATA%\pip\pip.ini` (Windows):
-
-```ini
-[global]
-extra-index-url = https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi/simple
-```
-
-Then install normally:
-
-```bash
-pip install openscience_tools
-```
-
-#### Option 3: Using requirements.txt
-
-```txt
-# requirements.txt
---extra-index-url https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi/simple
-openscience_tools==0.1.0
-```
-
-### Versioning Strategy
-
-We follow [Semantic Versioning](https://semver.org/):
-
-- **MAJOR** version (X.0.0): Incompatible API changes
-- **MINOR** version (0.X.0): New features, backwards compatible
-- **PATCH** version (0.0.X): Bug fixes, backwards compatible
-
-**Version Bump Guidelines:**
-
-- `0.1.0 → 0.1.1`: Bug fixes only
-- `0.1.0 → 0.2.0`: New features added
-- `0.1.0 → 1.0.0`: Breaking changes or first stable release
-
-### Publishing Best Practices
-
-1. **Always test locally** before publishing:
-
-   ```bash
-   pip install -e ".[dev]"
-   pytest tests/  # when tests are available
-   ```
-
-2. **Use semantic versioning** consistently
-
-3. **Create Git tags** for all releases
-
-4. **Test installation** after publishing:
-   ```bash
-   pip install openscience_tools==${NEW_VERSION} --index-url <registry-url>
-   ```
-
-### Troubleshooting Publishing
-
-#### "Package already exists" error
-
-Solutions:
-
-1. Bump the version in `pyproject.toml`
-2. Delete the package from GitLab (if you have permissions)
-3. Use a different version number
-
-#### Authentication errors
-
-```bash
-# Verify your token has the right permissions
-curl -H "PRIVATE-TOKEN: <your-token>" \
-  https://repository.unesco.org/api/v4/projects/${PROJECT_ID}
-```
-
-#### Pipeline fails on publish step
-
-Common issues:
-
-1. **Missing permissions**: Ensure GitLab user has `Maintainer` or `Owner` role
-2. **Protected branches**: `main`/`develop` might require manual approval
-3. **Token expired**: CI/CD tokens are automatically managed by GitLab
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-This package is part of the UNESCO Science Portal project. For contributions, please follow the project's contribution guidelines.
-
-## Support
-
-For issues, questions, or contributions, please refer to the main project repository.
+- **Branch**: Only runs on `openscience_tools` branch
+- **Proxy**: Configured for UNESCO network (proxy.unesco.org:8080)
+- **Docker Images**:
+  - Build: `python:3.11`
+  - Publish: Custom `ost-publish-tool:latest` (with twine 6.0+)
+- **Manual Jobs**: `ost_build_publish_image` and `ost_publish` require manual trigger
+- **Artifacts**: Distribution packages stored for 1 week
