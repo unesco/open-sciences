@@ -334,6 +334,193 @@ Or create one manually via InvenioRDM CLI:
 invenio tokens create -n "OpenScience Tools" -u admin@example.org -i
 ```
 
+## Publishing to GitLab Package Registry
+
+This section explains how to publish the package to GitLab Package Registry for distribution.
+
+### Automatic Publishing via GitLab CI/CD (Recommended)
+
+The project includes a `.gitlab-ci.yml` pipeline that automatically builds and publishes the package.
+
+#### Workflow
+
+1. **On every commit** to any branch:
+
+   - Runs tests (if available)
+   - Runs linting checks
+   - Builds the package
+
+2. **On `develop` or `main` branches**:
+
+   - Same as above, plus:
+   - **Manual action required**: Click "Publish" in GitLab CI/CD pipeline to publish to registry
+
+3. **On Git tags** (e.g., `v0.1.0`):
+   - Automatically builds and publishes the release
+
+#### Publishing a New Release
+
+```bash
+# 1. Update version in pyproject.toml
+# Edit: version = "0.2.0"
+
+# 2. Commit the change
+git add pyproject.toml
+git commit -m "chore: bump version to 0.2.0"
+
+# 3. Create and push a tag
+git tag v0.2.0
+git push origin develop  # or main
+git push origin v0.2.0
+
+# 4. GitLab CI/CD will automatically build and publish!
+```
+
+#### Manual Publish from Branch
+
+```bash
+# 1. Push to develop or main
+git push origin develop
+
+# 2. Go to GitLab > CI/CD > Pipelines
+# 3. Wait for build to complete
+# 4. Click the "Play" button on the "publish" job
+```
+
+### Manual Publishing (Without CI/CD)
+
+If you prefer to publish manually from your local machine:
+
+#### Prerequisites
+
+```bash
+pip install --upgrade build twine
+```
+
+#### Build and Publish
+
+```bash
+# Clean previous builds
+rm -rf dist/ build/ *.egg-info
+
+# Build the package
+python -m build
+
+# Verify the build
+ls -lh dist/
+# Should show:
+# openscience_tools-0.1.0-py3-none-any.whl
+# openscience_tools-0.1.0.tar.gz
+
+# Set credentials (get token from GitLab: User Settings > Access Tokens)
+export TWINE_USERNAME=<your-gitlab-username>
+export TWINE_PASSWORD=<your-personal-access-token>
+export PROJECT_ID=<your-project-id>  # From GitLab Settings > General
+
+# Publish
+python -m twine upload \
+  --repository-url https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi \
+  dist/*
+```
+
+#### Generate GitLab Personal Access Token
+
+1. Go to GitLab > User Settings > Access Tokens
+2. Create a new token with scopes: `api`, `write_repository`, `read_repository`
+3. Save the token securely
+
+### Installing from GitLab Package Registry
+
+Once published, users can install the package:
+
+#### Option 1: Direct Installation
+
+```bash
+pip install openscience-tools \
+  --index-url https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi/simple
+```
+
+#### Option 2: Configure pip Permanently
+
+Create/edit `~/.pip/pip.conf` (Linux/macOS) or `%APPDATA%\pip\pip.ini` (Windows):
+
+```ini
+[global]
+extra-index-url = https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi/simple
+```
+
+Then install normally:
+
+```bash
+pip install openscience-tools
+```
+
+#### Option 3: Using requirements.txt
+
+```txt
+# requirements.txt
+--extra-index-url https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi/simple
+openscience-tools==0.1.0
+```
+
+### Versioning Strategy
+
+We follow [Semantic Versioning](https://semver.org/):
+
+- **MAJOR** version (X.0.0): Incompatible API changes
+- **MINOR** version (0.X.0): New features, backwards compatible
+- **PATCH** version (0.0.X): Bug fixes, backwards compatible
+
+**Version Bump Guidelines:**
+
+- `0.1.0 → 0.1.1`: Bug fixes only
+- `0.1.0 → 0.2.0`: New features added
+- `0.1.0 → 1.0.0`: Breaking changes or first stable release
+
+### Publishing Best Practices
+
+1. **Always test locally** before publishing:
+
+   ```bash
+   pip install -e ".[dev]"
+   pytest tests/  # when tests are available
+   ```
+
+2. **Use semantic versioning** consistently
+
+3. **Create Git tags** for all releases
+
+4. **Test installation** after publishing:
+   ```bash
+   pip install openscience-tools==${NEW_VERSION} --index-url <registry-url>
+   ```
+
+### Troubleshooting Publishing
+
+#### "Package already exists" error
+
+Solutions:
+
+1. Bump the version in `pyproject.toml`
+2. Delete the package from GitLab (if you have permissions)
+3. Use a different version number
+
+#### Authentication errors
+
+```bash
+# Verify your token has the right permissions
+curl -H "PRIVATE-TOKEN: <your-token>" \
+  https://repository.unesco.org/api/v4/projects/${PROJECT_ID}
+```
+
+#### Pipeline fails on publish step
+
+Common issues:
+
+1. **Missing permissions**: Ensure GitLab user has `Maintainer` or `Owner` role
+2. **Protected branches**: `main`/`develop` might require manual approval
+3. **Token expired**: CI/CD tokens are automatically managed by GitLab
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
