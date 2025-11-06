@@ -82,48 +82,32 @@ build:
 # Publish stage - Upload to GitLab Package Registry (manual trigger only)
 publish:
   stage: publish
-  image: python:3.11
+  # Use alpine-based image which is smaller and might have better network
+  image: python:3.11-alpine
   retry:
     max: 2
     when:
       - script_failure
+  variables:
+    TWINE_USERNAME: gitlab-ci-token
+    TWINE_PASSWORD: ${CI_JOB_TOKEN}
   before_script:
     - cd openscience-tools
     - ls -lh dist/
+    # Alpine uses apk package manager - try to install twine from there
+    - apk add --no-cache py3-pip || true
+    - pip3 install --no-cache-dir --break-system-packages twine 2>&1 || pip install --no-cache-dir twine 2>&1 || echo "Trying alternative installation..."
   script:
-    - echo "Publishing package to GitLab Package Registry..."
+    - echo "Publishing package to GitLab Package Registry using twine..."
     - |
-      # Get package name and version from dist files
-      PACKAGE_NAME="openscience-tools"
-      VERSION=$(ls dist/*.whl | sed -n 's/.*-\([0-9.]*\)-.*/\1/p' | head -1)
-      echo "Package: ${PACKAGE_NAME}, Version: ${VERSION}"
-    - |
-      # Upload wheel file using proper API endpoint
-      for file in dist/*.whl; do
-        filename=$(basename "$file")
-        echo "Uploading wheel: $filename..."
-        curl --fail-with-body --request POST \
-          --user "gitlab-ci-token:${CI_JOB_TOKEN}" \
-          --form "content=@$file" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi" || \
-        (echo "Wheel upload failed, see error above" && exit 1)
-      done
-    - |
-      # Upload source distribution
-      for file in dist/*.tar.gz; do
-        filename=$(basename "$file")
-        echo "Uploading source dist: $filename..."
-        curl --fail-with-body --request POST \
-          --user "gitlab-ci-token:${CI_JOB_TOKEN}" \
-          --form "content=@$file" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi" || \
-        (echo "Source dist upload failed, see error above" && exit 1)
-      done
+      python3 -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/* || \
+      python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/* || \
+      twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
     - echo ""
     - echo "✅ Package published successfully!"
     - echo ""
     - echo "📦 Install with:"
-    - echo "   pip install ${PACKAGE_NAME} --index-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi/simple"
+    - echo "   pip install openscience-tools --index-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi/simple"
   artifacts:
     paths:
       - openscience-tools/dist/
