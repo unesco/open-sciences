@@ -58,8 +58,11 @@ Issues = "https://repository.unesco.org/gitlab/sc/sc-openscience/-/issues"
 openscience-tools = "openscience_tools.cli:main"
 
 [tool.setuptools]
-packages = ["openscience_tools"]
-package-dir = {"openscience_tools" = "src"}
+# Standard layout: openscience_tools/ directory at root
+
+[tool.setuptools.packages.find]
+# Find all packages (openscience_tools and its subpackages)
+include = ["openscience_tools*"]
 
 [tool.setuptools.package-data]
 openscience_tools = ["py.typed", "*.yaml", "*.json"]
