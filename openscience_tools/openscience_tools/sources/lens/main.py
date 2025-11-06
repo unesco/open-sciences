@@ -319,16 +319,16 @@ def main(
 
     \b
         # Import all records
-        openscience-tools import-lens --file publications.json
+        openscience_tools import-lens --file publications.json
 
         # Dry run validation
-        openscience-tools import-lens --file publications.json --dry-run
+        openscience_tools import-lens --file publications.json --dry-run
 
         # Import first 10 records
-        openscience-tools import-lens --file publications.json --limit 10
+        openscience_tools import-lens --file publications.json --limit 10
 
         # Skip first 10, import next 20
-        openscience-tools import-lens --file publications.json --offset 10 --limit 20
+        openscience_tools import-lens --file publications.json --offset 10 --limit 20
     """
     exit_code = run_import(
         base_url=ctx.obj["base_url"],

@@ -1,5 +1,5 @@
 """
-Setup configuration for openscience-tools package.
+Setup configuration for openscience_tools package.
 
 This file provides backward compatibility with older build tools.
 All configuration is in pyproject.toml (PEP 621).

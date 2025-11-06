@@ -293,19 +293,19 @@ def main(ctx, query: str, size: int, sort: str, page: int, detailed: bool, verbo
 
     \b
     # Search for climate-related records
-    openscience-tools search --query "climate"
+    openscience_tools search --query "climate"
 
     \b
     # Show detailed view with 5 results
-    openscience-tools search -q "test" -s 5 --detailed
+    openscience_tools search -q "test" -s 5 --detailed
 
     \b
     # Browse all records, page 2
-    openscience-tools search --page 2 --size 20
+    openscience_tools search --page 2 --size 20
 
     \b
     # Sort by newest
-    openscience-tools search --sort newest
+    openscience_tools search --sort newest
     """
     search_records(
         base_url=ctx.obj["base_url"],

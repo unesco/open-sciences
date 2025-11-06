@@ -483,12 +483,12 @@ kind-reset-lens:
 	echo "✅ Token generated: $${TOKEN:0:20}..."; \
 	echo ""; \
 	echo "📋 Step 1/2: Deleting all existing records..."; \
-	source ../openscience-tools/.venv/bin/activate && openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" cleanup --confirm; \
+	source ../openscience_tools/.venv/bin/activate && openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" cleanup --confirm; \
 	echo ""; \
 	echo "📋 Step 2/2: Importing Lens.org publications..."; \
-	FILE=$${FILE:-../openscience-tools/src/sources/lens/data/publications.json}; \
+	FILE=$${FILE:-../openscience_tools/openscience_tools/sources/lens/data/publications.json}; \
 	OPTS=$${OPTS:-}; \
-	source ../openscience-tools/.venv/bin/activate && openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
+	source ../openscience_tools/.venv/bin/activate && openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
 	echo ""; \
 	echo "🔑 Revoking temporary token..."; \
 	kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- \

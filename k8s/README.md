@@ -213,7 +213,7 @@ make kind-create-admin
 - Creates user `admin@unesco.org` with password `admin123`
 - Assigns admin role and superuser permissions
 - Generates API token
-- Saves token to `../openscience-tools/config/.env.kind`
+- Saves token to `../openscience_tools/config/.env.kind`
 
 **Time:** ~30 seconds
 

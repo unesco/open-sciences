@@ -1,15 +1,14 @@
-# GitLab CI/CD Pipeline for openscience-tools package
+# GitLab CI/CD Pipeline for openscience_tools package
 # Builds, tests, and publishes the package to GitLab Package Registry
 
 stages:
   - prepare
-  - test
   - build
   - publish
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  PACKAGE_NAME: "openscience-tools"
+  PACKAGE_NAME: "openscience_tools"
   PACKAGE_VERSION: "0.1.0"
   # Increase pip timeout and retries for network issues
   PIP_DEFAULT_TIMEOUT: "100"
@@ -58,37 +57,6 @@ build-publish-image:
       when: manual
     - when: manual # Can also be triggered manually anytime
 
-# Test stage - Run tests and linting (optional, may fail due to network issues)
-test:
-  stage: test
-  image: python:3.11
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
-  before_script:
-    - cd openscience-tools
-    - python -m venv .venv
-    - source .venv/bin/activate
-    - pip install --upgrade pip setuptools wheel || true
-    - pip install -e ".[dev]" || true
-  script:
-    - echo "Running tests..."
-    # Uncomment when tests are available
-    # - pytest tests/ -v --cov=openscience_tools
-    - echo "Running linting..."
-    - black --check src/ 2>/dev/null || echo "Black formatting check skipped (installation failed)"
-    - isort --check-only src/ 2>/dev/null || echo "Isort check skipped (installation failed)"
-    # - flake8 src/
-  only:
-    - branches
-    - tags
-  except:
-    - schedules
-  allow_failure: true # Don't block pipeline on test failures or network issues
-  when: manual # Make test stage completely optional
-
 # Build stage - Create distribution packages
 build:
   stage: build
@@ -109,7 +77,7 @@ build:
       - runner_system_failure
       - stuck_or_timeout_failure
   before_script:
-    - cd openscience-tools
+    - cd openscience_tools
     - echo "Verifying package structure..."
     - ls -la | grep openscience_tools || echo "WARNING openscience_tools directory not found"
     - echo "Using pre-installed Python build tools"
@@ -120,12 +88,12 @@ build:
     - python -m build --no-isolation 2>&1 || python setup.py sdist bdist_wheel
     - ls -lh dist/
     - echo "Verifying built package metadata..."
-    - tar -xzf dist/openscience-tools-0.1.0.tar.gz openscience-tools-0.1.0/PKG-INFO 2>/dev/null || true
-    - cat openscience-tools-0.1.0/PKG-INFO 2>/dev/null | head -10 || echo "Could not extract PKG-INFO"
+    - tar -xzf dist/openscience_tools-0.1.0.tar.gz openscience_tools-0.1.0/PKG-INFO 2>/dev/null || true
+    - cat openscience_tools-0.1.0/PKG-INFO 2>/dev/null | head -10 || echo "Could not extract PKG-INFO"
     - echo "Package built successfully!"
   artifacts:
     paths:
-      - openscience-tools/dist/
+      - openscience_tools/dist/
     expire_in: 1 week
   only:
     - branches
@@ -144,7 +112,7 @@ publish:
     TWINE_USERNAME: gitlab-ci-token
     TWINE_PASSWORD: ${CI_JOB_TOKEN}
   before_script:
-    - cd openscience-tools
+    - cd openscience_tools
     - ls -lh dist/
     - echo "Verifying twine installation..."
     - python -m twine --version
@@ -164,10 +132,10 @@ publish:
     - echo "Package published successfully!"
     - echo ""
     - echo "Install with:"
-    - echo "   pip install openscience-tools --index-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi/simple"
+    - echo "   pip install openscience_tools --index-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi/simple"
   artifacts:
     paths:
-      - openscience-tools/dist/
+      - openscience_tools/dist/
   when: manual # Always require manual trigger
   only:
     - branches

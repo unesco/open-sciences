@@ -1,8 +1,8 @@
-# GitLab CI/CD Setup for openscience-tools
+# GitLab CI/CD Setup for openscience_tools
 
 ## Overview
 
-This directory contains the GitLab CI/CD configuration for building and publishing the `openscience-tools` package to the GitLab Package Registry.
+This directory contains the GitLab CI/CD configuration for building and publishing the `openscience_tools` package to the GitLab Package Registry.
 
 ## Pipeline Stages
 
@@ -60,7 +60,7 @@ The `build` stage runs automatically on every push to branches and tags. It:
 
 - Uses pre-installed Python build tools (no network required)
 - Fallback to `setup.py` if `python -m build` is not available
-- Creates artifacts in `openscience-tools/dist/`
+- Creates artifacts in `openscience_tools/dist/`
 - Artifacts expire after 1 week
 
 ### Publishing to GitLab Package Registry
@@ -79,7 +79,7 @@ The package will be uploaded to: `${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pac
 Once published, users can install with:
 
 ```bash
-pip install openscience-tools --index-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi/simple
+pip install openscience_tools --index-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi/simple
 ```
 
 Or add to `pip.conf` / `~/.pip/pip.conf`:
@@ -104,7 +104,7 @@ The custom publish image hasn't been built yet. Run the `build-publish-image` jo
 
 The build job uses only pre-installed tools and shouldn't require network access. If it fails:
 
-- Check that `openscience-tools/setup.py` is present
+- Check that `openscience_tools/setup.py` is present
 - Verify the package structure is correct
 - The proxy variables are set for compatibility but shouldn't be needed for `--no-isolation` builds
 

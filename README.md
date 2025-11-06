@@ -88,7 +88,7 @@ and select `N` to generate a new token that will be used to interact with Inveni
 
 ```bash
 # Reset with Lens.org publications
-make tools-reset FILE='openscience-tools/src/sources/lens/data/publications.json'
+make tools-reset FILE='openscience_tools/openscience_tools/sources/lens/data/publications.json'
 ```
 
 This command:
@@ -220,13 +220,13 @@ make tools-view RECORD_ID='abc-123' OPTS='--format json'
 
 ```bash
 # Import from Lens.org JSON export
-make tools-import-lens FILE='openscience-tools/src/sources/lens/data/publications.json'
+make tools-import-lens FILE='openscience_tools/openscience_tools/sources/lens/data/publications.json'
 
 # Import with limit
-make tools-import-lens FILE='openscience-tools/src/sources/lens/data/publications.json' OPTS='--limit 10'
+make tools-import-lens FILE='openscience_tools/openscience_tools/sources/lens/data/publications.json' OPTS='--limit 10'
 
 # Dry run (preview without importing)
-make tools-import-lens FILE='openscience-tools/src/sources/lens/data/publications.json' OPTS='--dry-run'
+make tools-import-lens FILE='openscience_tools/openscience_tools/sources/lens/data/publications.json' OPTS='--dry-run'
 ```
 
 **Delete Records:**
@@ -243,17 +243,17 @@ make tools-cleanup OPTS='--confirm'
 
 ```bash
 # Delete all records and import fresh data from Lens.org
-make tools-reset FILE='openscience-tools/src/sources/lens/data/publications.json'
+make tools-reset FILE='openscience_tools/openscience_tools/sources/lens/data/publications.json'
 
 # Reset with limited records
-make tools-reset FILE='openscience-tools/src/sources/lens/data/publications.json' OPTS='--limit 10'
+make tools-reset FILE='openscience_tools/openscience_tools/sources/lens/data/publications.json' OPTS='--limit 10'
 ```
 
 ### Available Commands
 
 | Command                  | Description                                  |
 | ------------------------ | -------------------------------------------- |
-| `make tools-install`     | Install openscience-tools Python package     |
+| `make tools-install`     | Install openscience_tools Python package     |
 | `make tools-setup-env`   | Generate API token and configure environment |
 | `make tools-search`      | Search records (use QUERY='...')             |
 | `make tools-view`        | View record details (use RECORD_ID='...')    |
@@ -278,7 +278,7 @@ make tools-reset FILE='data.json' BASE_URL='https://myinstance.org' TOKEN='my-to
 
 For complete documentation, see:
 
-- `openscience-tools/README.md` - Full package documentation with installation, usage, and troubleshooting
+- `openscience_tools/README.md` - Full package documentation with installation, usage, and troubleshooting
 
 ## Available Make Commands
 

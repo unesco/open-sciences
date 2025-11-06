@@ -1,5 +1,5 @@
 """
-Main CLI entry point for openscience-tools.
+Main CLI entry point for openscience_tools.
 
 Provides a unified command-line interface for all tools.
 """
@@ -23,7 +23,7 @@ from .sources.lens.main import main as lens_import
     help="InvenioRDM API token",
 )
 @click.pass_context
-@click.version_option(version="0.1.0", prog_name="openscience-tools")
+@click.version_option(version="0.1.0", prog_name="openscience_tools")
 def main(ctx, base_url, token):
     """OpenScience Tools - InvenioRDM REST API Tools.
 

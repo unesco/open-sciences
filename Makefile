@@ -27,7 +27,7 @@ help:
 	@echo "  destroy      - Completely destroy the instance and virtualenv"
 	@echo ""
 	@echo "OpenScience Tools Commands:"
-	@echo "  tools-install        - Install openscience-tools package"
+	@echo "  tools-install        - Install openscience_tools package"
 	@echo "  tools-setup-env      - Setup environment variables for tools"
 	@echo "  tools-search         - Search records (use QUERY='search term')"
 	@echo "  tools-view           - View record details (use RECORD_ID='abc-123')"
@@ -62,7 +62,7 @@ init:
 	$(MAKE) init-custom-fields
 	@echo "👥 Creating ready-to-use users..."
 	$(MAKE) users
-	@echo "🔧 Installing openscience-tools package..."
+	@echo "🔧 Installing openscience_tools package..."
 	$(MAKE) tools-install
 	@echo "✅ Initialization complete! Use 'make up' to start the server."
 
@@ -199,18 +199,18 @@ destroy:
 # OpenScience Tools package targets
 
 tools-install:
-	@echo "� Installing openscience-tools package..."
+	@echo "� Installing openscience_tools package..."
 	@if [ ! -d "$(VENV_PATH)" ]; then \
 		echo "❌ Virtual environment not found. Run 'make init' first."; \
 		exit 1; \
 	fi
-	$(VENV_ACTIVATE) && cd openscience-tools && pip install -e .
-	@echo "✅ openscience-tools installed successfully!"
+	$(VENV_ACTIVATE) && cd openscience_tools && pip install -e .
+	@echo "✅ openscience_tools installed successfully!"
 
 tools-setup-env:
 	@echo "🔧 Setting up environment variables for OpenScience Tools..."
 	@echo "🔑 Generating API token..."
-	$(VENV_ACTIVATE) && python openscience-tools/setup_env.py
+	$(VENV_ACTIVATE) && python openscience_tools/setup_env.py
 	@echo ""
 	@echo "✅ Environment setup completed!"
 	@echo "💡 Credentials stored in .env file"
@@ -365,4 +365,4 @@ tools-help:
 	@echo "🔄 Regenerate API Token:"
 	@echo "  make tools-setup-env"
 	@echo ""
-	@echo "📖 For more details, see openscience-tools/README.md"
+	@echo "📖 For more details, see openscience_tools/README.md"

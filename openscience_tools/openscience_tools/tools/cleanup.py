@@ -268,19 +268,19 @@ def main(ctx, confirm: bool, dry_run: bool, verbose: bool, batch_size: int):
 
     \b
     # Dry run (see what would be deleted)
-    openscience-tools cleanup --dry-run
+    openscience_tools cleanup --dry-run
 
     \b
     # Delete with confirmation prompt
-    openscience-tools cleanup
+    openscience_tools cleanup
 
     \b
     # Delete without confirmation (use with caution!)
-    openscience-tools cleanup --confirm
+    openscience_tools cleanup --confirm
 
     \b
     # Verbose output
-    openscience-tools cleanup --confirm --verbose
+    openscience_tools cleanup --confirm --verbose
     """
     cleanup_all_records(
         base_url=ctx.obj["base_url"],

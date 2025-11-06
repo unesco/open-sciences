@@ -29,7 +29,7 @@ cd /path/to/sc-openscience
 source .venv/bin/activate
 
 # Install the package in editable mode
-cd openscience-tools
+cd openscience_tools
 pip install -e .
 
 # Or use the Makefile
@@ -40,7 +40,7 @@ make tools-install
 ### From GitLab Package Registry
 
 ```bash
-pip install openscience-tools --index-url https://gitlab.example.com/api/v4/projects/YOUR_PROJECT_ID/packages/pypi/simple
+pip install openscience_tools --index-url https://gitlab.example.com/api/v4/projects/YOUR_PROJECT_ID/packages/pypi/simple
 ```
 
 ## Configuration
@@ -70,7 +70,7 @@ make tools-setup-env
 Pass credentials directly to each command:
 
 ```bash
-openscience-tools --base-url https://127.0.0.1:5000 --token your-token search -q "test"
+openscience_tools --base-url https://127.0.0.1:5000 --token your-token search -q "test"
 ```
 
 ## Usage
@@ -81,19 +81,19 @@ Search and display records from your InvenioRDM instance:
 
 ```bash
 # Basic search
-openscience-tools search -q "climate data"
+openscience_tools search -q "climate data"
 
 # Search with size limit
-openscience-tools search -q "test" --size 5
+openscience_tools search -q "test" --size 5
 
 # Detailed view
-openscience-tools search -q "machine learning" --detailed
+openscience_tools search -q "machine learning" --detailed
 
 # With pagination
-openscience-tools search -q "dataset" --page 2 --size 20
+openscience_tools search -q "dataset" --page 2 --size 20
 
 # Sort by newest
-openscience-tools search -q "covid" --sort newest
+openscience_tools search -q "covid" --sort newest
 ```
 
 **Available sort options**: `bestmatch`, `newest`, `oldest`
@@ -104,13 +104,13 @@ Display detailed information about a specific record:
 
 ```bash
 # View record (formatted output)
-openscience-tools view abc-123
+openscience_tools view abc-123
 
 # View as JSON
-openscience-tools view abc-123 --format json
+openscience_tools view abc-123 --format json
 
 # Verbose output with debug info
-openscience-tools view abc-123 --verbose
+openscience_tools view abc-123 --verbose
 ```
 
 ### Delete Records
@@ -119,16 +119,16 @@ Remove all records from your InvenioRDM instance:
 
 ```bash
 # Dry-run (preview what would be deleted)
-openscience-tools cleanup --dry-run
+openscience_tools cleanup --dry-run
 
 # Delete all records (interactive confirmation)
-openscience-tools cleanup
+openscience_tools cleanup
 
 # Delete with automatic confirmation
-openscience-tools cleanup --confirm
+openscience_tools cleanup --confirm
 
 # Verbose output
-openscience-tools cleanup --confirm --verbose
+openscience_tools cleanup --confirm --verbose
 ```
 
 ⚠️ **Warning**: This operation is irreversible. Always use `--dry-run` first!
@@ -139,25 +139,25 @@ Import publications from Lens.org JSON export files:
 
 ```bash
 # Validate metadata without creating records (dry-run)
-openscience-tools import-lens --file publications.json --dry-run
+openscience_tools import-lens --file publications.json --dry-run
 
 # Import all records
-openscience-tools import-lens --file publications.json
+openscience_tools import-lens --file publications.json
 
 # Import first 10 records
-openscience-tools import-lens --file publications.json --limit 10
+openscience_tools import-lens --file publications.json --limit 10
 
 # Skip first 10, import next 20
-openscience-tools import-lens --file publications.json --offset 10 --limit 20
+openscience_tools import-lens --file publications.json --offset 10 --limit 20
 
 # Custom batch size (default: 10)
-openscience-tools import-lens --file publications.json --batch-size 5
+openscience_tools import-lens --file publications.json --batch-size 5
 
 # Force reimport of existing records
-openscience-tools import-lens --file publications.json --no-skip-existing
+openscience_tools import-lens --file publications.json --no-skip-existing
 
 # Verbose output with debug info
-openscience-tools import-lens --file publications.json --verbose
+openscience_tools import-lens --file publications.json --verbose
 ```
 
 **Lens.org Import Features:**
@@ -245,7 +245,7 @@ published = client.publish_draft(draft["id"])
 ### Project Structure
 
 ```
-openscience-tools/
+openscience_tools/
 ├── src/                      # Source code
 │   ├── __init__.py          # Package initialization
 │   ├── cli.py               # CLI entry point
@@ -290,14 +290,14 @@ pytest --cov=openscience_tools
 
 ## Troubleshooting
 
-### "Command not found: openscience-tools"
+### "Command not found: openscience_tools"
 
 Make sure the package is installed and your virtual environment is activated:
 
 ```bash
 source .venv/bin/activate
 pip install -e .
-openscience-tools --version
+openscience_tools --version
 ```
 
 ### "Missing option '--base-url' / '--token'"
@@ -436,7 +436,7 @@ Once published, users can install the package:
 #### Option 1: Direct Installation
 
 ```bash
-pip install openscience-tools \
+pip install openscience_tools \
   --index-url https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi/simple
 ```
 
@@ -452,7 +452,7 @@ extra-index-url = https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/pa
 Then install normally:
 
 ```bash
-pip install openscience-tools
+pip install openscience_tools
 ```
 
 #### Option 3: Using requirements.txt
@@ -460,7 +460,7 @@ pip install openscience-tools
 ```txt
 # requirements.txt
 --extra-index-url https://repository.unesco.org/api/v4/projects/${PROJECT_ID}/packages/pypi/simple
-openscience-tools==0.1.0
+openscience_tools==0.1.0
 ```
 
 ### Versioning Strategy
@@ -492,7 +492,7 @@ We follow [Semantic Versioning](https://semver.org/):
 
 4. **Test installation** after publishing:
    ```bash
-   pip install openscience-tools==${NEW_VERSION} --index-url <registry-url>
+   pip install openscience_tools==${NEW_VERSION} --index-url <registry-url>
    ```
 
 ### Troubleshooting Publishing

@@ -234,15 +234,15 @@ def main(ctx, record_id: str, output_format: str, verbose: bool):
 
     \b
     # View record in formatted text
-    openscience-tools view abc-123
+    openscience_tools view abc-123
 
     \b
     # View record as JSON
-    openscience-tools view abc-123 --format json
+    openscience_tools view abc-123 --format json
 
     \b
     # View with verbose output
-    openscience-tools view abc-123 --verbose
+    openscience_tools view abc-123 --verbose
     """
     view_record(
         base_url=ctx.obj["base_url"],

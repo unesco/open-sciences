@@ -3,7 +3,7 @@ requires = ["setuptools>=65.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "openscience-tools"
+name = "openscience_tools"
 version = "0.1.0"
 description = "Python tools for interacting with InvenioRDM REST API"
 readme = "README.md"
@@ -51,7 +51,7 @@ dev = [
 [project.urls]
 Homepage = "https://repository.unesco.org/gitlab/sc/sc-openscience"
 Repository = "https://repository.unesco.org/gitlab/sc/sc-openscience"
-Documentation = "https://repository.unesco.org/gitlab/sc/sc-openscience/-/blob/develop/openscience-tools/README.md"
+Documentation = "https://repository.unesco.org/gitlab/sc/sc-openscience/-/blob/develop/openscience_tools/README.md"
 Issues = "https://repository.unesco.org/gitlab/sc/sc-openscience/-/issues"
 
 [project.scripts]

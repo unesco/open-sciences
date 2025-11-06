@@ -49,8 +49,8 @@ coverage.xml
 
 # Kind cluster configuration with secrets
 # OpenScience Tools config
-openscience-tools/config/.env
-openscience-tools/config/.env.kind
+openscience_tools/config/.env
+openscience_tools/config/.env.kind
 
 # Django stuff:
 *.log
