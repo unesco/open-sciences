@@ -23,16 +23,30 @@ cache:
 # Prepare stage - Build custom Docker image with twine pre-installed
 build-publish-image:
   stage: prepare
-  image: docker:24-cli
+  image: docker:24.0.5
   services:
-    - docker:24-dind
+    - docker:24.0.5-dind
   variables:
     DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}/publish-tool:latest
+    # UNESCO proxy configuration for external internet access
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    # Don't use proxy for UNESCO and local domains
+    NO_PROXY: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    # Disable TLS for Docker-in-Docker (standard for ephemeral CI environments)
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    # Give Docker daemon a moment to fully initialize
+    - sleep 5
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - echo "Building custom publish image with twine..."
-    - docker build -f .gitlab/Dockerfile.publish -t ${DOCKER_IMAGE} .
-    - echo "Logging into GitLab Container Registry..."
-    - echo ${CI_JOB_TOKEN} | docker login -u gitlab-ci-token --password-stdin ${CI_REGISTRY}
+    # Build with proxy arguments to allow package installation from PyPI
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f .gitlab/Dockerfile.publish -t ${DOCKER_IMAGE} .
     - echo "Pushing image to registry..."
     - docker push ${DOCKER_IMAGE}
     - echo "Publish image ready at ${DOCKER_IMAGE}"
@@ -79,6 +93,14 @@ test:
 build:
   stage: build
   image: python:3.11
+  variables:
+    # UNESCO proxy configuration (may be needed for some operations)
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
   retry:
     max: 2
     when:

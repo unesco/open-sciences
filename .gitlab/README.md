@@ -19,7 +19,22 @@ The pipeline consists of 4 stages:
 
 The GitLab runner in this environment experiences persistent network connectivity issues when trying to install packages from PyPI. This manifests as `Connection reset by peer` errors when running `pip install`.
 
-To work around this, we use a custom Docker image (`Dockerfile.publish`) that has `twine` pre-installed. This image is built once (when the network is working) and then reused for all publish jobs.
+**Root Cause**: The runner is behind the UNESCO proxy (`http://proxy.unesco.org:8080`), which requires proper proxy configuration for external internet access.
+
+To work around this, we use a custom Docker image (`Dockerfile.publish`) that has `twine` pre-installed. This image is built once (with proper proxy configuration) and then reused for all publish jobs.
+
+### Proxy Configuration
+
+The pipeline uses the UNESCO proxy for all external internet access:
+
+- **HTTP/HTTPS Proxy**: `http://proxy.unesco.org:8080`
+- **No Proxy (internal domains)**: `localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com`
+
+These settings are configured in:
+
+1. The `build-publish-image` job (Docker build arguments)
+2. The `Dockerfile.publish` (build-time ARGs and ENV variables)
+3. The `build` job (runtime environment variables)
 
 ### Building the publish image
 
@@ -91,8 +106,16 @@ The build job uses only pre-installed tools and shouldn't require network access
 
 - Check that `openscience-tools/setup.py` is present
 - Verify the package structure is correct
+- The proxy variables are set for compatibility but shouldn't be needed for `--no-isolation` builds
 
 ### Network errors during image build
+
+The `build-publish-image` job requires network access to install twine. If it fails with "Connection reset by peer":
+
+- **Check proxy configuration**: Ensure the UNESCO proxy settings are correct in `.gitlab-ci.yml`
+- Retry the job (network issues may be temporary)
+- Verify the proxy is accessible: `http://proxy.unesco.org:8080`
+- Check if PyPI is accessible through the proxy
 
 The `build-publish-image` job requires network access to install twine. If it fails:
 
