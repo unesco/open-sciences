@@ -108,13 +108,13 @@ build:
       - stuck_or_timeout_failure
   before_script:
     - cd openscience-tools
-    # Skip pip upgrade - use pre-installed packages to avoid network issues
+    - echo "Verifying package structure..."
+    - ls -la | grep openscience_tools || echo "WARNING openscience_tools directory not found"
     - echo "Using pre-installed Python build tools"
     - python -m pip --version || echo "pip available"
     - python -c "import setuptools; print(f'setuptools {setuptools.__version__}')" || echo "setuptools available"
   script:
     - echo "Building package..."
-    # Use python -m build with --no-isolation to avoid downloading dependencies
     - python -m build --no-isolation 2>&1 || python setup.py sdist bdist_wheel
     - ls -lh dist/
     - echo "Package built successfully!"
