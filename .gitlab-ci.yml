@@ -1,12 +1,6 @@
 # GitLab CI/CD Pipeline for openscience_tools package
 # Builds, tests, and publishes the package to GitLab Package Registry
 
-workflow:
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "ost"'
-      when: always
-    - when: never
-
 stages:
   # SECTION: Custom stages for openscience_tools package
   - ost_prepare
@@ -57,13 +51,15 @@ ost_build_publish_image:
     - echo "Pushing image to registry..."
     - docker push ${DOCKER_IMAGE}
     - echo "Publish image ready at ${DOCKER_IMAGE}"
-  when: manual
-  allow_failure: true
+  only:
+    - ost
 
 # Build stage - Create distribution packages
 ost_build:
   stage: ost_build
   image: python:3.11
+  needs:
+    - job: ost_build_publish_image
   # Disable cache to ensure fresh build with new package structure
   cache: {}
   variables:
@@ -139,4 +135,3 @@ ost_publish:
   artifacts:
     paths:
       - openscience_tools/dist/
-  when: manual
