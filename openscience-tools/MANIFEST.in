@@ -6,8 +6,8 @@ include requirements.txt
 # Include configuration examples
 recursive-include config *.example *.yaml *.yml
 
-# Include data files for sources
-recursive-include src/sources *.json *.csv *.yaml *.yml
+# Include data files for sources (updated path: openscience_tools instead of src)
+recursive-include openscience_tools/sources *.json *.csv *.yaml *.yml
 
 # Exclude development and build files
 global-exclude __pycache__
