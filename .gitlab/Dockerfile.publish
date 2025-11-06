@@ -16,8 +16,8 @@ ENV http_proxy=${HTTP_PROXY}
 ENV https_proxy=${HTTPS_PROXY}
 ENV no_proxy=${NO_PROXY}
 
-# Install twine and its dependencies
-RUN pip install --no-cache-dir twine==5.1.1
+# Install twine and its dependencies (use latest version for Metadata-Version 2.4 support)
+RUN pip install --no-cache-dir twine>=6.0
 
 # Verify installation
 RUN python -m twine --version
