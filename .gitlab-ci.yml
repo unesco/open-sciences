@@ -153,11 +153,10 @@ publish:
     - tar -xzf dist/openscience_tools-0.1.0.tar.gz openscience_tools-0.1.0/PKG-INFO
     - cat openscience_tools-0.1.0/PKG-INFO | head -15
     - echo "=== Checking wheel ==="
-    - unzip -q dist/openscience_tools-0.1.0-py3-none-any.whl -d /tmp/wheel_check
+    - python -m zipfile -e dist/openscience_tools-0.1.0-py3-none-any.whl /tmp/wheel_check
     - cat /tmp/wheel_check/openscience_tools-0.1.0.dist-info/METADATA | head -15 || echo "METADATA not found in wheel"
-    - ls -la /tmp/wheel_check/openscience_tools-0.1.0.dist-info/ || echo "dist-info not found"
     - echo "=== Running twine check ==="
-    - python -m twine check dist/* || echo "WARNING - Twine check failed"
+    - python -m twine check dist/*
   script:
     - echo "Publishing package to GitLab Package Registry..."
     - python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
