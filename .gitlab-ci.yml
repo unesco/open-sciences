@@ -89,16 +89,28 @@ publish:
       - script_failure
   before_script:
     - cd openscience-tools
-    # Try to install twine with extended timeout and retries
-    - pip install twine --timeout 300 --retries 10 || (echo "Failed to install twine" && exit 1)
+    - ls -lh dist/
   script:
-    - echo "Publishing package to GitLab Package Registry..."
+    - echo "Publishing package to GitLab Package Registry using direct upload..."
     - |
-      TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload \
-        --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi \
-        dist/*
+      # Upload wheel file
+      for file in dist/*.whl; do
+        echo "Uploading $file..."
+        curl --fail --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          --upload-file "$file" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
+      done
+    - |
+      # Upload source distribution
+      for file in dist/*.tar.gz; do
+        echo "Uploading $file..."
+        curl --fail --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          --upload-file "$file" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
+      done
     - echo "Package published successfully!"
-    - echo "Install with pip install openscience-tools --index-url https://repository.unesco.org/api/v4/projects/${CI_PROJECT_ID}/packages/pypi/simple"
+    - echo "Install with:"
+    - echo "  pip install openscience-tools --index-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi/simple"
   artifacts:
     paths:
       - openscience-tools/dist/
