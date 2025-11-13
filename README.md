@@ -2,6 +2,16 @@
 
 Welcome to the UNESCO Open Science Portal powered by InvenioRDM - a modern research data management platform.
 
+## Overview
+
+This repository contains:
+
+- **InvenioRDM instance**: Full-featured research data repository
+- **OpenScience Tools**: Python SDK and CLI for programmatic access to InvenioRDM
+  - Insert, update, delete records via SDK
+  - Batch import from Lens.org
+  - Search and manage records
+
 ## Prerequisites
 
 Before setting up the UNESCO Open Science Portal, ensure your system meets these requirements:
@@ -189,6 +199,18 @@ make tools-install
 
 # 3. Generate API token and configure environment
 make tools-setup-env
+```
+
+### SDK Examples
+
+**Run Example Scripts:**
+
+```bash
+# Single record demo (insert/update/delete)
+make tools-examples
+
+# Batch import all publications
+make tools-examples EXAMPLE=batch_import
 ```
 
 ### Common Operations

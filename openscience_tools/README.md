@@ -4,10 +4,11 @@ A Python package providing command-line tools for interacting with InvenioRDM RE
 
 ## Overview
 
-OpenScience Tools is a comprehensive toolkit for managing and importing data into InvenioRDM instances. It provides a unified command-line interface for common operations such as searching, viewing, managing records, and importing publications from external sources like Lens.org.
+OpenScience Tools is a comprehensive toolkit for managing and importing data into InvenioRDM instances. It provides both a **command-line interface** and a **Python SDK** for programmatic integration.
 
 ## Features
 
+- **🐍 Python SDK**: Programmatic insert, update, delete operations for integration into your apps
 - **🔍 Search & Discovery**: Search and browse records with flexible filters
 - **👁️ Record Management**: View detailed record information and manage records
 - **🗑️ Cleanup Operations**: Delete records with dry-run support
@@ -205,6 +206,39 @@ openscience-tools import-lens --file publications.json --verbose
 - ✅ Batch processing with progress tracking
 - ✅ Comprehensive error reporting
 
+### Python SDK
+
+Use as a library in your Python applications:
+
+```python
+from openscience_tools.sources.lens import LensOrgImporter
+
+# Initialize importer
+importer = LensOrgImporter(
+    base_url="https://127.0.0.1:5000",
+    token="your-api-token"
+)
+
+# Insert a new record
+status, record_id, msg = importer.insert(data, publish=True)
+
+# Update existing record
+status, record_id, msg = importer.update("lens-id-123", data, publish=True)
+
+# Delete record
+status, record_id, msg = importer.delete("lens-id-123")
+```
+
+**SDK Examples:**
+
+```bash
+# Single record demo (insert/update/delete)
+make tools-examples
+
+# Batch import all publications
+make tools-examples EXAMPLE=batch_import
+```
+
 ## Using with Makefile
 
 If you're working within the sc-openscience project, you can use convenient Makefile commands:
@@ -234,6 +268,9 @@ make tools-reset FILE='data/publications.json' OPTS='--limit 10'
 
 # Override credentials
 make tools-search QUERY='test' BASE_URL='https://...' TOKEN='...'
+
+# Batch import all publications
+make tools-examples EXAMPLE=batch_import
 ```
 
 ## Publishing to GitLab Package Registry

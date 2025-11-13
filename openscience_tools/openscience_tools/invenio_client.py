@@ -83,9 +83,7 @@ class InvenioRDMClient:
             error_msg = f"Request failed: {method} {url} - {e}"
             try:
                 error_details = response.json()
-                logger.error(
-                    f"{error_msg}\nDetails: {json.dumps(error_details, indent=2)}"
-                )
+                logger.error(f"{error_msg}\nDetails: {json.dumps(error_details, indent=2)}")
             except:
                 logger.error(error_msg)
             raise
@@ -185,6 +183,19 @@ class InvenioRDMClient:
         response = self._make_request("POST", "/records", json=data)
         return response.json()
 
+    def create_draft_from_record(self, record_id: str) -> Dict[str, Any]:
+        """
+        Create a new draft from an existing published record (for editing).
+
+        Args:
+            record_id: Published record identifier
+
+        Returns:
+            Created draft data
+        """
+        response = self._make_request("POST", f"/records/{record_id}/draft")
+        return response.json()
+
     def get_draft(self, record_id: str) -> Dict[str, Any]:
         """
         Get a draft record by ID.
@@ -237,9 +248,7 @@ class InvenioRDMClient:
         Returns:
             Published record data
         """
-        response = self._make_request(
-            "POST", f"/records/{record_id}/draft/actions/publish"
-        )
+        response = self._make_request("POST", f"/records/{record_id}/draft/actions/publish")
         return response.json()
 
     def delete_draft(self, record_id: str) -> bool:
@@ -278,9 +287,7 @@ class InvenioRDMClient:
     # FILES API
     # =====================================
 
-    def init_draft_files(
-        self, record_id: str, files: List[Dict[str, str]]
-    ) -> Dict[str, Any]:
+    def init_draft_files(self, record_id: str, files: List[Dict[str, str]]) -> Dict[str, Any]:
         """
         Initialize file uploads for a draft.
 
@@ -291,14 +298,10 @@ class InvenioRDMClient:
         Returns:
             Files initialization response
         """
-        response = self._make_request(
-            "POST", f"/records/{record_id}/draft/files", json=files
-        )
+        response = self._make_request("POST", f"/records/{record_id}/draft/files", json=files)
         return response.json()
 
-    def upload_draft_file(
-        self, record_id: str, filename: str, file_data: bytes
-    ) -> Dict[str, Any]:
+    def upload_draft_file(self, record_id: str, filename: str, file_data: bytes) -> Dict[str, Any]:
         """
         Upload file content to a draft.
 
@@ -312,9 +315,7 @@ class InvenioRDMClient:
         """
         headers = {"Content-Type": "application/octet-stream"}
         response = self.session.put(
-            urljoin(
-                self.api_url, f"records/{record_id}/draft/files/{filename}/content"
-            ),
+            urljoin(self.api_url, f"records/{record_id}/draft/files/{filename}/content"),
             data=file_data,
             headers=headers,
         )
@@ -332,9 +333,7 @@ class InvenioRDMClient:
         Returns:
             Commit response
         """
-        response = self._make_request(
-            "POST", f"/records/{record_id}/draft/files/{filename}/commit"
-        )
+        response = self._make_request("POST", f"/records/{record_id}/draft/files/{filename}/commit")
         return response.json()
 
     # =====================================

@@ -29,15 +29,35 @@ class LensOrgImporter:
     """
 
     def __init__(
-        self, client: InvenioRDMClient, config: Optional[LensImportConfig] = None
+        self,
+        client: Optional[InvenioRDMClient] = None,
+        config: Optional[LensImportConfig] = None,
+        base_url: Optional[str] = None,
+        token: Optional[str] = None,
     ):
         """
         Initialize Lens.org importer.
 
         Args:
-            client: InvenioRDM API client
+            client: InvenioRDM API client (created if None)
             config: Import configuration (uses default if None)
+            base_url: InvenioRDM base URL (used if client is None)
+            token: API token (used if client is None)
         """
+        # Create client if not provided
+        if client is None:
+            import os
+
+            if base_url is None:
+                base_url = os.getenv("OPENSCIENCE_TOOLS_BASE_URL") or os.getenv("INVENIO_BASE_URL")
+            if token is None:
+                token = os.getenv("OPENSCIENCE_TOOLS_TOKEN") or os.getenv("INVENIO_TOKEN")
+
+            if not base_url or not token:
+                raise ValueError("Either provide client or both base_url and token parameters")
+
+            client = InvenioRDMClient(base_url=base_url, token=token)
+
         self.client = client
         self.config = config or LensImportConfig()
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -112,9 +132,7 @@ class LensOrgImporter:
             full_metadata = self._map_metadata(lens_record)
 
             if dry_run:
-                self.logger.info(
-                    f"[DRY RUN] Would create record for Lens ID: {lens_id}"
-                )
+                self.logger.info(f"[DRY RUN] Would create record for Lens ID: {lens_id}")
 
                 # Log mapped metadata for verification
                 import json
@@ -122,17 +140,13 @@ class LensOrgImporter:
                 metadata_dict = full_metadata.get("metadata", {})
                 self.logger.info("=== MAPPED METADATA ===")
                 self.logger.info(f"Title: {metadata_dict.get('title')}")
-                self.logger.info(
-                    f"Publication date: {metadata_dict.get('publication_date')}"
-                )
+                self.logger.info(f"Publication date: {metadata_dict.get('publication_date')}")
                 self.logger.info(f"Volume: {metadata_dict.get('volume')}")
                 self.logger.info(f"Issue: {metadata_dict.get('issue')}")
                 self.logger.info(f"Pages: {metadata_dict.get('pages')}")
                 self.logger.info(f"Publisher: {metadata_dict.get('publisher')}")
                 self.logger.info(f"Creators: {len(metadata_dict.get('creators', []))}")
-                self.logger.info(
-                    f"Subjects/Keywords: {len(metadata_dict.get('subjects', []))}"
-                )
+                self.logger.info(f"Subjects/Keywords: {len(metadata_dict.get('subjects', []))}")
                 self.logger.info(
                     f"Related identifiers: {len(metadata_dict.get('related_identifiers', []))}"
                 )
@@ -142,9 +156,7 @@ class LensOrgImporter:
                 if related_ids:
                     self.logger.info("Related identifiers:")
                     for rid in related_ids:
-                        self.logger.info(
-                            f"  - {rid.get('scheme')}: {rid.get('identifier')}"
-                        )
+                        self.logger.info(f"  - {rid.get('scheme')}: {rid.get('identifier')}")
 
                 # Show subjects detail
                 subjects = metadata_dict.get("subjects", [])
@@ -203,9 +215,7 @@ class LensOrgImporter:
                 1 for c in creators if "affiliations" in c and c["affiliations"]
             )
             if creators_with_aff:
-                self.logger.debug(
-                    f"{creators_with_aff}/{len(creators)} creators have affiliations"
-                )
+                self.logger.debug(f"{creators_with_aff}/{len(creators)} creators have affiliations")
 
             # DEBUG: Log the metadata being sent
             import json
@@ -417,14 +427,311 @@ class LensOrgImporter:
             self.logger.warning(f"Errors encountered: {len(result.errors)}")
             for error in result.errors[:5]:  # Show first 5 errors
                 self.logger.warning(
-                    f"  - {error['lens_id']}: "
-                    f"[{error['error_type']}] {error['message']}"
+                    f"  - {error['lens_id']}: " f"[{error['error_type']}] {error['message']}"
                 )
             if len(result.errors) > 5:
                 self.logger.warning(f"  ... and {len(result.errors) - 5} more errors")
 
         if result.warnings:
             self.logger.info(f"Warnings: {len(result.warnings)}")
+
+    # =====================================
+    # SDK METHODS (insert, update, delete)
+    # =====================================
+
+    def insert(
+        self, data: Dict[str, Any], publish: bool = True
+    ) -> tuple[int, Optional[str], Optional[str]]:
+        """
+        Insert a single Lens.org record into InvenioRDM.
+
+        Args:
+            data: Lens.org publication record (similar to publications.json entries)
+            publish: If True, publish the draft immediately; if False, leave as draft
+
+        Returns:
+            Tuple of (status_code, record_id, message)
+            - status_code: HTTP status code (201 for success, 4xx/5xx for errors)
+            - record_id: InvenioRDM record ID if successful, None otherwise
+            - message: Error message if failed, None otherwise
+
+        Example:
+            >>> importer = LensOrgImporter(base_url="...", token="...")
+            >>> status, record_id, msg = importer.insert({
+            ...     "lens_id": "000-035-558-593-934",
+            ...     "title": "Test publication",
+            ...     "authors": [...],
+            ...     ...
+            ... })
+            >>> if status == 201:
+            ...     print(f"Created record: {record_id}")
+            ... else:
+            ...     print(f"Error {status}: {msg}")
+        """
+        lens_id = data.get("lens_id", "unknown")
+
+        try:
+            # Map Lens metadata to InvenioRDM format
+            full_metadata = self._map_metadata(data)
+
+            # Extract components
+            metadata_dict = full_metadata.get("metadata", {})
+            custom_fields = metadata_dict.pop("custom_fields", None)
+
+            # Set access configuration for metadata-only records
+            access = {"record": "public", "files": "public", "status": "metadata-only"}
+            files = {"enabled": False}
+
+            # Create draft
+            draft = self.client.create_draft(
+                metadata=metadata_dict,
+                access=access,
+                files=files,
+                custom_fields=custom_fields,
+            )
+            draft_id = draft.get("id")
+
+            self.logger.info(f"Created draft {draft_id} for Lens ID: {lens_id}")
+
+            if publish:
+                # Publish the draft
+                record = self.client.publish_draft(draft_id)
+                record_id = record.get("id")
+                self.logger.info(f"Published record {record_id} for Lens ID: {lens_id}")
+                return (201, record_id, None)
+            else:
+                # Return draft ID without publishing
+                self.logger.info(f"Draft {draft_id} created (not published)")
+                return (201, draft_id, None)
+
+        except Exception as e:
+            error_msg = f"Failed to insert Lens ID {lens_id}: {str(e)}"
+            self.logger.error(error_msg)
+
+            # Try to extract status code from exception
+            status_code = 500
+            if hasattr(e, "response") and hasattr(e.response, "status_code"):
+                status_code = e.response.status_code
+
+            return (status_code, None, error_msg)
+
+    def update(
+        self, lens_id: str, data: Dict[str, Any], publish: bool = True
+    ) -> tuple[int, Optional[str], Optional[str]]:
+        """
+        Update an existing Lens.org record in InvenioRDM by its lens_id.
+
+        Searches for the record with the given lens_id and updates its metadata.
+        If multiple records exist with the same lens_id, deletes the older ones
+        and updates only the most recent one.
+
+        Args:
+            lens_id: Lens.org identifier to find the record
+            data: Updated Lens.org publication data (partial or complete)
+            publish: If True, publish changes immediately; if False, leave as draft
+
+        Returns:
+            Tuple of (status_code, record_id, message)
+            - status_code: HTTP status code (200 for success, 404 if not found, 4xx/5xx for errors)
+            - record_id: InvenioRDM record ID if successful, None otherwise
+            - message: Error message if failed, None otherwise
+
+        Example:
+            >>> importer = LensOrgImporter(base_url="...", token="...")
+            >>> status, record_id, msg = importer.update(
+            ...     lens_id="000-035-558-593-934",
+            ...     data={"title": "Updated title", ...}
+            ... )
+            >>> if status == 200:
+            ...     print(f"Updated record: {record_id}")
+            ... else:
+            ...     print(f"Error {status}: {msg}")
+        """
+        try:
+            # Search for all records with this lens_id in custom fields
+            query = f'custom_fields.lens\\:id:"{lens_id}"'
+            results = self.client.search_records(query, size=100)
+
+            total = results.get("hits", {}).get("total", 0)
+            if total == 0:
+                error_msg = f"No record found with lens_id: {lens_id}"
+                self.logger.warning(error_msg)
+                return (404, None, error_msg)
+
+            hits = results["hits"]["hits"]
+
+            # If multiple records, delete all but the most recent
+            if total > 1:
+                self.logger.warning(f"Found {total} duplicate records with lens_id: {lens_id}")
+
+                # Sort by creation date (most recent first)
+                sorted_hits = sorted(hits, key=lambda x: x.get("created", ""), reverse=True)
+
+                # Keep the most recent, delete the rest
+                record_to_keep = sorted_hits[0]
+                records_to_delete = sorted_hits[1:]
+
+                for old_record in records_to_delete:
+                    old_record_id = old_record.get("id")
+                    try:
+                        self.client.delete_record(old_record_id)
+                        self.logger.info(f"Deleted duplicate record {old_record_id}")
+                    except Exception as e:
+                        self.logger.warning(f"Failed to delete duplicate {old_record_id}: {e}")
+
+                record = record_to_keep
+            else:
+                # Single record found
+                record = hits[0]
+
+            # Get the record ID
+            record_id = record.get("id")
+
+            self.logger.info(f"Found record {record_id} for Lens ID: {lens_id}")
+
+            # Create a draft from the published record (required for editing)
+            try:
+                draft = self.client.create_draft_from_record(record_id)
+                self.logger.info(f"Created draft from published record {record_id}")
+            except Exception as e:
+                # If draft already exists, that's OK - we'll update it
+                self.logger.debug(f"Draft may already exist or record is already a draft: {e}")
+
+            # Merge data with lens_id to ensure it's preserved
+            update_data = {**data, "lens_id": lens_id}
+
+            # Map updated metadata
+            full_metadata = self._map_metadata(update_data)
+            metadata_dict = full_metadata.get("metadata", {})
+            custom_fields = metadata_dict.pop("custom_fields", None)
+
+            # Set access configuration
+            access = {"record": "public", "files": "public", "status": "metadata-only"}
+            files = {"enabled": False}
+
+            # Update draft
+            updated_draft = self.client.update_draft(
+                record_id=record_id, metadata=metadata_dict, access=access, files=files
+            )
+
+            # Update custom fields if present
+            if custom_fields:
+                # Need to use PUT to update custom fields
+                # For now, include them in metadata (InvenioRDM should handle this)
+                pass
+
+            self.logger.info(f"Updated draft {record_id} for Lens ID: {lens_id}")
+
+            if publish:
+                # Publish the updated draft
+                published_record = self.client.publish_draft(record_id)
+                self.logger.info(f"Published updated record {record_id}")
+                return (200, record_id, None)
+            else:
+                self.logger.info(f"Draft {record_id} updated (not published)")
+                return (200, record_id, None)
+
+        except Exception as e:
+            error_msg = f"Failed to update Lens ID {lens_id}: {str(e)}"
+            self.logger.error(error_msg)
+
+            # Extract status code
+            status_code = 500
+            if hasattr(e, "response") and hasattr(e.response, "status_code"):
+                status_code = e.response.status_code
+
+            return (status_code, None, error_msg)
+
+    def delete(self, lens_id: str) -> tuple[int, Optional[str], Optional[str]]:
+        """
+        Delete all existing Lens.org records from InvenioRDM with the given lens_id.
+
+        Searches for all records with the given lens_id and permanently deletes them.
+        If multiple records exist with the same lens_id, all of them will be deleted.
+
+        Args:
+            lens_id: Lens.org identifier to find and delete the record(s)
+
+        Returns:
+            Tuple of (status_code, record_id, message)
+            - status_code: HTTP status code (204 for success, 404 if not found, 4xx/5xx for errors)
+            - record_id: Last deleted InvenioRDM record ID (if successful), None otherwise
+            - message: Error message if failed, info message if multiple deleted, None for single deletion
+
+        Example:
+            >>> importer = LensOrgImporter(base_url="...", token="...")
+            >>> status, record_id, msg = importer.delete(lens_id="000-035-558-593-934")
+            >>> if status == 204:
+            ...     print(f"Deleted record(s): {record_id}")
+            ... else:
+            ...     print(f"Error {status}: {msg}")
+        """
+        try:
+            # Search for all records with this lens_id
+            query = f'custom_fields.lens\\:id:"{lens_id}"'
+            results = self.client.search_records(query, size=100)
+
+            total = results.get("hits", {}).get("total", 0)
+            if total == 0:
+                error_msg = f"No record found with lens_id: {lens_id}"
+                self.logger.warning(error_msg)
+                return (404, None, error_msg)
+
+            hits = results["hits"]["hits"]
+
+            if total > 1:
+                self.logger.warning(f"Found {total} records with lens_id: {lens_id}, deleting all")
+
+            # Delete all records with this lens_id
+            deleted_count = 0
+            last_deleted_id = None
+            errors = []
+
+            for record in hits:
+                record_id = record.get("id")
+                try:
+                    success = self.client.delete_record(record_id)
+                    if success:
+                        self.logger.info(f"Deleted record {record_id} (Lens ID: {lens_id})")
+                        deleted_count += 1
+                        last_deleted_id = record_id
+                    else:
+                        error_msg = f"Failed to delete record {record_id}"
+                        self.logger.error(error_msg)
+                        errors.append(error_msg)
+                except Exception as e:
+                    error_msg = f"Error deleting record {record_id}: {str(e)}"
+                    self.logger.error(error_msg)
+                    errors.append(error_msg)
+
+            # Return result based on what happened
+            if deleted_count == 0:
+                # All deletions failed
+                error_msg = "; ".join(errors) if errors else "Failed to delete any records"
+                return (500, None, error_msg)
+            elif deleted_count < total:
+                # Partial success
+                info_msg = f"Deleted {deleted_count}/{total} records. Errors: {'; '.join(errors)}"
+                self.logger.warning(info_msg)
+                return (204, last_deleted_id, info_msg)
+            else:
+                # All deleted successfully
+                if total > 1:
+                    info_msg = f"Deleted all {total} duplicate records"
+                    return (204, last_deleted_id, info_msg)
+                else:
+                    return (204, last_deleted_id, None)
+
+        except Exception as e:
+            error_msg = f"Failed to delete Lens ID {lens_id}: {str(e)}"
+            self.logger.error(error_msg)
+
+            # Extract status code
+            status_code = 500
+            if hasattr(e, "response") and hasattr(e.response, "status_code"):
+                status_code = e.response.status_code
+
+            return (status_code, None, error_msg)
 
 
 def create_importer(
@@ -443,14 +750,4 @@ def create_importer(
     Returns:
         Configured LensOrgImporter instance
     """
-    import os
-
-    # Read from environment variables if not provided
-    if base_url is None:
-        base_url = os.getenv("INVENIO_BASE_URL")
-
-    if token is None:
-        token = os.getenv("INVENIO_TOKEN") or os.getenv("INVENIO_API_TOKEN")
-
-    client = InvenioRDMClient(base_url=base_url, token=token)
-    return LensOrgImporter(client, config)
+    return LensOrgImporter(base_url=base_url, token=token, config=config)

@@ -34,6 +34,7 @@ help:
 	@echo "  tools-cleanup        - Delete all records"
 	@echo "  tools-import-lens    - Import from Lens.org (use FILE='path/to/file.json')"
 	@echo "  tools-reset          - Delete all + import from Lens (use FILE='path/to/file.json')"
+	@echo "  tools-examples       - Run SDK examples (SOURCE=lens EXAMPLE=main|batch_import)"
 	@echo "  tools-help           - Show tools help and examples"
 	@echo ""
 	@echo "Usage: make [command]"
@@ -322,6 +323,44 @@ tools-reset:
 		exit 1; \
 	fi
 
+tools-examples:
+	@echo "🧪 Running SDK usage examples..."
+	@if [ ! -d "$(VENV_PATH)" ]; then \
+		echo "❌ Virtual environment not found. Run 'make init' first."; \
+		exit 1; \
+	fi
+	@# Set defaults
+	@SOURCE=$${SOURCE:-lens}; \
+	EXAMPLE=$${EXAMPLE:-main}; \
+	EXAMPLE_PATH="openscience_tools/openscience_tools/sources/$$SOURCE/examples/$$EXAMPLE.py"; \
+	if [ ! -f "$$EXAMPLE_PATH" ]; then \
+		echo "❌ Example not found: $$EXAMPLE_PATH"; \
+		echo ""; \
+		echo "Available examples for source '$$SOURCE':"; \
+		ls -1 openscience_tools/openscience_tools/sources/$$SOURCE/examples/*.py 2>/dev/null | sed 's/.*\//  - /' | sed 's/\.py//' || echo "  (none found)"; \
+		exit 1; \
+	fi; \
+	if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		echo "📍 Using environment:"; \
+		echo "   Source: $$SOURCE"; \
+		echo "   Example: $$EXAMPLE"; \
+		echo "   Base URL: $$BASE_URL"; \
+		echo "   Token: $${TOKEN:0:20}..."; \
+		echo ""; \
+		export OPENSCIENCE_TOOLS_BASE_URL="$$BASE_URL"; \
+		export OPENSCIENCE_TOOLS_TOKEN="$$TOKEN"; \
+		$(VENV_ACTIVATE) && python "$$EXAMPLE_PATH"; \
+	else \
+		echo "❌ .env file not found. Run 'make config' first."; \
+		exit 1; \
+	fi
+
 tools-help:
 	@echo "📚 OpenScience Tools - Usage Guide"
 	@echo "======================================"
@@ -332,12 +371,12 @@ tools-help:
 	@echo "3. Setup environment: make tools-setup-env"
 	@echo "4. Use the tools: make tools-search QUERY='test'"
 	@echo ""
-	@echo "� Search Records:"
+	@echo "🔍 Search Records:"
 	@echo "  make tools-search QUERY='climate data'"
 	@echo "  make tools-search QUERY='test' OPTS='--detailed'"
 	@echo "  make tools-search OPTS='--size 20 --page 2'"
 	@echo ""
-	@echo "�️  View Record Details:"
+	@echo "👁️  View Record Details:"
 	@echo "  make tools-view RECORD_ID='abc-123'"
 	@echo "  make tools-view RECORD_ID='abc-123' OPTS='--format json'"
 	@echo ""
@@ -351,11 +390,18 @@ tools-help:
 	@echo "  make tools-import-lens FILE='data/publications.json' OPTS='--limit 10'"
 	@echo "  make tools-import-lens FILE='data/publications.json' OPTS='--offset 10 --limit 20'"
 	@echo ""
-	@echo "� Reset (Delete All + Import from Lens):"
+	@echo "🔄 Reset (Delete All + Import from Lens):"
 	@echo "  make tools-reset FILE='data/publications.json'"
 	@echo "  make tools-reset FILE='data/publications.json' OPTS='--limit 10'"
 	@echo ""
-	@echo " Override Credentials (optional):"
+	@echo "🧪 Run SDK Examples:"
+	@echo "  make tools-examples                              # Default: main example (insert/update/delete)"
+	@echo "  make tools-examples EXAMPLE=main                 # Explicit: single record demo"
+	@echo "  make tools-examples EXAMPLE=batch_import         # Batch import all from publications.json"
+	@echo "  make tools-examples SOURCE=lens EXAMPLE=main     # Specify source and example"
+	@echo "  make tools-examples BASE_URL='...' TOKEN='...'   # With custom credentials"
+	@echo ""
+	@echo "🔐 Override Credentials (optional):"
 	@echo "  make tools-search QUERY='test' BASE_URL='https://...' TOKEN='...'"
 	@echo "  make tools-reset FILE='data.json' BASE_URL='https://...' TOKEN='...'"
 	@echo ""
