@@ -278,6 +278,12 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="lens:chemicals",
         multiple=False,
     ),
+    # Open access colour for filtering (extracted from lens:open_access)
+    # Values: gold, green, hybrid, bronze
+    KeywordCF(
+        name="lens:open_access_colour",
+        multiple=False,
+    ),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [
@@ -367,3 +373,28 @@ RDM_CUSTOM_FIELDS_UI = [
         ]
     }
 ]
+
+# Facets Configuration
+# ====================
+# Add custom facet for Open Access Colour filtering
+
+from invenio_rdm_records.config import RDM_FACETS, RDM_SEARCH
+from invenio_records_resources.services.records.facets import CFTermsFacet
+
+RDM_FACETS = {
+    **RDM_FACETS,
+    "open_access_colour": {
+        "facet": CFTermsFacet(
+            field="lens:open_access_colour",
+            label=_("Open Access Colour"),
+        ),
+        "ui": {
+            "field": "custom_fields.lens:open_access_colour",
+        },
+    },
+}
+
+RDM_SEARCH = {
+    **RDM_SEARCH,
+    "facets": RDM_SEARCH["facets"] + ["open_access_colour"]
+}

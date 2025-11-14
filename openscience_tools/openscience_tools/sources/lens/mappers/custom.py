@@ -63,6 +63,11 @@ class CustomFieldsMapper(BaseMapper):
 
                 custom_fields["lens:open_access"] = json.dumps(open_access_data)
 
+                # Extract colour separately for faceting/filtering
+                colour = open_access_data.get("colour")
+                if colour:
+                    custom_fields["lens:open_access_colour"] = colour
+
             # External identifiers (DOI, PMID, PMCID, etc.)
             external_ids_data = self._map_external_ids(lens_record)
             if external_ids_data:
@@ -117,9 +122,7 @@ class CustomFieldsMapper(BaseMapper):
             # Custom fields are optional, so we don't raise
             return {}
 
-    def _map_lens_identifiers(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, str]]]:
+    def _map_lens_identifiers(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """
         Map Lens.org-specific identifiers.
 
@@ -149,15 +152,11 @@ class CustomFieldsMapper(BaseMapper):
                 scheme = self.safe_get(ext_id, "type")
                 value = self.safe_get(ext_id, "value")
                 if scheme and value:
-                    identifiers.append(
-                        {"scheme": scheme.lower(), "identifier": str(value)}
-                    )
+                    identifiers.append({"scheme": scheme.lower(), "identifier": str(value)})
 
         return identifiers if identifiers else None
 
-    def _map_mesh_terms(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, Any]]]:
+    def _map_mesh_terms(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
         """
         Map MeSH (Medical Subject Headings) terms.
 
@@ -202,9 +201,7 @@ class CustomFieldsMapper(BaseMapper):
 
         return mesh_terms if mesh_terms else None
 
-    def _map_asjc_subjects(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, str]]]:
+    def _map_asjc_subjects(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """
         Map ASJC (All Science Journal Classification) subjects.
 
@@ -226,9 +223,7 @@ class CustomFieldsMapper(BaseMapper):
 
         return asjc_subjects if asjc_subjects else None
 
-    def _map_chemicals(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, str]]]:
+    def _map_chemicals(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """
         Map chemical substances.
 
@@ -292,9 +287,7 @@ class CustomFieldsMapper(BaseMapper):
 
         return metrics if metrics else None
 
-    def _map_funding(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, Any]]]:
+    def _map_funding(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
         """
         Map funding information.
 
@@ -376,9 +369,7 @@ class CustomFieldsMapper(BaseMapper):
 
         return open_access if open_access else None
 
-    def _map_external_ids(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, str]]]:
+    def _map_external_ids(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """
         Map external identifiers from Lens.org.
 
@@ -511,12 +502,8 @@ class CustomFieldsMapper(BaseMapper):
             return None
 
         references_data = {
-            "count": self.safe_get(
-                lens_record, "references_count", default=len(references)
-            ),
-            "resolved_count": self.safe_get(
-                lens_record, "references_resolved_count", default=0
-            ),
+            "count": self.safe_get(lens_record, "references_count", default=len(references)),
+            "resolved_count": self.safe_get(lens_record, "references_resolved_count", default=0),
             "items": [],
         }
 
@@ -539,9 +526,7 @@ class CustomFieldsMapper(BaseMapper):
 
         return references_data if references_data["items"] else None
 
-    def _map_mesh_terms(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, str]]]:
+    def _map_mesh_terms(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """
         Map MeSH (Medical Subject Headings) terms.
 
@@ -596,9 +581,7 @@ class CustomFieldsMapper(BaseMapper):
 
         return mesh_terms if mesh_terms else None
 
-    def _map_scholarly_citations(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def _map_scholarly_citations(self, lens_record: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Map scholarly citations (articles citing this work).
 
@@ -627,9 +610,7 @@ class CustomFieldsMapper(BaseMapper):
 
         return citations_data if citations_data["count"] > 0 else None
 
-    def _map_chemicals(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, str]]]:
+    def _map_chemicals(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """
         Map chemical substances from Lens.org to custom field.
 
