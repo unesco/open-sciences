@@ -19,6 +19,7 @@ tests/
 ```
 
 **Organization principles:**
+
 - Core client tests in `tests/test_client.py`
 - Source-specific tests in `tests/sources/{source}/`
 - Each source has its own fixtures in `conftest.py`
