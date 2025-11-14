@@ -4,14 +4,25 @@ This directory contains comprehensive tests for the openscience-tools package.
 
 ## Test Organization
 
+## Test Organization
+
 ```
 tests/
-├── conftest.py              # Pytest fixtures and configuration
-├── test_sdk_integration.py  # Integration tests for SDK methods (insert/update/delete/search)
-├── test_sdk_unit.py         # Unit tests for mapping and validation
+├── conftest.py              # Shared pytest fixtures (test_env, clean_database, invenio_client)
 ├── test_client.py           # Tests for InvenioRDMClient API methods
-└── data/                    # Test data files (optional)
+├── sources/                 # Tests organized by data source
+│   └── lens/
+│       ├── __init__.py
+│       ├── conftest.py      # Lens-specific fixtures (lens_importer, sample_lens_record)
+│       └── test_lens.py     # All Lens tests (integration + unit)
+└── README.md                # This file
 ```
+
+**Organization principles:**
+- Core client tests in `tests/test_client.py`
+- Source-specific tests in `tests/sources/{source}/`
+- Each source has its own fixtures in `conftest.py`
+- Integration and unit tests combined in single module per source
 
 ## Test Types
 
