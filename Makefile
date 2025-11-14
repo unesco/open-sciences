@@ -35,6 +35,8 @@ help:
 	@echo "  tools-import-lens    - Import from Lens.org (use FILE='path/to/file.json')"
 	@echo "  tools-reset          - Delete all + import from Lens (use FILE='path/to/file.json')"
 	@echo "  tools-examples       - Run SDK examples (SOURCE=lens EXAMPLE=main|batch_import)"
+	@echo "  tools-test           - Run test suite (OPTS='-m integration' or '-m unit')"
+	@echo "  tools-test-cov       - Run tests with coverage report"
 	@echo "  tools-help           - Show tools help and examples"
 	@echo ""
 	@echo "Usage: make [command]"
@@ -401,6 +403,13 @@ tools-help:
 	@echo "  make tools-examples SOURCE=lens EXAMPLE=main     # Specify source and example"
 	@echo "  make tools-examples BASE_URL='...' TOKEN='...'   # With custom credentials"
 	@echo ""
+	@echo "🧪 Run Tests:"
+	@echo "  make tools-test                                  # Run all tests"
+	@echo "  make tools-test OPTS='-m integration'            # Only integration tests"
+	@echo "  make tools-test OPTS='-m unit'                   # Only unit tests"
+	@echo "  make tools-test OPTS='-v'                        # Verbose output"
+	@echo "  make tools-test-cov                              # Run with coverage report"
+	@echo ""
 	@echo "🔐 Override Credentials (optional):"
 	@echo "  make tools-search QUERY='test' BASE_URL='https://...' TOKEN='...'"
 	@echo "  make tools-reset FILE='data.json' BASE_URL='https://...' TOKEN='...'"
@@ -412,3 +421,34 @@ tools-help:
 	@echo "  make tools-setup-env"
 	@echo ""
 	@echo "📖 For more details, see openscience_tools/README.md"
+
+tools-test:
+	@echo "🧪 Running OpenScience Tools test suite..."
+	@if [ ! -d "$(VENV_PATH)" ]; then \
+		echo "❌ Virtual environment not found. Run 'make init' first."; \
+		exit 1; \
+	fi
+	@if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		echo "📍 Test environment:"; \
+		echo "   Base URL: $$BASE_URL"; \
+		echo "   Token: $${TOKEN:0:20}..."; \
+		echo ""; \
+		export OPENSCIENCE_TOOLS_BASE_URL="$$BASE_URL"; \
+		export OPENSCIENCE_TOOLS_TOKEN="$$TOKEN"; \
+		$(VENV_ACTIVATE) && cd openscience_tools && pytest $(OPTS); \
+	else \
+		echo "❌ .env file not found. Run 'make config' first."; \
+		exit 1; \
+	fi
+
+tools-test-cov:
+	@echo "🧪 Running tests with coverage..."
+	@$(MAKE) tools-test OPTS="--cov=openscience_tools --cov-report=html --cov-report=term"
+	@echo ""
+	@echo "📊 Coverage report generated in openscience_tools/htmlcov/index.html"

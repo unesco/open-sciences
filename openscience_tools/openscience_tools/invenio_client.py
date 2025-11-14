@@ -213,6 +213,7 @@ class InvenioRDMClient:
         self,
         record_id: str,
         metadata: Dict[str, Any],
+        custom_fields: Optional[Dict[str, Any]] = None,
         access: Optional[Dict[str, Any]] = None,
         files: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
@@ -222,6 +223,7 @@ class InvenioRDMClient:
         Args:
             record_id: Record identifier
             metadata: Updated metadata
+            custom_fields: Updated custom fields
             access: Updated access settings
             files: Updated files configuration
 
@@ -230,6 +232,8 @@ class InvenioRDMClient:
         """
         data = {"metadata": metadata}
 
+        if custom_fields:
+            data["custom_fields"] = custom_fields
         if access:
             data["access"] = access
         if files:

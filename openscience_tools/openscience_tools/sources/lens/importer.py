@@ -603,22 +603,20 @@ class LensOrgImporter:
             # Map updated metadata
             full_metadata = self._map_metadata(update_data)
             metadata_dict = full_metadata.get("metadata", {})
-            custom_fields = metadata_dict.pop("custom_fields", None)
+            custom_fields = metadata_dict.pop("custom_fields", {})
 
             # Set access configuration
             access = {"record": "public", "files": "public", "status": "metadata-only"}
             files = {"enabled": False}
 
-            # Update draft
+            # Update draft with metadata AND custom_fields
             updated_draft = self.client.update_draft(
-                record_id=record_id, metadata=metadata_dict, access=access, files=files
+                record_id=record_id,
+                metadata=metadata_dict,
+                custom_fields=custom_fields,
+                access=access,
+                files=files,
             )
-
-            # Update custom fields if present
-            if custom_fields:
-                # Need to use PUT to update custom fields
-                # For now, include them in metadata (InvenioRDM should handle this)
-                pass
 
             self.logger.info(f"Updated draft {record_id} for Lens ID: {lens_id}")
 
@@ -732,6 +730,108 @@ class LensOrgImporter:
                 status_code = e.response.status_code
 
             return (status_code, None, error_msg)
+
+    def search(
+        self,
+        lens_id: Optional[str] = None,
+        title: Optional[str] = None,
+        size: int = 10,
+        page: int = 1,
+        sort: str = "bestmatch",
+    ) -> Dict[str, Any]:
+        """
+        Search for records in InvenioRDM using various filters.
+
+        Builds a query from provided filters and executes search.
+        Easily extensible by adding more filter parameters.
+
+        Args:
+            lens_id: Filter by Lens.org ID (exact match in custom_fields)
+            title: Filter by title (case-insensitive partial match)
+            size: Number of results per page (default: 10)
+            page: Page number (default: 1)
+            sort: Sort order - 'bestmatch', 'newest', 'oldest' (default: 'bestmatch')
+
+        Returns:
+            Dict with search results:
+            {
+                'hits': {
+                    'total': int,
+                    'hits': [list of records]
+                },
+                'query': str,
+                'filters': dict
+            }
+
+        Example:
+            >>> importer = LensOrgImporter(base_url="...", token="...")
+
+            # Search by lens_id
+            >>> results = importer.search(lens_id="000-035-558-593-934")
+
+            # Search by title (case-insensitive)
+            >>> results = importer.search(title="climate change")
+
+            # Combine filters
+            >>> results = importer.search(title="disaster", size=20, sort="newest")
+
+            # Access results
+            >>> total = results['hits']['total']
+            >>> records = results['hits']['hits']
+            >>> for record in records:
+            ...     print(record['id'], record['metadata']['title'])
+        """
+        # Build query parts
+        query_parts = []
+        filters_used = {}
+
+        # Filter by lens_id (exact match in custom_fields)
+        if lens_id:
+            query_parts.append(f'custom_fields.lens\\:id:"{lens_id}"')
+            filters_used["lens_id"] = lens_id
+
+        # Filter by title (case-insensitive partial match)
+        if title:
+            # Escape special characters and use case-insensitive search
+            escaped_title = title.replace('"', '\\"')
+            query_parts.append(f'metadata.title:"{escaped_title}"')
+            filters_used["title"] = title
+
+        # Combine query parts with AND
+        if query_parts:
+            query = " AND ".join(query_parts)
+        else:
+            # No filters - search all records
+            query = "*"
+
+        self.logger.info(f"Searching with query: {query}")
+
+        try:
+            # Execute search
+            results = self.client.search_records(query=query, size=size, page=page, sort=sort)
+
+            # Add metadata about the search
+            search_result = {
+                "hits": results.get("hits", {"total": 0, "hits": []}),
+                "query": query,
+                "filters": filters_used,
+                "pagination": {"size": size, "page": page, "sort": sort},
+            }
+
+            total = results.get("hits", {}).get("total", 0)
+            self.logger.info(f"Found {total} records matching filters")
+
+            return search_result
+
+        except Exception as e:
+            error_msg = f"Search failed: {str(e)}"
+            self.logger.error(error_msg)
+            return {
+                "hits": {"total": 0, "hits": []},
+                "query": query,
+                "filters": filters_used,
+                "error": error_msg,
+            }
 
 
 def create_importer(

@@ -219,6 +219,10 @@ importer = LensOrgImporter(
     token="your-api-token"
 )
 
+# Search records
+results = importer.search(lens_id="000-035-558-593-934")
+results = importer.search(title="climate change", size=20)
+
 # Insert a new record
 status, record_id, msg = importer.insert(data, publish=True)
 
@@ -237,6 +241,15 @@ make tools-examples
 
 # Batch import all publications
 make tools-examples EXAMPLE=batch_import
+
+# Search with filters
+make tools-examples EXAMPLE=search_example
+
+# Update specific record
+make tools-examples EXAMPLE=update_example
+
+# Delete specific record
+make tools-examples EXAMPLE=delete_example
 ```
 
 ## Using with Makefile
