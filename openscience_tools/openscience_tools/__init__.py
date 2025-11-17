@@ -6,7 +6,7 @@ providing tools for record management, search, statistics, and data import
 from various sources.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "UNESCO Science Portal Team"
 __email__ = "info@unesco-science-portal.org"
 __license__ = "MIT"

@@ -338,16 +338,19 @@ Once the build completes:
 Before publishing a new version:
 
 ```bash
-# 1. Update version in pyproject.toml
 cd openscience_tools
-# Edit: version = "0.2.0"
+# 1. Update version in pyproject.toml
+# Edit: version = ${VERSION}
+
+# 2. Update version in ./openscience_tools/__init__.py
+# Edit: __version__: ${VERSION}
 
 # 2. Update version in .gitlab-ci.yml
-# Edit: PACKAGE_VERSION: "0.2.0"
+# Edit: PACKAGE_VERSION: ${VERSION}
 
 # 3. Commit version bump
 git add pyproject.toml ../.gitlab-ci.yml
-git commit -m "chore: bump version to 0.2.0"
+git commit -m "chore: bump version to ${VERSION}"
 git push origin openscience_tools
 ```
 
