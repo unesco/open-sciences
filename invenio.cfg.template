@@ -284,6 +284,12 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="lens:open_access_colour",
         multiple=False,
     ),
+    # Publication year for filtering (extracted from metadata.publication_date)
+    # Single year value for faceted search
+    KeywordCF(
+        name="lens:publication_year",
+        multiple=False,
+    ),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [
@@ -392,9 +398,18 @@ RDM_FACETS = {
             "field": "custom_fields.lens:open_access_colour",
         },
     },
+    "publication_year": {
+        "facet": CFTermsFacet(
+            field="lens:publication_year",
+            label=_("Publication Year"),
+        ),
+        "ui": {
+            "field": "custom_fields.lens:publication_year",
+        },
+    },
 }
 
 RDM_SEARCH = {
     **RDM_SEARCH,
-    "facets": RDM_SEARCH["facets"] + ["open_access_colour"]
+    "facets": RDM_SEARCH["facets"] + ["open_access_colour", "publication_year"]
 }

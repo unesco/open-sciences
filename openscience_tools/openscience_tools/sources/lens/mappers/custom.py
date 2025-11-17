@@ -12,6 +12,7 @@ Maps Lens.org-specific data that doesn't fit into standard InvenioRDM fields:
 """
 
 import logging
+import re
 from typing import Dict, Any, List, Optional
 
 from ..base import BaseMapper, MappingError
@@ -67,6 +68,20 @@ class CustomFieldsMapper(BaseMapper):
                 colour = open_access_data.get("colour")
                 if colour:
                     custom_fields["lens:open_access_colour"] = colour
+
+            # Publication year for faceting (extract from year_published or date_published)
+            year = self.safe_get(lens_record, "year_published")
+            if not year:
+                # Try extracting from date_published (format: YYYY-MM-DD or YYYY)
+                date_str = self.safe_get(lens_record, "date_published")
+                if date_str:
+
+                    year_match = re.match(r"^(\d{4})", str(date_str))
+                    if year_match:
+                        year = int(year_match.group(1))
+
+            if year:
+                custom_fields["lens:publication_year"] = str(year)
 
             # External identifiers (DOI, PMID, PMCID, etc.)
             external_ids_data = self._map_external_ids(lens_record)
