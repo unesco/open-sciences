@@ -32,7 +32,6 @@ window.addEventListener("load", function () {
   const addSubjectBtn = document.getElementById("add-subject-btn");
   const clearBtn = document.getElementById("clear-filters-btn");
   const applyBtn = document.getElementById("apply-search-btn");
-  const authorInput = document.getElementById("author-input");
   const subjectInput = document.getElementById("subject-input");
 
   console.log("Elements found:", {
@@ -40,34 +39,110 @@ window.addEventListener("load", function () {
     addSubjectBtn: !!addSubjectBtn,
     clearBtn: !!clearBtn,
     applyBtn: !!applyBtn,
-    authorInput: !!authorInput,
     subjectInput: !!subjectInput,
   });
 
-  if (!addAuthorBtn || !clearBtn || !applyBtn || !authorInput) {
+  if (!addAuthorBtn || !clearBtn || !applyBtn) {
     console.error("Some elements not found!");
     return;
   }
 
+  // Initialize author dropdown with async search
+  const authorDropdown = $("#author-dropdown");
+  let currentSearchTerm = "";
+
+  authorDropdown.dropdown({
+    minCharacters: 2,
+    fullTextSearch: true,
+    apiSettings: {
+      url: "/api/records?q=metadata.creators.person_or_org.name:*{query}*&size=100",
+      cache: false,
+      throttle: 300,
+      beforeXHR: function (xhr, settings) {
+        // Extract search term from the actual URL being sent
+        const url = settings.url || xhr.url;
+        console.log("Request URL:", url);
+        const urlParams = new URLSearchParams(url.split("?")[1]);
+        const searchQuery = urlParams.get("q");
+        const queryMatch = searchQuery
+          ? searchQuery.match(/\*([^*]+)\*/)
+          : null;
+        currentSearchTerm = queryMatch ? queryMatch[1].toLowerCase() : "";
+        console.log("Extracted search term:", currentSearchTerm);
+        return xhr;
+      },
+      onResponse: function (response) {
+        console.log("API Response received, processing...");
+        console.log("Current search term:", currentSearchTerm);
+        const results = [];
+        const seenAuthors = new Set();
+
+        if (response.hits && response.hits.hits) {
+          console.log("Number of records:", response.hits.hits.length);
+          response.hits.hits.forEach((hit, hitIndex) => {
+            if (hit.metadata && hit.metadata.creators) {
+              hit.metadata.creators.forEach((creator, creatorIndex) => {
+                if (creator.person_or_org && creator.person_or_org.name) {
+                  const name = creator.person_or_org.name;
+                  const nameLower = name.toLowerCase();
+                  const matches = nameLower.includes(currentSearchTerm);
+
+                  // Debug first few
+                  if (hitIndex < 2 && creatorIndex < 3) {
+                    console.log(
+                      `Author: "${name}", lowercase: "${nameLower}", searchTerm: "${currentSearchTerm}", matches: ${matches}`
+                    );
+                  }
+
+                  // Only include authors whose name matches the search term
+                  if (matches && !seenAuthors.has(name)) {
+                    seenAuthors.add(name);
+                    results.push({
+                      name: name,
+                      value: name,
+                      text: name,
+                    });
+                  }
+                }
+              });
+            }
+          });
+        }
+
+        // Sort alphabetically and limit to 10
+        results.sort((a, b) => a.name.localeCompare(b.name));
+        const finalResults = results.slice(0, 10);
+        console.log("Total matching authors found:", results.length);
+        console.log("Returning results (limited to 10):", finalResults);
+
+        return {
+          success: true,
+          results: finalResults,
+        };
+      },
+      onError: function (errorMessage, element, xhr) {
+        console.error("API Error:", errorMessage, xhr);
+      },
+    },
+    allowAdditions: true,
+    hideAdditions: false,
+    forceSelection: false,
+    message: {
+      noResults: "No authors found",
+    },
+  });
+
   // Add author filter
   addAuthorBtn.addEventListener("click", function () {
     console.log("Add author button clicked");
-    const author = authorInput.value.trim();
+    const author = authorDropdown.dropdown("get value");
     console.log("Author value:", author);
 
     if (author && !authorFilters.includes(author)) {
       authorFilters.push(author);
       renderFilters();
       updateBadge();
-      authorInput.value = "";
-    }
-  });
-
-  // Allow Enter key to add author
-  authorInput.addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addAuthorBtn.click();
+      authorDropdown.dropdown("clear");
     }
   });
 
