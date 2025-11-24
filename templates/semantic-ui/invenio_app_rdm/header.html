@@ -65,7 +65,23 @@ link #}
             </button>
 
             {%- if config.THEME_SEARCHBAR %} {%- block navbar_search %} {%-
-            include "invenio_app_rdm/searchbar.html" %} {%- endblock
+            include "invenio_app_rdm/searchbar.html" %}
+            {# Advanced Search Button - Only on search page #}
+            {%- if request.endpoint == 'invenio_search_ui.search' %}
+            <div class="item p-0">
+              <button class="ui icon button" id="query-builder-trigger" 
+                      style="background-color: #0073b7; color: white; box-shadow: none; height: 38px; position: relative; padding: 0 14px;"
+                      title="Advanced Search">
+                <i class="sliders horizontal icon" style="margin: 0;"></i>
+                <div id="filter-badge" class="ui red circular label" 
+                     style="position: absolute; top: -8px; right: -8px; min-width: 20px; height: 20px; padding: 4px; 
+                            font-size: 11px; line-height: 12px; display: none;">
+                  0
+                </div>
+              </button>
+            </div>
+            {%- endif %}
+            {%- endblock
             navbar_search %} {%- endif %} {%- block navbar_nav %} {%- for item
             in current_menu.submenu('main').children|sort(attribute='order') if
             item.visible recursive %} {%- if item.children %}

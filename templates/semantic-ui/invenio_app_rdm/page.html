@@ -1,4 +1,7 @@
-{%- extends "invenio_theme/page.html" %} {%- block head_links %} {{ super() }}
+{%- extends "invenio_theme/page.html" %} 
+
+{%- block head_links %} 
+{{ super() }}
 <!-- Custom UNESCO favicon -->
 <link
   rel="icon"
@@ -15,3 +18,87 @@
   color="#0073b7"
 />
 {%- endblock head_links %}
+
+{%- block javascript %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/invenio_app_rdm/advanced-search-builder.js') }}"></script>
+{%- endblock %}
+
+{%- block body_inner %}
+{{ super() }}
+
+{# Advanced Query Builder Modal - Available on all pages #}
+<div class="ui modal" id="query-builder-modal">
+  <div class="header" style="background-color: #0073b7; color: white;">
+    <i class="filter icon"></i> Advanced Query Builder
+  </div>
+  <div class="content" style="padding: 1em;">
+    <form class="ui form" id="advanced-search-form">
+      {# Author Filter Section #}
+      <div class="field" style="margin-bottom: 1em;">
+        <label style="color: #0073b7; font-weight: bold; font-size: 0.9em; margin-bottom: 0.3em;">
+          <i class="user icon"></i> Author Name
+        </label>
+        <div style="display: flex; gap: 0.5em;">
+          <input type="text" id="author-input" placeholder="e.g., Smith, Garcia..." style="flex: 1;" />
+          <button class="ui small button" type="button" id="add-author-btn" style="background-color: #0073b7; color: white; box-shadow: none;">
+            <i class="plus icon"></i> Add
+          </button>
+        </div>
+        <small style="color: #666; font-size: 0.85em;">Wildcards are automatically added</small>
+      </div>
+      
+      <div class="ui divider" style="margin: 0.8em 0;"></div>
+      
+      {# Subject Filter Section #}
+      <div class="field" style="margin-bottom: 1em;">
+        <label style="color: #0073b7; font-weight: bold; font-size: 0.9em; margin-bottom: 0.3em;">
+          <i class="tags icon"></i> Subject / Keywords
+        </label>
+        <div style="display: flex; gap: 0.5em;">
+          <input type="text" id="subject-input" placeholder="e.g., Climate Change, Machine Learning..." style="flex: 1;" />
+          <button class="ui small button" type="button" id="add-subject-btn" style="background-color: #0073b7; color: white; box-shadow: none;">
+            <i class="plus icon"></i> Add
+          </button>
+        </div>
+        <small style="color: #666; font-size: 0.85em;">Search in subjects and keywords</small>
+      </div>
+      
+      <div class="ui divider" style="margin: 0.8em 0;"></div>
+      
+      {# Active Filters Display #}
+      <div id="active-filters" style="margin: 0.8em 0; min-height: 30px; font-size: 0.9em;">
+        {# Active filters will be added here dynamically #}
+      </div>
+    </form>
+  </div>
+  <div class="actions" style="padding: 0.8em 1em;">
+    <button class="ui button" type="button" id="clear-filters-btn" style="box-shadow: none;">
+      <i class="eraser icon"></i> Clear All
+    </button>
+    <button class="ui button" type="button" id="apply-search-btn" style="background-color: #0073b7; color: white; box-shadow: none;">
+      <i class="search icon"></i> Apply Search
+    </button>
+  </div>
+</div>
+
+<style>
+  /* Query Builder Modal Styling */
+  #query-builder-modal .ui.button {
+    box-shadow: none !important;
+  }
+  
+  #query-builder-modal .ui.button:hover {
+    opacity: 0.9;
+  }
+  
+  #query-builder-modal .ui.label {
+    box-shadow: none !important;
+  }
+  
+  #query-builder-modal input {
+    font-size: 0.9em;
+    padding: 0.6em;
+  }
+</style>
+{%- endblock body_inner %}
