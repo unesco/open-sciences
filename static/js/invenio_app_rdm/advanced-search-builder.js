@@ -1,6 +1,130 @@
 // Advanced Search Builder
 // This file provides a user-friendly interface to build Elasticsearch queries
 
+// ============================================================================
+// FILTER CONFIGURATION - Add new filters here
+// ============================================================================
+const FILTER_CONFIG = [
+  {
+    id: "author",
+    type: "async-search",
+    label: "Author Name",
+    icon: "user",
+    placeholder: "Search and select an author...",
+    helpText: "Search and select an author from the database",
+    apiUrl:
+      "/api/records?q=metadata.creators.person_or_org.name:*{query}*&size=100",
+    queryField: "metadata.creators.person_or_org.name",
+    responseParser: function (response, searchTerm) {
+      const results = [];
+      const seen = new Set();
+
+      if (response.hits && response.hits.hits) {
+        response.hits.hits.forEach((hit) => {
+          if (hit.metadata && hit.metadata.creators) {
+            hit.metadata.creators.forEach((creator) => {
+              if (creator.person_or_org && creator.person_or_org.name) {
+                const name = creator.person_or_org.name;
+                if (
+                  name.toLowerCase().includes(searchTerm) &&
+                  !seen.has(name)
+                ) {
+                  seen.add(name);
+                  results.push({ name: name, value: name, text: name });
+                }
+              }
+            });
+          }
+        });
+      }
+
+      results.sort((a, b) => a.name.localeCompare(b.name));
+      return results.slice(0, 10);
+    },
+  },
+  {
+    id: "subject",
+    type: "async-search",
+    label: "Subject / Keyword",
+    icon: "tags",
+    placeholder: "Search and select a subject...",
+    helpText: "Search and select a subject/keyword from the database",
+    apiUrl: "/api/records?q=metadata.subjects.subject:*{query}*&size=100",
+    queryField: "metadata.subjects.subject",
+    responseParser: function (response, searchTerm) {
+      const results = [];
+      const seen = new Set();
+
+      if (response.hits && response.hits.hits) {
+        response.hits.hits.forEach((hit) => {
+          if (hit.metadata && hit.metadata.subjects) {
+            hit.metadata.subjects.forEach((subjectObj) => {
+              if (subjectObj.subject) {
+                const subject = subjectObj.subject;
+                if (
+                  subject.toLowerCase().includes(searchTerm) &&
+                  !seen.has(subject)
+                ) {
+                  seen.add(subject);
+                  results.push({
+                    name: subject,
+                    value: subject,
+                    text: subject,
+                  });
+                }
+              }
+            });
+          }
+        });
+      }
+
+      results.sort((a, b) => a.name.localeCompare(b.name));
+      return results.slice(0, 10);
+    },
+  },
+  {
+    id: "affiliation",
+    type: "async-search",
+    label: "Affiliation",
+    icon: "building",
+    placeholder: "Search and select an affiliation...",
+    helpText: "Search and select an affiliation from the database",
+    apiUrl:
+      "/api/records?q=metadata.creators.affiliations.name:*{query}*&size=100",
+    queryField: "metadata.creators.affiliations.name",
+    responseParser: function (response, searchTerm) {
+      const results = [];
+      const seen = new Set();
+
+      if (response.hits && response.hits.hits) {
+        response.hits.hits.forEach((hit) => {
+          if (hit.metadata && hit.metadata.creators) {
+            hit.metadata.creators.forEach((creator) => {
+              if (creator.affiliations) {
+                creator.affiliations.forEach((affiliation) => {
+                  if (affiliation.name) {
+                    const name = affiliation.name;
+                    if (
+                      name.toLowerCase().includes(searchTerm) &&
+                      !seen.has(name)
+                    ) {
+                      seen.add(name);
+                      results.push({ name: name, value: name, text: name });
+                    }
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+
+      results.sort((a, b) => a.name.localeCompare(b.name));
+      return results.slice(0, 10);
+    },
+  },
+];
+
 window.addEventListener("load", function () {
   console.log("Window fully loaded, initializing Advanced Search Builder");
 
@@ -9,121 +133,58 @@ window.addEventListener("load", function () {
   const clearBtn = document.getElementById("clear-filters-btn");
   const applyBtn = document.getElementById("apply-search-btn");
 
-  // Initialize elements
-  const authorDropdown = $("#author-dropdown");
-  const subjectDropdown = $("#subject-dropdown");
-  let currentAuthorSearchTerm = "";
-  let currentSubjectSearchTerm = "";
+  // Store dropdown references and search terms
+  const dropdowns = {};
+  const searchTerms = {};
 
-  // Configure author dropdown with API search (single selection)
-  authorDropdown.dropdown({
-    minCharacters: 2,
-    fullTextSearch: true,
-    apiSettings: {
-      url: "/api/records?q=metadata.creators.person_or_org.name:*{query}*&size=100",
-      cache: false,
-      throttle: 300,
-      beforeXHR: function (xhr, settings) {
-        const url = settings.url || xhr.url;
-        const urlParams = new URLSearchParams(url.split("?")[1]);
-        const searchQuery = urlParams.get("q");
-        const queryMatch = searchQuery
-          ? searchQuery.match(/\*([^*]+)\*/)
-          : null;
-        currentAuthorSearchTerm = queryMatch ? queryMatch[1].toLowerCase() : "";
-        return xhr;
-      },
-      onResponse: function (response) {
-        const results = [];
-        const seenAuthors = new Set();
-
-        if (response.hits && response.hits.hits) {
-          response.hits.hits.forEach((hit) => {
-            if (hit.metadata && hit.metadata.creators) {
-              hit.metadata.creators.forEach((creator) => {
-                if (creator.person_or_org && creator.person_or_org.name) {
-                  const name = creator.person_or_org.name;
-                  if (
-                    name.toLowerCase().includes(currentAuthorSearchTerm) &&
-                    !seenAuthors.has(name)
-                  ) {
-                    seenAuthors.add(name);
-                    results.push({ name: name, value: name, text: name });
-                  }
-                }
-              });
-            }
-          });
-        }
-
-        results.sort((a, b) => a.name.localeCompare(b.name));
-        return { success: true, results: results.slice(0, 10) };
-      },
-    },
-    allowAdditions: true,
-    forceSelection: false,
-    onChange: function () {
-      updateBadge();
-    },
+  // Initialize dropdowns based on configuration
+  FILTER_CONFIG.forEach((config) => {
+    if (config.type === "async-search") {
+      initializeAsyncSearchDropdown(config);
+    }
+    // Future: Add support for other types (date-range, checkbox, etc.)
   });
 
-  // Configure subject dropdown with API search (single selection)
-  subjectDropdown.dropdown({
-    minCharacters: 2,
-    fullTextSearch: true,
-    apiSettings: {
-      url: "/api/records?q=metadata.subjects.subject:*{query}*&size=100",
-      cache: false,
-      throttle: 300,
-      beforeXHR: function (xhr, settings) {
-        const url = settings.url || xhr.url;
-        const urlParams = new URLSearchParams(url.split("?")[1]);
-        const searchQuery = urlParams.get("q");
-        const queryMatch = searchQuery
-          ? searchQuery.match(/\*([^*]+)\*/)
-          : null;
-        currentSubjectSearchTerm = queryMatch
-          ? queryMatch[1].toLowerCase()
-          : "";
-        return xhr;
-      },
-      onResponse: function (response) {
-        const results = [];
-        const seenSubjects = new Set();
+  // Initialize async search dropdown
+  function initializeAsyncSearchDropdown(config) {
+    const dropdown = $(`#${config.id}-dropdown`);
+    dropdowns[config.id] = dropdown;
+    searchTerms[config.id] = "";
 
-        if (response.hits && response.hits.hits) {
-          response.hits.hits.forEach((hit) => {
-            if (hit.metadata && hit.metadata.subjects) {
-              hit.metadata.subjects.forEach((subjectObj) => {
-                if (subjectObj.subject) {
-                  const subject = subjectObj.subject;
-                  if (
-                    subject.toLowerCase().includes(currentSubjectSearchTerm) &&
-                    !seenSubjects.has(subject)
-                  ) {
-                    seenSubjects.add(subject);
-                    results.push({
-                      name: subject,
-                      value: subject,
-                      text: subject,
-                    });
-                  }
-                }
-              });
-            }
-          });
-        }
-
-        results.sort((a, b) => a.name.localeCompare(b.name));
-        return { success: true, results: results.slice(0, 10) };
+    dropdown.dropdown({
+      minCharacters: 2,
+      fullTextSearch: true,
+      apiSettings: {
+        url: config.apiUrl,
+        cache: false,
+        throttle: 300,
+        beforeXHR: function (xhr, settings) {
+          const url = settings.url || xhr.url;
+          const urlParams = new URLSearchParams(url.split("?")[1]);
+          const searchQuery = urlParams.get("q");
+          const queryMatch = searchQuery
+            ? searchQuery.match(/\*([^*]+)\*/)
+            : null;
+          searchTerms[config.id] = queryMatch
+            ? queryMatch[1].toLowerCase()
+            : "";
+          return xhr;
+        },
+        onResponse: function (response) {
+          const results = config.responseParser(
+            response,
+            searchTerms[config.id]
+          );
+          return { success: true, results: results };
+        },
       },
-    },
-    allowAdditions: true,
-    forceSelection: false,
-    onChange: function () {
-      updateBadge();
-    },
-  });
+      allowAdditions: true,
+      forceSelection: false,
+      onChange: function () {
+        updateBadge();
+      },
+    });
+  }
 
   // Parse URL parameters and initialize form
   function initializeFromURL() {
@@ -136,25 +197,18 @@ window.addEventListener("load", function () {
       return;
     }
 
-    // Parse author from URL (exact match with quotes)
-    const authorMatch = existingQuery.match(
-      /metadata\.creators\.person_or_org\.name:"([^"]+)"/
-    );
-    if (authorMatch) {
-      const authorName = authorMatch[1];
-      console.log("Setting author from URL:", authorName);
-      authorDropdown.dropdown("set exactly", authorName);
-    }
+    // Parse each filter from URL based on configuration
+    FILTER_CONFIG.forEach((config) => {
+      const escapedField = config.queryField.replace(/\./g, "\\.");
+      const regex = new RegExp(`${escapedField}:"([^"]+)"`);
+      const match = existingQuery.match(regex);
 
-    // Parse subject from URL (exact match with quotes)
-    const subjectMatch = existingQuery.match(
-      /metadata\.subjects\.subject:"([^"]+)"/
-    );
-    if (subjectMatch) {
-      const subjectName = subjectMatch[1];
-      console.log("Setting subject from URL:", subjectName);
-      subjectDropdown.dropdown("set exactly", subjectName);
-    }
+      if (match && dropdowns[config.id]) {
+        const value = match[1];
+        console.log(`Setting ${config.id} from URL:`, value);
+        dropdowns[config.id].dropdown("set exactly", value);
+      }
+    });
 
     updateBadge();
   }
@@ -164,21 +218,18 @@ window.addEventListener("load", function () {
     const badge = document.getElementById("filter-badge");
     if (!badge) return;
 
-    const authorValue = authorDropdown.dropdown("get value");
-    const subjectValue = subjectDropdown.dropdown("get value");
+    let totalFilters = 0;
 
-    const hasAuthor = authorValue && authorValue.trim() ? 1 : 0;
-    const hasSubject = subjectValue && subjectValue.trim() ? 1 : 0;
-    const totalFilters = hasAuthor + hasSubject;
+    FILTER_CONFIG.forEach((config) => {
+      if (dropdowns[config.id]) {
+        const value = dropdowns[config.id].dropdown("get value");
+        if (value && value.trim()) {
+          totalFilters++;
+        }
+      }
+    });
 
-    console.log(
-      "Badge update - Author:",
-      hasAuthor,
-      "Subject:",
-      hasSubject,
-      "Total:",
-      totalFilters
-    );
+    console.log("Badge update - Total filters:", totalFilters);
 
     if (totalFilters > 0) {
       badge.textContent = totalFilters;
@@ -192,17 +243,14 @@ window.addEventListener("load", function () {
   function buildQuery() {
     const queries = [];
 
-    const authorValue = authorDropdown.dropdown("get value");
-    if (authorValue && authorValue.trim()) {
-      queries.push(
-        `metadata.creators.person_or_org.name:"${authorValue.trim()}"`
-      );
-    }
-
-    const subjectValue = subjectDropdown.dropdown("get value");
-    if (subjectValue && subjectValue.trim()) {
-      queries.push(`metadata.subjects.subject:"${subjectValue.trim()}"`);
-    }
+    FILTER_CONFIG.forEach((config) => {
+      if (dropdowns[config.id]) {
+        const value = dropdowns[config.id].dropdown("get value");
+        if (value && value.trim()) {
+          queries.push(`${config.queryField}:"${value.trim()}"`);
+        }
+      }
+    });
 
     return queries.join(" AND ");
   }
@@ -210,8 +258,11 @@ window.addEventListener("load", function () {
   // Clear all filters
   clearBtn.addEventListener("click", function () {
     console.log("Clear button clicked");
-    authorDropdown.dropdown("clear");
-    subjectDropdown.dropdown("clear");
+    FILTER_CONFIG.forEach((config) => {
+      if (dropdowns[config.id]) {
+        dropdowns[config.id].dropdown("clear");
+      }
+    });
     updateBadge();
   });
 
