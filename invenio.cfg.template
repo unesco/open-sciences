@@ -423,9 +423,18 @@ RDM_FACETS = {
             "field": "custom_fields.publication:year",
         },
     },
+    "publication_country": {
+        "facet": CFTermsFacet(
+            field="publication:country",
+            label=_("Country"),
+        ),
+        "ui": {
+            "field": "custom_fields.publication:country",
+        },
+    },
 }
 
 RDM_SEARCH = {
     **RDM_SEARCH,
-    "facets": RDM_SEARCH["facets"] + ["open_access_colour", "publication_year"]
+    "facets": RDM_SEARCH["facets"] + ["open_access_colour", "publication_year", "publication_country"]
 }

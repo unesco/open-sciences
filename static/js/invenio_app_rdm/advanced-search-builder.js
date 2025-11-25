@@ -8,6 +8,7 @@ const FILTER_CONFIG = [
   {
     id: "author",
     type: "async-search",
+    filterType: "query", // Uses q= parameter
     label: "Author Name",
     icon: "user",
     placeholder: "Search and select an author...",
@@ -45,6 +46,7 @@ const FILTER_CONFIG = [
   {
     id: "subject",
     type: "async-search",
+    filterType: "query", // Uses q= parameter
     label: "Subject / Keyword",
     icon: "tags",
     placeholder: "Search and select a subject...",
@@ -85,6 +87,7 @@ const FILTER_CONFIG = [
   {
     id: "affiliation",
     type: "async-search",
+    filterType: "query", // Uses q= parameter
     label: "Affiliation",
     icon: "building",
     placeholder: "Search and select an affiliation...",
@@ -126,13 +129,13 @@ const FILTER_CONFIG = [
   {
     id: "country",
     type: "async-search",
+    filterType: "facet", // Uses f= parameter
+    facetName: "publication_country", // The facet name used in URL
     label: "Country",
     icon: "globe",
     placeholder: "Search and select a country...",
     helpText: "Search and select a country from the database",
-    apiUrl:
-      "/api/records?q=custom_fields.publication:country:*{query}*&size=100",
-    queryField: "custom_fields.publication:country",
+    apiUrl: "/api/records?f=publication_country:*{query}*&size=100",
     responseParser: function (response, searchTerm) {
       const results = [];
       const seen = new Set();
@@ -223,24 +226,44 @@ window.addEventListener("load", function () {
   function initializeFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const existingQuery = urlParams.get("q") || "";
-    console.log("Parsing URL query:", existingQuery);
+    const facetFilters = urlParams.getAll("f");
 
-    if (!existingQuery) {
-      updateBadge();
-      return;
+    console.log("Parsing URL - query:", existingQuery, "facets:", facetFilters);
+
+    // Parse query string filters (metadata fields)
+    if (existingQuery) {
+      FILTER_CONFIG.forEach((config) => {
+        if (config.filterType === "query") {
+          const escapedField = config.queryField.replace(/\./g, "\\.");
+          const regex = new RegExp(`${escapedField}:"([^"]+)"`);
+          const match = existingQuery.match(regex);
+
+          if (match && dropdowns[config.id]) {
+            const value = match[1];
+            console.log(`Setting ${config.id} from query:`, value);
+            dropdowns[config.id].dropdown("set exactly", value);
+          }
+        }
+      });
     }
 
-    // Parse each filter from URL based on configuration
-    FILTER_CONFIG.forEach((config) => {
-      const escapedField = config.queryField.replace(/\./g, "\\.");
-      const regex = new RegExp(`${escapedField}:"([^"]+)"`);
-      const match = existingQuery.match(regex);
+    // Parse facet filters
+    facetFilters.forEach((facet) => {
+      const colonIndex = facet.indexOf(":");
+      if (colonIndex === -1) return;
 
-      if (match && dropdowns[config.id]) {
-        const value = match[1];
-        console.log(`Setting ${config.id} from URL:`, value);
-        dropdowns[config.id].dropdown("set exactly", value);
-      }
+      const facetName = facet.substring(0, colonIndex);
+      const facetValue = facet.substring(colonIndex + 1);
+
+      // Find the config with matching facetName
+      FILTER_CONFIG.forEach((config) => {
+        if (config.filterType === "facet" && config.facetName === facetName) {
+          if (dropdowns[config.id]) {
+            console.log(`Setting ${config.id} from facet:`, facetValue);
+            dropdowns[config.id].dropdown("set exactly", facetValue);
+          }
+        }
+      });
     });
 
     updateBadge();
@@ -272,20 +295,32 @@ window.addEventListener("load", function () {
     }
   }
 
-  // Build Elasticsearch query from dropdown values
-  function buildQuery() {
-    const queries = [];
+  // Build query parameters from dropdown values
+  function buildQueryParams() {
+    const params = new URLSearchParams();
+    const queryParts = [];
 
     FILTER_CONFIG.forEach((config) => {
       if (dropdowns[config.id]) {
         const value = dropdowns[config.id].dropdown("get value");
         if (value && value.trim()) {
-          queries.push(`${config.queryField}:"${value.trim()}"`);
+          if (config.filterType === "facet") {
+            // Facet-based filters use f= parameter
+            params.append("f", `${config.facetName}:${value.trim()}`);
+          } else {
+            // Query-based filters use q= parameter
+            queryParts.push(`${config.queryField}:"${value.trim()}"`);
+          }
         }
       }
     });
 
-    return queries.join(" AND ");
+    // Build the query string (for metadata fields)
+    if (queryParts.length > 0) {
+      params.set("q", queryParts.join(" AND "));
+    }
+
+    return params;
   }
 
   // Clear all filters
@@ -302,14 +337,13 @@ window.addEventListener("load", function () {
   // Apply search
   applyBtn.addEventListener("click", function () {
     console.log("Apply search clicked");
-    const query = buildQuery();
-    console.log("Built query:", query);
+    const params = buildQueryParams();
+    console.log("Built params:", params.toString());
 
     modal.modal("hide");
 
-    if (query) {
-      window.location.href =
-        "/search?q=" + encodeURIComponent(query) + "&page=1";
+    if (params.toString()) {
+      window.location.href = "/search?" + params.toString() + "&page=1";
     } else {
       window.location.href = "/search";
     }
