@@ -11,7 +11,9 @@ window.addEventListener("load", function () {
 
   // Initialize elements
   const authorDropdown = $("#author-dropdown");
-  let currentSearchTerm = "";
+  const subjectDropdown = $("#subject-dropdown");
+  let currentAuthorSearchTerm = "";
+  let currentSubjectSearchTerm = "";
 
   // Configure author dropdown with API search (single selection)
   authorDropdown.dropdown({
@@ -28,7 +30,7 @@ window.addEventListener("load", function () {
         const queryMatch = searchQuery
           ? searchQuery.match(/\*([^*]+)\*/)
           : null;
-        currentSearchTerm = queryMatch ? queryMatch[1].toLowerCase() : "";
+        currentAuthorSearchTerm = queryMatch ? queryMatch[1].toLowerCase() : "";
         return xhr;
       },
       onResponse: function (response) {
@@ -42,11 +44,69 @@ window.addEventListener("load", function () {
                 if (creator.person_or_org && creator.person_or_org.name) {
                   const name = creator.person_or_org.name;
                   if (
-                    name.toLowerCase().includes(currentSearchTerm) &&
+                    name.toLowerCase().includes(currentAuthorSearchTerm) &&
                     !seenAuthors.has(name)
                   ) {
                     seenAuthors.add(name);
                     results.push({ name: name, value: name, text: name });
+                  }
+                }
+              });
+            }
+          });
+        }
+
+        results.sort((a, b) => a.name.localeCompare(b.name));
+        return { success: true, results: results.slice(0, 10) };
+      },
+    },
+    allowAdditions: true,
+    forceSelection: false,
+    onChange: function () {
+      updateBadge();
+    },
+  });
+
+  // Configure subject dropdown with API search (single selection)
+  subjectDropdown.dropdown({
+    minCharacters: 2,
+    fullTextSearch: true,
+    apiSettings: {
+      url: "/api/records?q=metadata.subjects.subject:*{query}*&size=100",
+      cache: false,
+      throttle: 300,
+      beforeXHR: function (xhr, settings) {
+        const url = settings.url || xhr.url;
+        const urlParams = new URLSearchParams(url.split("?")[1]);
+        const searchQuery = urlParams.get("q");
+        const queryMatch = searchQuery
+          ? searchQuery.match(/\*([^*]+)\*/)
+          : null;
+        currentSubjectSearchTerm = queryMatch
+          ? queryMatch[1].toLowerCase()
+          : "";
+        return xhr;
+      },
+      onResponse: function (response) {
+        const results = [];
+        const seenSubjects = new Set();
+
+        if (response.hits && response.hits.hits) {
+          response.hits.hits.forEach((hit) => {
+            if (hit.metadata && hit.metadata.subjects) {
+              hit.metadata.subjects.forEach((subjectObj) => {
+                if (subjectObj.subject) {
+                  const subject = subjectObj.subject;
+                  if (
+                    subject.toLowerCase().includes(currentSubjectSearchTerm) &&
+                    !seenSubjects.has(subject)
+                  ) {
+                    seenSubjects.add(subject);
+                    results.push({
+                      name: subject,
+                      value: subject,
+                      text: subject,
+                    });
                   }
                 }
               });
@@ -86,6 +146,16 @@ window.addEventListener("load", function () {
       authorDropdown.dropdown("set exactly", authorName);
     }
 
+    // Parse subject from URL (exact match with quotes)
+    const subjectMatch = existingQuery.match(
+      /metadata\.subjects\.subject:"([^"]+)"/
+    );
+    if (subjectMatch) {
+      const subjectName = subjectMatch[1];
+      console.log("Setting subject from URL:", subjectName);
+      subjectDropdown.dropdown("set exactly", subjectName);
+    }
+
     updateBadge();
   }
 
@@ -95,33 +165,53 @@ window.addEventListener("load", function () {
     if (!badge) return;
 
     const authorValue = authorDropdown.dropdown("get value");
+    const subjectValue = subjectDropdown.dropdown("get value");
+
     const hasAuthor = authorValue && authorValue.trim() ? 1 : 0;
+    const hasSubject = subjectValue && subjectValue.trim() ? 1 : 0;
+    const totalFilters = hasAuthor + hasSubject;
 
-    console.log("Badge update - Has author:", hasAuthor);
+    console.log(
+      "Badge update - Author:",
+      hasAuthor,
+      "Subject:",
+      hasSubject,
+      "Total:",
+      totalFilters
+    );
 
-    if (hasAuthor > 0) {
-      badge.textContent = hasAuthor;
+    if (totalFilters > 0) {
+      badge.textContent = totalFilters;
       badge.style.display = "flex";
     } else {
       badge.style.display = "none";
     }
   }
 
-  // Build Elasticsearch query from dropdown value
+  // Build Elasticsearch query from dropdown values
   function buildQuery() {
-    const authorValue = authorDropdown.dropdown("get value");
+    const queries = [];
 
+    const authorValue = authorDropdown.dropdown("get value");
     if (authorValue && authorValue.trim()) {
-      return `metadata.creators.person_or_org.name:"${authorValue.trim()}"`;
+      queries.push(
+        `metadata.creators.person_or_org.name:"${authorValue.trim()}"`
+      );
     }
 
-    return "";
+    const subjectValue = subjectDropdown.dropdown("get value");
+    if (subjectValue && subjectValue.trim()) {
+      queries.push(`metadata.subjects.subject:"${subjectValue.trim()}"`);
+    }
+
+    return queries.join(" AND ");
   }
 
   // Clear all filters
   clearBtn.addEventListener("click", function () {
     console.log("Clear button clicked");
     authorDropdown.dropdown("clear");
+    subjectDropdown.dropdown("clear");
     updateBadge();
   });
 

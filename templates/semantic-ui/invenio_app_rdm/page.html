@@ -50,6 +50,24 @@
         <small style="color: #666; font-size: 0.85em;">Search and select an author from the database</small>
       </div>
 
+      <div class="ui divider" style="margin: 0.8em 0;"></div>
+
+      {# Subject Filter Section #}
+      <div class="field" style="margin-bottom: 1em;">
+        <label style="color: #0073b7; font-weight: bold; font-size: 0.9em; margin-bottom: 0.3em;">
+          <i class="tags icon"></i> Subject / Keyword
+        </label>
+        <div class="ui fluid search selection dropdown" id="subject-dropdown">
+          <input type="hidden" id="subject-input">
+          <i class="dropdown icon"></i>
+          <div class="default text">Search and select a subject...</div>
+          <div class="menu">
+            <div class="message">Type to search subjects</div>
+          </div>
+        </div>
+        <small style="color: #666; font-size: 0.85em;">Search and select a subject/keyword from the database</small>
+      </div>
+
     </form>
   </div>
   <div class="actions" style="padding: 0.8em 1em;">
@@ -82,17 +100,20 @@
   }
   
   /* Fix dropdown text alignment and visibility */
-  #author-dropdown input.search {
+  #author-dropdown input.search,
+  #subject-dropdown input.search {
     font-size: 1em !important;
     line-height: 1.21428571em !important;
   }
   
-  #author-dropdown .text {
+  #author-dropdown .text,
+  #subject-dropdown .text {
     font-size: 1em !important;
     line-height: 1.21428571em !important;
   }
   
-  #author-dropdown .default.text {
+  #author-dropdown .default.text,
+  #subject-dropdown .default.text {
     font-size: 1em !important;
   }
 </style>
