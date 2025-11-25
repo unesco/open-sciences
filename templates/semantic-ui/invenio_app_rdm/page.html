@@ -39,44 +39,17 @@
         <label style="color: #0073b7; font-weight: bold; font-size: 0.9em; margin-bottom: 0.3em;">
           <i class="user icon"></i> Author Name
         </label>
-        <div style="display: flex; gap: 0.5em;">
-          <div class="ui fluid search selection dropdown" id="author-dropdown" style="flex: 1;">
-            <input type="hidden" id="author-input">
-            <i class="dropdown icon"></i>
-            <div class="default text">Search for an author...</div>
-            <div class="menu">
-              <div class="message">Type to search authors</div>
-            </div>
+        <div class="ui fluid search selection dropdown" id="author-dropdown">
+          <input type="hidden" id="author-input">
+          <i class="dropdown icon"></i>
+          <div class="default text">Search and select an author...</div>
+          <div class="menu">
+            <div class="message">Type to search authors</div>
           </div>
-          <button class="ui small button" type="button" id="add-author-btn" style="background-color: #0073b7; color: white; box-shadow: none;">
-            <i class="plus icon"></i> Add
-          </button>
         </div>
-        <small style="color: #666; font-size: 0.85em;">Select from existing authors or type a custom name</small>
+        <small style="color: #666; font-size: 0.85em;">Search and select an author from the database</small>
       </div>
-      
-      <div class="ui divider" style="margin: 0.8em 0;"></div>
-      
-      {# Subject Filter Section #}
-      <div class="field" style="margin-bottom: 1em;">
-        <label style="color: #0073b7; font-weight: bold; font-size: 0.9em; margin-bottom: 0.3em;">
-          <i class="tags icon"></i> Subject / Keywords
-        </label>
-        <div style="display: flex; gap: 0.5em;">
-          <input type="text" id="subject-input" placeholder="e.g., Climate Change, Machine Learning..." style="flex: 1;" />
-          <button class="ui small button" type="button" id="add-subject-btn" style="background-color: #0073b7; color: white; box-shadow: none;">
-            <i class="plus icon"></i> Add
-          </button>
-        </div>
-        <small style="color: #666; font-size: 0.85em;">Search in subjects and keywords</small>
-      </div>
-      
-      <div class="ui divider" style="margin: 0.8em 0;"></div>
-      
-      {# Active Filters Display #}
-      <div id="active-filters" style="margin: 0.8em 0; min-height: 30px; font-size: 0.9em;">
-        {# Active filters will be added here dynamically #}
-      </div>
+
     </form>
   </div>
   <div class="actions" style="padding: 0.8em 1em;">
@@ -108,10 +81,15 @@
     padding: 0.6em;
   }
   
-  /* Author dropdown styling - fix text size */
-  #author-dropdown .text,
+  /* Fix dropdown text alignment and visibility */
   #author-dropdown input.search {
     font-size: 1em !important;
+    line-height: 1.21428571em !important;
+  }
+  
+  #author-dropdown .text {
+    font-size: 1em !important;
+    line-height: 1.21428571em !important;
   }
   
   #author-dropdown .default.text {
