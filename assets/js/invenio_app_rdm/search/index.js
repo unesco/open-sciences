@@ -30,9 +30,12 @@ const ContribSearchAppFacetsWithConfig = parametrize(ContribSearchAppFacets, {
 
 const appName = "InvenioAppRdm.Search";
 
-const RDMRecordSearchBarContainerWithConfig = parametrize(RDMRecordSearchBarContainer, {
-  appName: appName,
-});
+const RDMRecordSearchBarContainerWithConfig = parametrize(
+  RDMRecordSearchBarContainer,
+  {
+    appName: appName,
+  }
+);
 
 const RDMRecordResultsListItemWithConfig = parametrize(
   RDMRecordResultsListItemWithState,
@@ -43,12 +46,14 @@ const RDMRecordResultsListItemWithConfig = parametrize(
 
 export const defaultComponents = {
   [`${appName}.BucketAggregation.element`]: ContribBucketAggregationElement,
-  [`${appName}.BucketAggregationValues.element`]: ContribBucketAggregationValuesElement,
+  [`${appName}.BucketAggregationValues.element`]:
+    ContribBucketAggregationValuesElement,
   [`${appName}.ResultsGrid.item`]: RDMRecordResultsGridItem,
   [`${appName}.EmptyResults.element`]: RDMEmptyResults,
   [`${appName}.ResultsList.item`]: RDMRecordResultsListItemWithConfig,
   [`${appName}.SearchApp.facets`]: ContribSearchAppFacetsWithConfig,
-  [`${appName}.SearchApp.searchbarContainer`]: RDMRecordSearchBarContainerWithConfig,
+  [`${appName}.SearchApp.searchbarContainer`]:
+    RDMRecordSearchBarContainerWithConfig,
   [`${appName}.SearchBar.element`]: RDMRecordMultipleSearchBarElement,
   [`${appName}.Count.element`]: RDMCountComponent,
   [`${appName}.Error.element`]: RDMErrorComponent,
