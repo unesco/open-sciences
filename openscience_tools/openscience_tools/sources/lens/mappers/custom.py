@@ -67,7 +67,12 @@ class CustomFieldsMapper(BaseMapper):
                 # Extract colour separately for faceting/filtering
                 colour = open_access_data.get("colour")
                 if colour:
-                    custom_fields["lens:open_access_colour"] = colour
+                    custom_fields["publication:open_access_colour"] = colour
+
+            # Publication country for faceting (extract from lens:source)
+            source_data = self._map_source(lens_record)
+            if source_data and source_data.get("country"):
+                custom_fields["publication:country"] = source_data.get("country")
 
             # Publication year for faceting (extract from year_published or date_published)
             year = self.safe_get(lens_record, "year_published")
@@ -81,7 +86,7 @@ class CustomFieldsMapper(BaseMapper):
                         year = int(year_match.group(1))
 
             if year:
-                custom_fields["lens:publication_year"] = str(year)
+                custom_fields["publication:year"] = str(year)
 
             # External identifiers (DOI, PMID, PMCID, etc.)
             external_ids_data = self._map_external_ids(lens_record)

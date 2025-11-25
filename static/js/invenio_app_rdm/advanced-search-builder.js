@@ -123,6 +123,39 @@ const FILTER_CONFIG = [
       return results.slice(0, 10);
     },
   },
+  {
+    id: "country",
+    type: "async-search",
+    label: "Country",
+    icon: "globe",
+    placeholder: "Search and select a country...",
+    helpText: "Search and select a country from the database",
+    apiUrl:
+      "/api/records?q=custom_fields.publication:country:*{query}*&size=100",
+    queryField: "custom_fields.publication:country",
+    responseParser: function (response, searchTerm) {
+      const results = [];
+      const seen = new Set();
+
+      if (response.hits && response.hits.hits) {
+        response.hits.hits.forEach((hit) => {
+          if (hit.custom_fields && hit.custom_fields["publication:country"]) {
+            const country = hit.custom_fields["publication:country"];
+            if (
+              country.toLowerCase().includes(searchTerm) &&
+              !seen.has(country)
+            ) {
+              seen.add(country);
+              results.push({ name: country, value: country, text: country });
+            }
+          }
+        });
+      }
+
+      results.sort((a, b) => a.name.localeCompare(b.name));
+      return results.slice(0, 10);
+    },
+  },
 ];
 
 window.addEventListener("load", function () {

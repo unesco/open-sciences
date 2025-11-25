@@ -237,6 +237,7 @@ from invenio_rdm_records.contrib.journal import JOURNAL_CUSTOM_FIELDS
 RDM_NAMESPACES = {
     "lens": "https://www.lens.org/",
     "journal": "https://vocabulary.com/journal/",
+    "publication": "https://schema.org/",
 }
 
 RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
@@ -290,13 +291,19 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
     # Open access colour for filtering (extracted from lens:open_access)
     # Values: gold, green, hybrid, bronze
     KeywordCF(
-        name="lens:open_access_colour",
+        name="publication:open_access_colour",
         multiple=False,
     ),
     # Publication year for filtering (extracted from metadata.publication_date)
     # Single year value for faceted search
     KeywordCF(
-        name="lens:publication_year",
+        name="publication:year",
+        multiple=False,
+    ),
+    # Publication country for filtering (extracted from lens:source)
+    # Single country value for faceted search
+    KeywordCF(
+        name="publication:country",
         multiple=False,
     ),
 ]
@@ -400,20 +407,20 @@ RDM_FACETS = {
     **RDM_FACETS,
     "open_access_colour": {
         "facet": CFTermsFacet(
-            field="lens:open_access_colour",
+            field="publication:open_access_colour",
             label=_("Open Access Colour"),
         ),
         "ui": {
-            "field": "custom_fields.lens:open_access_colour",
+            "field": "custom_fields.publication:open_access_colour",
         },
     },
     "publication_year": {
         "facet": CFTermsFacet(
-            field="lens:publication_year",
+            field="publication:year",
             label=_("Publication Year"),
         ),
         "ui": {
-            "field": "custom_fields.lens:publication_year",
+            "field": "custom_fields.publication:year",
         },
     },
 }
