@@ -88,6 +88,11 @@ class CustomFieldsMapper(BaseMapper):
             if year:
                 custom_fields["publication:year"] = str(year)
 
+            # Funding organizations for faceting (extract from lens:funding)
+            funding_orgs = self._extract_funding_orgs(lens_record)
+            if funding_orgs:
+                custom_fields["publication:funding_org"] = funding_orgs
+
             # External identifiers (DOI, PMID, PMCID, etc.)
             external_ids_data = self._map_external_ids(lens_record)
             if external_ids_data:
@@ -680,6 +685,34 @@ class CustomFieldsMapper(BaseMapper):
                 chemicals_list.append(chemical_item)
 
         return chemicals_list if chemicals_list else None
+
+    def _extract_funding_orgs(self, lens_record: Dict[str, Any]) -> Optional[List[str]]:
+        """
+        Extract funding organization names from Lens.org funding data.
+
+        Args:
+            lens_record: Raw Lens.org publication record
+
+        Returns:
+            List of funding organization names or None if no funding data
+        """
+        funding_list = self.safe_get(lens_record, "funding", default=[])
+
+        if not funding_list:
+            return None
+
+        funding_orgs = []
+
+        for funding in funding_list:
+            if not isinstance(funding, dict):
+                continue
+
+            # Extract organization name (field is called 'org' in Lens.org data)
+            org = self.safe_get(funding, "org")
+            if org and org not in funding_orgs:  # Avoid duplicates
+                funding_orgs.append(org)
+
+        return funding_orgs if funding_orgs else None
 
     def _map_journal(self, lens_record: Dict[str, Any]) -> Optional[Dict[str, str]]:
         """

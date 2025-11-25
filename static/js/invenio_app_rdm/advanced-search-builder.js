@@ -159,6 +159,44 @@ const FILTER_CONFIG = [
       return results.slice(0, 10);
     },
   },
+  {
+    id: "funding_org",
+    type: "async-search",
+    filterType: "facet", // Uses f= parameter
+    facetName: "funding_org", // The facet name used in URL
+    label: "Funding Organization",
+    icon: "money bill alternate",
+    placeholder: "Search and select a funding organization...",
+    helpText: "Search and select a funding organization from the database",
+    apiUrl: "/api/records?f=funding_org:*{query}*&size=100",
+    responseParser: function (response, searchTerm) {
+      const results = [];
+      const seen = new Set();
+
+      if (response.hits && response.hits.hits) {
+        response.hits.hits.forEach((hit) => {
+          if (
+            hit.custom_fields &&
+            hit.custom_fields["publication:funding_org"]
+          ) {
+            const funding_orgs = hit.custom_fields["publication:funding_org"];
+            // funding_org is an array, so iterate through it
+            if (Array.isArray(funding_orgs)) {
+              funding_orgs.forEach((org) => {
+                if (org.toLowerCase().includes(searchTerm) && !seen.has(org)) {
+                  seen.add(org);
+                  results.push({ name: org, value: org, text: org });
+                }
+              });
+            }
+          }
+        });
+      }
+
+      results.sort((a, b) => a.name.localeCompare(b.name));
+      return results.slice(0, 10);
+    },
+  },
 ];
 
 window.addEventListener("load", function () {

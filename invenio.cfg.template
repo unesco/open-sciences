@@ -306,6 +306,12 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="publication:country",
         multiple=False,
     ),
+    # Funding organization for filtering (extracted from lens:funding)
+    # Multiple funding organizations allowed
+    KeywordCF(
+        name="publication:funding_org",
+        multiple=True,
+    ),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [
@@ -432,9 +438,19 @@ RDM_FACETS = {
             "field": "custom_fields.publication:country",
         },
     },
+    "funding_org": {
+        "facet": CFTermsFacet(
+            field="publication:funding_org",
+            label=_("Funding Organization"),
+            size=5,
+        ),
+        "ui": {
+            "field": "custom_fields.publication:funding_org",
+        },
+    },
 }
 
 RDM_SEARCH = {
     **RDM_SEARCH,
-    "facets": RDM_SEARCH["facets"] + ["open_access_colour", "publication_year", "publication_country"]
+    "facets": RDM_SEARCH["facets"] + ["open_access_colour", "publication_year", "publication_country", "funding_org"]
 }
