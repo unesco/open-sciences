@@ -135,22 +135,21 @@ const FILTER_CONFIG = [
     icon: "globe",
     placeholder: "Search and select a country...",
     helpText: "Search and select a country from the database",
-    apiUrl: "/api/records?f=publication_country:*{query}*&size=100",
+    apiUrl: "/api/records?size=1", // size=1 minimal, we only need aggregations
     responseParser: function (response, searchTerm) {
       const results = [];
       const seen = new Set();
 
-      if (response.hits && response.hits.hits) {
-        response.hits.hits.forEach((hit) => {
-          if (hit.custom_fields && hit.custom_fields["publication:country"]) {
-            const country = hit.custom_fields["publication:country"];
-            if (
-              country.toLowerCase().includes(searchTerm) &&
-              !seen.has(country)
-            ) {
-              seen.add(country);
-              results.push({ name: country, value: country, text: country });
-            }
+      // Use aggregations (facet buckets) instead of hits
+      if (response.aggregations && response.aggregations.publication_country) {
+        response.aggregations.publication_country.buckets.forEach((bucket) => {
+          const country = bucket.key;
+          if (
+            country.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            !seen.has(country)
+          ) {
+            seen.add(country);
+            results.push({ name: country, value: country, text: country });
           }
         });
       }
@@ -168,27 +167,21 @@ const FILTER_CONFIG = [
     icon: "money bill alternate",
     placeholder: "Search and select a funding organization...",
     helpText: "Search and select a funding organization from the database",
-    apiUrl: "/api/records?f=funding_org:*{query}*&size=100",
+    apiUrl: "/api/records?size=1", // size=1 minimal, we only need aggregations
     responseParser: function (response, searchTerm) {
       const results = [];
       const seen = new Set();
 
-      if (response.hits && response.hits.hits) {
-        response.hits.hits.forEach((hit) => {
+      // Use aggregations (facet buckets) instead of hits
+      if (response.aggregations && response.aggregations.funding_org) {
+        response.aggregations.funding_org.buckets.forEach((bucket) => {
+          const org = bucket.key;
           if (
-            hit.custom_fields &&
-            hit.custom_fields["publication:funding_org"]
+            org.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            !seen.has(org)
           ) {
-            const funding_orgs = hit.custom_fields["publication:funding_org"];
-            // funding_org is an array, so iterate through it
-            if (Array.isArray(funding_orgs)) {
-              funding_orgs.forEach((org) => {
-                if (org.toLowerCase().includes(searchTerm) && !seen.has(org)) {
-                  seen.add(org);
-                  results.push({ name: org, value: org, text: org });
-                }
-              });
-            }
+            seen.add(org);
+            results.push({ name: org, value: org, text: org });
           }
         });
       }
@@ -233,15 +226,22 @@ window.addEventListener("load", function () {
         cache: false,
         throttle: 300,
         beforeXHR: function (xhr, settings) {
-          const url = settings.url || xhr.url;
-          const urlParams = new URLSearchParams(url.split("?")[1]);
-          const searchQuery = urlParams.get("q");
-          const queryMatch = searchQuery
-            ? searchQuery.match(/\*([^*]+)\*/)
-            : null;
-          searchTerms[config.id] = queryMatch
-            ? queryMatch[1].toLowerCase()
-            : "";
+          // Get search term from the dropdown's search input field
+          const searchInput = dropdown.find("input.search");
+          if (searchInput.length > 0) {
+            searchTerms[config.id] = searchInput.val().toLowerCase().trim();
+          } else {
+            // Fallback: try to extract from URL query parameter
+            const url = settings.url || xhr.url;
+            const urlParams = new URLSearchParams(url.split("?")[1]);
+            const searchQuery = urlParams.get("q");
+            const queryMatch = searchQuery
+              ? searchQuery.match(/\*([^*]+)\*/)
+              : null;
+            searchTerms[config.id] = queryMatch
+              ? queryMatch[1].toLowerCase()
+              : "";
+          }
           return xhr;
         },
         onResponse: function (response) {
@@ -249,11 +249,21 @@ window.addEventListener("load", function () {
             response,
             searchTerms[config.id]
           );
+
+          // Force clear menu if no results to prevent showing old results
+          if (results.length === 0) {
+            setTimeout(() => {
+              dropdown.find(".menu").empty();
+            }, 0);
+          }
+
           return { success: true, results: results };
         },
       },
       allowAdditions: true,
       forceSelection: false,
+      showOnFocus: false, // Don't show old results on focus
+      clearable: true,
       onChange: function () {
         updateBadge();
       },
