@@ -30,7 +30,7 @@
 {# Advanced Query Builder Modal - Available on all pages #}
 <div class="ui modal" id="query-builder-modal">
   <div class="header" style="background-color: #0073b7; color: white;">
-    <i class="filter icon"></i> Advanced Query Builder
+    <i class="sliders horizontal icon"></i> Advanced Query Builder
   </div>
   <div class="content" style="padding: 1em;">
     <form class="ui form" id="advanced-search-form">
@@ -122,6 +122,26 @@
         <small style="color: #666; font-size: 0.85em;">Search and select a funding organization from the database</small>
       </div>
 
+      <div class="ui divider" style="margin: 0.8em 0;"></div>
+
+      {# UNESCO Filter Toggle Section #}
+      <div class="field" style="margin-bottom: 1em;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <label style="color: #0073b7; font-weight: bold; font-size: 0.9em; margin-bottom: 0.3em;">
+              <i class="university icon"></i> UNESCO Related
+            </label>
+            <div>
+              <small style="color: #666; font-size: 0.85em;">Show only records with UNESCO affiliation or funding</small>
+            </div>
+          </div>
+          <div class="ui toggle checkbox" id="unesco-toggle">
+            <input type="checkbox" name="unesco-filter" id="unesco-filter-checkbox">
+            <label></label>
+          </div>
+        </div>
+      </div>
+
     </form>
   </div>
   <div class="actions" style="padding: 0.8em 1em;">
@@ -175,6 +195,27 @@
   #affiliation-dropdown .default.text,
   #country-dropdown .default.text {
     font-size: 1em !important;
+  }
+  
+  /* Show mobile-only items only on mobile/tablet */
+  .mobile-only {
+    display: none !important;
+  }
+  
+  @media only screen and (max-width: 991px) {
+    .mobile-only {
+      display: block !important;
+    }
+    
+    /* Hide desktop-only items on mobile */
+    .desktop-only {
+      display: none !important;
+    }
+  }
+  
+  /* UNESCO toggle styling */
+  #unesco-toggle {
+    margin: 0;
   }
 </style>
 {%- endblock body_inner %}

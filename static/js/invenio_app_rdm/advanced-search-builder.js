@@ -268,6 +268,17 @@ window.addEventListener("load", function () {
 
     console.log("Parsing URL - query:", existingQuery, "facets:", facetFilters);
 
+    // Check for UNESCO filter in query
+    const unescoPattern =
+      /\(metadata\.creators\.affiliations\.name:\*UNESCO\*\s+OR\s+custom_fields\.publication\\:funding_org:\*UNESCO\*\)/;
+    if (unescoPattern.test(existingQuery)) {
+      const unescoCheckbox = document.getElementById("unesco-filter-checkbox");
+      if (unescoCheckbox) {
+        unescoCheckbox.checked = true;
+        $("#unesco-toggle").checkbox("set checked");
+      }
+    }
+
     // Parse query string filters (metadata fields)
     if (existingQuery) {
       FILTER_CONFIG.forEach((config) => {
@@ -323,6 +334,12 @@ window.addEventListener("load", function () {
       }
     });
 
+    // Check UNESCO toggle
+    const unescoCheckbox = document.getElementById("unesco-filter-checkbox");
+    if (unescoCheckbox && unescoCheckbox.checked) {
+      totalFilters++;
+    }
+
     console.log("Badge update - Total filters:", totalFilters);
 
     if (totalFilters > 0) {
@@ -353,6 +370,15 @@ window.addEventListener("load", function () {
       }
     });
 
+    // Add UNESCO filter if enabled
+    const unescoCheckbox = document.getElementById("unesco-filter-checkbox");
+    if (unescoCheckbox && unescoCheckbox.checked) {
+      // Add UNESCO filter: affiliation OR funding contains UNESCO
+      queryParts.push(
+        "(metadata.creators.affiliations.name:*UNESCO* OR custom_fields.publication\\:funding_org:*UNESCO*)"
+      );
+    }
+
     // Build the query string (for metadata fields)
     if (queryParts.length > 0) {
       params.set("q", queryParts.join(" AND "));
@@ -369,6 +395,12 @@ window.addEventListener("load", function () {
         dropdowns[config.id].dropdown("clear");
       }
     });
+    // Clear UNESCO checkbox
+    const unescoCheckbox = document.getElementById("unesco-filter-checkbox");
+    if (unescoCheckbox) {
+      unescoCheckbox.checked = false;
+      $("#unesco-toggle").checkbox("set unchecked");
+    }
     updateBadge();
   });
 
@@ -393,6 +425,23 @@ window.addEventListener("load", function () {
     triggerBtn.addEventListener("click", function (e) {
       e.preventDefault();
       console.log("Opening query builder modal");
+      modal.modal("show");
+    });
+  }
+
+  // Initialize UNESCO toggle checkbox
+  $("#unesco-toggle").checkbox({
+    onChange: function () {
+      updateBadge();
+    },
+  });
+
+  // Attach click handler to mobile query builder link
+  const mobileLink = document.getElementById("mobile-query-builder-link");
+  if (mobileLink) {
+    mobileLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      console.log("Opening query builder modal from mobile menu");
       modal.modal("show");
     });
   }

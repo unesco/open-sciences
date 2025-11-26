@@ -66,9 +66,9 @@ link #}
 
             {%- if config.THEME_SEARCHBAR %} {%- block navbar_search %} {%-
             include "invenio_app_rdm/searchbar.html" %}
-            {# Advanced Search Button - Only on search page #}
+            {# Advanced Search Button - Only on search page, hidden on mobile #}
             {%- if request.endpoint == 'invenio_search_ui.search' %}
-            <div class="item p-0">
+            <div class="item p-0 desktop-only">
               <button class="ui icon button" id="query-builder-trigger" 
                       style="background-color: #0073b7; color: white; box-shadow: none; height: 38px; position: relative; padding: 0 14px;"
                       title="Advanced Search">
@@ -82,7 +82,18 @@ link #}
             </div>
             {%- endif %}
             {%- endblock
-            navbar_search %} {%- endif %} {%- block navbar_nav %} {%- for item
+            navbar_search %} {%- endif %} {%- block navbar_nav %}
+            {# Advanced Search link - visible only on mobile, shown first #}
+            {%- if request.endpoint == 'invenio_search_ui.search' %}
+            <div class="item mobile-only">
+              <a href="#" id="mobile-query-builder-link">
+                <i class="sliders horizontal icon"></i>
+                {{ _('Advanced Search') }}
+              </a>
+            </div>
+            {%- endif %}
+            
+            {%- for item
             in current_menu.submenu('main').children|sort(attribute='order') if
             item.visible recursive %} {%- if item.children %}
             <div class="item">
@@ -107,7 +118,7 @@ link #}
             <div class="{{ 'item active' if item.active else 'item' }}">
               <a href="{{ item.url }}">{{ item.text|safe }}</a>
             </div>
-            {%- endif %} {%- endfor %} {# Add custom Statistics menu item after
+            {# Add custom Statistics menu item after
             main menu #}
             <div class="item">
               <a href="{{ url_for('my_site.statistics_dashboard') }}">
@@ -116,13 +127,19 @@ link #}
               </a>
             </div>
 
+            {%- endif %}
+            {%- endfor %}
+            
             {% for item in
             current_menu.submenu('actions').children|sort(attribute='order') if
             item.visible recursive %}
             <div class="{{ 'item active' if item.active else 'item' }}">
               <a href="{{ item.url }}">{{ item.text|safe }}</a>
             </div>
-            {% endfor %} {%- endblock navbar_nav %} {%- block navbar_right %}
+            {% endfor %}
+            {%- endblock navbar_nav %}
+            
+            {%- block navbar_right %}
             <div class="right menu item">
               {%- if config.ACCOUNTS and current_user.is_authenticated %} {% for
               item in
