@@ -67,6 +67,7 @@ link #}
             {%- if config.THEME_SEARCHBAR %} {%- block navbar_search %} {%-
             include "invenio_app_rdm/searchbar.html" %}
             {# Advanced Search Button - Only on search page, hidden on mobile #}
+            <!--
             {%- if request.endpoint == 'invenio_search_ui.search' %}
             <div class="item p-0 desktop-only">
               <button class="ui icon button" id="query-builder-trigger" 
@@ -81,6 +82,7 @@ link #}
               </button>
             </div>
             {%- endif %}
+            -->
             {%- endblock
             navbar_search %} {%- endif %} {%- block navbar_nav %}
             {# Advanced Search link - visible only on mobile, shown first #}

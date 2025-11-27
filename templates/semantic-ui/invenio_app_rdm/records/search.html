@@ -1,0 +1,17 @@
+{#
+  Custom search.html template with advanced search link in facets sidebar
+#}
+{%- set title = _("Search results") %}
+{%- extends config.BASE_TEMPLATE %}
+
+{%- block javascript %}
+    {{ super() }}
+    {{ webpack['invenio-app-rdm-search.js'] }}
+    {{ webpack['inject-advanced-search-link.js'] }}
+{%- endblock %}
+
+{%- block page_body %}
+<div class="ui container">
+  <div data-invenio-search-config='{{ search_app_rdm_config(app_id="InvenioAppRdm.Search") | tojson }}'></div>
+</div>
+{%- endblock page_body %}
