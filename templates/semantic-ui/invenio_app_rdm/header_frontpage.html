@@ -4,20 +4,20 @@ is free software; you can redistribute it and/or modify it under the terms of
 the MIT License; see LICENSE file for more details. #} {%- extends
 config.THEME_HEADER_TEMPLATE %} {#- Remove search field from top bar on
 frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
-<a class="logo-link" href="/">
+<a class="logo-link" href="/" style="display: flex; align-items: center;">
   <img
     src="/static/images/unesco-logo.svg"
     alt="UNESCO"
-    style="height: 56px;"
+    style="height: 56px; margin-top: 25px;"
   />
 </a>
 {%- endblock brand %}
 
 {%- block navbar_nav %}
-<div style="display: flex; align-items: center; gap: 40px; margin-left: auto;">
-  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 22px; text-decoration: none;">About</a>
-  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 22px; text-decoration: none;">UNESCO Natural Sciences Family</a>
-  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 22px; text-decoration: none;">UNESCO Open Science</a>
+<div style="display: flex; align-items: center; gap: 40px; margin-left: auto; padding-left: 200px;">
+  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 56px; text-decoration: none;">About</a>
+  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 56px; text-decoration: none;">UNESCO Natural Sciences Family</a>
+  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 56px; text-decoration: none;">UNESCO Open Science</a>
 </div>
 {%- endblock navbar_nav %} {%- block navbar %}
 <!-- Wrapper with background for entire header -->
@@ -40,7 +40,7 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
   {{ super() }}
   
   <!-- White divider line after header -->
-  <div style="width: 100%; height: 1px; background: #FFFFFF; margin: 0 auto; max-width: 1328px;"></div>
+  <div style="width: 100%; height: 1px; background: #FFFFFF; margin: 32px auto 0; max-width: 1328px;"></div>
   
   {%- block frontpage_search %}
   <div id="frontpage-search-bar" class="ui container fluid frontpage-header">
@@ -97,8 +97,13 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
                 margin: 0 !important;
                 box-shadow: none !important;
                 cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 32px;
+                width: 32px;
               ">
-                <i class="search icon" style="color: #4C5054; font-size: 32px; margin: 0;"></i>
+                <i class="search icon" style="color: #D5DADD; font-size: 32px; margin: 0; line-height: 1; display: flex; align-items: center;"></i>
               </button>
             </div>
             <div style="display: flex; justify-content: flex-end; padding: 0 24px; margin-top: 4px;">
