@@ -134,12 +134,34 @@
     console.log("✓ Advanced search card injected successfully");
   }
 
-  // Start injection after DOM is ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
-      setTimeout(injectAdvancedSearchLink, 1500);
+  // Watch for facets to be rendered by React
+  function waitForFacets() {
+    const observer = new MutationObserver(function (mutations, obs) {
+      const facets = document.querySelectorAll(".ui.card.borderless.facet");
+      if (facets.length > 0) {
+        console.log("Facets detected, injecting advanced search");
+        obs.disconnect();
+        injectAdvancedSearchLink();
+      }
     });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    // Fallback: try after 500ms if observer doesn't catch it
+    setTimeout(function () {
+      if (!document.getElementById("advanced-search-facet-card")) {
+        injectAdvancedSearchLink();
+      }
+    }, 500);
+  }
+
+  // Start watching after DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", waitForFacets);
   } else {
-    setTimeout(injectAdvancedSearchLink, 1500);
+    waitForFacets();
   }
 })();
