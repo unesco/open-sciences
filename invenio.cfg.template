@@ -416,15 +416,6 @@ from invenio_records_resources.services.records.facets import CFTermsFacet
 
 RDM_FACETS = {
     **RDM_FACETS,
-    "open_access_colour": {
-        "facet": CFTermsFacet(
-            field="publication:open_access_colour",
-            label=_("Open Access Colour"),
-        ),
-        "ui": {
-            "field": "custom_fields.publication:open_access_colour",
-        },
-    },
     "publication_year": {
         "facet": CFTermsFacet(
             field="publication:year",
@@ -466,5 +457,5 @@ RDM_FACETS = {
 
 RDM_SEARCH = {
     **RDM_SEARCH,
-    "facets": RDM_SEARCH["facets"] + ["open_access_colour", "publication_year", "publication_country", "funding_org", "is_open_access"]
+    "facets": RDM_SEARCH["facets"] + ["publication_year", "publication_country", "funding_org", "is_open_access"]
 }
