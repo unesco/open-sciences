@@ -8,10 +8,18 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
   <img
     src="/static/images/unesco-logo.svg"
     alt="UNESCO"
-    style="height: 40px; margin-right: 10px"
+    style="height: 56px;"
   />
 </a>
-{%- endblock brand %} {%- block navbar %}
+{%- endblock brand %}
+
+{%- block navbar_nav %}
+<div style="display: flex; align-items: center; gap: 40px; margin-left: auto;">
+  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 22px; text-decoration: none;">About</a>
+  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 22px; text-decoration: none;">UNESCO Natural Sciences Family</a>
+  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 16px; line-height: 22px; text-decoration: none;">UNESCO Open Science</a>
+</div>
+{%- endblock navbar_nav %} {%- block navbar %}
 <!-- Wrapper with background for entire header -->
 <div
   class="outer-navbar"
@@ -21,7 +29,7 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
         rgba(0, 115, 183, 0.85) 0%,
         rgba(0, 0, 0, 0.75) 100%
       ),
-      url('/static/images/science-background.jpg');
+      url('/static/images/science-background1.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -29,39 +37,74 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
     position: relative;
   "
 >
-  {{ super() }} {%- block frontpage_search %}
+  {{ super() }}
+  
+  <!-- White divider line after header -->
+  <div style="width: 100%; height: 1px; background: #FFFFFF; margin: 0 auto; max-width: 1328px;"></div>
+  
+  {%- block frontpage_search %}
   <div id="frontpage-search-bar" class="ui container fluid frontpage-header">
-    <div class="ui container grid rel-mt-2">
+    <div class="ui container grid rel-mt-2" style="padding: 60px 0 80px 0;">
       <div class="row">
         <div class="sixteen wide column center aligned">
           {%- block frontpage_title %}
-          <h1 class="ui center aligned header inverted">Open Science Portal</h1>
+          <h1 class="ui center aligned header inverted" style="font-size: 2.8rem; font-weight: 700; margin-bottom: 0.8rem; line-height: 1.2;">
+            UNESCO Open Science Platform
+          </h1>
+          <p style="color: rgba(255,255,255,0.95); font-size: 1.15rem; margin-bottom: 2rem; line-height: 1.6;">
+            Your Gateway to Knowledge from the UNESCO Natural Science Family
+          </p>
           {%- endblock frontpage_title %}
         </div>
       </div>
       {%- block frontpage_form %}
       <div class="row">
-        <div class="sixteen wide mobile four wide computer column"></div>
+        <div class="sixteen wide mobile two wide computer column"></div>
         <div
-          class="sixteen wide mobile eight wide computer column center aligned"
+          class="sixteen wide mobile twelve wide computer column center aligned"
         >
           <form
             action="{{ url_for('invenio_search_ui.search') }}"
             class="ui form"
             role="search"
+            style="position: relative; max-width: 790px; margin: 0 auto;"
           >
-            <div class="ui fluid big action input">
+            <div style="position: relative; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #4C5054; border-radius: 100px; padding: 20px 30px; gap: 8px;">
               <input
                 type="text"
                 name="q"
                 class="form-control"
                 aria-label="{{ _('Search') }}"
-                placeholder="{{ _('Search for research papers, datasets, communities...') }}"
+                placeholder="{{ _('Search UNESCO research publications') }}"
                 style="
-                  border-radius: 20px !important;
-                  padding: 12px 16px !important;
+                  flex: 1;
+                  border: none !important;
+                  outline: none !important;
+                  background: transparent !important;
+                  padding: 0 !important;
+                  margin: 0 !important;
+                  font-family: 'Inter';
+                  font-size: 20px;
+                  line-height: 22px;
+                  color: #7F888F;
+                  box-shadow: none !important;
                 "
               />
+              <button class="ui button" type="submit" style="
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                cursor: pointer;
+              ">
+                <i class="search icon" style="color: #4C5054; font-size: 32px; margin: 0;"></i>
+              </button>
+            </div>
+            <div style="display: flex; justify-content: flex-end; padding: 0 24px; margin-top: 4px;">
+              <a href="/search" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 26px; text-align: right; text-decoration: none;">
+                Advanced search
+              </a>
             </div>
           </form>
         </div>

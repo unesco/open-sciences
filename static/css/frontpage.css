@@ -1,0 +1,471 @@
+/* UNESCO Open Science Platform - Frontpage Styles */
+
+/* Header Navigation Styling */
+.outer-navbar .ui.menu {
+  padding: 32px 56px 0;
+}
+
+.outer-navbar .ui.menu .item {
+  padding: 0;
+}
+
+/* Responsive header navigation */
+@media only screen and (max-width: 991px) {
+  .outer-navbar .ui.menu {
+    padding: 20px 30px 0;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .outer-navbar .ui.menu {
+    padding: 15px 20px 0;
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .outer-navbar .navbar_nav {
+    flex-direction: column !important;
+    gap: 15px !important;
+    margin-top: 15px;
+  }
+}
+
+/* Introduction Section */
+.intro-section {
+  background-color: #f8f9fa;
+  padding: 50px 0;
+}
+
+.intro-content {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.intro-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+  margin: 0;
+}
+
+/* Highlights Section */
+.highlights-section {
+  background-color: #fff;
+  padding: 60px 0;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.section-subtitle {
+  font-size: 16px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.section-title-white {
+  font-size: 32px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.section-subtitle-white {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.highlights-grid {
+  margin-top: 0 !important;
+}
+
+.highlight-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.highlight-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.highlight-image {
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  position: relative;
+}
+
+.highlight-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.highlight-content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.highlight-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0073b7;
+  margin-bottom: 12px;
+}
+
+.highlight-description {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  flex: 1;
+}
+
+.highlight-button {
+  border: 1px solid #0073b7 !important;
+  color: #0073b7 !important;
+  background: transparent !important;
+  align-self: flex-start;
+}
+
+.highlight-button:hover {
+  background: #0073b7 !important;
+  color: #fff !important;
+}
+
+.highlights-pagination {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.pagination-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ddd;
+  margin: 0 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.pagination-dot.active {
+  background: #0073b7;
+}
+
+/* Research Family Section */
+.research-family-section {
+  background: linear-gradient(135deg, #0073b7 0%, #005a8f 100%);
+  padding: 60px 0;
+  position: relative;
+}
+
+.research-family-carousel {
+  position: relative;
+  padding: 0 40px;
+}
+
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  z-index: 10;
+}
+
+.carousel-nav:hover {
+  background: #fff;
+}
+
+.carousel-nav.prev {
+  left: 0;
+}
+
+.carousel-nav.next {
+  right: 0;
+}
+
+.carousel-nav i {
+  color: #0073b7;
+  margin: 0 !important;
+}
+
+.research-family-grid {
+  margin-top: 0 !important;
+}
+
+.research-family-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.research-family-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.research-family-image {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  position: relative;
+}
+
+.research-family-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.research-family-content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.research-family-content h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.research-family-content p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  flex: 1;
+}
+
+.research-family-content .button {
+  align-self: flex-start;
+}
+
+.research-family-pagination {
+  text-align: center;
+  margin-top: 30px;
+}
+
+/* Dashboards Section */
+.dashboards-section {
+  background-color: #f8f9fa;
+  padding: 80px 0;
+}
+
+.dashboards-text-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.dashboards-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
+  line-height: 1.3;
+}
+
+.dashboards-description {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+
+.dashboards-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.dashboards-map img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Partners Section */
+.partners-section {
+  background-color: #f8f9fa;
+  padding: 60px 0;
+}
+
+.partners-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.partners-subtitle {
+  font-size: 16px;
+  color: #777;
+  margin-bottom: 40px;
+}
+
+.partners-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+  flex-wrap: wrap;
+}
+
+.partner-logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0.8;
+}
+
+.partner-logo:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 991px) {
+  .section-title,
+  .section-title-white {
+    font-size: 28px;
+  }
+
+  .section-subtitle,
+  .section-subtitle-white {
+    font-size: 15px;
+  }
+
+  .highlight-number {
+    font-size: 28px;
+  }
+
+  .dashboards-title {
+    font-size: 28px;
+  }
+
+  .dashboards-description {
+    font-size: 15px;
+  }
+
+  .carousel-nav {
+    width: 35px;
+    height: 35px;
+  }
+
+  .partners-logos {
+    gap: 40px;
+  }
+
+  .partner-logo {
+    height: 50px;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .intro-section,
+  .highlights-section,
+  .research-family-section {
+    padding: 40px 0;
+  }
+
+  .intro-text {
+    font-size: 15px;
+  }
+
+  .dashboards-section {
+    padding: 50px 0;
+  }
+
+  .section-title,
+  .section-title-white {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle,
+  .section-subtitle-white {
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  .highlight-card {
+    margin-bottom: 20px;
+  }
+
+  .research-family-card {
+    margin-bottom: 20px;
+  }
+
+  .research-family-carousel {
+    padding: 0 30px;
+  }
+
+  .carousel-nav {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dashboards-title {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .dashboards-description {
+    text-align: center;
+  }
+
+  .ui.button.large {
+    margin: 0 auto;
+    display: block;
+    width: fit-content;
+  }
+
+  .partners-logos {
+    gap: 30px;
+  }
+
+  .partner-logo {
+    height: 40px;
+  }
+}

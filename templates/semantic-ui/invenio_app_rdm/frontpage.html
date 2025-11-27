@@ -1,499 +1,246 @@
-{%- extends "invenio_theme/frontpage.html" %} {%- block page_header %} {%-
-include "invenio_app_rdm/header_frontpage.html" %} {%- endblock page_header %}
+{%- extends "invenio_theme/frontpage.html" %}
+{%- block page_header %} 
+{%- include "invenio_app_rdm/header_frontpage.html" %} 
+{%- endblock page_header %}
+
+{%- block head_links %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/frontpage.css') }}" />
+{%- endblock head_links %}
+
 {%- block page_body %}
-<!-- Main action cards section -->
-<div
-  style="
-    background: linear-gradient(
-        135deg,
-        rgba(240, 248, 255, 0.9) 0%,
-        rgba(230, 243, 255, 0.9) 100%
-      ),
-      url('/static/images/scientific-journey.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    padding: 1rem 0;
-    margin-top: -15px;
-    position: relative;
-    overflow: hidden;
-  "
->
-  <!-- Background decorative elements -->
-  <div
-    style="
-      position: absolute;
-      top: -100px;
-      right: -100px;
-      width: 250px;
-      height: 250px;
-      border-radius: 50%;
-      background: rgba(0, 115, 183, 0.08);
-    "
-  ></div>
-  <div
-    style="
-      position: absolute;
-      bottom: -150px;
-      left: -150px;
-      width: 350px;
-      height: 350px;
-      border-radius: 50%;
-      background: rgba(0, 150, 57, 0.06);
-    "
-  ></div>
-  <div
-    style="
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 400px;
-      height: 400px;
-      border-radius: 50%;
-      background: rgba(46, 163, 217, 0.04);
-      z-index: 1;
-    "
-  ></div>
-
-  <div class="ui container" style="position: relative; z-index: 2">
-    <div class="ui center aligned basic segment" style="margin-bottom: 2rem">
-      <h2
-        style="
-          font-size: 2rem;
-          color: #0073b7;
-          margin-bottom: 0.8rem;
-          font-weight: 700;
-        "
-      >
-        Start Your Scientific Journey
-      </h2>
-      <p
-        style="font-size: 1.1rem; color: #666; max-width: 600px; margin: 0 auto"
-      >
-        Explore our comprehensive platform designed for researchers, academics,
-        and science enthusiasts worldwide.
-      </p>
-    </div>
-
-    <div class="ui three column stackable grid">
-      <!-- Explore Research Card -->
-      <div class="column">
-        <div
-          class="ui card"
-          style="
-            width: 100%;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 115, 183, 0.15);
-            transition: all 0.4s ease;
-            border: none;
-            cursor: pointer;
-          "
-          onmouseover="this.style.transform='translateY(-15px) scale(1.03)'; this.style.boxShadow='0 20px 60px rgba(0,115,183,0.3)'"
-          onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 32px rgba(0,115,183,0.15)'"
-          onclick="window.location.href='/search'"
-        >
-          <div class="image" style="height: 160px; overflow: hidden">
-            <img
-              src="/static/images/explore-research.jpg"
-              style="width: 100%; height: 100%; object-fit: cover"
-            />
-          </div>
-          <div class="content" style="padding: 1.5rem">
-            <div
-              class="header"
-              style="
-                font-size: 1.3rem;
-                color: #0073b7;
-                margin-bottom: 0.8rem;
-                font-weight: 600;
-              "
-            >
-              Explore Research
-            </div>
-            <div
-              class="description"
-              style="color: #555; line-height: 1.5; font-size: 0.95rem"
-            >
-              Access thousands of scientific publications, research papers, and
-              datasets from leading institutions worldwide. Discover
-              breakthrough research across all scientific disciplines.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Publish Research Card -->
-      <div class="column">
-        <div
-          class="ui card"
-          style="
-            width: 100%;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 115, 183, 0.15);
-            transition: all 0.4s ease;
-            border: none;
-            cursor: pointer;
-          "
-          onmouseover="this.style.transform='translateY(-15px) scale(1.03)'; this.style.boxShadow='0 20px 60px rgba(0,115,183,0.3)'"
-          onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 32px rgba(0,115,183,0.15)'"
-          onclick="window.location.href='/uploads/new'"
-        >
-          <div class="image" style="height: 160px; overflow: hidden">
-            <img
-              src="/static/images/publish-research.jpg"
-              style="width: 100%; height: 100%; object-fit: cover"
-            />
-          </div>
-          <div class="content" style="padding: 1.5rem">
-            <div
-              class="header"
-              style="
-                font-size: 1.3rem;
-                color: #0073b7;
-                margin-bottom: 0.8rem;
-                font-weight: 600;
-              "
-            >
-              Publish Research
-            </div>
-            <div
-              class="description"
-              style="color: #555; line-height: 1.5; font-size: 0.95rem"
-            >
-              Share your scientific discoveries with the global research
-              community. Upload papers, datasets, and multimedia content with
-              full version control and DOI assignment.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Join Communities Card -->
-      <div class="column">
-        <div
-          class="ui card"
-          style="
-            width: 100%;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 115, 183, 0.15);
-            transition: all 0.4s ease;
-            border: none;
-            cursor: pointer;
-          "
-          onmouseover="this.style.transform='translateY(-15px) scale(1.03)'; this.style.boxShadow='0 20px 60px rgba(0,115,183,0.3)'"
-          onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 32px rgba(0,115,183,0.15)'"
-          onclick="window.location.href='/communities'"
-        >
-          <div class="image" style="height: 160px; overflow: hidden">
-            <img
-              src="/static/images/join-communities.jpg"
-              style="width: 100%; height: 100%; object-fit: cover"
-            />
-          </div>
-          <div class="content" style="padding: 1.5rem">
-            <div
-              class="header"
-              style="
-                font-size: 1.3rem;
-                color: #0073b7;
-                margin-bottom: 0.8rem;
-                font-weight: 600;
-              "
-            >
-              Join Communities
-            </div>
-            <div
-              class="description"
-              style="color: #555; line-height: 1.5; font-size: 0.95rem"
-            >
-              Connect with researchers, join specialized scientific communities,
-              and collaborate on groundbreaking projects. Build networks that
-              advance global science.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Scientific Focus Areas with beautiful cards -->
-<div
-  style="
-    background: linear-gradient(
-        135deg,
-        rgba(248, 249, 250, 0.9) 0%,
-        rgba(227, 242, 253, 0.9) 100%
-      ),
-      url('/static/images/focus-areas.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    padding: 1rem 0;
-    margin-bottom: -20px;
-    position: relative;
-    overflow: hidden;
-  "
->
-  <!-- Background decorative elements -->
-  <div
-    style="
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      background: rgba(0, 115, 183, 0.05);
-    "
-  ></div>
-  <div
-    style="
-      position: absolute;
-      bottom: -100px;
-      left: -100px;
-      width: 300px;
-      height: 300px;
-      border-radius: 50%;
-      background: rgba(46, 163, 217, 0.03);
-    "
-  ></div>
-
+<!-- Introduction Section -->
+<section class="intro-section">
   <div class="ui container">
-    <div
-      class="ui center aligned basic segment"
-      style="margin-bottom: 2rem; position: relative; z-index: 2"
-    >
-      <h2
-        style="
-          font-size: 2rem;
-          color: #0073b7;
-          margin-bottom: 0.8rem;
-          font-weight: 700;
-        "
-      >
-        Scientific Focus Areas
-      </h2>
-      <p
-        style="
-          color: #666;
-          font-size: 1.1rem;
-          max-width: 600px;
-          margin: 0 auto;
-          line-height: 1.5;
-        "
-      >
-        UNESCO supports research across diverse scientific disciplines to
-        advance global knowledge and address humanity's greatest challenges.
+    <div class="intro-content">
+      <p class="intro-text">
+        The UNESCO Open Science Platform is your open gateway to the knowledge produced by 
+        the UNESCO Natural Sciences Family. It provides open access to original publications, 
+        policy briefs, reports, data, and related information published or commissioned by 
+        UNESCO and its partners. The platform also provides thematic insights from these studies 
+        through natural language summaries and dashboards.
       </p>
     </div>
+  </div>
+</section>
 
-    <div
-      class="ui four column stackable grid"
-      style="position: relative; z-index: 2"
-    >
-      <!-- Natural Sciences -->
+<!-- Explore Highlights Section -->
+<section class="highlights-section">
+  <div class="ui container">
+    <h2 class="section-title">Explore Highlights from the UNESCO Knowledge Base</h2>
+    <p class="section-subtitle">
+      Evidence-based insights highlighting data-driven SDGS action priorities and solutions
+    </p>
+    
+    <div class="ui four column doubling stackable grid highlights-grid">
+      <!-- Highlight Card 1 -->
       <div class="column">
-        <div class="ui card">
-          <div
-            class="image"
-            style="height: 120px; position: relative; overflow: hidden"
-          >
-            <img
-              src="/static/images/natural-sciences.jpg"
-              style="
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                mix-blend-mode: overlay;
-              "
-            />
-            <div
-              style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(76, 175, 80, 0.1);
-              "
-            ></div>
+        <div class="highlight-card">
+          <div class="highlight-image">
+            <img src="/static/images/highlight1.jpg" alt="Highlight 1" />
           </div>
-          <div class="content" style="padding: 1.2rem 1rem">
-            <div
-              class="header"
-              style="
-                font-size: 1.2rem;
-                color: #0073b7;
-                margin-bottom: 0.8rem;
-                font-weight: 700;
-              "
-            >
-              Natural Sciences
+          <div class="highlight-content">
+            <div class="highlight-number">60%</div>
+            <p class="highlight-description">
+              of the world's poor live in just 5 countries, showing the ongoing need to address inequality
+            </p>
+            <a href="/search?q=inequality" class="ui basic small button highlight-button">
+              See more
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Highlight Card 2 -->
+      <div class="column">
+        <div class="highlight-card">
+          <div class="highlight-image">
+            <img src="/static/images/highlight1.jpg" alt="Highlight 2" />
+          </div>
+          <div class="highlight-content">
+            <div class="highlight-number">>23.3%</div>
+            <p class="highlight-description">
+              of annual family (Oct-March) so UNESCO and its partners have observed that access to the necessary southern
+            </p>
+            <a href="/search?q=climate" class="ui basic small button highlight-button">
+              See more
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Highlight Card 3 -->
+      <div class="column">
+        <div class="highlight-card">
+          <div class="highlight-image">
+            <img src="/static/images/highlight1.jpg" alt="Highlight 3" />
+          </div>
+          <div class="highlight-content">
+            <div class="highlight-number">>23.3%</div>
+            <p class="highlight-description">
+              of annual family (Oct-March) so UNESCO and its partners have observed that access to the necessary southern
+            </p>
+            <a href="/search?q=arctic" class="ui basic small button highlight-button">
+              See more
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Highlight Card 4 -->
+      <div class="column">
+        <div class="highlight-card">
+          <div class="highlight-image">
+            <img src="/static/images/highlight1.jpg" alt="Highlight 4" />
+          </div>
+          <div class="highlight-content">
+            <div class="highlight-number">>23.3%</div>
+            <p class="highlight-description">
+              of annual family (Oct-March) so UNESCO and its partners have observed that access to the necessary southern
+            </p>
+            <a href="/search?q=research" class="ui basic small button highlight-button">
+              See more
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="highlights-pagination">
+      <span class="pagination-dot active"></span>
+      <span class="pagination-dot"></span>
+      <span class="pagination-dot"></span>
+    </div>
+  </div>
+</section>
+
+<!-- Research Family Section -->
+<section class="research-family-section">
+  <div class="ui container">
+    <h2 class="section-title-white">Discover Research across the UNESCO Natural Science Family</h2>
+    <p class="section-subtitle-white">
+      Summary descriptions of UNESCO research on UNESCO-supported Studies
+    </p>
+    
+    <div class="research-family-carousel">
+      <button class="carousel-nav prev" aria-label="Previous">
+        <i class="chevron left icon"></i>
+      </button>
+      
+      <div class="ui four column doubling stackable grid research-family-grid">
+        <!-- Research Card 1 -->
+        <div class="column">
+          <div class="research-family-card">
+            <div class="research-family-image">
+              <img src="/static/images/research-family1.jpg" alt="Research 1" />
             </div>
-            <div
-              class="description"
-              style="color: #555; line-height: 1.4; font-size: 0.85rem"
-            >
-              Biology, Ecology, Earth Sciences, Environmental Studies,
-              Biodiversity Research
+            <div class="research-family-content">
+              <h3>UNESCO global knowledge library</h3>
+              <p>UNESCO is a key for biodiversity of...</p>
+              <a href="/search?f=family:knowledge" class="ui primary small button">
+                See all
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Research Card 2 -->
+        <div class="column">
+          <div class="research-family-card">
+            <div class="research-family-image">
+              <img src="/static/images/research-family1.jpg" alt="Research 2" />
+            </div>
+            <div class="research-family-content">
+              <h3>UNESCO global knowledge library</h3>
+              <p>UNESCO is a key for biodiversity of...</p>
+              <a href="/search?f=family:knowledge" class="ui primary small button">
+                See all
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Research Card 3 -->
+        <div class="column">
+          <div class="research-family-card">
+            <div class="research-family-image">
+              <img src="/static/images/research-family1.jpg" alt="Research 3" />
+            </div>
+            <div class="research-family-content">
+              <h3>UNESCO global knowledge library</h3>
+              <p>UNESCO is a key for biodiversity of...</p>
+              <a href="/search?f=family:knowledge" class="ui primary small button">
+                See all
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Research Card 4 -->
+        <div class="column">
+          <div class="research-family-card">
+            <div class="research-family-image">
+              <img src="/static/images/research-family1.jpg" alt="Research 4" />
+            </div>
+            <div class="research-family-content">
+              <h3>UNESCO global knowledge library</h3>
+              <p>UNESCO is a key for biodiversity of...</p>
+              <a href="/search?f=family:knowledge" class="ui primary small button">
+                See all
+              </a>
             </div>
           </div>
         </div>
       </div>
+      
+      <button class="carousel-nav next" aria-label="Next">
+        <i class="chevron right icon"></i>
+      </button>
+    </div>
+    
+    <div class="research-family-pagination">
+      <span class="pagination-dot active"></span>
+      <span class="pagination-dot"></span>
+      <span class="pagination-dot"></span>
+    </div>
+  </div>
+</section>
 
-      <!-- Exact Sciences -->
-      <div class="column">
-        <div class="ui card">
-          <div
-            class="image"
-            style="height: 120px; position: relative; overflow: hidden"
-          >
-            <img
-              src="/static/images/exact-sciences.jpg"
-              style="
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                mix-blend-mode: overlay;
-              "
-            />
-            <div
-              style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(156, 39, 176, 0.1);
-              "
-            ></div>
-          </div>
-          <div class="content" style="padding: 1.2rem 1rem">
-            <div
-              class="header"
-              style="
-                font-size: 1.2rem;
-                color: #0073b7;
-                margin-bottom: 0.8rem;
-                font-weight: 700;
-              "
-            >
-              Exact Sciences
-            </div>
-            <div
-              class="description"
-              style="color: #555; line-height: 1.4; font-size: 0.85rem"
-            >
-              Physics, Chemistry, Mathematics, Computer Science, Engineering
-            </div>
-          </div>
-        </div>
+<!-- Dashboards Section -->
+<section class="dashboards-section">
+  <div class="ui container">
+    <div class="ui two column stackable reversed grid">
+      <div class="column dashboards-text-column">
+        <h2 class="dashboards-title">Browse Insights from UNESCO Open Science Dashboards</h2>
+        <p class="dashboards-description">
+          Interactive dashboards tracking implementation of the UNESCO Recommendation on Open Science
+        </p>
+        <a href="/statistics" class="ui primary large button">
+          Explore dashboards
+        </a>
       </div>
-
-      <!-- Climate Change -->
       <div class="column">
-        <div class="ui card">
-          <div
-            class="image"
-            style="height: 120px; position: relative; overflow: hidden"
-          >
-            <img
-              src="/static/images/climate-change.jpg"
-              style="
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                mix-blend-mode: overlay;
-              "
-            />
-            <div
-              style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 188, 212, 0.1);
-              "
-            ></div>
-          </div>
-          <div class="content" style="padding: 1.2rem 1rem">
-            <div
-              class="header"
-              style="
-                font-size: 1.2rem;
-                color: #0073b7;
-                margin-bottom: 0.8rem;
-                font-weight: 700;
-              "
-            >
-              Climate Change
-            </div>
-            <div
-              class="description"
-              style="color: #555; line-height: 1.4; font-size: 0.85rem"
-            >
-              Environmental Research, Sustainability, Renewable Energy, Climate
-              Science
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Science Education -->
-      <div class="column">
-        <div class="ui card">
-          <div
-            class="image"
-            style="height: 120px; position: relative; overflow: hidden"
-          >
-            <img
-              src="/static/images/science-education.jpg"
-              style="
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                mix-blend-mode: overlay;
-              "
-            />
-            <div
-              style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(255, 152, 0, 0.1);
-              "
-            ></div>
-          </div>
-          <div class="content" style="padding: 1.2rem 1rem">
-            <div
-              class="header"
-              style="
-                font-size: 1.2rem;
-                color: #0073b7;
-                margin-bottom: 0.8rem;
-                font-weight: 700;
-              "
-            >
-              Science Education
-            </div>
-            <div
-              class="description"
-              style="color: #555; line-height: 1.4; font-size: 0.85rem"
-            >
-              Pedagogy, Scientific Outreach, STEM Education, Knowledge Transfer
-            </div>
-          </div>
+        <div class="dashboards-map">
+          <img src="/static/images/world-map.svg" alt="World Map" />
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
+
+<!-- Partners Section -->
+<section class="partners-section">
+  <div class="ui container center aligned">
+    <h3 class="partners-title">Partners</h3>
+    <p class="partners-subtitle">Proudly collaborating with best-in-class partners</p>
+    <div class="partners-logos">
+      <a href="https://inveniosoftware.org/" target="_blank" rel="noopener noreferrer">
+        <img src="/static/images/invenio-logo.svg" alt="InvenioRDM" class="partner-logo" />
+      </a>
+      <a href="https://www.lens.org/" target="_blank" rel="noopener noreferrer">
+        <img src="/static/images/lens-logo.png" alt="Lens.org" class="partner-logo" />
+      </a>
+    </div>
+  </div>
+</section>
 {%- endblock page_body %}

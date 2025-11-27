@@ -67,6 +67,9 @@ link #}
             {%- if config.THEME_SEARCHBAR %} {%- block navbar_search %} {%-
             include "invenio_app_rdm/searchbar.html" %}
             {# Advanced Search Button - Only on search page, hidden on mobile #}
+            {# COMMENTED: Uncomment to add Advanced Search button in header (desktop only)
+               Displays a blue button with filter icon and badge showing active filter count
+               Note: Advanced Search is already available in facets sidebar #}
             <!--
             {%- if request.endpoint == 'invenio_search_ui.search' %}
             <div class="item p-0 desktop-only">
@@ -85,7 +88,10 @@ link #}
             -->
             {%- endblock
             navbar_search %} {%- endif %} {%- block navbar_nav %}
-            {# Advanced Search link - visible only on mobile, shown first #}
+            {# COMMENTED: Uncomment to show Advanced Search link in mobile menu #}
+            {# Displays Advanced Search modal trigger in mobile drawer menu on search page #}
+            {# Note: Advanced Search is already available in facets sidebar on mobile #}
+            <!--
             {%- if request.endpoint == 'invenio_search_ui.search' %}
             <div class="item mobile-only">
               <a href="#" id="mobile-query-builder-link">
@@ -94,7 +100,7 @@ link #}
               </a>
             </div>
             {%- endif %}
-            
+             -->
             {%- for item
             in current_menu.submenu('main').children|sort(attribute='order') if
             item.visible recursive %} {%- if item.children %}
@@ -117,21 +123,30 @@ link #}
               </div>
             </div>
             {%- else %}
+            {# COMMENTED: Uncomment to show Communities link in main navigation #}
+            {# Displays link to browse and manage scientific communities #}
+            <!--
             <div class="{{ 'item active' if item.active else 'item' }}">
               <a href="{{ item.url }}">{{ item.text|safe }}</a>
             </div>
-            {# Add custom Statistics menu item after
-            main menu #}
+            -->
+            {# COMMENTED: Uncomment to add Statistics dashboard link in main navigation #}
+            {# Shows usage analytics, views, downloads, and platform statistics #}
+            <!--
             <div class="item">
               <a href="{{ url_for('my_site.statistics_dashboard') }}">
                 <i class="chart bar icon"></i>
                 {{ _('Statistics') }}
               </a>
             </div>
+            -->
 
             {%- endif %}
             {%- endfor %}
             
+            {# COMMENTED: Uncomment to show My Dashboard and related action menu items #}
+            {# Displays links to user's uploads, drafts, requests, and personal workspace #}
+            <!--
             {% for item in
             current_menu.submenu('actions').children|sort(attribute='order') if
             item.visible recursive %}
@@ -139,9 +154,15 @@ link #}
               <a href="{{ item.url }}">{{ item.text|safe }}</a>
             </div>
             {% endfor %}
+            -->
             {%- endblock navbar_nav %}
             
             {%- block navbar_right %}
+            {# COMMENTED: Uncomment to enable user authentication section #}
+            {# Shows: Login/Sign up buttons for anonymous users #}
+            {# Shows: Inbox notifications and user menu for authenticated users #}
+            {# Required for: User registration, login, profile access, and notifications #}
+            <!--
             <div class="right menu item">
               {%- if config.ACCOUNTS and current_user.is_authenticated %} {% for
               item in
@@ -158,6 +179,7 @@ link #}
               {% endfor %} {% endif %} {%- include
               config.THEME_HEADER_LOGIN_TEMPLATE %}
             </div>
+            -->
             {%- endblock navbar_right %}
           </nav>
         </nav>
