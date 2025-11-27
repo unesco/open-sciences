@@ -8,4 +8,8 @@
  * Add here all the overridden components of your app.
  */
 
-export const overriddenComponents = {};
+import CustomRecordsResultsListItem from "../components/CustomRecordsResultsListItem";
+
+export const overriddenComponents = {
+  "RecordsResultsListItem": CustomRecordsResultsListItem,
+};
