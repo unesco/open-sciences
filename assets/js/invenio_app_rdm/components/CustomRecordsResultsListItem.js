@@ -48,22 +48,46 @@ class CustomRecordsResultsListItem extends Component {
     const version = _get(result, "ui.version", null);
     const versions = _get(result, "versions");
     const uniqueViews = _get(result, "stats.all_versions.unique_views", 0);
-    const uniqueDownloads = _get(result, "stats.all_versions.unique_downloads", 0);
+    const uniqueDownloads = _get(
+      result,
+      "stats.all_versions.unique_downloads",
+      0
+    );
 
-    const publishingInformation = _get(result, "ui.publishing_information.journal", "");
+    const publishingInformation = _get(
+      result,
+      "ui.publishing_information.journal",
+      ""
+    );
 
     // Custom fields extraction
     const journalInfo = _get(result, "custom_fields.journal:journal", null);
-    const openAccessColour = _get(result, "custom_fields.publication:open_access_colour", null);
-    
+    const isOpenAccess = _get(
+      result,
+      "custom_fields.publication:is_open_access",
+      null
+    );
+    const openAccessColour = _get(
+      result,
+      "custom_fields.publication:open_access_colour",
+      null
+    );
+
     // Parse lens:references and lens:scholarly_citations from JSON strings
     let referencesCount = 0;
     let citationsCount = 0;
-    
+
     try {
-      const referencesData = _get(result, "custom_fields.lens:references", null);
+      const referencesData = _get(
+        result,
+        "custom_fields.lens:references",
+        null
+      );
       if (referencesData) {
-        const parsed = typeof referencesData === 'string' ? JSON.parse(referencesData) : referencesData;
+        const parsed =
+          typeof referencesData === "string"
+            ? JSON.parse(referencesData)
+            : referencesData;
         referencesCount = parsed.count || 0;
       }
     } catch (e) {
@@ -71,22 +95,30 @@ class CustomRecordsResultsListItem extends Component {
     }
 
     try {
-      const citationsData = _get(result, "custom_fields.lens:scholarly_citations", null);
+      const citationsData = _get(
+        result,
+        "custom_fields.lens:scholarly_citations",
+        null
+      );
       if (citationsData) {
-        const parsed = typeof citationsData === 'string' ? JSON.parse(citationsData) : citationsData;
+        const parsed =
+          typeof citationsData === "string"
+            ? JSON.parse(citationsData)
+            : citationsData;
         citationsCount = parsed.count || 0;
       }
     } catch (e) {
       console.error("Error parsing lens:scholarly_citations", e);
     }
 
-    const filters = currentQueryState && Object.fromEntries(currentQueryState.filters);
+    const filters =
+      currentQueryState && Object.fromEntries(currentQueryState.filters);
     const allVersionsVisible = filters?.allversions;
     const numOtherVersions = versions.index - 1;
 
     // Derivatives
     const viewLink = `/records/${result.id}`;
-    
+
     // Build journal display string
     let journalDisplay = "";
     if (journalInfo) {
@@ -135,10 +167,24 @@ class CustomRecordsResultsListItem extends Component {
                 {accessStatusIcon && <Icon name={accessStatusIcon} />}
                 {accessStatus}
               </Label>
-              {openAccessColour && (
-                <Label horizontal size="small" className="teal">
+              {isOpenAccess === "true" && (
+                <Label
+                  horizontal
+                  size="small"
+                  className={
+                    openAccessColour === "gold"
+                      ? "yellow"
+                      : openAccessColour === "green"
+                      ? "green"
+                      : openAccessColour === "bronze"
+                      ? "brown"
+                      : openAccessColour === "hybrid"
+                      ? "teal"
+                      : "teal"
+                  }
+                >
                   <Icon name="unlock" />
-                  {openAccessColour}
+                  Open Access
                 </Label>
               )}
             </Item.Extra>
@@ -167,8 +213,10 @@ class CustomRecordsResultsListItem extends Component {
 
               <div className="flex justify-space-between align-items-end">
                 <small>
-                  <DisplayPartOfCommunities communities={result.parent?.communities} />
-                  
+                  <DisplayPartOfCommunities
+                    communities={result.parent?.communities}
+                  />
+
                   {/* Journal information */}
                   {journalDisplay && (
                     <p>
@@ -176,21 +224,12 @@ class CustomRecordsResultsListItem extends Component {
                       {journalDisplay}
                     </p>
                   )}
-                  
+
                   <p>
                     {createdDate && (
                       <>
                         {i18next.t("Uploaded on {{uploadDate}}", {
                           uploadDate: createdDate,
-                        })}
-                      </>
-                    )}
-                    {createdDate && publishingInformation && " | "}
-
-                    {publishingInformation && (
-                      <>
-                        {i18next.t("Published in: {{- publishInfo }}", {
-                          publishInfo: publishingInformation,
                         })}
                       </>
                     )}
@@ -202,13 +241,17 @@ class CustomRecordsResultsListItem extends Component {
                       {referencesCount > 0 && (
                         <span style={{ marginRight: "15px" }}>
                           <Icon name="linkify" />
-                          {i18next.t("{{count}} references", { count: referencesCount })}
+                          {i18next.t("{{count}} references", {
+                            count: referencesCount,
+                          })}
                         </span>
                       )}
                       {citationsCount > 0 && (
                         <span>
                           <Icon name="quote right" />
-                          {i18next.t("{{count}} citations", { count: citationsCount })}
+                          {i18next.t("{{count}} citations", {
+                            count: citationsCount,
+                          })}
                         </span>
                       )}
                     </p>
@@ -217,9 +260,12 @@ class CustomRecordsResultsListItem extends Component {
                   {!allVersionsVisible && versions.index > 1 && (
                     <p>
                       <b>
-                        {i18next.t("{{count}} more versions exist for this record", {
-                          count: numOtherVersions,
-                        })}
+                        {i18next.t(
+                          "{{count}} more versions exist for this record",
+                          {
+                            count: numOtherVersions,
+                          }
+                        )}
                       </b>
                     </p>
                   )}

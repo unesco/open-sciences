@@ -331,7 +331,7 @@ window.addEventListener("load", function () {
   // Update badge with filter count
   function updateBadge() {
     const badge = document.getElementById("filter-badge");
-    if (!badge) return;
+    const facetsBadge = document.getElementById("facets-advanced-search-badge");
 
     let totalFilters = 0;
 
@@ -352,11 +352,24 @@ window.addEventListener("load", function () {
 
     console.log("Badge update - Total filters:", totalFilters);
 
-    if (totalFilters > 0) {
-      badge.textContent = totalFilters;
-      badge.style.display = "flex";
-    } else {
-      badge.style.display = "none";
+    // Update header badge (if exists, even if commented out in HTML)
+    if (badge) {
+      if (totalFilters > 0) {
+        badge.textContent = totalFilters;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+
+    // Update facets sidebar badge
+    if (facetsBadge) {
+      if (totalFilters > 0) {
+        facetsBadge.textContent = totalFilters;
+        facetsBadge.style.display = "inline-block";
+      } else {
+        facetsBadge.style.display = "none";
+      }
     }
   }
 
@@ -458,6 +471,21 @@ window.addEventListener("load", function () {
 
   // Initialize form from URL parameters
   initializeFromURL();
+
+  // Update badge when modal is shown (in case it was initialized before DOM was ready)
+  modal.modal({
+    onShow: function () {
+      // Small delay to ensure dropdowns are ready
+      setTimeout(function () {
+        updateBadge();
+      }, 100);
+    },
+  });
+
+  // Also update badge on page load after a short delay
+  setTimeout(function () {
+    updateBadge();
+  }, 500);
 
   console.log("Advanced Search Builder initialized successfully");
 });
