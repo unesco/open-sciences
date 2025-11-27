@@ -69,6 +69,12 @@ class CustomFieldsMapper(BaseMapper):
                 if colour:
                     custom_fields["publication:open_access_colour"] = colour
 
+            # Extract is_open_access flag from Lens.org data
+            # Store as keyword 'true'/'false' for compatibility with CFTermsFacet
+            is_oa = self.safe_get(lens_record, "is_open_access")
+            if is_oa is not None:
+                custom_fields["publication:is_open_access"] = "true" if is_oa else "false"
+
             # Publication country for faceting (extract from lens:source)
             source_data = self._map_source(lens_record)
             if source_data and source_data.get("country"):

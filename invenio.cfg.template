@@ -294,6 +294,11 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="publication:open_access_colour",
         multiple=False,
     ),
+    # Is the publication open access? (boolean-like stored as keyword 'true'/'false')
+    KeywordCF(
+        name="publication:is_open_access",
+        multiple=False,
+    ),
     # Publication year for filtering (extracted from metadata.publication_date)
     # Single year value for faceted search
     KeywordCF(
@@ -448,9 +453,18 @@ RDM_FACETS = {
             "field": "custom_fields.publication:funding_org",
         },
     },
+    "is_open_access": {
+        "facet": CFTermsFacet(
+            field="publication:is_open_access",
+            label=_("Open access"),
+        ),
+        "ui": {
+            "field": "custom_fields.publication:is_open_access",
+        },
+    },
 }
 
 RDM_SEARCH = {
     **RDM_SEARCH,
-    "facets": RDM_SEARCH["facets"] + ["open_access_colour", "publication_year", "publication_country", "funding_org"]
+    "facets": RDM_SEARCH["facets"] + ["open_access_colour", "publication_year", "publication_country", "funding_org", "is_open_access"]
 }
