@@ -2,134 +2,56 @@
 University. Copyright (C) 2019-2020 Graz University of Technology. Copyright (C)
 2024 KTH Royal Institute of Technology. Invenio App RDM is free software; you
 can redistribute it and/or modify it under the terms of the MIT License; see
-LICENSE file for more details. #} {%- block footer_top %}
-<div
-  class="footer-top"
-  style="background-color: #0073b7; padding: 3rem 0 2rem 0; margin-bottom: 0"
->
-  <div class="ui container">
-    <div class="ui stackable three column grid">
-      <div class="column">
-        <h3
-          class="ui header"
-          style="color: #fff; font-size: 1.2rem; margin-bottom: 1.5rem"
-        >
-          UNESCO
-        </h3>
-        <div class="ui list">
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="https://www.unesco.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Official UNESCO Website</a
-            >
-          </div>
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="https://www.unesco.org/en/natural-sciences"
-              target="_blank"
-              rel="noopener noreferrer"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Natural Sciences</a
-            >
-          </div>
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="https://www.unesco.org/en/education"
-              target="_blank"
-              rel="noopener noreferrer"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Education</a
-            >
-          </div>
-        </div>
-      </div>
+LICENSE file for more details. #}
 
-      <div class="column">
-        <h3
-          class="ui header"
-          style="color: #fff; font-size: 1.2rem; margin-bottom: 1.5rem"
-        >
-          Scientific Research
-        </h3>
-        <div class="ui list">
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="{{ url_for('invenio_search_ui.search') }}"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Search Publications</a
-            >
-          </div>
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="{{ url_for('invenio_app_rdm_records.deposit_create') }}"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Submit Research</a
-            >
-          </div>
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="#"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Guidelines</a
-            >
-          </div>
-        </div>
+{%- block footer_top %}
+<!-- Footer Top Section -->
+<div style="background-color: #0077D4; padding: 40px 0; width: 100%;">
+  <div style="max-width: 1221px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 20px;">
+    
+    <!-- Left Column: Logo and Website Link -->
+    <div style="display: flex; flex-direction: column; gap: 21px; width: 261.269px;">
+      <div style="height: 56px; width: 100%;">
+        <img src="{{ url_for('static', filename='images/unesco-logo1.svg') }}" alt="UNESCO" style="height: 56px; width: auto;" />
       </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <a href="https://www.unesco.org" target="_blank" rel="noopener noreferrer" style="font-family: 'Inter', sans-serif; font-weight: 400; font-size: 14px; line-height: 20px; color: #FFFFFF; text-decoration: none;">
+          Official UNESCO Website
+        </a>
+      </div>
+    </div>
+    
+    <!-- Right Column: Contact and Navigation -->
+    <div style="display: flex; flex-direction: column; gap: 24px; width: 301px;">
+      <!-- Email -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <a href="mailto:open-science-platform@unesco.org" style="font-family: 'Inter', sans-serif; font-weight: 400; font-size: 16px; line-height: 24px; color: #FFFFFF; text-decoration: none;">
+          open-science-platform@unesco.org
+        </a>
+      </div>
+      
+      <!-- Navigation Links -->
+      <div style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 16px; line-height: 22px; color: #FFFFFF;">
+        <p style="margin: 0;">About</p>
+        <p style="margin: 0;">UNESCO Natural Sciences Family</p>
+        <p style="margin: 0;">UNESCO Open Science</p>
+      </div>
+    </div>
+    
+  </div>
+</div>
 
-      <div class="column">
-        <h3
-          class="ui header"
-          style="color: #fff; font-size: 1.2rem; margin-bottom: 1.5rem"
-        >
-          Community
-        </h3>
-        <div class="ui list">
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="{{ url_for('invenio_communities.communities_frontpage') }}"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Scientific Communities</a
-            >
-          </div>
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="#"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Help & Support</a
-            >
-          </div>
-          <div class="item" style="padding: 0.4rem 0">
-            <a
-              href="#"
-              style="color: #fff; text-decoration: none; transition: color 0.3s"
-              onmouseover="this.style.color='#0073b7'"
-              onmouseout="this.style.color='#fff'"
-              >Events & Training</a
-            >
-          </div>
-        </div>
-      </div>
+<!-- Footer Bottom Section: Copyright -->
+<div style="background-color: #0077D4; padding: 40px 0; width: 100%;">
+  <div style="max-width: 1221px; margin: 0 auto; padding: 0 20px;">
+    <div style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 400; color: #FFFFFF;">
+      <p style="margin: 0; font-size: 16px; line-height: 20px;">
+        Ⓒ 2025 UNESCO Open Science Portal - Unites Nations Educational, Scientific and Cultural Organization
+      </p>
+      <p style="margin: 0; font-size: 14px; line-height: 20px;">
+        Promoting international cooperation in education, science, and culture worldwide.
+      </p>
     </div>
   </div>
 </div>
-{%- endblock footer_top %} {# Include our custom site footer #} {% include
-"invenio_app_rdm/site_footer.html" %}
+{%- endblock footer_top %}
