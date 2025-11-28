@@ -32,8 +32,20 @@
 
 /* Introduction Section */
 .intro-section {
-  background-color: #f8f9fa;
-  padding: 50px 0;
+  background-color: #f1f4f6;
+  padding: 24px 120px;
+  margin-top: -15px !important;
+}
+
+/* Remove default spacing from page body */
+#invenio-page-body {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Remove spacing from outer navbar wrapper */
+.outer-navbar {
+  margin-bottom: 0 !important;
 }
 
 .intro-content {
@@ -44,47 +56,56 @@
 
 .intro-text {
   font-size: 16px;
-  line-height: 1.8;
-  color: #333;
+  line-height: 1.5;
+  color: #212121;
   margin: 0;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
 }
 
 /* Highlights Section */
 .highlights-section {
   background-color: #fff;
-  padding: 60px 0;
+  padding: 48px 120px 64px;
 }
 
 .section-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 600;
-  color: #333;
+  color: #4c5054;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   line-height: 1.3;
+  font-family: "Inter", sans-serif;
 }
 
 .section-subtitle {
   font-size: 16px;
-  color: #666;
+  color: #4c5054;
   text-align: center;
   margin-bottom: 40px;
+  line-height: 1.6;
+  font-family: "Inter", sans-serif;
 }
 
 .section-title-white {
   font-size: 32px;
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
   text-align: center;
-  margin-bottom: 12px;
-  line-height: 1.3;
+  margin-bottom: 8px;
+  line-height: 36px;
+  font-family: "Inter", sans-serif;
 }
 
 .section-subtitle-white {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 20px;
+  color: #fff;
   text-align: center;
   margin-bottom: 40px;
+  line-height: 1.6;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
 }
 
 /* Swiper Highlights Carousel */
@@ -164,22 +185,68 @@
 }
 
 .highlight-button {
-  border: 1px solid #0073b7 !important;
-  color: #0073b7 !important;
+  border: 1px solid #0077d4 !important;
+  color: #0077d4 !important;
   background: transparent !important;
   align-self: flex-start;
+  padding: 10px 20px !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+  border-radius: 24px !important;
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
 }
 
 .highlight-button:hover {
-  background: #0073b7 !important;
+  background: #0077d4 !important;
   color: #fff !important;
+}
+
+.highlight-button::after {
+  content: "→";
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Alternative filled button style for first highlight card */
+.highlight-card:first-child .highlight-button {
+  background: #0077d4 !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 12px 24px !important;
+}
+
+.highlight-card:first-child .highlight-button::after {
+  display: none;
+}
+
+.highlight-card:first-child .highlight-button:hover {
+  background: #005a9e !important;
 }
 
 /* Research Family Section */
 .research-family-section {
-  background: linear-gradient(135deg, #0073b7 0%, #005a8f 100%);
+  background: #0077d4;
   padding: 60px 0;
   position: relative;
+  overflow: hidden;
+}
+
+.research-family-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/static/images/unesco.png");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.2;
+  pointer-events: none;
 }
 
 /* Swiper Research Family Carousel */
@@ -270,8 +337,9 @@
 
 /* Dashboards Section */
 .dashboards-section {
-  background-color: #f8f9fa;
-  padding: 80px 0;
+  background-color: #fff;
+  padding: 32px 0;
+  border-top: 1px solid #d5dadd;
 }
 
 .dashboards-text-column {
@@ -281,18 +349,38 @@
 }
 
 .dashboards-title {
-  font-size: 36px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #212121;
+  margin-bottom: 16px;
   line-height: 1.3;
+  font-family: "Inter", sans-serif;
 }
 
 .dashboards-description {
   font-size: 16px;
-  color: #555;
-  line-height: 1.8;
-  margin-bottom: 32px;
+  color: #212121;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  font-family: "Inter", sans-serif;
+}
+
+.dashboards-section .button {
+  background: #0077d4 !important;
+  color: #fff !important;
+  border-radius: 24px !important;
+  padding: 10px 20px !important;
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboards-section .button:hover {
+  background: #005a9e !important;
 }
 
 .dashboards-map {
@@ -309,21 +397,49 @@
 
 /* Partners Section */
 .partners-section {
-  background-color: #f8f9fa;
-  padding: 60px 0;
+  background-color: #fff;
+  padding: 64px 120px 64px 120px;
+  position: relative;
+}
+
+.partners-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  height: 1px;
+  background: #d5dadd;
+}
+
+.partners-section .ui.container {
+  max-width: 100% !important;
+}
+
+.partners-wrapper {
+  background-color: #f1f4f6;
+  padding: 40px 60px;
+  border-radius: 0;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .partners-title {
   font-size: 24px;
   font-weight: 600;
-  color: #333;
+  color: #212121;
   margin-bottom: 8px;
+  line-height: 1.3;
+  font-family: "Inter", sans-serif;
 }
 
 .partners-subtitle {
   font-size: 16px;
-  color: #777;
-  margin-bottom: 40px;
+  color: #4c5054;
+  margin-bottom: 30px;
+  line-height: 1.5;
+  font-family: "Inter", sans-serif;
 }
 
 .partners-logos {
