@@ -1,0 +1,25 @@
+{#
+# Custom static page template with CSS support
+#}
+{% extends config.PAGES_BASE_TEMPLATE %}
+
+{% set title = page.title %}
+
+{% block head %}
+  {{ super() }}
+  <!-- Custom CSS for static pages -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/static-pages.css') }}">
+{% endblock %}
+
+{% block page_body %}
+<div class="ui container rel-mt-2">
+    <div class="row">
+          <div class="col-xs-12 rich-input-content">
+            <div class="page-header">
+              <h1 class="page-header-title">{{ page.title|safe }}</h1>
+            </div>
+            {% block content %}{{ page.content|safe }}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

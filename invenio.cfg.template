@@ -460,3 +460,18 @@ RDM_SEARCH = {
     **RDM_SEARCH,
     "facets": RDM_SEARCH["facets"] + ["publication_year", "publication_country", "funding_org", "is_open_access"]
 }
+
+# Static Pages Configuration
+# ==========================
+# See https://inveniordm.docs.cern.ch/customize/static_pages/
+
+# Register static pages with their URL paths
+APP_RDM_PAGES = {
+    "about": "/about",
+}
+
+# Define custom templates for static pages
+PAGES_TEMPLATES = [
+    ("invenio_pages/dynamic.html", "Default dynamic"),
+    ("invenio_app_rdm/default_static_page.html", "Default static page"),
+]

@@ -1,0 +1,7 @@
+# UNESCO Open Science Platform - Static Pages Configuration
+# List of static pages that will be created in the database
+
+- url: /about
+  title: About Open Science
+  description: Learn about the open science movement and its global impact
+  template: about.html
