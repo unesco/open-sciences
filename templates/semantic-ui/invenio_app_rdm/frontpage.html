@@ -5,6 +5,7 @@
 
 {%- block head_links %}
 {{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/frontpage.css') }}" />
 {%- endblock head_links %}
 
@@ -32,9 +33,10 @@
       Evidence-based insights highlighting data-driven SDGS action priorities and solutions
     </p>
     
-    <div class="ui four column doubling stackable grid highlights-grid">
-      <!-- Highlight Card 1 -->
-      <div class="column">
+    <div class="swiper highlightsSwiper">
+      <div class="swiper-wrapper">
+        <!-- Highlight Card 1 -->
+        <div class="swiper-slide">
         <div class="highlight-card">
           <div class="highlight-image">
             <img src="/static/images/highlight1.jpg" alt="Highlight 1" />
@@ -49,10 +51,10 @@
             </a>
           </div>
         </div>
-      </div>
-      
-      <!-- Highlight Card 2 -->
-      <div class="column">
+        </div>
+        
+        <!-- Highlight Card 2 -->
+        <div class="swiper-slide">
         <div class="highlight-card">
           <div class="highlight-image">
             <img src="/static/images/highlight1.jpg" alt="Highlight 2" />
@@ -67,10 +69,10 @@
             </a>
           </div>
         </div>
-      </div>
-      
-      <!-- Highlight Card 3 -->
-      <div class="column">
+        </div>
+        
+        <!-- Highlight Card 3 -->
+        <div class="swiper-slide">
         <div class="highlight-card">
           <div class="highlight-image">
             <img src="/static/images/highlight1.jpg" alt="Highlight 3" />
@@ -85,10 +87,10 @@
             </a>
           </div>
         </div>
-      </div>
-      
-      <!-- Highlight Card 4 -->
-      <div class="column">
+        </div>
+        
+        <!-- Highlight Card 4 -->
+        <div class="swiper-slide">
         <div class="highlight-card">
           <div class="highlight-image">
             <img src="/static/images/highlight1.jpg" alt="Highlight 4" />
@@ -103,13 +105,9 @@
             </a>
           </div>
         </div>
+        </div>
       </div>
-    </div>
-    
-    <div class="highlights-pagination">
-      <span class="pagination-dot active"></span>
-      <span class="pagination-dot"></span>
-      <span class="pagination-dot"></span>
+      <div class="swiper-pagination"></div>
     </div>
   </div>
 </section>
@@ -122,14 +120,10 @@
       Summary descriptions of UNESCO research on UNESCO-supported Studies
     </p>
     
-    <div class="research-family-carousel">
-      <button class="carousel-nav prev" aria-label="Previous">
-        <i class="chevron left icon"></i>
-      </button>
-      
-      <div class="ui four column doubling stackable grid research-family-grid">
+    <div class="swiper researchSwiper">
+      <div class="swiper-wrapper">
         <!-- Research Card 1 -->
-        <div class="column">
+        <div class="swiper-slide">
           <div class="research-family-card">
             <div class="research-family-image">
               <img src="/static/images/research-family1.jpg" alt="Research 1" />
@@ -145,7 +139,7 @@
         </div>
         
         <!-- Research Card 2 -->
-        <div class="column">
+        <div class="swiper-slide">
           <div class="research-family-card">
             <div class="research-family-image">
               <img src="/static/images/research-family1.jpg" alt="Research 2" />
@@ -161,7 +155,7 @@
         </div>
         
         <!-- Research Card 3 -->
-        <div class="column">
+        <div class="swiper-slide">
           <div class="research-family-card">
             <div class="research-family-image">
               <img src="/static/images/research-family1.jpg" alt="Research 3" />
@@ -177,7 +171,7 @@
         </div>
         
         <!-- Research Card 4 -->
-        <div class="column">
+        <div class="swiper-slide">
           <div class="research-family-card">
             <div class="research-family-image">
               <img src="/static/images/research-family1.jpg" alt="Research 4" />
@@ -192,16 +186,7 @@
           </div>
         </div>
       </div>
-      
-      <button class="carousel-nav next" aria-label="Next">
-        <i class="chevron right icon"></i>
-      </button>
-    </div>
-    
-    <div class="research-family-pagination">
-      <span class="pagination-dot active"></span>
-      <span class="pagination-dot"></span>
-      <span class="pagination-dot"></span>
+      <div class="swiper-pagination"></div>
     </div>
   </div>
 </section>
@@ -243,4 +228,64 @@
     </div>
   </div>
 </section>
+
 {%- endblock page_body %}
+
+{%- block javascript %}
+{{ super() }}
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<!-- Initialize Swiper -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Highlights Swiper
+    var highlightsSwiper = new Swiper(".highlightsSwiper", {
+      slidesPerView: 1,
+      spaceBetween: 20,
+      pagination: {
+        el: ".highlightsSwiper .swiper-pagination",
+        clickable: true,
+      },
+      breakpoints: {
+        768: {
+          slidesPerView: 2,
+          spaceBetween: 20,
+        },
+        992: {
+          slidesPerView: 3,
+          spaceBetween: 20,
+        },
+        1200: {
+          slidesPerView: 4,
+          spaceBetween: 20,
+        },
+      },
+    });
+
+    // Research Family Swiper
+    var researchSwiper = new Swiper(".researchSwiper", {
+      slidesPerView: 1,
+      spaceBetween: 20,
+      pagination: {
+        el: ".researchSwiper .swiper-pagination",
+        clickable: true,
+      },
+      breakpoints: {
+        768: {
+          slidesPerView: 2,
+          spaceBetween: 20,
+        },
+        992: {
+          slidesPerView: 3,
+          spaceBetween: 20,
+        },
+        1200: {
+          slidesPerView: 4,
+          spaceBetween: 20,
+        },
+      },
+    });
+  });
+</script>
+{%- endblock javascript %}

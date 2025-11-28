@@ -87,8 +87,29 @@
   margin-bottom: 40px;
 }
 
-.highlights-grid {
-  margin-top: 0 !important;
+/* Swiper Highlights Carousel */
+.highlightsSwiper {
+  width: 100%;
+  padding: 20px 0 60px 0;
+}
+
+.highlightsSwiper .swiper-slide {
+  height: auto;
+}
+
+.highlightsSwiper .swiper-pagination {
+  bottom: 20px;
+}
+
+.highlightsSwiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: #ddd;
+  opacity: 1;
+}
+
+.highlightsSwiper .swiper-pagination-bullet-active {
+  background: #0073b7;
 }
 
 .highlight-card {
@@ -154,26 +175,6 @@
   color: #fff !important;
 }
 
-.highlights-pagination {
-  text-align: center;
-  margin-top: 30px;
-}
-
-.pagination-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ddd;
-  margin: 0 4px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.pagination-dot.active {
-  background: #0073b7;
-}
-
 /* Research Family Section */
 .research-family-section {
   background: linear-gradient(135deg, #0073b7 0%, #005a8f 100%);
@@ -181,47 +182,29 @@
   position: relative;
 }
 
-.research-family-carousel {
-  position: relative;
-  padding: 0 40px;
+/* Swiper Research Family Carousel */
+.researchSwiper {
+  width: 100%;
+  padding: 20px 0 60px 0;
 }
 
-.carousel-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-  z-index: 10;
+.researchSwiper .swiper-slide {
+  height: auto;
 }
 
-.carousel-nav:hover {
+.researchSwiper .swiper-pagination {
+  bottom: 20px;
+}
+
+.researchSwiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  opacity: 1;
+}
+
+.researchSwiper .swiper-pagination-bullet-active {
   background: #fff;
-}
-
-.carousel-nav.prev {
-  left: 0;
-}
-
-.carousel-nav.next {
-  right: 0;
-}
-
-.carousel-nav i {
-  color: #0073b7;
-  margin: 0 !important;
-}
-
-.research-family-grid {
-  margin-top: 0 !important;
 }
 
 .research-family-card {
