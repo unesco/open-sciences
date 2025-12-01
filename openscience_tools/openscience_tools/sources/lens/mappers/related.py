@@ -138,9 +138,7 @@ class RelatedIdentifiersMapper(BaseMapper):
 
     def _extract_pmid(self, lens_record: Dict[str, Any]) -> Optional[str]:
         """Extract PubMed ID."""
-        pmid = self.safe_get(lens_record, "pubmed_id") or self.safe_get(
-            lens_record, "pmid"
-        )
+        pmid = self.safe_get(lens_record, "pubmed_id") or self.safe_get(lens_record, "pmid")
 
         if not pmid:
             # Check in external_ids
@@ -203,9 +201,7 @@ class RelatedIdentifiersMapper(BaseMapper):
         if arxiv:
             arxiv_str = str(arxiv).strip()
             # Validate arXiv format (YYMM.NNNNN or archive/YYMMNNN)
-            if re.match(r"^\d{4}\.\d{4,5}$", arxiv_str) or re.match(
-                r"^[a-z-]+/\d{7}$", arxiv_str
-            ):
+            if re.match(r"^\d{4}\.\d{4,5}$", arxiv_str) or re.match(r"^[a-z-]+/\d{7}$", arxiv_str):
                 return arxiv_str
 
         return None
@@ -276,9 +272,7 @@ class RelatedIdentifiersMapper(BaseMapper):
         # Remove duplicates
         return list(set(issn_list))
 
-    def _extract_external_ids(
-        self, lens_record: Dict[str, Any]
-    ) -> List[Dict[str, str]]:
+    def _extract_external_ids(self, lens_record: Dict[str, Any]) -> List[Dict[str, str]]:
         """
         Extract other external identifiers not covered by standard schemes.
         """
@@ -357,15 +351,53 @@ class RelatedIdentifiersMapper(BaseMapper):
 
         return normalized
 
+    def _validate_issn_checksum(self, issn: str) -> bool:
+        """
+        Validate ISSN checksum according to ISO 3297 standard.
+
+        The last digit of an ISSN is a check digit calculated using modulo 11.
+        This ensures data integrity and catches common transcription errors.
+
+        Args:
+            issn: ISSN in format NNNN-NNNN
+
+        Returns:
+            True if checksum is valid, False otherwise
+        """
+        # Remove hyphen
+        digits = issn.replace("-", "")
+        if len(digits) != 8:
+            return False
+
+        try:
+            # Calculate checksum using modulo 11 algorithm
+            checksum = 0
+            for i in range(7):
+                if not digits[i].isdigit():
+                    return False
+                checksum += int(digits[i]) * (8 - i)
+
+            checksum = checksum % 11
+            check_digit = 0 if checksum == 0 else 11 - checksum
+
+            # Check if last digit matches
+            last_char = digits[7].upper()
+            expected = "X" if check_digit == 10 else str(check_digit)
+
+            return last_char == expected
+        except (ValueError, IndexError):
+            return False
+
     def _normalize_issn_list(self, issn_value: Any) -> List[str]:
         """
         Normalize ISSN value(s) to list of valid ISSNs.
+        Only returns ISSNs with valid checksums according to ISO 3297.
 
         Args:
             issn_value: Can be string or list of strings
 
         Returns:
-            List of normalized ISSN strings
+            List of normalized ISSN strings with valid checksums
         """
         if isinstance(issn_value, list):
             issn_list = issn_value
@@ -384,6 +416,12 @@ class RelatedIdentifiersMapper(BaseMapper):
                 # Ensure hyphen is present
                 if "-" not in issn:
                     issn = f"{issn[:4]}-{issn[4:]}"
-                normalized.append(issn.upper())
+                issn = issn.upper()
+
+                # Validate checksum before adding
+                if self._validate_issn_checksum(issn):
+                    normalized.append(issn)
+                else:
+                    self.logger.warning(f"Skipping ISSN with invalid checksum (ISO 3297): {issn}")
 
         return normalized

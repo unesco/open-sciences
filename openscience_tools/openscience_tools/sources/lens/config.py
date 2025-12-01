@@ -240,20 +240,50 @@ class LensImportConfig:
     @classmethod
     def is_valid_orcid(cls, orcid: str) -> bool:
         """
-        Validate ORCID format.
+        Validate ORCID format and checksum according to ISO 27729 standard.
+
+        ORCID uses modulo 11-2 checksum algorithm similar to ISBN-13.
+        The last digit (check digit) validates the entire identifier.
 
         Args:
-            orcid: ORCID identifier
+            orcid: ORCID identifier (format: XXXX-XXXX-XXXX-XXXX)
 
         Returns:
-            True if valid format, False otherwise
+            True if valid format and checksum, False otherwise
         """
         if not orcid:
             return False
 
         import re
 
-        return bool(re.match(cls.ORCID_REGEX, orcid))
+        # Extract just the ORCID digits if it includes the URL
+        orcid_clean = orcid
+        if "orcid.org/" in orcid:
+            orcid_clean = orcid.split("orcid.org/")[-1]
+
+        # Check format
+        if not re.match(cls.ORCID_REGEX, orcid_clean):
+            return False
+
+        # Validate checksum
+        digits = orcid_clean.replace("-", "")
+        if len(digits) != 16:
+            return False
+
+        try:
+            # Calculate checksum using modulo 11-2 algorithm (ISO 7064)
+            total = 0
+            for i in range(15):
+                digit = int(digits[i])
+                total = (total + digit) * 2
+
+            remainder = total % 11
+            result = (12 - remainder) % 11
+            check_digit = "X" if result == 10 else str(result)
+
+            return digits[15].upper() == check_digit
+        except (ValueError, IndexError):
+            return False
 
     @classmethod
     def get_identifier_scheme(cls, id_type: str) -> str:
@@ -292,6 +322,4 @@ class LensImportConfig:
         Returns:
             Full custom field name
         """
-        return cls.CUSTOM_FIELDS.get(
-            field_key, f"{cls.CUSTOM_FIELD_NAMESPACE}:{field_key}"
-        )
+        return cls.CUSTOM_FIELDS.get(field_key, f"{cls.CUSTOM_FIELD_NAMESPACE}:{field_key}")

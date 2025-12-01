@@ -107,9 +107,7 @@ class StandardFieldsMapper(BaseMapper):
         pub_type = self.safe_get(lens_record, "publication_type")
 
         if not pub_type:
-            self.logger.warning(
-                "No publication_type found, using default 'publication-article'"
-            )
+            self.logger.warning("No publication_type found, using default 'publication-article'")
             return {"id": "publication-article"}
 
         resource_type_id = self.config.get_resource_type(pub_type)
@@ -154,9 +152,7 @@ class StandardFieldsMapper(BaseMapper):
                 self.logger.warning(f"Failed to map author {i}: {author}")
 
         if not creators:
-            raise MappingError(
-                f"No valid creators could be mapped from {len(authors)} authors"
-            )
+            raise MappingError(f"No valid creators could be mapped from {len(authors)} authors")
 
         return creators
 
@@ -222,13 +218,18 @@ class StandardFieldsMapper(BaseMapper):
         if not orcid:
             orcid = self.safe_get(person_data, "orcid")
 
-        if orcid and self.config.is_valid_orcid(orcid):
-            # Ensure ORCID has correct format
-            if not orcid.startswith("https://orcid.org/"):
-                orcid = f"https://orcid.org/{orcid}"
-            person["person_or_org"]["identifiers"] = [
-                {"scheme": "orcid", "identifier": orcid}
-            ]
+        if orcid:
+            if self.config.is_valid_orcid(orcid):
+                # Ensure ORCID has correct format
+                if not orcid.startswith("https://orcid.org/"):
+                    orcid = f"https://orcid.org/{orcid}"
+                person["person_or_org"]["identifiers"] = [{"scheme": "orcid", "identifier": orcid}]
+            else:
+                # Log invalid ORCID but continue without it
+                author_name = f"{family_name}, {given_name or initials or 'Unknown'}"
+                self.logger.warning(
+                    f"Skipping ORCID with invalid checksum (ISO 27729) for author '{author_name}': {orcid}"
+                )
 
         # Add affiliations if available
         affiliations_data = self.safe_get(person_data, "affiliations", default=[])
@@ -301,9 +302,7 @@ class StandardFieldsMapper(BaseMapper):
             if year_match:
                 year = int(year_match.group(1))
                 if 1000 <= year <= 9999:
-                    self.logger.warning(
-                        f"Extracted year {year} from date string: {date_str}"
-                    )
+                    self.logger.warning(f"Extracted year {year} from date string: {date_str}")
                     return str(year)
 
             raise ValueError(f"Could not parse date: {date_str}")
@@ -336,9 +335,7 @@ class StandardFieldsMapper(BaseMapper):
 
         return abstract if abstract else None
 
-    def _map_subjects(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, str]]]:
+    def _map_subjects(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """
         Map keywords and fields of study to subjects.
 
@@ -399,9 +396,7 @@ class StandardFieldsMapper(BaseMapper):
 
         return lang_code
 
-    def _map_rights(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, str]]]:
+    def _map_rights(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """
         Map license information to rights.
 
@@ -430,9 +425,7 @@ class StandardFieldsMapper(BaseMapper):
             }
         ]
 
-    def _map_funding(
-        self, lens_record: Dict[str, Any]
-    ) -> Optional[List[Dict[str, Any]]]:
+    def _map_funding(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
         """
         Map funding information to InvenioRDM funding field.
 
