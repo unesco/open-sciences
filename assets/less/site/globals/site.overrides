@@ -681,3 +681,8 @@ button.copy.button {
     align-self: flex-start;
   }
 }
+
+/* Compact spacing between facet cards */
+.ui.card {
+  margin: -2rem 0 !important;
+}
