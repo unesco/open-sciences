@@ -28,8 +28,11 @@ const DynamicFacet = ({
   const listRef = useRef(null);
 
   // Custom hooks for state management
-  const { selectedValue, setSelectedValue, updateURL } =
-    useFacetState(queryField, useFacetParameter, facetName);
+  const { selectedValue, setSelectedValue, updateURL } = useFacetState(
+    queryField,
+    useFacetParameter,
+    facetName
+  );
 
   const {
     loading,
@@ -78,10 +81,7 @@ const DynamicFacet = ({
       style={{ boxShadow: "none", border: "none" }}
     >
       <Card.Content style={{ padding: "0.65rem" }}>
-        <FacetHeader
-          label={label}
-          icon={icon}
-        />
+        <FacetHeader label={label} icon={icon} />
 
         <div style={{ position: "relative" }}>
           <Input

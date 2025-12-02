@@ -84,22 +84,17 @@ const UnescoToggleFacet = () => {
             color: "#2185d0",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
             marginBottom: "0.75rem",
             fontSize: "0.92rem",
             fontWeight: 600,
           }}
         >
-          <span
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              flex: 1,
-            }}
-          >
-            <Icon name="university" style={{ color: "#2185d0" }} />
-            <span>UNESCO Related</span>
+          <Icon
+            name="university"
+            style={{ marginRight: "8px", color: "#2185d0" }}
+          />
+          <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            UNESCO
             <Popup
               trigger={
                 <Icon
@@ -108,6 +103,8 @@ const UnescoToggleFacet = () => {
                     fontSize: "0.85rem",
                     color: "rgba(0, 0, 0, 0.4)",
                     cursor: "help",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 />
               }
@@ -117,13 +114,10 @@ const UnescoToggleFacet = () => {
               inverted
             />
           </span>
-          <Checkbox
-            toggle
-            checked={isChecked}
-            onChange={handleToggle}
-            style={{ marginLeft: 'auto' }}
-          />
         </Card.Header>
+        <div style={{ marginTop: "0.5rem" }}>
+          <Checkbox toggle checked={isChecked} onChange={handleToggle} />
+        </div>
       </Card.Content>
     </Card>
   );

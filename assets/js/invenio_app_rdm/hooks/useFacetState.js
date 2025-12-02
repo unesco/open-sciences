@@ -1,13 +1,17 @@
 // Custom hook for managing facet state and URL synchronization
 import { useState, useEffect, useCallback } from "react";
 
-export const useFacetState = (queryField, useFacetParameter = false, facetName = null) => {
+export const useFacetState = (
+  queryField,
+  useFacetParameter = false,
+  facetName = null
+) => {
   const [selectedValue, setSelectedValue] = useState(null);
 
   // Get selected value from URL query parameters
   const getSelectedValueFromURL = useCallback(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    
+
     // Check if using facet parameter (f=facetName:value)
     if (useFacetParameter && facetName) {
       const facetFilters = searchParams.getAll("f");
@@ -18,7 +22,7 @@ export const useFacetState = (queryField, useFacetParameter = false, facetName =
       }
       return null;
     }
-    
+
     // Otherwise use query parameter (q=field:"value")
     const currentQuery = searchParams.get("q") || "";
     const escapedField = queryField.replace(/\./g, "\\.");
@@ -39,16 +43,16 @@ export const useFacetState = (queryField, useFacetParameter = false, facetName =
   const updateURL = useCallback(
     (newValue) => {
       const searchParams = new URLSearchParams(window.location.search);
-      
+
       // Handle facet parameter (f=facetName:value)
       if (useFacetParameter && facetName) {
         // Remove existing facet filter
-        const facetFilters = searchParams.getAll("f").filter(
-          (f) => !f.startsWith(`${facetName}:`)
-        );
+        const facetFilters = searchParams
+          .getAll("f")
+          .filter((f) => !f.startsWith(`${facetName}:`));
         searchParams.delete("f");
         facetFilters.forEach((f) => searchParams.append("f", f));
-        
+
         // Add new facet filter if value provided
         if (newValue) {
           searchParams.append("f", `${facetName}:${newValue}`);

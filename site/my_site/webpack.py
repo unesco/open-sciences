@@ -11,8 +11,6 @@ theme = WebpackThemeBundle(
             entry={
                 # Statistics dashboard bundle
                 "my-site-statistics": "./js/my_site/statistics.js",
-                # Advanced search link in facets sidebar
-                "inject-advanced-search-link": "./js/invenio_app_rdm/inject-advanced-search-link.js",
             },
         ),
     },
