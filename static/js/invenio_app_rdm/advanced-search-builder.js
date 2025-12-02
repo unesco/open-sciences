@@ -135,27 +135,10 @@ const FILTER_CONFIG = [
     icon: "globe",
     placeholder: "Search and select a country...",
     helpText: "Search and select a country from the database",
-    apiUrl: "/api/records?size=1", // size=1 minimal, we only need aggregations
+    apiUrl: "/data/countries?q={query}",
     responseParser: function (response, searchTerm) {
-      const results = [];
-      const seen = new Set();
-
-      // Use aggregations (facet buckets) instead of hits
-      if (response.aggregations && response.aggregations.publication_country) {
-        response.aggregations.publication_country.buckets.forEach((bucket) => {
-          const country = bucket.key;
-          if (
-            country.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !seen.has(country)
-          ) {
-            seen.add(country);
-            results.push({ name: country, value: country, text: country });
-          }
-        });
-      }
-
-      results.sort((a, b) => a.name.localeCompare(b.name));
-      return results.slice(0, 10);
+      // Custom endpoint returns results already filtered and formatted
+      return response.results || [];
     },
   },
   {

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openscience_tools"
-version = "0.2.2"
+version = "0.2.3"
 description = "Python tools for interacting with InvenioRDM REST API"
 readme = "README.md"
 authors = [
@@ -36,6 +36,7 @@ dependencies = [
     "click>=8.1.0",
     "tabulate>=0.9.0",
     "colorama>=0.4.6",
+    "pycountry>=23.12.11",
 ]
 
 [project.optional-dependencies]

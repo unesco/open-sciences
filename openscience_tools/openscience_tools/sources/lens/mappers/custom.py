@@ -75,10 +75,10 @@ class CustomFieldsMapper(BaseMapper):
             if is_oa is not None:
                 custom_fields["publication:is_open_access"] = "true" if is_oa else "false"
 
-            # Publication country for faceting (extract from lens:source)
-            source_data = self._map_source(lens_record)
-            if source_data and source_data.get("country"):
-                custom_fields["publication:country"] = source_data.get("country")
+            # Affiliation countries for faceting (extract from authors' affiliations)
+            affiliation_countries = self._extract_affiliation_countries(lens_record)
+            if affiliation_countries:
+                custom_fields["publication:country"] = affiliation_countries
 
             # Publication year for faceting (extract from year_published or date_published)
             year = self.safe_get(lens_record, "year_published")
@@ -719,6 +719,65 @@ class CustomFieldsMapper(BaseMapper):
                 funding_orgs.append(org)
 
         return funding_orgs if funding_orgs else None
+
+    def _extract_affiliation_countries(self, lens_record: Dict[str, Any]) -> Optional[List[str]]:
+        """
+        Extract country names from authors' affiliations.
+
+        Extracts country_code from each author's affiliations and converts
+        them to full country names using pycountry.
+
+        Args:
+            lens_record: Raw Lens.org publication record
+
+        Returns:
+            List of unique country names or None if no country data
+        """
+        try:
+            import pycountry
+        except ImportError:
+            self.logger.warning("pycountry not installed, cannot extract affiliation countries")
+            return None
+
+        authors = self.safe_get(lens_record, "authors", default=[])
+
+        if not authors:
+            return None
+
+        country_codes = set()  # Use set to avoid duplicates
+
+        for author in authors:
+            if not isinstance(author, dict):
+                continue
+
+            affiliations = self.safe_get(author, "affiliations", default=[])
+            if not affiliations:
+                continue
+
+            for affiliation in affiliations:
+                if not isinstance(affiliation, dict):
+                    continue
+
+                country_code = self.safe_get(affiliation, "country_code")
+                if country_code:
+                    country_codes.add(country_code.strip().upper())
+
+        if not country_codes:
+            return None
+
+        # Convert country codes to full names
+        country_names = []
+        for code in sorted(country_codes):  # Sort for consistency
+            try:
+                country = pycountry.countries.get(alpha_2=code)
+                if country:
+                    country_names.append(country.name)
+                else:
+                    self.logger.warning(f"Unknown country code: {code}")
+            except Exception as e:
+                self.logger.warning(f"Error converting country code {code}: {e}")
+
+        return country_names if country_names else None
 
     def _map_journal(self, lens_record: Dict[str, Any]) -> Optional[Dict[str, str]]:
         """

@@ -306,11 +306,11 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="publication:year",
         multiple=False,
     ),
-    # Publication country for filtering (extracted from lens:source)
-    # Single country value for faceted search
+    # Publication country for filtering (extracted from authors' affiliations)
+    # Multiple countries allowed (one per unique affiliation country)
     KeywordCF(
         name="publication:country",
-        multiple=False,
+        multiple=True,
     ),
     # Funding organization for filtering (extracted from lens:funding)
     # Multiple funding organizations allowed
