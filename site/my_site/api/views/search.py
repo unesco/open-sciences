@@ -1,8 +1,8 @@
-"""API views for search functionality."""
+"""Search API view."""
 
 from flask import jsonify, request
 from flask.views import MethodView
-from .filters import get_filter_backend
+from ..filters import get_filter_backend, FILTER_BACKENDS_REGISTRY
 
 
 class SearchAPIView(MethodView):
@@ -44,11 +44,7 @@ class SearchAPIView(MethodView):
                 jsonify(
                     {
                         "error": f"Unknown filter field: '{filter_key}'",
-                        "available_fields": list(
-                            get_filter_backend.__globals__[
-                                "FILTER_BACKENDS_REGISTRY"
-                            ].keys()
-                        ),
+                        "available_fields": list(FILTER_BACKENDS_REGISTRY.keys()),
                         "results": [],
                     }
                 ),

@@ -1,0 +1,56 @@
+"""Filter backends package.
+
+This package contains modular filter backends for the search API,
+inspired by Django REST Framework and django-filter patterns.
+"""
+
+from typing import Optional
+from .base import BaseFilterBackend
+from .affiliation import AffiliationFilterBackend
+from .author import AuthorFilterBackend
+from .country import CountryFilterBackend
+from .funding import FundingOrgFilterBackend
+from .resource_type import ResourceTypeFilterBackend
+from .subject import SubjectFilterBackend
+from .year import PublicationYearFilterBackend
+
+# Registry of available filter backends
+FILTER_BACKENDS_REGISTRY = {
+    "affiliation": AffiliationFilterBackend,
+    "author": AuthorFilterBackend,
+    "country": CountryFilterBackend,
+    "funding": FundingOrgFilterBackend,
+    "subject": SubjectFilterBackend,
+    "year": PublicationYearFilterBackend,
+    "resource_type": ResourceTypeFilterBackend,
+}
+
+
+def get_filter_backend(filter_key: str) -> Optional[BaseFilterBackend]:
+    """
+    Get a filter backend instance by key.
+
+    Args:
+        filter_key: The filter key (e.g., 'country', 'funding')
+
+    Returns:
+        Filter backend instance or None if not found
+    """
+    backend_class = FILTER_BACKENDS_REGISTRY.get(filter_key)
+    if backend_class:
+        return backend_class()
+    return None
+
+
+__all__ = [
+    "BaseFilterBackend",
+    "AffiliationFilterBackend",
+    "AuthorFilterBackend",
+    "CountryFilterBackend",
+    "FundingOrgFilterBackend",
+    "ResourceTypeFilterBackend",
+    "SubjectFilterBackend",
+    "PublicationYearFilterBackend",
+    "FILTER_BACKENDS_REGISTRY",
+    "get_filter_backend",
+]
