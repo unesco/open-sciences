@@ -21,13 +21,15 @@ const DynamicFacet = ({
   placeholder,
   icon,
   pageSize,
+  useFacetParameter = false,
+  facetName = null,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const listRef = useRef(null);
 
   // Custom hooks for state management
   const { selectedValue, setSelectedValue, updateURL } =
-    useFacetState(queryField);
+    useFacetState(queryField, useFacetParameter, facetName);
 
   const {
     loading,
@@ -79,39 +81,70 @@ const DynamicFacet = ({
         <FacetHeader
           label={label}
           icon={icon}
-          selectedValue={selectedValue}
-          onClear={handleClear}
         />
 
-        <Input
-          fluid
-          icon="search"
-          iconPosition="left"
-          placeholder={placeholder}
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          loading={loading}
-          style={{
-            marginBottom: isExpanded || selectedValue ? "0.5rem" : "0",
-          }}
-          size="small"
-        />
-
-        {!isExpanded && selectedValue && !searchQuery && (
-          <div style={{ marginTop: "0.5rem" }}>
-            <Label
-              color="blue"
-              size="small"
-              style={{ cursor: "pointer" }}
-              onClick={handleClear}
+        <div style={{ position: "relative" }}>
+          <Input
+            fluid
+            icon="search"
+            iconPosition="left"
+            placeholder={selectedValue ? "" : placeholder}
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            loading={loading}
+            style={{
+              marginBottom: isExpanded || selectedValue ? "0.5rem" : "0",
+            }}
+            size="small"
+          />
+          {selectedValue && !searchQuery && (
+            <div
+              style={{
+                position: "absolute",
+                left: "2.5rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                display: "flex",
+                alignItems: "center",
+                pointerEvents: "none",
+              }}
             >
-              {selectedValue}
-              <Icon name="delete" style={{ marginLeft: "0.3rem" }} />
-            </Label>
-          </div>
-        )}
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0.15rem 0.5rem",
+                  backgroundColor: "#f5f5f5",
+                  border: "1px solid #d9d9d9",
+                  borderRadius: "2px",
+                  fontSize: "0.85rem",
+                  color: "rgba(0, 0, 0, 0.85)",
+                  maxWidth: "200px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  pointerEvents: "auto",
+                }}
+              >
+                {selectedValue}
+                <Icon
+                  name="close"
+                  style={{
+                    marginLeft: "0.4rem",
+                    cursor: "pointer",
+                    fontSize: "0.7rem",
+                    opacity: 0.6,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                  onClick={handleClear}
+                />
+              </span>
+            </div>
+          )}
+        </div>
 
         {(isExpanded || (selectedValue && searchQuery)) && (
           <div
@@ -195,12 +228,16 @@ DynamicFacet.propTypes = {
   placeholder: PropTypes.string,
   icon: PropTypes.string,
   pageSize: PropTypes.number,
+  useFacetParameter: PropTypes.bool,
+  facetName: PropTypes.string,
 };
 
 DynamicFacet.defaultProps = {
   placeholder: "Search...",
   icon: null,
   pageSize: 10,
+  useFacetParameter: false,
+  facetName: null,
 };
 
 export default DynamicFacet;

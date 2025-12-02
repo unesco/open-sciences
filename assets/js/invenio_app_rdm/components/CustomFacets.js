@@ -4,6 +4,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import DynamicFacet from "./DynamicFacet";
+import UnescoToggleFacet from "./facets/UnescoToggleFacet";
 
 // Main custom facets component
 export class CustomFacets extends Component {
@@ -44,6 +45,8 @@ export class CustomFacets extends Component {
           placeholder="Search countries..."
           icon="globe"
           maxResults={100}
+          useFacetParameter={true}
+          facetName="publication_country"
         />
         <DynamicFacet
           label="Funding Organization"
@@ -52,7 +55,10 @@ export class CustomFacets extends Component {
           placeholder="Search funding organizations..."
           icon="money"
           maxResults={100}
+          useFacetParameter={true}
+          facetName="funding_org"
         />
+        <UnescoToggleFacet />
       </>
     );
   }
