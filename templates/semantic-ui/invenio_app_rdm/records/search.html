@@ -4,11 +4,6 @@
 {%- set title = _("Search results") %}
 {%- extends config.BASE_TEMPLATE %}
 
-{%- block css %}
-    {{ super() }}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom-facets.css') }}" />
-{%- endblock %}
-
 {%- block javascript %}
     {{ super() }}
     {{ webpack['invenio-app-rdm-search.js'] }}
