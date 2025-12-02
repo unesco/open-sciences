@@ -13,34 +13,10 @@ const FILTER_CONFIG = [
     icon: "user",
     placeholder: "Search and select an author...",
     helpText: "Search and select an author from the database",
-    apiUrl:
-      "/api/records?q=metadata.creators.person_or_org.name:*{query}*&size=100",
+    apiUrl: "/data/search?field=author&q={query}",
     queryField: "metadata.creators.person_or_org.name",
-    responseParser: function (response, searchTerm) {
-      const results = [];
-      const seen = new Set();
-
-      if (response.hits && response.hits.hits) {
-        response.hits.hits.forEach((hit) => {
-          if (hit.metadata && hit.metadata.creators) {
-            hit.metadata.creators.forEach((creator) => {
-              if (creator.person_or_org && creator.person_or_org.name) {
-                const name = creator.person_or_org.name;
-                if (
-                  name.toLowerCase().includes(searchTerm) &&
-                  !seen.has(name)
-                ) {
-                  seen.add(name);
-                  results.push({ name: name, value: name, text: name });
-                }
-              }
-            });
-          }
-        });
-      }
-
-      results.sort((a, b) => a.name.localeCompare(b.name));
-      return results.slice(0, 10);
+    responseParser: function (response) {
+      return response.results || [];
     },
   },
   {
@@ -51,37 +27,10 @@ const FILTER_CONFIG = [
     icon: "tags",
     placeholder: "Search and select a subject...",
     helpText: "Search and select a subject/keyword from the database",
-    apiUrl: "/api/records?q=metadata.subjects.subject:*{query}*&size=100",
+    apiUrl: "/data/search?field=subject&q={query}",
     queryField: "metadata.subjects.subject",
-    responseParser: function (response, searchTerm) {
-      const results = [];
-      const seen = new Set();
-
-      if (response.hits && response.hits.hits) {
-        response.hits.hits.forEach((hit) => {
-          if (hit.metadata && hit.metadata.subjects) {
-            hit.metadata.subjects.forEach((subjectObj) => {
-              if (subjectObj.subject) {
-                const subject = subjectObj.subject;
-                if (
-                  subject.toLowerCase().includes(searchTerm) &&
-                  !seen.has(subject)
-                ) {
-                  seen.add(subject);
-                  results.push({
-                    name: subject,
-                    value: subject,
-                    text: subject,
-                  });
-                }
-              }
-            });
-          }
-        });
-      }
-
-      results.sort((a, b) => a.name.localeCompare(b.name));
-      return results.slice(0, 10);
+    responseParser: function (response) {
+      return response.results || [];
     },
   },
   {
@@ -92,38 +41,10 @@ const FILTER_CONFIG = [
     icon: "building",
     placeholder: "Search and select an affiliation...",
     helpText: "Search and select an affiliation from the database",
-    apiUrl:
-      "/api/records?q=metadata.creators.affiliations.name:*{query}*&size=100",
+    apiUrl: "/data/search?field=affiliation&q={query}",
     queryField: "metadata.creators.affiliations.name",
-    responseParser: function (response, searchTerm) {
-      const results = [];
-      const seen = new Set();
-
-      if (response.hits && response.hits.hits) {
-        response.hits.hits.forEach((hit) => {
-          if (hit.metadata && hit.metadata.creators) {
-            hit.metadata.creators.forEach((creator) => {
-              if (creator.affiliations) {
-                creator.affiliations.forEach((affiliation) => {
-                  if (affiliation.name) {
-                    const name = affiliation.name;
-                    if (
-                      name.toLowerCase().includes(searchTerm) &&
-                      !seen.has(name)
-                    ) {
-                      seen.add(name);
-                      results.push({ name: name, value: name, text: name });
-                    }
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-
-      results.sort((a, b) => a.name.localeCompare(b.name));
-      return results.slice(0, 10);
+    responseParser: function (response) {
+      return response.results || [];
     },
   },
   {
@@ -135,9 +56,9 @@ const FILTER_CONFIG = [
     icon: "globe",
     placeholder: "Search and select a country...",
     helpText: "Search and select a country from the database",
-    apiUrl: "/data/countries?q={query}",
+    apiUrl: "/data/search?field=country&q={query}",
     responseParser: function (response, searchTerm) {
-      // Custom endpoint returns results already filtered and formatted
+      // Generic search endpoint returns results already filtered and formatted
       return response.results || [];
     },
   },
@@ -150,27 +71,10 @@ const FILTER_CONFIG = [
     icon: "money bill alternate",
     placeholder: "Search and select a funding organization...",
     helpText: "Search and select a funding organization from the database",
-    apiUrl: "/api/records?size=1", // size=1 minimal, we only need aggregations
+    apiUrl: "/data/search?field=funding&q={query}",
     responseParser: function (response, searchTerm) {
-      const results = [];
-      const seen = new Set();
-
-      // Use aggregations (facet buckets) instead of hits
-      if (response.aggregations && response.aggregations.funding_org) {
-        response.aggregations.funding_org.buckets.forEach((bucket) => {
-          const org = bucket.key;
-          if (
-            org.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !seen.has(org)
-          ) {
-            seen.add(org);
-            results.push({ name: org, value: org, text: org });
-          }
-        });
-      }
-
-      results.sort((a, b) => a.name.localeCompare(b.name));
-      return results.slice(0, 10);
+      // Generic search endpoint returns results already filtered and formatted
+      return response.results || [];
     },
   },
 ];
