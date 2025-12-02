@@ -48,27 +48,24 @@ class BaseFilterBackend(ABC):
             },
         }
 
-    def filter_results(
-        self, buckets: List[Dict], search_term: Optional[str]
-    ) -> List[Dict]:
-        """Filter aggregation results by search term."""
-        results = []
-        for bucket in buckets:
-            key = bucket["key"]
-            # Filter by search term if provided
-            if not search_term or search_term.lower() in key.lower():
-                results.append(
-                    {
-                        "name": key,
-                        "value": key,
-                        "text": key,
-                        "doc_count": bucket["doc_count"],
-                    }
-                )
-        return results
+    def execute(
+        self,
+        search_term: Optional[str] = None,
+        page: int = 1,
+        size: int = 20,
+        sort_by: str = "count",
+    ) -> Dict:
+        """Execute the search and return filtered results with pagination.
 
-    def execute(self, search_term: Optional[str] = None) -> List[Dict]:
-        """Execute the search and return filtered results."""
+        Args:
+            search_term: Optional search term for filtering
+            page: Page number (1-indexed)
+            size: Number of results per page
+            sort_by: Sort order ('count' for doc_count desc, 'name' for alphabetical)
+
+        Returns:
+            Dict with 'results', 'total', 'page', 'size', 'has_more'
+        """
         try:
             query = self.build_query(search_term)
             result = current_search_client.search(
@@ -81,9 +78,48 @@ class BaseFilterBackend(ABC):
             if "aggregations" in result and agg_key in result["aggregations"]:
                 buckets = result["aggregations"][agg_key]["buckets"]
 
-            return self.filter_results(buckets, search_term)
+            # Convert to results format with 'count' field
+            results = []
+            for bucket in buckets:
+                key = bucket["key"]
+                # Filter by search term if provided
+                if not search_term or search_term.lower() in key.lower():
+                    results.append(
+                        {
+                            "name": key,
+                            "value": key,
+                            "text": key,
+                            "count": bucket["doc_count"],  # Use 'count' not 'doc_count'
+                        }
+                    )
+
+            # Sort results
+            if sort_by == "count":
+                results.sort(key=lambda x: (-x["count"], x["name"].lower()))
+            else:
+                results.sort(key=lambda x: x["name"].lower())
+
+            # Pagination
+            total = len(results)
+            start = (page - 1) * size
+            end = start + size
+            paginated_results = results[start:end]
+
+            return {
+                "results": paginated_results,
+                "total": total,
+                "page": page,
+                "size": size,
+                "has_more": end < total,
+            }
 
         except Exception as e:
             # Log error and return empty results
             print(f"Error in {self.__class__.__name__}: {str(e)}")
-            return []
+            return {
+                "results": [],
+                "total": 0,
+                "page": page,
+                "size": size,
+                "has_more": False,
+            }

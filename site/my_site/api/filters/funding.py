@@ -18,7 +18,13 @@ class FundingOrgFilterBackend(BaseFilterBackend):
     def get_filter_key(self) -> str:
         return "funding"
 
-    def execute(self, search_term: Optional[str] = None) -> List[Dict]:
+    def execute(
+        self,
+        search_term: Optional[str] = None,
+        page: int = 1,
+        size: int = 20,
+        sort_by: str = "count",
+    ) -> Dict:
         """
         Override execute for funding - text field requires different approach.
         We fetch ALL records and filter/aggregate funding organizations in Python.
@@ -57,7 +63,7 @@ class FundingOrgFilterBackend(BaseFilterBackend):
                     if search_lower in name.lower()
                 }
 
-            # Convert to results format and sort alphabetically
+            # Convert to results format
             results = []
             for org_name, count in org_counts.items():
                 results.append(
@@ -65,14 +71,28 @@ class FundingOrgFilterBackend(BaseFilterBackend):
                         "value": org_name,
                         "text": org_name,
                         "name": org_name,
-                        "doc_count": count,
+                        "count": count,
                     }
                 )
 
-            results.sort(key=lambda x: x["name"].lower())
+            # Sort by count (descending) or name (alphabetical)
+            if sort_by == "count":
+                results.sort(key=lambda x: (-x["count"], x["name"].lower()))
+            else:
+                results.sort(key=lambda x: x["name"].lower())
 
-            # Limit to max size
-            return results[: self.get_aggregation_size()]
+            # Paginate
+            total = len(results)
+            start = (page - 1) * size
+            end = start + size
+
+            return {
+                "results": results[start:end],
+                "total": total,
+                "page": page,
+                "size": size,
+                "has_more": end < total,
+            }
 
         except Exception as e:
             print(f"Error in FundingOrgFilterBackend: {str(e)}")

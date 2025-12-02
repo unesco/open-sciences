@@ -9,7 +9,9 @@
  */
 
 import CustomRecordsResultsListItem from "../components/CustomRecordsResultsListItem";
+import CustomFacets from "../components/CustomFacets";
 
 export const overriddenComponents = {
   "RecordsResultsListItem": CustomRecordsResultsListItem,
+  "InvenioAppRdm.Search.SearchApp.facets": CustomFacets,
 };

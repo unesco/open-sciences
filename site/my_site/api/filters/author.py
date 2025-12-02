@@ -18,10 +18,25 @@ class AuthorFilterBackend(BaseFilterBackend):
     def get_filter_key(self) -> str:
         return "author"
 
-    def execute(self, search_term: Optional[str] = None) -> List[Dict]:
+    def execute(
+        self,
+        search_term: Optional[str] = None,
+        page: int = 1,
+        size: int = 20,
+        sort_by: str = "count",
+    ) -> Dict:
         """
         Override execute for authors - text field requires different approach.
         We fetch ALL records and filter/aggregate author names in Python.
+
+        Args:
+            search_term: Optional search term for filtering
+            page: Page number (1-indexed)
+            size: Number of results per page
+            sort_by: Sort order ('count' for doc_count desc, 'name' for alphabetical)
+
+        Returns:
+            Dict with 'results' and pagination info
         """
         try:
             # Build query - fetch all records with creators
@@ -58,7 +73,7 @@ class AuthorFilterBackend(BaseFilterBackend):
                     if search_lower in name.lower()
                 }
 
-            # Convert to results format and sort alphabetically
+            # Convert to results format
             results = []
             for author_name, count in author_counts.items():
                 results.append(
@@ -66,15 +81,36 @@ class AuthorFilterBackend(BaseFilterBackend):
                         "value": author_name,
                         "text": author_name,
                         "name": author_name,
-                        "doc_count": count,
+                        "count": count,  # Use 'count' instead of 'doc_count'
                     }
                 )
 
-            results.sort(key=lambda x: x["name"].lower())
+            # Sort results
+            if sort_by == "count":
+                results.sort(key=lambda x: (-x["count"], x["name"].lower()))
+            else:
+                results.sort(key=lambda x: x["name"].lower())
 
-            # Limit to max size
-            return results[: self.get_aggregation_size()]
+            # Pagination
+            total = len(results)
+            start = (page - 1) * size
+            end = start + size
+            paginated_results = results[start:end]
+
+            return {
+                "results": paginated_results,
+                "total": total,
+                "page": page,
+                "size": size,
+                "has_more": end < total,
+            }
 
         except Exception as e:
             print(f"Error in AuthorFilterBackend: {str(e)}")
-            return []
+            return {
+                "results": [],
+                "total": 0,
+                "page": page,
+                "size": size,
+                "has_more": False,
+            }

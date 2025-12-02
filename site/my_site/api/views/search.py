@@ -26,6 +26,9 @@ class SearchAPIView(MethodView):
         # Get query parameters
         filter_key = request.args.get("field")
         search_term = request.args.get("q", "")
+        page = int(request.args.get("page", 1))
+        size = int(request.args.get("size", 20))
+        sort_by = request.args.get("sort", "count")
 
         # Validate required parameters
         if not filter_key:
@@ -53,14 +56,31 @@ class SearchAPIView(MethodView):
 
         # Execute the filter and return results
         try:
-            results = filter_backend.execute(search_term if search_term else None)
-            return jsonify(
-                {
-                    "field": filter_key,
-                    "query": search_term,
-                    "count": len(results),
-                    "results": results,
-                }
+            result = filter_backend.execute(
+                search_term=search_term if search_term else None,
+                page=page,
+                size=size,
+                sort_by=sort_by,
             )
+
+            # Handle both dict and list returns (for backward compatibility)
+            if isinstance(result, dict):
+                return jsonify(
+                    {
+                        "field": filter_key,
+                        "query": search_term,
+                        **result,
+                    }
+                )
+            else:
+                # Legacy format
+                return jsonify(
+                    {
+                        "field": filter_key,
+                        "query": search_term,
+                        "count": len(result),
+                        "results": result,
+                    }
+                )
         except Exception as e:
             return jsonify({"error": str(e), "results": []}), 500
