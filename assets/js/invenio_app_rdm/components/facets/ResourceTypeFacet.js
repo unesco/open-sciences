@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Icon,
-  Popup,
-  Loader,
-  Dimmer,
-  Checkbox,
-} from "semantic-ui-react";
+import { Card, Icon, Popup, Loader, Dimmer, Checkbox, Label } from "semantic-ui-react";
 import axios from "axios";
 
 const ResourceTypeFacet = () => {
@@ -167,107 +160,172 @@ const ResourceTypeFacet = () => {
             />
           </span>
         </Card.Header>
-        {loading ? (
-          <Dimmer active inverted>
-            <Loader size="small" />
-          </Dimmer>
-        ) : (
-          <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-            {data.length === 0 ? (
-              <div
-                style={{
-                  padding: "1rem",
-                  textAlign: "center",
-                  color: "#767676",
-                }}
-              >
-                No resource types found
+        <div style={{ maxHeight: "300px", overflowY: "auto", position: "relative" }}>
+          {loading ? (
+            <div style={{ position: "relative" }}>
+              <Dimmer active inverted>
+                <Loader size="small" />
+              </Dimmer>
+              <div style={{ opacity: 0.3, pointerEvents: "none" }}>
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "0.6rem 0.8rem",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                      <Checkbox radio disabled label="Loading..." style={{ fontSize: "0.92rem" }} />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ) : (
-              data.map((parent) => (
-                <div key={parent.value} style={{ marginBottom: "0.5rem" }}>
-                  {/* Parent type */}
+            </div>
+          ) : data.length === 0 ? (
+            <div
+              style={{
+                padding: "1rem",
+                textAlign: "center",
+                color: "#767676",
+              }}
+            >
+              No resource types found
+            </div>
+          ) : (
+            data.map((parent) => (
+              <div key={parent.value} style={{ marginBottom: "0.5rem" }}>
+                {/* Parent type */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "0.6rem 0.8rem",
+                    cursor:
+                      parent.children.length > 0 ? "pointer" : "default",
+                  }}
+                >
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      padding: "0.25rem 0",
-                      cursor:
-                        parent.children.length > 0 ? "pointer" : "default",
+                      justifyContent: "space-between",
+                      width: "100%",
                     }}
                   >
-                    {parent.children.length > 0 && (
-                      <Icon
-                        name={
-                          expandedParents.has(parent.value)
-                            ? "caret down"
-                            : "caret right"
-                        }
-                        style={{ marginRight: "0.25rem", cursor: "pointer" }}
-                        onClick={() => handleToggleParent(parent.value)}
-                      />
-                    )}
-                    <Checkbox
-                      radio
-                      label={
-                        <label style={{ cursor: "pointer" }}>
-                          <strong>{parent.label}</strong>
-                          <span
-                            style={{ color: "#767676", marginLeft: "0.5rem" }}
-                          >
-                            ({parent.count})
-                          </span>
-                        </label>
-                      }
-                      checked={selectedType === parent.value}
-                      onChange={() => handleItemClick(parent.value)}
+                    <div
                       style={{
-                        marginLeft:
-                          parent.children.length === 0 ? "1.5rem" : "0",
+                        display: "flex",
+                        alignItems: "center",
+                        flex: 1,
                       }}
-                    />
-                  </div>
-
-                  {/* Child types */}
-                  {expandedParents.has(parent.value) &&
-                    parent.children.length > 0 && (
-                      <div style={{ marginLeft: "2rem" }}>
-                        {parent.children.map((child) => (
-                          <div
-                            key={child.value}
+                    >
+                      {parent.children.length > 0 && (
+                        <Icon
+                          name={
+                            expandedParents.has(parent.value)
+                              ? "caret down"
+                              : "caret right"
+                          }
+                          style={{
+                            marginRight: "0.5rem",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                          onClick={() => handleToggleParent(parent.value)}
+                        />
+                      )}
+                      <Checkbox
+                        radio
+                        label={
+                          <label
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              padding: "0.25rem 0",
+                              cursor: "pointer",
+                              fontSize: "0.92rem",
+                              color: "rgba(0, 0, 0, 0.87)",
                             }}
                           >
-                            <Checkbox
-                              radio
-                              label={
-                                <label style={{ cursor: "pointer" }}>
-                                  {child.label}
-                                  <span
-                                    style={{
-                                      color: "#767676",
-                                      marginLeft: "0.5rem",
-                                    }}
-                                  >
-                                    ({child.count})
-                                  </span>
-                                </label>
-                              }
-                              checked={selectedType === child.value}
-                              onChange={() => handleItemClick(child.value)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                            {parent.label}
+                          </label>
+                        }
+                        checked={selectedType === parent.value}
+                        onChange={() => handleItemClick(parent.value)}
+                        style={{
+                          marginLeft:
+                            parent.children.length === 0 ? "1.5rem" : "0",
+                        }}
+                      />
+                    </div>
+                    <Label
+                      size="mini"
+                      circular
+                      style={{
+                        backgroundColor: "#e0e1e2",
+                        color: "rgba(0, 0, 0, 0.6)",
+                        minWidth: "2rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      {parent.count}
+                    </Label>
+                  </div>
                 </div>
-              ))
-            )}
-          </div>
-        )}
+
+                {/* Child types */}
+                {expandedParents.has(parent.value) &&
+                  parent.children.length > 0 && (
+                    <div style={{ marginLeft: "2rem" }}>
+                      {parent.children.map((child) => (
+                        <div
+                          key={child.value}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "0.6rem 0.8rem",
+                          }}
+                        >
+                          <Checkbox
+                            radio
+                            label={
+                              <label
+                                style={{
+                                  cursor: "pointer",
+                                  fontSize: "0.92rem",
+                                  color: "rgba(0, 0, 0, 0.87)",
+                                }}
+                              >
+                                {child.label}
+                              </label>
+                            }
+                            checked={selectedType === child.value}
+                            onChange={() => handleItemClick(child.value)}
+                            style={{ flex: 1, marginRight: "0.5rem" }}
+                          />
+                          <Label
+                            size="mini"
+                            circular
+                            style={{
+                              backgroundColor: "#e0e1e2",
+                              color: "rgba(0, 0, 0, 0.6)",
+                              minWidth: "2rem",
+                              textAlign: "center",
+                            }}
+                          >
+                            {child.count}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+              </div>
+            ))
+          )}
+        </div>
       </Card.Content>
     </Card>
   );

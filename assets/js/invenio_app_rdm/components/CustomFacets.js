@@ -16,6 +16,7 @@ export class CustomFacets extends Component {
     return (
       <>
         {/* Custom dynamic facets using reusable DynamicFacet component */}
+        <ResourceTypeFacet />
         <DynamicFacet
           label="Author"
           apiField="author"
@@ -60,7 +61,6 @@ export class CustomFacets extends Component {
           useFacetParameter={true}
           facetName="funding_org"
         />
-        <ResourceTypeFacet />
         <DynamicFacet
           label="Publication Year"
           apiField="year"
