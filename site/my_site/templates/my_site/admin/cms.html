@@ -1,0 +1,49 @@
+{%- extends config.ADMINISTRATION_BASE_TEMPLATE %} {%- block page_title %}
+<div class="ui grid">
+  <div class="column twelve wide">
+    <h1 class="ui header">{{ title }}</h1>
+  </div>
+  <div class="column four wide">
+    {# Actions buttons can go here if needed #}
+  </div>
+</div>
+
+<div class="ui divider" aria-hidden="true"></div>
+{%- endblock page_title %} {%- block admin_page_content %}
+<div class="ui segment">
+  <h2>Welcome to the CMS Admin Panel</h2>
+  <p>
+    This is a simple CMS administration interface accessible only to
+    administrators.
+  </p>
+
+  <div class="ui message info">
+    <div class="header">Custom CMS Plugin</div>
+    <p>
+      Here you can manage your site content. This is a placeholder that can be
+      extended with:
+    </p>
+    <ul class="list">
+      <li>Page management</li>
+      <li>Content editing</li>
+      <li>Media library</li>
+      <li>Custom configurations</li>
+    </ul>
+  </div>
+
+  <div class="ui statistics">
+    <div class="statistic">
+      <div class="value"><i class="file alternate outline icon"></i> 0</div>
+      <div class="label">Pages</div>
+    </div>
+    <div class="statistic">
+      <div class="value"><i class="edit outline icon"></i> 0</div>
+      <div class="label">Drafts</div>
+    </div>
+    <div class="statistic">
+      <div class="value"><i class="checkmark icon"></i> 0</div>
+      <div class="label">Published</div>
+    </div>
+  </div>
+</div>
+{%- endblock admin_page_content %}
