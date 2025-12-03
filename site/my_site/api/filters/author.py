@@ -18,6 +18,10 @@ class AuthorFilterBackend(BaseFilterBackend):
     def get_filter_key(self) -> str:
         return "author"
 
+    def _normalize_author_name(self, name: str) -> str:
+        """Normalize author name by removing trailing dots and extra spaces."""
+        return name.strip().rstrip(".")
+
     def execute(
         self,
         search_term: Optional[str] = None,
@@ -26,8 +30,7 @@ class AuthorFilterBackend(BaseFilterBackend):
         sort_by: str = "count",
     ) -> Dict:
         """
-        Override execute for authors - text field requires different approach.
-        We fetch ALL records and filter/aggregate author names in Python.
+        Override execute for authors - use aggregation for better performance.
 
         Args:
             search_term: Optional search term for filtering
@@ -39,49 +42,82 @@ class AuthorFilterBackend(BaseFilterBackend):
             Dict with 'results' and pagination info
         """
         try:
-            # Build query - fetch all records with creators
-            query_body = {
-                "size": 1000,
-                "_source": ["metadata.creators"],
-                "query": {"exists": {"field": "metadata.creators"}},
-            }
+            # First try with .keyword subfield (faster)
+            try:
+                query_body = {
+                    "size": 0,
+                    "aggs": {
+                        "unique_authors": {
+                            "terms": {
+                                "field": "metadata.creators.person_or_org.name.keyword",
+                                "size": 10000,  # Get all unique authors
+                                "order": {"_count": "desc"},
+                            }
+                        }
+                    },
+                }
 
-            # Execute search
-            result = current_search_client.search(
-                index=self.get_index_name(), body=query_body
-            )
-
-            # Aggregate author names manually
-            author_counts = {}
-            for hit in result.get("hits", {}).get("hits", []):
-                creators_list = (
-                    hit.get("_source", {}).get("metadata", {}).get("creators", [])
+                result = current_search_client.search(
+                    index=self.get_index_name(), body=query_body
                 )
-                for creator in creators_list:
-                    author_name = creator.get("person_or_org", {}).get("name")
-                    if author_name:
-                        author_counts[author_name] = (
-                            author_counts.get(author_name, 0) + 1
-                        )
+
+                buckets = (
+                    result.get("aggregations", {})
+                    .get("unique_authors", {})
+                    .get("buckets", [])
+                )
+
+                # If no buckets returned, try the scroll approach
+                if not buckets:
+                    raise Exception("No keyword field, fall back to scroll")
+
+            except Exception as keyword_error:
+                # Fallback: use scroll API if .keyword doesn't exist
+                print(
+                    f"Keyword aggregation failed, using scroll fallback: {keyword_error}"
+                )
+                return self._execute_with_scroll(search_term, page, size, sort_by)
+
+            # Normalize author names and merge duplicates
+            normalized_counts = {}
+            original_names = {}  # Keep track of original name (with dot if exists)
+
+            for bucket in buckets:
+                author_name = bucket["key"]
+                doc_count = bucket["doc_count"]
+
+                # Normalize the name (remove trailing dot)
+                normalized = self._normalize_author_name(author_name)
+
+                # Accumulate counts for normalized name
+                if normalized in normalized_counts:
+                    normalized_counts[normalized] += doc_count
+                else:
+                    normalized_counts[normalized] = doc_count
+                    # Prefer version WITH dot if it exists
+                    if author_name.endswith(".") or normalized not in original_names:
+                        original_names[normalized] = author_name
 
             # Filter by search term (case-insensitive substring match)
             if search_term:
                 search_lower = search_term.lower()
-                author_counts = {
+                normalized_counts = {
                     name: count
-                    for name, count in author_counts.items()
+                    for name, count in normalized_counts.items()
                     if search_lower in name.lower()
                 }
 
             # Convert to results format
             results = []
-            for author_name, count in author_counts.items():
+            for normalized_name, count in normalized_counts.items():
+                # Use the original name (preferably with dot)
+                display_name = original_names.get(normalized_name, normalized_name)
                 results.append(
                     {
-                        "value": author_name,
-                        "text": author_name,
-                        "name": author_name,
-                        "count": count,  # Use 'count' instead of 'doc_count'
+                        "value": display_name,
+                        "text": display_name,
+                        "name": display_name,
+                        "count": count,
                     }
                 )
 
@@ -107,6 +143,156 @@ class AuthorFilterBackend(BaseFilterBackend):
 
         except Exception as e:
             print(f"Error in AuthorFilterBackend: {str(e)}")
+            import traceback
+
+            traceback.print_exc()
+            return {
+                "results": [],
+                "total": 0,
+                "page": page,
+                "size": size,
+                "has_more": False,
+            }
+
+    def _execute_with_scroll(
+        self,
+        search_term: Optional[str] = None,
+        page: int = 1,
+        size: int = 20,
+        sort_by: str = "count",
+    ) -> Dict:
+        """
+        Fallback method using scroll API - slower but works with text fields.
+        """
+        try:
+            # Build query - use scroll API to fetch ALL records
+            query_body = {
+                "size": 1000,
+                "_source": ["metadata.creators"],
+                "query": {"exists": {"field": "metadata.creators"}},
+            }
+
+            # Initialize scroll
+            result = current_search_client.search(
+                index=self.get_index_name(), body=query_body, scroll="2m"
+            )
+
+            scroll_id = result.get("_scroll_id")
+            hits = result.get("hits", {}).get("hits", [])
+
+            # Aggregate author names by DOCUMENT (not by occurrence)
+            # Use normalized names to avoid duplicates
+            normalized_document_sets = {}
+            original_names = {}
+
+            # Process first batch
+            for hit in hits:
+                doc_id = hit.get("_id")
+                creators_list = (
+                    hit.get("_source", {}).get("metadata", {}).get("creators", [])
+                )
+                # Get unique normalized author names in this document
+                authors_in_doc = set()
+                for creator in creators_list:
+                    author_name = creator.get("person_or_org", {}).get("name")
+                    if author_name:
+                        normalized = self._normalize_author_name(author_name)
+                        authors_in_doc.add(normalized)
+                        # Track original name (prefer with dot)
+                        if (
+                            author_name.endswith(".")
+                            or normalized not in original_names
+                        ):
+                            original_names[normalized] = author_name
+
+                # Add document ID to each normalized author's set
+                for normalized in authors_in_doc:
+                    if normalized not in normalized_document_sets:
+                        normalized_document_sets[normalized] = set()
+                    normalized_document_sets[normalized].add(doc_id)
+
+            # Continue scrolling to get all documents
+            while len(hits) > 0:
+                result = current_search_client.scroll(scroll_id=scroll_id, scroll="2m")
+                scroll_id = result.get("_scroll_id")
+                hits = result.get("hits", {}).get("hits", [])
+
+                for hit in hits:
+                    doc_id = hit.get("_id")
+                    creators_list = (
+                        hit.get("_source", {}).get("metadata", {}).get("creators", [])
+                    )
+                    authors_in_doc = set()
+                    for creator in creators_list:
+                        author_name = creator.get("person_or_org", {}).get("name")
+                        if author_name:
+                            normalized = self._normalize_author_name(author_name)
+                            authors_in_doc.add(normalized)
+                            if (
+                                author_name.endswith(".")
+                                or normalized not in original_names
+                            ):
+                                original_names[normalized] = author_name
+
+                    for normalized in authors_in_doc:
+                        if normalized not in normalized_document_sets:
+                            normalized_document_sets[normalized] = set()
+                        normalized_document_sets[normalized].add(doc_id)
+
+            # Clear scroll
+            try:
+                current_search_client.clear_scroll(scroll_id=scroll_id)
+            except:
+                pass
+
+            # Count distinct documents per normalized author
+            normalized_counts = {}
+            for normalized, doc_ids in normalized_document_sets.items():
+                # Filter by search term
+                if search_term:
+                    search_lower = search_term.lower()
+                    if search_lower not in normalized.lower():
+                        continue
+                normalized_counts[normalized] = len(doc_ids)
+
+            # Convert to results format
+            results = []
+            for normalized, count in normalized_counts.items():
+                display_name = original_names.get(normalized, normalized)
+                results.append(
+                    {
+                        "value": display_name,
+                        "text": display_name,
+                        "name": display_name,
+                        "count": count,
+                    }
+                )
+
+            # Sort results
+            if sort_by == "count":
+                results.sort(key=lambda x: (-x["count"], x["name"].lower()))
+            else:
+                results.sort(key=lambda x: x["name"].lower())
+
+            # Pagination
+            total = len(results)
+            start = (page - 1) * size
+            end = start + size
+            paginated_results = results[start:end]
+
+            return {
+                "results": paginated_results,
+                "total": total,
+                "page": page,
+                "size": size,
+                "has_more": end < total,
+            }
+
+        except Exception as e:
+            print(f"Error in scroll fallback: {str(e)}")
+            import traceback
+
+            traceback.print_exc()
             return {
                 "results": [],
                 "total": 0,
