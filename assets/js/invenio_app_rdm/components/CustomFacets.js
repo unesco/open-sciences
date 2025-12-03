@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import DynamicFacet from "./DynamicFacet";
 import UnescoToggleFacet from "./facets/UnescoToggleFacet";
 import OpenAccessToggleFacet from "./facets/OpenAccessToggleFacet";
+import ResourceTypeFacet from "./facets/ResourceTypeFacet";
 
 // Main custom facets component
 export class CustomFacets extends Component {
@@ -59,16 +60,7 @@ export class CustomFacets extends Component {
           useFacetParameter={true}
           facetName="funding_org"
         />
-        <DynamicFacet
-          label="Resource Type"
-          apiField="resource_type"
-          queryField="metadata.resource_type.id"
-          placeholder="Search resource types..."
-          icon="file alternate"
-          maxResults={50}
-          useFacetParameter={true}
-          facetName="resource_type"
-        />
+        <ResourceTypeFacet />
         <DynamicFacet
           label="Publication Year"
           apiField="year"

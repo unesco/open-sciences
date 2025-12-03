@@ -22,9 +22,9 @@ FILTER_BACKENDS_REGISTRY = {
     "country": CountryFilterBackend,
     "funding": FundingOrgFilterBackend,
     "open_access": OpenAccessFilterBackend,
+    "resource_type": ResourceTypeFilterBackend,
     "subject": SubjectFilterBackend,
     "year": PublicationYearFilterBackend,
-    "resource_type": ResourceTypeFilterBackend,
 }
 
 
