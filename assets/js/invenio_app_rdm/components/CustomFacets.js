@@ -59,6 +59,26 @@ export class CustomFacets extends Component {
           useFacetParameter={true}
           facetName="funding_org"
         />
+        <DynamicFacet
+          label="Resource Type"
+          apiField="resource_type"
+          queryField="metadata.resource_type.id"
+          placeholder="Search resource types..."
+          icon="file alternate"
+          maxResults={50}
+          useFacetParameter={true}
+          facetName="resource_type"
+        />
+        <DynamicFacet
+          label="Publication Year"
+          apiField="year"
+          queryField="metadata.publication_date"
+          placeholder="Search years..."
+          icon="calendar"
+          maxResults={50}
+          useFacetParameter={true}
+          facetName="publication_year"
+        />
         <UnescoToggleFacet />
         <OpenAccessToggleFacet />
       </>
