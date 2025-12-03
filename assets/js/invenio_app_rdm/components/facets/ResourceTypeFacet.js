@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, Icon, Popup, Loader, Dimmer, Checkbox, Label } from "semantic-ui-react";
+import {
+  Card,
+  Icon,
+  Popup,
+  Loader,
+  Dimmer,
+  Checkbox,
+  Label,
+} from "semantic-ui-react";
 import axios from "axios";
 
 const ResourceTypeFacet = () => {
@@ -140,27 +148,15 @@ const ResourceTypeFacet = () => {
           />
           <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             Resource Type
-            <Popup
-              trigger={
-                <Icon
-                  name="info circle"
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "rgba(0, 0, 0, 0.4)",
-                    cursor: "help",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                />
-              }
-              content="Filter by resource type (publication, dataset, etc.)"
-              position="top center"
-              size="small"
-              inverted
-            />
           </span>
         </Card.Header>
-        <div style={{ maxHeight: "300px", overflowY: "auto", position: "relative" }}>
+        <div
+          style={{
+            maxHeight: "300px",
+            overflowY: "auto",
+            position: "relative",
+          }}
+        >
           {loading ? (
             <div style={{ position: "relative" }}>
               <Dimmer active inverted>
@@ -178,8 +174,15 @@ const ResourceTypeFacet = () => {
                       marginBottom: "0.5rem",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                      <Checkbox radio disabled label="Loading..." style={{ fontSize: "0.92rem" }} />
+                    <div
+                      style={{ display: "flex", alignItems: "center", flex: 1 }}
+                    >
+                      <Checkbox
+                        radio
+                        disabled
+                        label="Loading..."
+                        style={{ fontSize: "0.92rem" }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -204,8 +207,7 @@ const ResourceTypeFacet = () => {
                     display: "flex",
                     alignItems: "center",
                     padding: "0.6rem 0.8rem",
-                    cursor:
-                      parent.children.length > 0 ? "pointer" : "default",
+                    cursor: parent.children.length > 0 ? "pointer" : "default",
                   }}
                 >
                   <div

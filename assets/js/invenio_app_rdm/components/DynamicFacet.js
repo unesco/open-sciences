@@ -2,7 +2,7 @@
 // Uses custom hooks and separate components for better maintainability
 
 import React, { useState, useRef } from "react";
-import { Card, Input, Label, Icon, Loader } from "semantic-ui-react";
+import { Card, Input, Label, Icon, Loader, Popup } from "semantic-ui-react";
 import PropTypes from "prop-types";
 
 // Custom hooks
@@ -109,39 +109,58 @@ const DynamicFacet = ({
                 display: "flex",
                 alignItems: "center",
                 pointerEvents: "none",
+                maxWidth: "calc(100% - 3.5rem)",
               }}
             >
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: "0.15rem 0.5rem",
-                  backgroundColor: "#f5f5f5",
-                  border: "1px solid #d9d9d9",
-                  borderRadius: "2px",
-                  fontSize: "0.85rem",
-                  color: "rgba(0, 0, 0, 0.85)",
-                  maxWidth: "200px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  pointerEvents: "auto",
-                }}
-              >
-                {selectedValue}
-                <Icon
-                  name="close"
-                  style={{
-                    marginLeft: "0.4rem",
-                    cursor: "pointer",
-                    fontSize: "0.7rem",
-                    opacity: 0.6,
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                  onClick={handleClear}
-                />
-              </span>
+              <Popup
+                content={selectedValue}
+                trigger={
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "0.15rem 0.5rem",
+                      backgroundColor: "#f5f5f5",
+                      border: "1px solid #d9d9d9",
+                      borderRadius: "2px",
+                      fontSize: "0.85rem",
+                      color: "rgba(0, 0, 0, 0.85)",
+                      maxWidth: "100%",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      pointerEvents: "auto",
+                    }}
+                  >
+                    <span
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {selectedValue}
+                    </span>
+                    <Icon
+                      name="close"
+                      style={{
+                        marginLeft: "0.4rem",
+                        cursor: "pointer",
+                        fontSize: "0.7rem",
+                        opacity: 0.6,
+                        display: "flex",
+                        alignItems: "center",
+                        flexShrink: 0,
+                      }}
+                      onClick={handleClear}
+                    />
+                  </span>
+                }
+                position="top center"
+                size="small"
+                inverted
+                disabled={selectedValue.length <= 25}
+              />
             </div>
           )}
         </div>

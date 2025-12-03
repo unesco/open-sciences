@@ -1,4 +1,4 @@
-// Facet options list with checkboxes
+// Facet options list with radio buttons (single selection)
 import React from "react";
 import { List, Checkbox, Label } from "semantic-ui-react";
 import PropTypes from "prop-types";
@@ -34,6 +34,7 @@ const FacetOptionsList = ({ options, selectedValue, loading, onSelect }) => {
             }}
           >
             <Checkbox
+              radio
               label={
                 <label
                   style={{
