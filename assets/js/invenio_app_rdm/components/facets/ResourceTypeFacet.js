@@ -147,7 +147,7 @@ const ResourceTypeFacet = () => {
             style={{ marginRight: "8px", color: "#2185d0" }}
           />
           <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            Resource Type
+            Resources Type
           </span>
         </Card.Header>
         <div
