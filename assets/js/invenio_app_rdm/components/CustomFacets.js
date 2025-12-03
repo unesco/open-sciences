@@ -5,6 +5,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import DynamicFacet from "./DynamicFacet";
 import UnescoToggleFacet from "./facets/UnescoToggleFacet";
+import OpenAccessToggleFacet from "./facets/OpenAccessToggleFacet";
 
 // Main custom facets component
 export class CustomFacets extends Component {
@@ -59,6 +60,7 @@ export class CustomFacets extends Component {
           facetName="funding_org"
         />
         <UnescoToggleFacet />
+        <OpenAccessToggleFacet />
       </>
     );
   }

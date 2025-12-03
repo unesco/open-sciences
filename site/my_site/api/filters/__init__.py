@@ -10,6 +10,7 @@ from .affiliation import AffiliationFilterBackend
 from .author import AuthorFilterBackend
 from .country import CountryFilterBackend
 from .funding import FundingOrgFilterBackend
+from .open_access import OpenAccessFilterBackend
 from .resource_type import ResourceTypeFilterBackend
 from .subject import SubjectFilterBackend
 from .year import PublicationYearFilterBackend
@@ -20,6 +21,7 @@ FILTER_BACKENDS_REGISTRY = {
     "author": AuthorFilterBackend,
     "country": CountryFilterBackend,
     "funding": FundingOrgFilterBackend,
+    "open_access": OpenAccessFilterBackend,
     "subject": SubjectFilterBackend,
     "year": PublicationYearFilterBackend,
     "resource_type": ResourceTypeFilterBackend,
@@ -48,6 +50,7 @@ __all__ = [
     "AuthorFilterBackend",
     "CountryFilterBackend",
     "FundingOrgFilterBackend",
+    "OpenAccessFilterBackend",
     "ResourceTypeFilterBackend",
     "SubjectFilterBackend",
     "PublicationYearFilterBackend",
