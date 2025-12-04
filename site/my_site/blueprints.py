@@ -1,20 +1,33 @@
-"""Additional views."""
+"""Blueprint registration for custom routes."""
 
 from flask import Blueprint
-from .statistics.statistics import StatisticsView, StatisticsAPIView
-from .api import SearchAPIView
 
 
-#
-# Registration
-#
 def create_blueprint(app):
-    """Register blueprint routes on app."""
+    """
+    Register blueprint routes on app.
+
+    This function creates and configures the my_site blueprint,
+    registering all custom routes for views and API endpoints.
+
+    Args:
+        app: Flask application instance
+
+    Returns:
+        Configured Blueprint instance
+    """
+    from .views import StatisticsView
+    from .api import SearchAPIView, StatisticsAPIView
+
     blueprint = Blueprint(
         "my_site",
         __name__,
         template_folder="./templates",
     )
+
+    # ========================================
+    # HTML Views (Page Rendering)
+    # ========================================
 
     # Statistics dashboard page
     blueprint.add_url_rule(
@@ -22,6 +35,10 @@ def create_blueprint(app):
         view_func=StatisticsView.as_view("statistics_dashboard"),
         methods=["GET"],
     )
+
+    # ========================================
+    # API Endpoints (JSON Responses)
+    # ========================================
 
     # Statistics API endpoint - using /data/ prefix instead of /api/
     blueprint.add_url_rule(

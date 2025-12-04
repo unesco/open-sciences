@@ -1,4 +1,4 @@
-"""Search API view."""
+"""Search API endpoint for advanced filtering."""
 
 from flask import jsonify, request
 from flask.views import MethodView

@@ -1,17 +1,12 @@
 """JS/CSS Webpack bundles for My Site."""
 
-from invenio_assets.webpack import WebpackThemeBundle
+from invenio_assets.webpack import WebpackBundle
 
-theme = WebpackThemeBundle(
+theme = WebpackBundle(
     __name__,
     "assets",
-    default="semantic-ui",
-    themes={
-        "semantic-ui": dict(
-            entry={
-                # Statistics dashboard bundle
-                "my-site-statistics": "./js/my_site/statistics.js",
-            },
-        ),
+    entry={
+        # Statistics dashboard bundle
+        "my-site-statistics": "./js/statistics.js",
     },
 )

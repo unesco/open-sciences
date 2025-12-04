@@ -7,6 +7,8 @@
  * - Handling user interactions and data refresh
  */
 
+/* global Chart */
+
 class StatisticsDashboard {
   constructor() {
     this.apiEndpoint = "/data/statistics";
@@ -131,137 +133,136 @@ class StatisticsDashboard {
   }
 
   /**
-   * Render activity chart using Canvas
+   * Render activity chart using Chart.js
    */
   renderActivityChart(dailyActivity) {
     const canvas = document.getElementById("activity-canvas");
     const ctx = canvas.getContext("2d");
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Set up chart parameters
-    const padding = 40;
-    const chartWidth = canvas.width - 2 * padding;
-    const chartHeight = canvas.height - 2 * padding;
+    // Destroy existing chart if it exists
+    if (this.chart) {
+      this.chart.destroy();
+    }
 
     // Extract data
+    const labels = dailyActivity.map((d) => {
+      const date = new Date(d.date);
+      return date.toLocaleDateString("it-IT", {
+        month: "short",
+        day: "numeric",
+      });
+    });
     const uploads = dailyActivity.map((d) => d.uploads);
     const downloads = dailyActivity.map((d) => d.downloads);
-    const dates = dailyActivity.map((d) => d.date);
 
-    // Find max values for scaling
-    const maxUploads = Math.max(...uploads);
-    const maxDownloads = Math.max(...downloads);
-    const maxValue = Math.max(maxUploads, maxDownloads);
-
-    // Draw axes
-    ctx.strokeStyle = "#ddd";
-    ctx.lineWidth = 1;
-
-    // Y axis
-    ctx.beginPath();
-    ctx.moveTo(padding, padding);
-    ctx.lineTo(padding, canvas.height - padding);
-    ctx.stroke();
-
-    // X axis
-    ctx.beginPath();
-    ctx.moveTo(padding, canvas.height - padding);
-    ctx.lineTo(canvas.width - padding, canvas.height - padding);
-    ctx.stroke();
-
-    // Draw upload line (blue)
-    this.drawLine(
-      ctx,
-      canvas,
-      uploads,
-      maxValue,
-      chartWidth,
-      chartHeight,
-      padding,
-      "#2185d0",
-      "Uploads"
-    );
-
-    // Draw download line (green)
-    this.drawLine(
-      ctx,
-      canvas,
-      downloads,
-      maxValue,
-      chartWidth,
-      chartHeight,
-      padding,
-      "#21ba45",
-      "Downloads"
-    );
-
-    // Add legend
-    this.drawLegend(ctx, canvas);
-  }
-
-  /**
-   * Draw a line on the chart
-   */
-  drawLine(
-    ctx,
-    canvas,
-    data,
-    maxValue,
-    chartWidth,
-    chartHeight,
-    padding,
-    color,
-    label
-  ) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-
-    data.forEach((value, index) => {
-      const x = padding + (index / (data.length - 1)) * chartWidth;
-      const y = canvas.height - padding - (value / maxValue) * chartHeight;
-
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
+    // Create Chart.js chart with UNESCO colors
+    this.chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Uploads",
+            data: uploads,
+            borderColor: "#0077C8",
+            backgroundColor: "rgba(0, 119, 200, 0.1)",
+            tension: 0.4,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: "#0077C8",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+          },
+          {
+            label: "Downloads",
+            data: downloads,
+            borderColor: "#00B398",
+            backgroundColor: "rgba(0, 179, 152, 0.1)",
+            tension: 0.4,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: "#00B398",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: "top",
+            labels: {
+              usePointStyle: true,
+              padding: 15,
+              font: {
+                size: 13,
+                weight: "500",
+              },
+            },
+          },
+          tooltip: {
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            padding: 12,
+            titleFont: {
+              size: 14,
+              weight: "600",
+            },
+            bodyFont: {
+              size: 13,
+            },
+            borderColor: "rgba(255, 255, 255, 0.1)",
+            borderWidth: 1,
+            displayColors: true,
+            callbacks: {
+              label: function (context) {
+                return (
+                  context.dataset.label +
+                  ": " +
+                  context.parsed.y.toLocaleString()
+                );
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false,
+            },
+            ticks: {
+              maxRotation: 45,
+              minRotation: 0,
+              font: {
+                size: 11,
+              },
+            },
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: "rgba(0, 0, 0, 0.05)",
+            },
+            ticks: {
+              font: {
+                size: 11,
+              },
+              callback: function (value) {
+                return value.toLocaleString();
+              },
+            },
+          },
+        },
+      },
     });
-
-    ctx.stroke();
-
-    // Draw points
-    ctx.fillStyle = color;
-    data.forEach((value, index) => {
-      const x = padding + (index / (data.length - 1)) * chartWidth;
-      const y = canvas.height - padding - (value / maxValue) * chartHeight;
-
-      ctx.beginPath();
-      ctx.arc(x, y, 3, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-  }
-
-  /**
-   * Draw chart legend
-   */
-  drawLegend(ctx, canvas) {
-    const legendY = 20;
-
-    // Uploads legend
-    ctx.fillStyle = "#2185d0";
-    ctx.fillRect(canvas.width - 150, legendY, 10, 10);
-    ctx.fillStyle = "#333";
-    ctx.font = "12px Arial";
-    ctx.fillText("Uploads", canvas.width - 135, legendY + 8);
-
-    // Downloads legend
-    ctx.fillStyle = "#21ba45";
-    ctx.fillRect(canvas.width - 150, legendY + 20, 10, 10);
-    ctx.fillStyle = "#333";
-    ctx.fillText("Downloads", canvas.width - 135, legendY + 28);
   }
 
   /**
@@ -306,26 +307,25 @@ class StatisticsDashboard {
 
     activities.forEach((activity) => {
       const item = document.createElement("div");
-      item.className = "event";
+      item.className = "activity-item";
 
-      // Choose icon based on action
-      let icon = "file";
-      if (activity.action.includes("uploaded")) icon = "upload";
-      else if (activity.action.includes("downloaded")) icon = "download";
-      else if (activity.action.includes("created")) icon = "plus";
-      else if (activity.action.includes("published")) icon = "globe";
+      // Choose emoji based on action
+      let emoji = "📄";
+      if (activity.action.includes("uploaded")) emoji = "⬆️";
+      else if (activity.action.includes("downloaded")) emoji = "⬇️";
+      else if (activity.action.includes("created")) emoji = "✨";
+      else if (activity.action.includes("published")) emoji = "🌍";
 
       item.innerHTML = `
-                <div class="label">
-                    <i class="${icon} icon"></i>
-                </div>
-                <div class="content">
-                    <div class="summary">
-                        <strong>${activity.action}</strong>: ${activity.title}
-                        <div class="date">${activity.time}</div>
-                    </div>
-                </div>
-            `;
+        <div style="display: flex; gap: 12px; align-items: start;">
+          <div style="font-size: 20px; flex-shrink: 0;">${emoji}</div>
+          <div style="flex: 1;">
+            <div class="activity-action">${activity.action}</div>
+            <div style="color: rgba(0, 0, 0, 0.65); margin-top: 4px;">${activity.title}</div>
+            <div class="activity-time">${activity.time}</div>
+          </div>
+        </div>
+      `;
 
       container.appendChild(item);
     });

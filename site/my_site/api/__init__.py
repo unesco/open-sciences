@@ -1,5 +1,6 @@
-"""API package for custom endpoints."""
+"""API package for custom JSON endpoints."""
 
-from .views import SearchAPIView
+from .search import SearchAPIView
+from .statistics import StatisticsAPIView
 
-__all__ = ["SearchAPIView"]
+__all__ = ["SearchAPIView", "StatisticsAPIView"]

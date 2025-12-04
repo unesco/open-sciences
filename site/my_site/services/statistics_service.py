@@ -1,34 +1,29 @@
-"""Statistics views for UNESCO Science Portal."""
+"""Statistics service for UNESCO Science Portal.
 
-import json
-from datetime import datetime, timedelta
-from flask import render_template, jsonify, request
-from flask.views import MethodView
+This service contains the business logic for generating and aggregating
+statistics data. It's separated from views/API to be reusable across
+different contexts (web views, API endpoints, CLI commands, etc.).
+"""
+
 import random
+from datetime import datetime, timedelta
+from typing import Dict, List, Any
 
 
-class StatisticsView(MethodView):
-    """Statistics dashboard view."""
+class StatisticsService:
+    """Service for generating and managing statistics data."""
 
-    def __init__(self):
-        self.template = "my_site/statistics.html"
+    @staticmethod
+    def generate_mock_statistics() -> Dict[str, Any]:
+        """
+        Generate mock statistics data for demonstration purposes.
 
-    def get(self):
-        """Render statistics dashboard."""
-        return render_template(self.template)
+        In production, this would query the database for real metrics.
 
-
-class StatisticsAPIView(MethodView):
-    """Statistics API endpoint."""
-
-    def get(self):
-        """Return statistics data as JSON."""
-        # Simulated data - in a real application this would come from the database
-        stats_data = self._generate_mock_statistics()
-        return jsonify(stats_data)
-
-    def _generate_mock_statistics(self):
-        """Generate mock statistics data."""
+        Returns:
+            Dictionary containing statistics summary, daily activity,
+            top subjects, and recent activities.
+        """
         # Generate data for the last 30 days
         end_date = datetime.now()
         start_date = end_date - timedelta(days=30)
@@ -110,3 +105,42 @@ class StatisticsAPIView(MethodView):
             "recent_activities": activities,
             "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
+
+    @staticmethod
+    def get_summary_stats() -> Dict[str, Any]:
+        """
+        Get summary statistics only.
+
+        Returns:
+            Dictionary with summary statistics (total_records, downloads, users, growth).
+        """
+        full_stats = StatisticsService.generate_mock_statistics()
+        return full_stats["summary"]
+
+    @staticmethod
+    def get_daily_activity(days: int = 30) -> List[Dict[str, Any]]:
+        """
+        Get daily activity data for specified number of days.
+
+        Args:
+            days: Number of days to retrieve (default: 30)
+
+        Returns:
+            List of daily activity records.
+        """
+        full_stats = StatisticsService.generate_mock_statistics()
+        return full_stats["daily_activity"][-days:]
+
+    @staticmethod
+    def get_top_subjects(limit: int = 5) -> List[Dict[str, Any]]:
+        """
+        Get top subjects by record count.
+
+        Args:
+            limit: Maximum number of subjects to return (default: 5)
+
+        Returns:
+            List of top subjects with counts.
+        """
+        full_stats = StatisticsService.generate_mock_statistics()
+        return full_stats["top_subjects"][:limit]

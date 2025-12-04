@@ -1,0 +1,383 @@
+{%- extends config.BASE_TEMPLATE %} {%- block page_body %}
+<style>
+  .stats-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* UNESCO inspired header */
+  .stats-header {
+    background: linear-gradient(135deg, #0077c8 0%, #00b398 100%);
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 24px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 119, 200, 0.15);
+  }
+
+  .stats-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 600;
+  }
+
+  .stats-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 16px;
+  }
+
+  /* Ant Design card style */
+  .stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03),
+      0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    border: 1px solid #f0f0f0;
+    height: 100%;
+  }
+
+  .stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 600;
+    color: #0077c8;
+    margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-label {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .stat-icon {
+    float: right;
+    font-size: 32px;
+    opacity: 0.25;
+  }
+
+  /* Grid responsive */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .charts-grid {
+      grid-template-columns: 1fr;
+    }
+    .stats-container {
+      padding: 16px;
+    }
+    .stats-header {
+      padding: 24px 20px;
+    }
+  }
+
+  /* Chart container */
+  .chart-card {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03),
+      0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02);
+    border: 1px solid #f0f0f0;
+  }
+
+  .chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  /* Subject list */
+  .subject-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .subject-item:last-child {
+    border-bottom: none;
+  }
+
+  .subject-name {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  .subject-count {
+    background: #e6f4ff;
+    color: #0077c8;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Activity feed */
+  .activity-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .activity-item:last-child {
+    border-bottom: none;
+  }
+
+  .activity-action {
+    color: #0077c8;
+    font-weight: 500;
+  }
+
+  .activity-time {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 13px;
+    margin-left: 8px;
+  }
+
+  /* Loading spinner */
+  .loading-container {
+    text-align: center;
+    padding: 60px 0;
+  }
+
+  .spinner {
+    border: 3px solid #f0f0f0;
+    border-top: 3px solid #0077c8;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Button */
+  .refresh-btn {
+    background: #0077c8;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .refresh-btn:hover {
+    background: #0099e6;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 119, 200, 0.3);
+  }
+
+  /* Footer info */
+  .stats-footer {
+    background: white;
+    border-radius: 8px;
+    padding: 16px 24px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .last-update {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+  }
+
+  /* Error state */
+  .error-card {
+    background: #fff2f0;
+    border: 1px solid #ffccc7;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .error-title {
+    color: #cf1322;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .error-message {
+    color: rgba(0, 0, 0, 0.45);
+    margin-bottom: 16px;
+  }
+
+  /* Test banner */
+  .test-banner {
+    background: linear-gradient(135deg, #ed2e7e 0%, #ff6b9d 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(237, 46, 126, 0.2);
+  }
+
+  .test-banner-icon {
+    font-size: 24px;
+  }
+
+  .test-banner-content h3 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .test-banner-content p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.95;
+  }
+
+  /* Canvas responsive */
+  #activity-canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+</style>
+
+<div class="stats-container">
+  <!-- Test Banner -->
+  <div class="test-banner">
+    <div class="test-banner-icon">⚠️</div>
+    <div class="test-banner-content">
+      <h3>{{ _('Test Page - Mock Data') }}</h3>
+      <p>
+        {{ _('This is a demonstration page. All statistics shown are simulated
+        and do not represent real data.') }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="stats-header">
+    <h1>📊 {{ _('UNESCO Science Portal Statistics') }}</h1>
+    <p>{{ _('Real-time analytics and insights into research activities') }}</p>
+  </div>
+
+  <!-- Loading State -->
+  <div id="loading-stats" class="loading-container">
+    <div class="spinner"></div>
+    <p style="color: rgba(0, 0, 0, 0.45)">{{ _('Loading statistics...') }}</p>
+  </div>
+
+  <!-- Statistics Dashboard -->
+  <div id="statistics-dashboard" style="display: none">
+    <!-- Summary Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon">📚</span>
+        <div class="stat-value" id="total-records">-</div>
+        <div class="stat-label">{{ _('Total Records') }}</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">⬇️</span>
+        <div class="stat-value" id="total-downloads">-</div>
+        <div class="stat-label">{{ _('Total Downloads') }}</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <div class="stat-value" id="active-users">-</div>
+        <div class="stat-label">{{ _('Active Users') }}</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">📈</span>
+        <div class="stat-value" id="growth-rate">-</div>
+        <div class="stat-label">{{ _('Growth Rate') }}</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <!-- Activity Chart -->
+      <div class="chart-card">
+        <div class="chart-title">
+          📊 {{ _('Daily Activity (Last 30 Days)') }}
+        </div>
+        <div id="activity-chart" style="height: 300px">
+          <canvas id="activity-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Top Subjects -->
+      <div class="chart-card">
+        <div class="chart-title">🏷️ {{ _('Top Research Subjects') }}</div>
+        <div id="top-subjects"></div>
+      </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="chart-card" style="margin-bottom: 24px">
+      <div class="chart-title">🕐 {{ _('Recent Activities') }}</div>
+      <div id="recent-activities"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="stats-footer">
+      <div class="last-update">
+        🕐 {{ _('Last updated:') }} <strong id="last-updated">-</strong>
+      </div>
+      <button class="refresh-btn" onclick="refreshStatistics()">
+        🔄 {{ _('Refresh Data') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div id="error-state" class="error-card" style="display: none">
+    <div class="error-title">⚠️ {{ _('Error Loading Statistics') }}</div>
+    <p class="error-message">
+      {{ _('Unable to load statistics data. Please try again later.') }}
+    </p>
+    <button class="refresh-btn" onclick="loadStatistics()">
+      🔄 {{ _('Try Again') }}
+    </button>
+  </div>
+</div>
+{%- endblock %} {%- block javascript %} {{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{{ webpack['my-site-statistics.js'] }} {%- endblock %}

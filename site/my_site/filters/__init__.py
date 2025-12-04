@@ -2,6 +2,9 @@
 
 This package contains modular filter backends for the search API,
 inspired by Django REST Framework and django-filter patterns.
+
+Each filter backend implements the BaseFilterBackend interface and
+provides filtering capabilities for specific fields (country, author, etc.).
 """
 
 from typing import Optional
