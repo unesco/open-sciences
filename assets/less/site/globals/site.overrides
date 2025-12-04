@@ -172,7 +172,7 @@ select {
 }
 
 .ui.button:hover {
-  transform: translateY(-2px);
+  /* Remove translateY to prevent button lifting effect */
 }
 
 /* Icon color consistency */
@@ -335,7 +335,7 @@ article {
   background-color: #ffffff !important;
   color: rgba(0, 0, 0, 0.85) !important;
   border: 1px solid #d9d9d9 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
   border-radius: 6px !important;
   transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
   font-weight: 400 !important;
@@ -350,7 +350,7 @@ article {
     color: #1890ff !important;
     border-color: #1890ff !important;
     background-color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12) !important;
     
     i.icon {
       color: #1890ff !important;
@@ -384,6 +384,43 @@ article {
       background-color: #f5f5f5 !important;
       border-color: #d9d9d9 !important;
       color: rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+}
+
+/* ====================
+   Button Groups - Fix visual issues
+   ==================== */
+.ui.buttons {
+  /* Remove extra border/shadow that creates rectangle effect */
+  box-shadow: none !important;
+  border: none !important;
+  
+  /* Fix button spacing in groups */
+  .button {
+    margin: 0 !important;
+    
+    /* First button - left rounded corners */
+    &:first-child {
+      border-top-left-radius: 6px !important;
+      border-bottom-left-radius: 6px !important;
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+    
+    /* Middle buttons - no rounded corners */
+    &:not(:first-child):not(:last-child) {
+      border-radius: 0 !important;
+      border-left: none !important;
+    }
+    
+    /* Last button - right rounded corners */
+    &:last-child {
+      border-top-right-radius: 6px !important;
+      border-bottom-right-radius: 6px !important;
+      border-top-left-radius: 0 !important;
+      border-bottom-left-radius: 0 !important;
+      border-left: none !important;
     }
   }
 }
