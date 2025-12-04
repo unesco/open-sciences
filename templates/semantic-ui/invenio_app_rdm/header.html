@@ -23,16 +23,18 @@ link #}
       {%- block navbar %}
       <div class="ui container invenio-header-container">
         <nav id="invenio-nav" class="ui inverted menu borderless p-0">
-          <div class="item logo p-0">
+          <div class="item logo p-0" style="display: flex !important; align-items: center; gap: 10px; flex: 0 0 auto !important; width: auto !important;">
             {%- block navbar_header %} {%- block brand %} {%- if
             config.THEME_LOGO %}
-            <a class="logo-link" href="/">
+            <a class="logo-link" href="/" style="display: inline-block;">
               <img
                 class="ui image rdm-logo"
                 src="{{ url_for('static', filename=config.THEME_LOGO) }}"
                 alt="{{ _(config.THEME_SITENAME) }} {{ _('home') }}"
+                style="height: 42px !important; width: auto !important; max-height: none !important;"
               />
             </a>
+            <span class="computer large screen widescreen only" style="color: #FFFFFF; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; line-height: 1; white-space: nowrap;">Open Science Portal</span>
             {%- else %}
             <a class="logo" href="/">{{ _(config.THEME_SITENAME) }}</a>
             {%- endif %} {%- endblock brand %} {%- endblock navbar_header %}
@@ -162,7 +164,7 @@ link #}
             {# Shows: Login/Sign up buttons for anonymous users #}
             {# Shows: Inbox notifications and user menu for authenticated users #}
             {# Required for: User registration, login, profile access, and notifications #}
-            <!--
+            
             <div class="right menu item">
               {%- if config.ACCOUNTS and current_user.is_authenticated %} {% for
               item in
@@ -179,7 +181,7 @@ link #}
               {% endfor %} {% endif %} {%- include
               config.THEME_HEADER_LOGIN_TEMPLATE %}
             </div>
-            -->
+            
             {%- endblock navbar_right %}
           </nav>
         </nav>
