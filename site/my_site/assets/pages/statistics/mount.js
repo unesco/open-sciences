@@ -1,11 +1,11 @@
 /**
  * React Statistics Dashboard Entry Point
- * Mounts the StatisticsDashboard React component
+ * Mounts the Statistics React component
  */
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { Statistics } from "@js/invenio_app_rdm/pages/statistics";
+import { Statistics } from "./index";
 
 // Wait for DOM to be ready
 document.addEventListener("DOMContentLoaded", () => {

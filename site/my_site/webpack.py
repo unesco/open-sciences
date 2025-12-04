@@ -7,10 +7,10 @@ theme = WebpackBundle(
     "assets",
     entry={
         # Statistics page bundle (React + CSS)
-        "statistics": "./statistics/index.js",
-        "statistics-styles": "./statistics/index.less",
+        "statistics": "./pages/statistics/mount.js",
+        "statistics-styles": "./pages/statistics/index.less",
         # CMS administration page bundle (React + CSS)
-        "cms": "./administration/cms/index.js",
-        "cms-styles": "./administration/cms/index.less",
+        "cms": "./pages/administration/cms/mount.js",
+        "cms-styles": "./pages/administration/cms/index.less",
     },
 )

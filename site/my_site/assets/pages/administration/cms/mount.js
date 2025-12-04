@@ -5,7 +5,7 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { CMS } from "@js/invenio_app_rdm/pages/administration/cms";
+import { CMS } from "./index";
 
 // Wait for DOM to be ready
 document.addEventListener("DOMContentLoaded", () => {
