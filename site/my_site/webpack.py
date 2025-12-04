@@ -7,7 +7,7 @@ theme = WebpackBundle(
     "assets",
     entry={
         # Statistics page bundle (React + CSS)
-        "statistics": "./js/statistics.js",
-        "statistics-styles": "./less/statistics.less",
+        "statistics": "./statistics/index.js",
+        "statistics-styles": "./statistics/index.less",
     },
 )

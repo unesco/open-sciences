@@ -8,7 +8,7 @@ class StatisticsView(MethodView):
     """Statistics dashboard view - renders HTML page."""
 
     def __init__(self):
-        self.template = "my_site/statistics.html"
+        self.template = "my_site/statistics/index.html"
 
     def get(self):
         """Render statistics dashboard page."""
