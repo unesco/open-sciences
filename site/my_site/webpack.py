@@ -6,7 +6,8 @@ theme = WebpackBundle(
     __name__,
     "assets",
     entry={
-        # Statistics dashboard bundle
-        "my-site-statistics": "./js/statistics.js",
+        # Statistics page bundle (React + CSS)
+        "statistics": "./js/statistics.js",
+        "statistics-styles": "./less/statistics.less",
     },
 )
