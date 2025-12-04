@@ -22,12 +22,25 @@ const ResourceTypeFacet = () => {
   // Parse URL to get current filter (single selection)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const query = urlParams.get("q") || "";
+    const facetFilters = urlParams.getAll("f");
 
-    // Extract resource_type filter from query string (take first match only)
-    const typeMatch = query.match(/metadata\.resource_type\.id:"([^"]+)"/);
-    if (typeMatch) {
-      setSelectedType(typeMatch[1]);
+    // Extract resource_type filter (supports both parent and inner formats)
+    const resourceTypeFilter = facetFilters.find((f) =>
+      f.includes("resource_type:")
+    );
+    
+    if (resourceTypeFilter) {
+      // Check if it's an inner (child) type: "resource_type:parent+inner:child"
+      const innerMatch = resourceTypeFilter.match(/\+inner:([^&]+)/);
+      if (innerMatch) {
+        setSelectedType(innerMatch[1]);
+      } else {
+        // It's a parent type: "resource_type:parent"
+        const parentMatch = resourceTypeFilter.match(/resource_type:([^+&]+)/);
+        if (parentMatch) {
+          setSelectedType(parentMatch[1]);
+        }
+      }
     }
   }, []);
 
@@ -93,35 +106,30 @@ const ResourceTypeFacet = () => {
     setExpandedParents(newExpanded);
   };
 
-  const handleItemClick = (typeValue) => {
+  const handleItemClick = (typeValue, parentValue = null) => {
     const urlParams = new URLSearchParams(window.location.search);
-    const currentQuery = urlParams.get("q") || "";
 
     // Remove existing resource_type filters
-    let newQuery = currentQuery
-      .replace(/metadata\.resource_type\.id:"[^"]+"\s*(AND\s*)?/g, "")
-      .trim();
-    if (newQuery.endsWith("AND")) {
-      newQuery = newQuery.slice(0, -3).trim();
-    }
+    const facetFilters = urlParams
+      .getAll("f")
+      .filter((f) => !f.includes("resource_type:"));
+    urlParams.delete("f");
+    facetFilters.forEach((f) => urlParams.append("f", f));
 
     // Toggle selection: if clicking the same item, deselect it
     const newSelectedType = selectedType === typeValue ? null : typeValue;
 
-    // Build new query with updated selection
+    // Add new filter if selected
     if (newSelectedType) {
-      const typeFilter = `metadata.resource_type.id:"${newSelectedType}"`;
-      if (newQuery) {
-        newQuery = `${newQuery} AND ${typeFilter}`;
+      let filterValue;
+      if (parentValue) {
+        // Child type: use format "resource_type:parent+inner:child"
+        filterValue = `resource_type:${parentValue}+inner:${newSelectedType}`;
       } else {
-        newQuery = typeFilter;
+        // Parent type: use format "resource_type:parent"
+        filterValue = `resource_type:${newSelectedType}`;
       }
-    }
-
-    if (newQuery) {
-      urlParams.set("q", newQuery);
-    } else {
-      urlParams.delete("q");
+      urlParams.append("f", filterValue);
     }
 
     // Reset to page 1
@@ -313,7 +321,7 @@ const ResourceTypeFacet = () => {
                               </label>
                             }
                             checked={selectedType === child.value}
-                            onChange={() => handleItemClick(child.value)}
+                            onChange={() => handleItemClick(child.value, parent.value)}
                             style={{ flex: 1, marginRight: "0.5rem" }}
                           />
                           <Label
