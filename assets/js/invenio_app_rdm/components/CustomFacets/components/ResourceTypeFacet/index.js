@@ -28,7 +28,7 @@ const ResourceTypeFacet = () => {
     const resourceTypeFilter = facetFilters.find((f) =>
       f.includes("resource_type:")
     );
-    
+
     if (resourceTypeFilter) {
       // Check if it's an inner (child) type: "resource_type:parent+inner:child"
       const innerMatch = resourceTypeFilter.match(/\+inner:([^&]+)/);
@@ -321,7 +321,9 @@ const ResourceTypeFacet = () => {
                               </label>
                             }
                             checked={selectedType === child.value}
-                            onChange={() => handleItemClick(child.value, parent.value)}
+                            onChange={() =>
+                              handleItemClick(child.value, parent.value)
+                            }
                             style={{ flex: 1, marginRight: "0.5rem" }}
                           />
                           <Label
