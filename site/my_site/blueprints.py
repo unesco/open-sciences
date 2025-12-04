@@ -2,6 +2,8 @@
 
 from flask import Blueprint
 
+from .constants import API_PREFIX
+
 
 def create_blueprint(app):
     """
@@ -40,17 +42,17 @@ def create_blueprint(app):
     # API Endpoints (JSON Responses)
     # ========================================
 
-    # Statistics API endpoint - using /data/ prefix instead of /api/
+    # Statistics API endpoint - using API_PREFIX instead of /api/
     blueprint.add_url_rule(
-        "/data/statistics",
+        f"{API_PREFIX}/statistics",
         view_func=StatisticsAPIView.as_view("statistics_api"),
         methods=["GET"],
     )
 
     # Generic search API endpoint for advanced search filters
-    # Example: /data/search?field=country&q=belgium
+    # Example: f"{API_PREFIX}/search?field=country&q=belgium"
     blueprint.add_url_rule(
-        "/data/search",
+        f"{API_PREFIX}/search",
         view_func=SearchAPIView.as_view("search_api"),
         methods=["GET"],
     )

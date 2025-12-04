@@ -10,7 +10,7 @@ class CMSAdminView(AdminView):
     name = "cms"
     category = _("Site management")
     title = _("CMS Administration")
-    template = "my_site/admin/cms.html"
+    template = "my_site/administration/cms/index.html"
     url = "/cms"
     menu_label = _("CMS")
     icon = "file alternate outline"
