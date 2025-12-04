@@ -17,6 +17,7 @@ const ResourceTypeFacet = () => {
   const [expandedParents, setExpandedParents] = useState(
     new Set(["publication"])
   ); // Expand by default
+  const [lastFetchTime, setLastFetchTime] = useState(null);
 
   // Parse URL to get current filter (single selection)
   useEffect(() => {
@@ -33,6 +34,12 @@ const ResourceTypeFacet = () => {
   // Fetch resource types from InvenioRDM aggregations
   useEffect(() => {
     const fetchData = async () => {
+      // Stale time: prevent re-fetch if data was fetched less than 5 minutes ago
+      const now = Date.now();
+      if (lastFetchTime && now - lastFetchTime < 5 * 60 * 1000) {
+        return; // Skip fetch if data is still fresh
+      }
+
       setLoading(true);
       try {
         // Fetch from InvenioRDM records API to get aggregations
@@ -48,6 +55,7 @@ const ResourceTypeFacet = () => {
         // Organize into hierarchical structure
         const hierarchy = organizeHierarchy(resourceTypeBuckets);
         setData(hierarchy);
+        setLastFetchTime(now); // Update last fetch timestamp
       } catch (error) {
         console.error("Error fetching resource types:", error);
         setData([]);
@@ -57,7 +65,7 @@ const ResourceTypeFacet = () => {
     };
 
     fetchData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Organize InvenioRDM aggregation buckets into parent-child hierarchy
   const organizeHierarchy = (buckets) => {

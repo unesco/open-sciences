@@ -23,6 +23,7 @@ const DynamicFacet = ({
   facetName = null,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const listRef = useRef(null);
 
   // Custom hooks for state management
@@ -41,7 +42,7 @@ const DynamicFacet = ({
     totalPages,
     handleSearchChange,
     handlePageChange,
-  } = useFacetSearch(apiField, pageSize);
+  } = useFacetSearch(apiField, pageSize, isInitialized);
 
   // Handle checkbox selection
   const handleSelect = (value) => {
@@ -57,7 +58,12 @@ const DynamicFacet = ({
   };
 
   // Handle focus (expand list) - prevent blur when clicking inside
-  const handleFocus = () => setIsExpanded(true);
+  const handleFocus = () => {
+    if (!isInitialized) {
+      setIsInitialized(true);
+    }
+    setIsExpanded(true);
+  };
 
   // Handle blur (collapse list) - but not when clicking pagination
   const handleBlur = (e) => {

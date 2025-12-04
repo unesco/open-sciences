@@ -2,7 +2,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import _debounce from "lodash/debounce";
 
-export const useFacetSearch = (apiField, pageSize = 10) => {
+export const useFacetSearch = (
+  apiField,
+  pageSize = 10,
+  isInitialized = false
+) => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [options, setOptions] = useState([]);
@@ -55,10 +59,12 @@ export const useFacetSearch = (apiField, pageSize = 10) => {
     }, 300)
   ).current;
 
-  // Initialize - fetch initial data
+  // Initialize - fetch initial data only when isInitialized becomes true
   useEffect(() => {
-    fetchOptions("", 1);
-  }, [fetchOptions]);
+    if (isInitialized) {
+      fetchOptions("", 1);
+    }
+  }, [isInitialized, fetchOptions]);
 
   // Handle search input change
   const handleSearchChange = (query) => {
