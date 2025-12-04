@@ -3,10 +3,12 @@
 
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import DynamicFacet from "./DynamicFacet";
-import UnescoToggleFacet from "./facets/UnescoToggleFacet";
-import OpenAccessToggleFacet from "./facets/OpenAccessToggleFacet";
-import ResourceTypeFacet from "./facets/ResourceTypeFacet";
+import {
+  DynamicFacet,
+  UnescoToggleFacet,
+  OpenAccessToggleFacet,
+  ResourceTypeFacet,
+} from "./components";
 
 // Main custom facets component
 export const CustomFacets = ({ aggs, appName }) => {

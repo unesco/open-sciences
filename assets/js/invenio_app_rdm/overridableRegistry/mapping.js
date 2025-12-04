@@ -8,10 +8,9 @@
  * Add here all the overridden components of your app.
  */
 
-import CustomRecordsResultsListItem from "../components/CustomRecordsResultsListItem";
-import CustomFacets from "../components/CustomFacets";
+import { CustomRecordsResultsListItem, CustomFacets } from "../components";
 
 export const overriddenComponents = {
-  "RecordsResultsListItem": CustomRecordsResultsListItem,
+  RecordsResultsListItem: CustomRecordsResultsListItem,
   "InvenioAppRdm.Search.SearchApp.facets": CustomFacets,
 };

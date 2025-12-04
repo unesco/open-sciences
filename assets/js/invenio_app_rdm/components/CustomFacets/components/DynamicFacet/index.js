@@ -6,13 +6,11 @@ import { Card, Input, Label, Icon, Loader, Popup } from "semantic-ui-react";
 import PropTypes from "prop-types";
 
 // Custom hooks
-import { useFacetState } from "../hooks/useFacetState";
-import { useFacetSearch } from "../hooks/useFacetSearch";
+import { useFacetState } from "../../../../hooks/useFacetState";
+import { useFacetSearch } from "../../../../hooks/useFacetSearch";
 
 // Sub-components
-import FacetHeader from "./facets/FacetHeader";
-import FacetOptionsList from "./facets/FacetOptionsList";
-import FacetPagination from "./facets/FacetPagination";
+import { FacetHeader, FacetOptionsList, FacetPagination } from "./components";
 
 const DynamicFacet = ({
   label,
