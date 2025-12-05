@@ -257,6 +257,11 @@ main#main,
   margin-top: 0 !important;
 }
 
+/* Fix for communities page - compensate for grid negative margin */
+.page-subheader-outer > .ui.grid {
+  margin-top: 0 !important;
+}
+
 .ui.container.page-subheader-outer,
 section#banners,
 #banners {
