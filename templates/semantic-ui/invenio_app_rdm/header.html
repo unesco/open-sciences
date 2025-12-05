@@ -166,20 +166,8 @@ link #}
             {# Required for: User registration, login, profile access, and notifications #}
             
             <div class="right menu item">
-              {%- if config.ACCOUNTS and current_user.is_authenticated %} {% for
-              item in
-              current_menu.submenu('notifications').children|sort(attribute='order')
-              if item.visible recursive %}
-              <div class="{{'item active' if item.active else 'item' }} inbox">
-                <a href="{{ item.url }}" aria-label="{{ _('Requests') }}">
-                  <i class="fitted inbox icon inverted"></i>
-                  <span class="mobile tablet only inline"
-                    >{{ _("Inbox") }}</span
-                  >
-                </a>
-              </div>
-              {% endfor %} {% endif %} {%- include
-              config.THEME_HEADER_LOGIN_TEMPLATE %}
+              {# REMOVED: Inbox/notifications menu - not needed for this portal #}
+              {%- include config.THEME_HEADER_LOGIN_TEMPLATE %}
             </div>
             
             {%- endblock navbar_right %}
