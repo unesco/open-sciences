@@ -13,7 +13,7 @@ class CMSAdminView(AdminView):
     template = "my_site/administration/cms/index.html"
     url = "/cms"
     menu_label = _("CMS")
-    icon = "file alternate outline"
+    icon = "edit outline"
 
     def get(self):
         """GET view method."""

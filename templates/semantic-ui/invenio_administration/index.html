@@ -1,0 +1,295 @@
+{#
+  Copyright (C) 2022 CERN.
+  Customized for UNESCO Open Science Portal
+
+  Invenio App RDM is free software; you can redistribute it and/or modify it
+  under the terms of the MIT License; see LICENSE file for more details.
+#}
+
+{% extends admin_base_template %}
+
+{% block page_title %}
+<div class="ui grid">
+  <div class="column twelve wide">
+    <h1 class="ui header">Administration Dashboard</h1>
+  </div>
+</div>
+<div class="ui divider" aria-hidden="true"></div>
+{% endblock page_title %}
+
+{% block admin_page_content %}
+
+<style>
+  .unesco-dashboard {
+    background: #fafafa;
+    padding: 24px 16px;
+    min-height: calc(100vh - 200px);
+  }
+  
+  .unesco-welcome-card {
+    background: linear-gradient(135deg, #0077D4 0%, #005ca8 100%);
+    border-radius: 12px;
+    padding: 32px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 119, 212, 0.2);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  .unesco-logo-container img {
+    height: 60px;
+    width: auto;
+    filter: brightness(0) invert(1);
+  }
+  
+  .unesco-welcome-text h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: white !important;
+  }
+  
+  .unesco-welcome-text p {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.95;
+    margin: 0;
+  }
+  
+  .unesco-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+    height: 100%;
+    border: 1px solid #e8e8e8;
+  }
+  
+  .unesco-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 119, 212, 0.12);
+    border-color: #0077D4;
+  }
+  
+  .unesco-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  
+  .unesco-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #0077D4 0%, #005ca8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: white;
+    font-size: 20px;
+  }
+  
+  .unesco-card-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #262626;
+    margin: 0;
+  }
+  
+  .unesco-link-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    background: #fafafa;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: #262626;
+    border-left: 3px solid transparent;
+  }
+  
+  .unesco-link-item:hover {
+    background: #e6f4ff;
+    border-left-color: #0077D4;
+    text-decoration: none;
+    transform: translateX(2px);
+  }
+  
+  .unesco-link-item i {
+    font-size: 16px;
+    margin-right: 12px;
+    color: #0077D4;
+    margin-top: 2px;
+    min-width: 16px;
+  }
+  
+  .unesco-link-content {
+    flex: 1;
+  }
+  
+  .unesco-link-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+  }
+  
+  .unesco-link-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #8c8c8c;
+    line-height: 1.4;
+  }
+  
+  .unesco-stats-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  
+  .unesco-stat-card {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-left: 3px solid #0077D4;
+    text-align: center;
+  }
+  
+  .unesco-stat-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0077D4;
+    margin-bottom: 4px;
+  }
+  
+  .unesco-stat-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #8c8c8c;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  @media (max-width: 768px) {
+    .unesco-welcome-card {
+      flex-direction: column;
+      text-align: center;
+      padding: 24px;
+    }
+    
+    .unesco-welcome-text h2 {
+      font-size: 20px;
+    }
+    
+    .unesco-stats-row {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<div class="unesco-dashboard">
+  <div class="ui container">
+    {# Welcome Banner #}
+    <div class="unesco-welcome-card">
+      <div class="unesco-logo-container">
+        <img src="{{ url_for('static', filename='images/unesco-logo.svg') }}" alt="UNESCO Logo" />
+      </div>
+      <div class="unesco-welcome-text">
+        <h2>{{ _('UNESCO Open Science Portal') }}</h2>
+        <p>{{ _('Welcome to the administration panel. Manage your content and platform settings from here.') }}</p>
+      </div>
+    </div>
+    
+    {# Main Content Card #}
+    <div class="ui one column grid">
+      <div class="column">
+        <div class="unesco-card">
+          <div class="unesco-card-header">
+            <div class="unesco-card-icon">
+              <i class="sitemap icon"></i>
+            </div>
+            <h3 class="unesco-card-title">{{ _('Site Management') }}</h3>
+          </div>
+          <div>
+            <div class="unesco-link-item" style="display: block; cursor: default;">
+              <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                <i class="file alternate outline icon" style="font-size: 20px; margin-right: 12px; color: #0077D4; margin-top: 2px;"></i>
+                <div style="flex: 1;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span class="unesco-link-text" style="font-size: 16px;">{{ _('Pages') }}</span>
+                    <a href="{{ url_for('administration.pages') }}" class="ui mini primary button" style="background: #0077D4;">
+                      {{ _('Open') }}
+                    </a>
+                  </div>
+                  <div style="color: #595959; font-size: 13px; line-height: 1.6;">
+                    {{ _('Manage static pages:') }}
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                      <li>{{ _('Create About, Help, Terms pages') }}</li>
+                      <li>{{ _('Add custom URLs and routes') }}</li>
+                      <li>{{ _('Include Jinja2 templates and variables') }}</li>
+                      <li>{{ _('Configure page visibility and access') }}</li>
+                    </ul>
+                    <a href="https://inveniordm.docs.cern.ch/operate/customize/static_pages/" target="_blank" style="color: #0077D4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 4px;">
+                      <i class="book icon"></i>{{ _('View Documentation') }} <i class="external alternate icon" style="font-size: 11px;"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="unesco-link-item" style="display: block; cursor: default;">
+              <div style="display: flex; align-items: flex-start;">
+                <i class="edit outline icon" style="font-size: 20px; margin-right: 12px; color: #0077D4; margin-top: 2px;"></i>
+                <div style="flex: 1;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span class="unesco-link-text" style="font-size: 16px;">{{ _('CMS') }}</span>
+                    <a href="{{ url_for('administration.cms') }}" class="ui mini primary button" style="background: #0077D4;">
+                      {{ _('Open') }}
+                    </a>
+                  </div>
+                  <div style="color: #595959; font-size: 13px; line-height: 1.6;">
+                    {{ _('Content Management System:') }}
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                      <li>{{ _('TODO') }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {# Statistics Row #}
+    <div class="unesco-stats-row">
+      <div class="unesco-stat-card">
+        <div class="unesco-stat-value">{{ _('Active') }}</div>
+        <div class="unesco-stat-label">{{ _('System Status') }}</div>
+      </div>
+      <div class="unesco-stat-card">
+        <div class="unesco-stat-value">v13.0</div>
+        <div class="unesco-stat-label">{{ _('Version') }}</div>
+      </div>
+      <div class="unesco-stat-card">
+        <div class="unesco-stat-value">{{ _('Ready') }}</div>
+        <div class="unesco-stat-label">{{ _('Platform') }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock admin_page_content %}
