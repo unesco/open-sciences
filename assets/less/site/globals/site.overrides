@@ -719,9 +719,18 @@ button.copy.button {
   }
 }
 
-/* Compact spacing between facet cards */
-.ui.card {
+/* Compact spacing between facet cards - only in search sidebar */
+.sidebar-container .ui.card,
+.search-filters .ui.card,
+.facets .ui.card {
   margin: -2rem 0 !important;
+}
+
+/* Reset card margins for deposit form sidebar */
+#deposit-form .ui.card,
+.sidebar .ui.card.access-right,
+.deposit-sidebar .ui.card {
+  margin: 1rem 0 !important;
 }
 
 /* Fix page-subheader vertical alignment */
