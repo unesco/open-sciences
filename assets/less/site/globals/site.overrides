@@ -723,3 +723,22 @@ button.copy.button {
 .ui.card {
   margin: -2rem 0 !important;
 }
+
+/* Fix page-subheader vertical alignment */
+.page-subheader-outer {
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+}
+
+.page-subheader {
+  display: flex;
+  align-items: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.page-subheader h1.ui.large.header {
+  margin: 0;
+  line-height: 1.2;
+}
