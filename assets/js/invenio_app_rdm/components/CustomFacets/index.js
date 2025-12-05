@@ -38,7 +38,7 @@ export const CustomFacets = ({ aggs, appName }) => {
   }, [urlKey]);
 
   return (
-    <>
+    <div className="custom-facets-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
       <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
       <ResourceTypeFacet key={`resource-type-${urlKey}`} />
       <DynamicFacet
@@ -102,7 +102,7 @@ export const CustomFacets = ({ aggs, appName }) => {
         facetName="publication_year"
       />
       <UnescoToggleFacet key={`unesco-${urlKey}`} />
-    </>
+    </div>
   );
 };
 

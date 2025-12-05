@@ -720,10 +720,43 @@ button.copy.button {
 }
 
 /* Compact spacing between facet cards - only in search sidebar */
-.sidebar-container .ui.card,
-.search-filters .ui.card,
-.facets .ui.card {
-  margin: -2rem 0 !important;
+.sidebar-container .ui.card.facet,
+.search-filters .ui.card.facet,
+.facets .ui.card.facet,
+.custom-facets-container .ui.card.facet {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Custom facets container - compact layout */
+.custom-facets-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+
+.custom-facets-container > .ui.card,
+.custom-facets-container > .ui.card.borderless,
+.custom-facets-container > .ui.card.borderless.facet {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Override the 2em margin-bottom from .ui.card.borderless.facet>.content */
+.ui.card.borderless.facet > .content,
+.custom-facets-container .ui.card.borderless.facet > .content,
+.custom-facets-container > .ui.card > .content,
+.custom-facets-container > .ui.card.borderless > .content {
+  margin-bottom: 0 !important;
+  padding: 0.4rem 0.5rem !important;
+}
+
+.custom-facets-container > .ui.card .header,
+.custom-facets-container > .ui.card h2.header {
+  margin-bottom: 0.4rem !important;
 }
 
 /* Reset card margins for deposit form sidebar */
