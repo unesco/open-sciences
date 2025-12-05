@@ -35,6 +35,11 @@ LICENSE file for more details. #}
         <a href="/about" style="color: #FFFFFF; text-decoration: none; margin: 0;">About</a>
         <a href="#" style="color: #FFFFFF; text-decoration: none; margin: 0;">UNESCO Natural Sciences Family</a>
         <a href="#" style="color: #FFFFFF; text-decoration: none; margin: 0;">UNESCO Open Science</a>
+        {%- if config.ACCOUNTS and not current_user.is_authenticated %}
+        <a href="{{ url_for_security('login', next=request.path) }}" style="color: #FFFFFF; text-decoration: none; margin: 0; display: flex; align-items: center; gap: 6px;">
+          {{ _('Log in') }}
+        </a>
+        {%- endif %}
       </div>
     </div>
     
