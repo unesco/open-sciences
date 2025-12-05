@@ -1,0 +1,37 @@
+{# Custom sidebar navigation - filters out unwanted admin sections #} {% set
+menu_items = current_menu.submenu('admin_navigation').children %} {# Define
+sections and items to hide #} {% set hidden_sections = ['Communities',
+'Moderation', 'Records & files', 'System', 'User management'] %} {% set
+hidden_items = ['Banners', 'Vocabulary Types', 'OAI-PMH', 'Domains', 'Jobs'] %}
+
+<div class="m-0 rel-mt-1">
+  <div class="ui vertical menu fluid">
+    {% for item in menu_items|sort(attribute='order') if item.visible recursive
+    %} {% if item.children %} {# This is a section header with children #} {% if
+    item.text not in hidden_sections %}
+    <div class="ui divider" aria-hidden="true"></div>
+
+    <div class="sub-menu">
+      <h2 class="ui small header item mb-5">{{ item.text|safe }}</h2>
+
+      {# Filter children items #} {% for child in item.children %} {% if
+      child.text not in hidden_items %} {% if child.visible %}
+      <a
+        class="item {{ 'active' if child.active else '' }}"
+        href="{{ child.url }}"
+      >
+        {% if child.icon %}
+        <i class="{{ child.icon }}" aria-hidden="true"></i>
+        {% endif %} {{ child.text|safe }}
+      </a>
+      {% endif %} {% endif %} {% endfor %}
+    </div>
+    {% endif %} {% else %} {# This is a standalone menu item (like Dashboard) #}
+    <a class="item {{ 'active' if item.active else '' }}" href="{{ item.url }}">
+      {% if item.icon %}
+      <i class="{{ item.icon }}" aria-hidden="true"></i>
+      {% endif %} {{ item.text|safe }}
+    </a>
+    {% endif %} {% endfor %}
+  </div>
+</div>
