@@ -245,10 +245,20 @@ const ResourceTypeFacet = () => {
                     }}
                   >
                     <div
+                      role="button"
+                      tabIndex={0}
                       style={{
                         display: "flex",
                         alignItems: "center",
                         flex: 1,
+                        cursor: "pointer",
+                      }}
+                      onClick={() => handleItemClick(parent.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleItemClick(parent.value);
+                        }
                       }}
                     >
                       {parent.children.length > 0 && (
@@ -264,7 +274,10 @@ const ResourceTypeFacet = () => {
                             display: "flex",
                             alignItems: "center",
                           }}
-                          onClick={() => handleToggleParent(parent.value)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleParent(parent.value);
+                          }}
                         />
                       )}
                       <Checkbox
@@ -281,7 +294,6 @@ const ResourceTypeFacet = () => {
                           </label>
                         }
                         checked={selectedType === parent.value}
-                        onChange={() => handleItemClick(parent.value)}
                         style={{
                           marginLeft:
                             parent.children.length === 0 ? "1.5rem" : "0",
@@ -310,11 +322,23 @@ const ResourceTypeFacet = () => {
                       {parent.children.map((child) => (
                         <div
                           key={child.value}
+                          role="button"
+                          tabIndex={0}
                           style={{
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
                             padding: "0.6rem 0.8rem",
+                            cursor: "pointer",
+                          }}
+                          onClick={() =>
+                            handleItemClick(child.value, parent.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handleItemClick(child.value, parent.value);
+                            }
                           }}
                         >
                           <Checkbox
@@ -331,9 +355,6 @@ const ResourceTypeFacet = () => {
                               </label>
                             }
                             checked={selectedType === child.value}
-                            onChange={() =>
-                              handleItemClick(child.value, parent.value)
-                            }
                             style={{ flex: 1, marginRight: "0.5rem" }}
                           />
                           <Label
