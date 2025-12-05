@@ -1,0 +1,84 @@
+{# Copyright (C) 2024-2025 UNESCO. UNESCO Science Portal is free software; you
+can redistribute it and/or modify it under the terms of the MIT License; see
+LICENSE file for more details. #} {%- extends "invenio_theme/page.html" %} {%
+block page_header %} {# Minimal header for CMS pages #} {% endblock page_header
+%} {% block page_subheader %} {# Optional breadcrumb #}
+<section class="page-subheader-outer">
+  <div class="ui container">
+    <div class="ui breadcrumb">
+      <a class="section" href="/">{{ _("Home") }}</a>
+      <i class="right angle icon divider"></i>
+      <a class="section" href="/pages">{{ _("Pages") }}</a>
+      <i class="right angle icon divider"></i>
+      <div class="active section">{{ page.title }}</div>
+    </div>
+  </div>
+</section>
+{% endblock page_subheader %} {% block page_body %}
+<div class="ui container cms-page">
+  <div class="ui stackable grid">
+    <div class="sixteen wide column">
+      {# Page Title #}
+      <h1 class="ui header">{{ page.title }}</h1>
+
+      {# Page metadata #} {% if page.published_at %}
+      <div class="ui small grey text">
+        <i class="calendar icon"></i>
+        {{ _("Published") }}: {{ page.published_at.strftime('%B %d, %Y') }} {%
+        if page.author %} &middot;
+        <i class="user icon"></i>
+        {{ page.author.email }} {% endif %}
+      </div>
+      {% endif %} {# Categories #} {% if page.categories %}
+      <div class="ui labels" style="margin-top: 0.5rem; margin-bottom: 1rem">
+        {% for category in page.categories %}
+        <a class="ui label" href="/pages?category={{ category.slug }}">
+          {{ category.name }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="ui divider"></div>
+
+      {# Page content #}
+      <div class="cms-page-content">{{ page.content | safe }}</div>
+    </div>
+  </div>
+</div>
+{% endblock page_body %} {% block javascript %} {{ super() }}
+<style>
+  .cms-page {
+    padding: 2rem 0;
+  }
+
+  .cms-page-content {
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+
+  .cms-page-content h2 {
+    margin-top: 2rem;
+  }
+
+  .cms-page-content img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .cms-page-content pre {
+    background: #f4f4f4;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+
+  .cms-page-content blockquote {
+    border-left: 4px solid #0072bc;
+    padding-left: 1rem;
+    margin-left: 0;
+    font-style: italic;
+    color: #666;
+  }
+</style>
+{% endblock javascript %}

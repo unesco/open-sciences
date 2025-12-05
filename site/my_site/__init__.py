@@ -8,8 +8,19 @@ Structure:
     - api/: JSON API endpoints (REST endpoints)
     - filters/: Search filter backends (modular filtering system)
     - services/: Business logic layer (reusable across views/APIs)
+    - models/: SQLAlchemy database models
     - templates/: Jinja2 templates
     - assets/: Frontend JavaScript and CSS
+    - alembic/: Database migrations
 """
 
 __version__ = "1.0.0"
+
+# Import models to ensure they are registered with SQLAlchemy
+from .models import CMSPage, CMSCategory, CMSPageCategory
+
+__all__ = (
+    "CMSPage",
+    "CMSCategory",
+    "CMSPageCategory",
+)

@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import
+.PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install
 
 # Default target
 help:
@@ -26,6 +26,16 @@ help:
 	@echo "  build        - Build assets (CSS, JS, etc.)"
 	@echo "  check        - Check and fix Docker services if needed"
 	@echo "  destroy      - Completely destroy the instance and virtualenv"
+	@echo ""
+	@echo "Database Migration Commands:"
+	@echo "  site-install - Reinstall site package (after model changes)"
+	@echo "  db-init-cms  - Initialize CMS tables (first-time setup)"
+	@echo "  db-status    - Show migration status for all branches"
+	@echo "  db-current   - Show current database revision"
+	@echo "  db-history   - Show migration history"
+	@echo "  db-migrate   - Create a new migration (use NAME='description')"
+	@echo "  db-upgrade   - Apply all pending migrations"
+	@echo "  db-downgrade - Revert last migration (use REVISION='xxx' for specific)"
 	@echo ""
 	@echo "OpenScience Tools Commands:"
 	@echo "  tools-install        - Install openscience_tools package"
@@ -68,6 +78,8 @@ init:
 	$(MAKE) pages-init
 	@echo "👥 Creating ready-to-use users..."
 	$(MAKE) users
+	@echo "🗃️  Initializing CMS database tables..."
+	$(MAKE) db-init-cms
 	@echo "🔧 Installing openscience_tools package..."
 	$(MAKE) tools-install
 	@echo "✅ Initialization complete! Use 'make up' to start the server."
@@ -195,9 +207,9 @@ destroy:
 	@echo "💥 Destroying UNESCO Science Portal instance..."
 	@echo "⚠️  This will permanently delete all data!"
 	@read -p "Are you sure? Type 'yes' to continue: " confirm && [ "$$confirm" = "yes" ]
-	@echo "� Stopping all services first..."
+	@echo "⏹️  Stopping all services first..."
 	-$(MAKE) stop
-	@echo "�🐳 Destroying containerized services..."
+	@echo "🐳 Destroying containerized services..."
 	-$(VENV_ACTIVATE) && invenio-cli services destroy
 	@echo "🧹 Performing global cleanup..."
 	-$(VENV_ACTIVATE) && invenio-cli destroy
@@ -206,6 +218,7 @@ destroy:
 	@echo "🔐 Removing SSL certificates..."
 	rm -f docker/nginx/test.crt docker/nginx/test.key
 	@echo "🐋 Cleaning up Docker volumes and networks..."
+	-docker volume rm $$(docker volume ls -q --filter "name=sc-openscience") 2>/dev/null || true
 	-docker volume prune -f
 	-docker network prune -f
 	@echo "💾 Removing any persistent data..."
@@ -465,3 +478,92 @@ tools-test-cov:
 	@$(MAKE) tools-test OPTS="--cov=openscience_tools --cov-report=html --cov-report=term"
 	@echo ""
 	@echo "📊 Coverage report generated in openscience_tools/htmlcov/index.html"
+
+# ========================================
+# Database Migration Commands
+# ========================================
+
+# Reinstall site package (needed after model changes)
+site-install:
+	@echo "📦 Reinstalling site package..."
+	$(VENV_ACTIVATE) && pip install -e site/
+	@echo "✅ Site package reinstalled!"
+
+# Show migration status for all branches
+db-status:
+	@echo "📊 Checking migration status..."
+	$(VENV_ACTIVATE) && invenio alembic show
+	@echo ""
+	@echo "📋 Pending migrations:"
+	$(VENV_ACTIVATE) && invenio alembic upgrade --sql heads 2>/dev/null | head -50 || echo "   (none or error checking)"
+
+# Show current database revision
+db-current:
+	@echo "📍 Current database revision:"
+	$(VENV_ACTIVATE) && invenio alembic current
+
+# Show migration history
+db-history:
+	@echo "📜 Migration history:"
+	$(VENV_ACTIVATE) && invenio alembic history --verbose
+
+# Create a new migration
+db-migrate:
+	@echo "📝 Creating new migration..."
+	@if [ -z "$(NAME)" ]; then \
+		echo "❌ Error: NAME parameter required"; \
+		echo "Usage: make db-migrate NAME='add_new_table'"; \
+		exit 1; \
+	fi
+	$(VENV_ACTIVATE) && invenio alembic revision -m "$(NAME)" --branch my_site
+	@echo "✅ Migration created! Review it in site/my_site/alembic/"
+
+# Apply all pending migrations
+db-upgrade:
+	@echo "⬆️  Applying database migrations..."
+	@if [ -n "$(REVISION)" ]; then \
+		$(VENV_ACTIVATE) && invenio alembic upgrade $(REVISION); \
+	else \
+		$(VENV_ACTIVATE) && invenio alembic upgrade heads; \
+	fi
+	@echo "✅ Migrations applied successfully!"
+
+# Revert migrations
+db-downgrade:
+	@echo "⬇️  Reverting database migrations..."
+	@if [ -z "$(REVISION)" ]; then \
+		echo "⚠️  No REVISION specified, reverting last migration on my_site branch..."; \
+		$(VENV_ACTIVATE) && invenio alembic downgrade my_site@-1; \
+	else \
+		$(VENV_ACTIVATE) && invenio alembic downgrade $(REVISION); \
+	fi
+	@echo "✅ Migration reverted!"
+
+# Initialize CMS tables (first-time setup)
+db-init-cms:
+	@echo "🗃️  Initializing CMS database tables..."
+	@echo "📦 Step 1/4: Reinstalling site package..."
+	$(MAKE) site-install
+	@echo "📋 Step 2/4: Stamping base dependency (if needed)..."
+	-$(VENV_ACTIVATE) && invenio alembic stamp dbdbc1b19cf2 2>/dev/null || true
+	@echo "🔍 Step 3/4: Checking if CMS tables already exist..."
+	@CMS_EXISTS=$$($(VENV_ACTIVATE) && invenio shell -c "from invenio_db import db; r=db.session.execute(db.text(\"SELECT COUNT(*) FROM pg_tables WHERE tablename='cms_page'\")); print(r.scalar())" 2>/dev/null || echo "0"); \
+	if [ "$$CMS_EXISTS" = "1" ]; then \
+		echo "ℹ️  CMS tables already exist, stamping migration as applied..."; \
+		$(VENV_ACTIVATE) && invenio alembic stamp my_site@head; \
+	else \
+		echo "⬆️  Step 4/4: Applying CMS migrations..."; \
+		$(VENV_ACTIVATE) && invenio alembic upgrade my_site@head; \
+	fi
+	@echo "✅ CMS tables initialized!"
+	@echo ""
+	@echo "📋 Tables:"
+	@echo "   - cms_category"
+	@echo "   - cms_page"
+	@echo "   - cms_page_category"
+	@echo ""
+	@echo "🔗 API endpoints available at:"
+	@echo "   - GET/POST    /api/cms/pages"
+	@echo "   - GET/PUT/DEL /api/cms/pages/<id>"
+	@echo "   - GET/POST    /api/cms/categories"
+	@echo "   - GET/PUT/DEL /api/cms/categories/<id>"

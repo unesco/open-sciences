@@ -18,8 +18,18 @@ def create_blueprint(app):
     Returns:
         Configured Blueprint instance
     """
-    from .views import StatisticsView
-    from .api import SearchAPIView, StatisticsAPIView
+    from .views import StatisticsView, CMSPageView
+    from .api import (
+        SearchAPIView,
+        StatisticsAPIView,
+        CMSPagesAPIView,
+        CMSPageAPIView,
+        CMSPageBySlugAPIView,
+        CMSPagePublishAPIView,
+        CMSPageUnpublishAPIView,
+        CMSCategoriesAPIView,
+        CMSCategoryAPIView,
+    )
 
     blueprint = Blueprint(
         "my_site",
@@ -35,6 +45,13 @@ def create_blueprint(app):
     blueprint.add_url_rule(
         "/statistics",
         view_func=StatisticsView.as_view("statistics_dashboard"),
+        methods=["GET"],
+    )
+
+    # CMS Page view - render published pages by slug
+    blueprint.add_url_rule(
+        "/pages/<path:slug>",
+        view_func=CMSPageView.as_view("cms_page"),
         methods=["GET"],
     )
 
@@ -55,6 +72,57 @@ def create_blueprint(app):
         f"{API_PREFIX}/search",
         view_func=SearchAPIView.as_view("search_api"),
         methods=["GET"],
+    )
+
+    # ========================================
+    # CMS API Endpoints
+    # ========================================
+
+    # CMS Pages collection
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/pages",
+        view_func=CMSPagesAPIView.as_view("cms_pages_api"),
+        methods=["GET", "POST"],
+    )
+
+    # CMS Single page by ID
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/pages/<int:id>",
+        view_func=CMSPageAPIView.as_view("cms_page_api"),
+        methods=["GET", "PUT", "DELETE"],
+    )
+
+    # CMS Page by slug
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/pages/by-slug/<path:slug>",
+        view_func=CMSPageBySlugAPIView.as_view("cms_page_by_slug_api"),
+        methods=["GET"],
+    )
+
+    # CMS Page publish/unpublish
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/pages/<int:id>/publish",
+        view_func=CMSPagePublishAPIView.as_view("cms_page_publish_api"),
+        methods=["POST"],
+    )
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/pages/<int:id>/unpublish",
+        view_func=CMSPageUnpublishAPIView.as_view("cms_page_unpublish_api"),
+        methods=["POST"],
+    )
+
+    # CMS Categories collection
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/categories",
+        view_func=CMSCategoriesAPIView.as_view("cms_categories_api"),
+        methods=["GET", "POST"],
+    )
+
+    # CMS Single category by ID
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/categories/<int:id>",
+        view_func=CMSCategoryAPIView.as_view("cms_category_api"),
+        methods=["GET", "PUT", "DELETE"],
     )
 
     return blueprint
