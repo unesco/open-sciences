@@ -22,13 +22,17 @@ def create_blueprint(app):
     from .api import (
         SearchAPIView,
         StatisticsAPIView,
-        CMSPagesAPIView,
-        CMSPageAPIView,
-        CMSPageBySlugAPIView,
-        CMSPagePublishAPIView,
-        CMSPageUnpublishAPIView,
-        CMSCategoriesAPIView,
-        CMSCategoryAPIView,
+        # Resource-Driven CMS API
+        CMSResourcesAPIView,
+        CMSResourceDefinitionAPIView,
+        CMSContentSearchAPIView,
+        CMSContentByTypeAPIView,
+        CMSContentBySlugAPIView,
+        CMSContentByIdAPIView,
+        CMSContentPublishAPIView,
+        CMSContentUnpublishAPIView,
+        CMSRenderAPIView,
+        CMSSingletonUpsertAPIView,
     )
 
     blueprint = Blueprint(
@@ -48,7 +52,7 @@ def create_blueprint(app):
         methods=["GET"],
     )
 
-    # CMS Page view - render published pages by slug
+    # CMS Page view - render published content by slug
     blueprint.add_url_rule(
         "/pages/<path:slug>",
         view_func=CMSPageView.as_view("cms_page"),
@@ -59,7 +63,7 @@ def create_blueprint(app):
     # API Endpoints (JSON Responses)
     # ========================================
 
-    # Statistics API endpoint - using API_PREFIX instead of /api/
+    # Statistics API endpoint
     blueprint.add_url_rule(
         f"{API_PREFIX}/statistics",
         view_func=StatisticsAPIView.as_view("statistics_api"),
@@ -67,7 +71,6 @@ def create_blueprint(app):
     )
 
     # Generic search API endpoint for advanced search filters
-    # Example: f"{API_PREFIX}/search?field=country&q=belgium"
     blueprint.add_url_rule(
         f"{API_PREFIX}/search",
         view_func=SearchAPIView.as_view("search_api"),
@@ -75,54 +78,77 @@ def create_blueprint(app):
     )
 
     # ========================================
-    # CMS API Endpoints
+    # Resource-Driven CMS API Endpoints
     # ========================================
 
-    # CMS Pages collection
+    # List all available CMS resource types
     blueprint.add_url_rule(
-        f"{API_PREFIX}/cms/pages",
-        view_func=CMSPagesAPIView.as_view("cms_pages_api"),
-        methods=["GET", "POST"],
-    )
-
-    # CMS Single page by ID
-    blueprint.add_url_rule(
-        f"{API_PREFIX}/cms/pages/<int:id>",
-        view_func=CMSPageAPIView.as_view("cms_page_api"),
-        methods=["GET", "PUT", "DELETE"],
-    )
-
-    # CMS Page by slug
-    blueprint.add_url_rule(
-        f"{API_PREFIX}/cms/pages/by-slug/<path:slug>",
-        view_func=CMSPageBySlugAPIView.as_view("cms_page_by_slug_api"),
+        f"{API_PREFIX}/cms/resources",
+        view_func=CMSResourcesAPIView.as_view("cms_resources_api"),
         methods=["GET"],
     )
 
-    # CMS Page publish/unpublish
+    # Get specific resource type definition
     blueprint.add_url_rule(
-        f"{API_PREFIX}/cms/pages/<int:id>/publish",
-        view_func=CMSPagePublishAPIView.as_view("cms_page_publish_api"),
-        methods=["POST"],
-    )
-    blueprint.add_url_rule(
-        f"{API_PREFIX}/cms/pages/<int:id>/unpublish",
-        view_func=CMSPageUnpublishAPIView.as_view("cms_page_unpublish_api"),
-        methods=["POST"],
+        f"{API_PREFIX}/cms/resources/<string:resource_type>",
+        view_func=CMSResourceDefinitionAPIView.as_view("cms_resource_definition_api"),
+        methods=["GET"],
     )
 
-    # CMS Categories collection
+    # Search content across all resource types
     blueprint.add_url_rule(
-        f"{API_PREFIX}/cms/categories",
-        view_func=CMSCategoriesAPIView.as_view("cms_categories_api"),
+        f"{API_PREFIX}/cms/content",
+        view_func=CMSContentSearchAPIView.as_view("cms_content_search_api"),
+        methods=["GET"],
+    )
+
+    # CMS Content collection for a resource type (list/create)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/content/<string:resource_type>",
+        view_func=CMSContentByTypeAPIView.as_view("cms_content_by_type_api"),
         methods=["GET", "POST"],
     )
 
-    # CMS Single category by ID
+    # CMS Content by slug
     blueprint.add_url_rule(
-        f"{API_PREFIX}/cms/categories/<int:id>",
-        view_func=CMSCategoryAPIView.as_view("cms_category_api"),
+        f"{API_PREFIX}/cms/content/<string:resource_type>/slug/<string:slug>",
+        view_func=CMSContentBySlugAPIView.as_view("cms_content_by_slug_api"),
+        methods=["GET"],
+    )
+
+    # CMS Content item by ID
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/content/<string:resource_type>/<int:content_id>",
+        view_func=CMSContentByIdAPIView.as_view("cms_content_by_id_api"),
         methods=["GET", "PUT", "DELETE"],
+    )
+
+    # CMS Content publish
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/content/<string:resource_type>/<int:content_id>/publish",
+        view_func=CMSContentPublishAPIView.as_view("cms_content_publish_api"),
+        methods=["POST"],
+    )
+
+    # CMS Content unpublish
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/content/<string:resource_type>/<int:content_id>/unpublish",
+        view_func=CMSContentUnpublishAPIView.as_view("cms_content_unpublish_api"),
+        methods=["POST"],
+    )
+
+    # CMS Content render by slug
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/content/<string:resource_type>/<string:slug>/render",
+        view_func=CMSRenderAPIView.as_view("cms_render_api"),
+        methods=["GET"],
+    )
+
+    # CMS Singleton upsert (create or update singleton content)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/singleton/<string:resource_type>",
+        view_func=CMSSingletonUpsertAPIView.as_view("cms_singleton_upsert_api"),
+        methods=["PUT"],
     )
 
     return blueprint

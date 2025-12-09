@@ -7,17 +7,26 @@
 
 """CMS Service module."""
 
-from .config import CMSPageServiceConfig, CMSCategoryServiceConfig
+from .config import CMSContentServiceConfig
+from .content_service import CMSContentService
 from .permissions import CMSPermissionPolicy
-from .schemas import CMSPageSchema, CMSCategorySchema
-from .service import CMSPageService, CMSCategoryService
+from .resources import (
+    CMS_LANGUAGES,
+    CMS_RESOURCES,
+    get_resource,
+    get_resource_list,
+    validate_resource_data,
+)
 
 __all__ = (
-    "CMSPageService",
-    "CMSCategoryService",
-    "CMSPageServiceConfig",
-    "CMSCategoryServiceConfig",
+    # Service
+    "CMSContentService",
+    "CMSContentServiceConfig",
     "CMSPermissionPolicy",
-    "CMSPageSchema",
-    "CMSCategorySchema",
+    # Resources
+    "CMS_LANGUAGES",
+    "CMS_RESOURCES",
+    "get_resource",
+    "get_resource_list",
+    "validate_resource_data",
 )

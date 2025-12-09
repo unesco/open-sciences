@@ -1,18 +1,18 @@
 /**
  * CMS Page Entry Point
- * Mounts the CMS React component
+ * Mounts the Resource-Driven CMS React component
  */
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { CMS } from "./index";
+import { ResourceCMS } from "./index";
 
 // Wait for DOM to be ready
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("cms-root");
 
   if (container) {
-    // Mount React component
-    ReactDOM.render(<CMS apiEndpoint="/api/cms" />, container);
+    // Mount the Resource-Driven CMS component
+    ReactDOM.render(<ResourceCMS apiEndpoint="/data/cms" />, container);
   }
 });

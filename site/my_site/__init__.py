@@ -17,10 +17,6 @@ Structure:
 __version__ = "1.0.0"
 
 # Import models to ensure they are registered with SQLAlchemy
-from .models import CMSPage, CMSCategory, CMSPageCategory
+from .models import CMSContent
 
-__all__ = (
-    "CMSPage",
-    "CMSCategory",
-    "CMSPageCategory",
-)
+__all__ = ("CMSContent",)

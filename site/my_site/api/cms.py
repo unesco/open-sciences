@@ -5,56 +5,96 @@
 # UNESCO Science Portal is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-"""CMS API endpoints.
+"""CMS Content API endpoints.
 
-This module provides REST API endpoints for CMS pages and categories.
-Endpoints follow RESTful conventions:
-- GET /api/cms/pages - List/search pages
-- GET /api/cms/pages/<id> - Get single page
-- POST /api/cms/pages - Create page (admin only)
-- PUT /api/cms/pages/<id> - Update page (admin only)
-- DELETE /api/cms/pages/<id> - Delete page (admin only)
-- POST /api/cms/pages/<id>/publish - Publish page (admin only)
-- POST /api/cms/pages/<id>/unpublish - Unpublish page (admin only)
-
-Same pattern for categories at /api/cms/categories
+Resource-driven CMS API:
+- GET /data/cms/resources - List all resource types
+- GET /data/cms/resources/<type> - Get resource definition with schema
+- GET /data/cms/content - Search all content
+- GET /data/cms/content/<type> - List content by type
+- GET /data/cms/content/<type>/<slug> - Get content by slug (collections)
+- GET /data/cms/content/id/<id> - Get content by ID
+- POST /data/cms/content/<type> - Create new content
+- PUT /data/cms/content/id/<id> - Update content
+- DELETE /data/cms/content/id/<id> - Delete content
+- POST /data/cms/content/id/<id>/publish - Publish content
+- POST /data/cms/content/id/<id>/unpublish - Unpublish content
+- GET /data/cms/render/<type>[/<slug>] - Get rendered output
 """
 
 from flask import g, jsonify, request
 from flask.views import MethodView
 from invenio_db import db
 
-from ..services.cms import (
-    CMSCategoryService,
-    CMSCategoryServiceConfig,
-    CMSPageService,
-    CMSPageServiceConfig,
-)
+from ..services.cms import CMSContentService, CMSContentServiceConfig
 
 
-class CMSPagesAPIView(MethodView):
-    """API endpoint for CMS pages collection."""
+class CMSResourcesAPIView(MethodView):
+    """API endpoint for CMS resource definitions."""
 
     def __init__(self):
         """Initialize the service."""
-        self.service = CMSPageService(CMSPageServiceConfig())
+        self.service = CMSContentService(CMSContentServiceConfig())
 
     def get(self):
-        """List/search CMS pages.
+        """List all available resource types with schemas.
+
+        Returns:
+            JSON with resources list and available languages
+        """
+        try:
+            result = self.service.get_resources(g.identity)
+            return jsonify(result), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
+class CMSResourceDefinitionAPIView(MethodView):
+    """API endpoint for single resource definition."""
+
+    def __init__(self):
+        """Initialize the service."""
+        self.service = CMSContentService(CMSContentServiceConfig())
+
+    def get(self, resource_type):
+        """Get resource definition with full schema.
+
+        Args:
+            resource_type: Resource type identifier
+
+        Returns:
+            JSON with resource definition
+        """
+        try:
+            result = self.service.get_resource_definition(g.identity, resource_type)
+            return jsonify(result), 200
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
+class CMSContentSearchAPIView(MethodView):
+    """API endpoint for searching all CMS content."""
+
+    def __init__(self):
+        """Initialize the service."""
+        self.service = CMSContentService(CMSContentServiceConfig())
+
+    def get(self):
+        """Search CMS content with filters.
 
         Query params:
+            - resource_type: Filter by type
+            - lang: Language filter
             - q: Search query
             - page: Page number (default: 1)
             - size: Page size (default: 25)
-            - sort: Sort field (default: created)
-            - sort_direction: asc/desc (default: desc)
-            - published_only: Filter published only (default: false)
-            - lang: Language filter
-            - category_id: Category filter
+            - published_only: Filter published only
         """
-        identity = g.identity
-
         params = {
+            "resource_type": request.args.get("resource_type"),
+            "lang": request.args.get("lang"),
             "q": request.args.get("q"),
             "page": int(request.args.get("page", 1)),
             "size": int(request.args.get("size", 25)),
@@ -62,239 +102,281 @@ class CMSPagesAPIView(MethodView):
             "sort_direction": request.args.get("sort_direction", "desc"),
             "published_only": request.args.get("published_only", "false").lower()
             == "true",
-            "lang": request.args.get("lang"),
-            "category_id": request.args.get("category_id"),
         }
 
         try:
-            result = self.service.search(identity, params)
+            result = self.service.search(g.identity, params)
             return jsonify(result), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-    def post(self):
-        """Create a new CMS page (admin only)."""
-        identity = g.identity
-        data = request.get_json() or {}
 
-        try:
-            page = self.service.create(identity, data)
-            db.session.commit()
-            return jsonify(self.service.schema.dump(page)), 201
-        except PermissionError as e:
-            return jsonify({"error": "Permission denied"}), 403
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": str(e)}), 400
-
-
-class CMSPageAPIView(MethodView):
-    """API endpoint for single CMS page."""
+class CMSContentByTypeAPIView(MethodView):
+    """API endpoint for content by resource type."""
 
     def __init__(self):
         """Initialize the service."""
-        self.service = CMSPageService(CMSPageServiceConfig())
+        self.service = CMSContentService(CMSContentServiceConfig())
 
-    def get(self, id):
-        """Get a single CMS page by ID."""
-        identity = g.identity
+    def get(self, resource_type):
+        """List content of a specific type.
 
-        try:
-            page = self.service.read(identity, int(id))
-            return jsonify(self.service.schema.dump(page)), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 404
-
-    def put(self, id):
-        """Update a CMS page (admin only)."""
-        identity = g.identity
-        data = request.get_json() or {}
-
-        try:
-            page = self.service.update(identity, int(id), data)
-            db.session.commit()
-            return jsonify(self.service.schema.dump(page)), 200
-        except PermissionError as e:
-            return jsonify({"error": "Permission denied"}), 403
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": str(e)}), 400
-
-    def delete(self, id):
-        """Delete a CMS page (admin only)."""
-        identity = g.identity
-
-        try:
-            self.service.delete(identity, int(id))
-            db.session.commit()
-            return jsonify({"message": "Page deleted"}), 200
-        except PermissionError as e:
-            return jsonify({"error": "Permission denied"}), 403
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": str(e)}), 400
-
-
-class CMSPageBySlugAPIView(MethodView):
-    """API endpoint to get CMS page by slug."""
-
-    def __init__(self):
-        """Initialize the service."""
-        self.service = CMSPageService(CMSPageServiceConfig())
-
-    def get(self, slug):
-        """Get a CMS page by slug.
+        For singletons: returns the single item (or null)
+        For collections: returns list of items
 
         Query params:
-            - lang: Language code (default: en)
+            - lang: Language filter (default: en)
+            - published_only: Filter published only
         """
-        identity = g.identity
+        from ..services.cms import get_resource
+
+        lang = request.args.get("lang", "en")
+        published_only = request.args.get("published_only", "false").lower() == "true"
+
+        try:
+            resource = get_resource(resource_type)
+
+            if resource["is_singleton"]:
+                # Return singleton
+                result = self.service.read_singleton(g.identity, resource_type, lang)
+                return (
+                    jsonify(
+                        {
+                            "resource_type": resource_type,
+                            "is_singleton": True,
+                            "content": result,
+                        }
+                    ),
+                    200,
+                )
+            else:
+                # Return collection
+                contents = self.service.list_by_type(
+                    g.identity, resource_type, lang, published_only
+                )
+                return (
+                    jsonify(
+                        {
+                            "resource_type": resource_type,
+                            "is_singleton": False,
+                            "hits": contents,
+                            "total": len(contents),
+                        }
+                    ),
+                    200,
+                )
+
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    def post(self, resource_type):
+        """Create new content of a specific type.
+
+        Body:
+            - data: Content data (validated against schema)
+            - lang: Language (default: en)
+            - slug: URL slug (required for collections)
+            - is_published: Publish immediately (default: false)
+        """
+        data = request.get_json() or {}
+
+        try:
+            result = self.service.create(g.identity, resource_type, data)
+            db.session.commit()
+            return jsonify(result), 201
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 400
+        except PermissionError:
+            return jsonify({"error": "Permission denied"}), 403
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+
+class CMSContentBySlugAPIView(MethodView):
+    """API endpoint for content by slug."""
+
+    def __init__(self):
+        """Initialize the service."""
+        self.service = CMSContentService(CMSContentServiceConfig())
+
+    def get(self, resource_type, slug):
+        """Get content by type and slug.
+
+        Query params:
+            - lang: Language (default: en)
+        """
         lang = request.args.get("lang", "en")
 
         try:
-            page = self.service.read_by_slug(identity, slug, lang)
-            return jsonify(self.service.schema.dump(page)), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 404
-
-
-class CMSPagePublishAPIView(MethodView):
-    """API endpoint to publish/unpublish a CMS page."""
-
-    def __init__(self):
-        """Initialize the service."""
-        self.service = CMSPageService(CMSPageServiceConfig())
-
-    def post(self, id):
-        """Publish a CMS page (admin only)."""
-        identity = g.identity
-
-        try:
-            page = self.service.publish(identity, int(id))
-            db.session.commit()
-            return jsonify(self.service.schema.dump(page)), 200
-        except PermissionError as e:
-            return jsonify({"error": "Permission denied"}), 403
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": str(e)}), 400
-
-
-class CMSPageUnpublishAPIView(MethodView):
-    """API endpoint to unpublish a CMS page."""
-
-    def __init__(self):
-        """Initialize the service."""
-        self.service = CMSPageService(CMSPageServiceConfig())
-
-    def post(self, id):
-        """Unpublish a CMS page (admin only)."""
-        identity = g.identity
-
-        try:
-            page = self.service.unpublish(identity, int(id))
-            db.session.commit()
-            return jsonify(self.service.schema.dump(page)), 200
-        except PermissionError as e:
-            return jsonify({"error": "Permission denied"}), 403
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": str(e)}), 400
-
-
-class CMSCategoriesAPIView(MethodView):
-    """API endpoint for CMS categories collection."""
-
-    def __init__(self):
-        """Initialize the service."""
-        self.service = CMSCategoryService(CMSCategoryServiceConfig())
-
-    def get(self):
-        """List/search CMS categories.
-
-        Query params:
-            - q: Search query
-            - page: Page number (default: 1)
-            - size: Page size (default: 25)
-            - sort: Sort field (default: sort_order)
-            - sort_direction: asc/desc (default: asc)
-            - active_only: Filter active only (default: false)
-        """
-        identity = g.identity
-
-        params = {
-            "q": request.args.get("q"),
-            "page": int(request.args.get("page", 1)),
-            "size": int(request.args.get("size", 25)),
-            "sort": request.args.get("sort", "sort_order"),
-            "sort_direction": request.args.get("sort_direction", "asc"),
-            "active_only": request.args.get("active_only", "false").lower() == "true",
-        }
-
-        try:
-            result = self.service.search(identity, params)
+            result = self.service.read_by_slug(g.identity, resource_type, slug, lang)
             return jsonify(result), 200
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-    def post(self):
-        """Create a new CMS category (admin only)."""
-        identity = g.identity
-        data = request.get_json() or {}
 
-        try:
-            category = self.service.create(identity, data)
-            db.session.commit()
-            return jsonify(self.service.schema.dump(category)), 201
-        except PermissionError as e:
-            return jsonify({"error": "Permission denied"}), 403
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": str(e)}), 400
-
-
-class CMSCategoryAPIView(MethodView):
-    """API endpoint for single CMS category."""
+class CMSContentByIdAPIView(MethodView):
+    """API endpoint for content by ID."""
 
     def __init__(self):
         """Initialize the service."""
-        self.service = CMSCategoryService(CMSCategoryServiceConfig())
+        self.service = CMSContentService(CMSContentServiceConfig())
 
-    def get(self, id):
-        """Get a single CMS category by ID."""
-        identity = g.identity
-
+    def get(self, resource_type, content_id):
+        """Get content by ID."""
         try:
-            category = self.service.read(identity, int(id))
-            return jsonify(self.service.schema.dump(category)), 200
-        except Exception as e:
+            result = self.service.read(g.identity, int(content_id))
+            return jsonify(result), 200
+        except ValueError as e:
             return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
-    def put(self, id):
-        """Update a CMS category (admin only)."""
-        identity = g.identity
+    def put(self, resource_type, content_id):
+        """Update content by ID.
+
+        Body:
+            - data: Updated content data
+            - lang: Language
+            - slug: URL slug
+            - is_published: Publication status
+        """
         data = request.get_json() or {}
 
         try:
-            category = self.service.update(identity, int(id), data)
+            result = self.service.update(g.identity, int(content_id), data)
             db.session.commit()
-            return jsonify(self.service.schema.dump(category)), 200
-        except PermissionError as e:
+            return jsonify(result), 200
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 400
+        except PermissionError:
             return jsonify({"error": "Permission denied"}), 403
         except Exception as e:
             db.session.rollback()
-            return jsonify({"error": str(e)}), 400
+            return jsonify({"error": str(e)}), 500
 
-    def delete(self, id):
-        """Delete a CMS category (admin only)."""
-        identity = g.identity
+    def delete(self, resource_type, content_id):
+        """Delete content by ID."""
+        try:
+            self.service.delete(g.identity, int(content_id))
+            db.session.commit()
+            return jsonify({"message": "Content deleted"}), 200
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 404
+        except PermissionError:
+            return jsonify({"error": "Permission denied"}), 403
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+
+class CMSContentPublishAPIView(MethodView):
+    """API endpoint to publish content."""
+
+    def __init__(self):
+        """Initialize the service."""
+        self.service = CMSContentService(CMSContentServiceConfig())
+
+    def post(self, resource_type, content_id):
+        """Publish content by ID."""
+        try:
+            result = self.service.publish(g.identity, int(content_id))
+            db.session.commit()
+            return jsonify(result), 200
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 404
+        except PermissionError:
+            return jsonify({"error": "Permission denied"}), 403
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+
+class CMSContentUnpublishAPIView(MethodView):
+    """API endpoint to unpublish content."""
+
+    def __init__(self):
+        """Initialize the service."""
+        self.service = CMSContentService(CMSContentServiceConfig())
+
+    def post(self, resource_type, content_id):
+        """Unpublish content by ID."""
+        try:
+            result = self.service.unpublish(g.identity, int(content_id))
+            db.session.commit()
+            return jsonify(result), 200
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 404
+        except PermissionError:
+            return jsonify({"error": "Permission denied"}), 403
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+
+class CMSRenderAPIView(MethodView):
+    """API endpoint for rendered content output."""
+
+    def __init__(self):
+        """Initialize the service."""
+        self.service = CMSContentService(CMSContentServiceConfig())
+
+    def get(self, resource_type, slug=None):
+        """Get rendered output for content.
+
+        For JSON resources: returns data directly
+        For HTML resources: returns rendered HTML
+
+        Query params:
+            - lang: Language (default: en)
+        """
+        lang = request.args.get("lang", "en")
 
         try:
-            self.service.delete(identity, int(id))
+            result = self.service.render(g.identity, resource_type, slug, lang)
+            return jsonify(result), 200
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
+class CMSSingletonUpsertAPIView(MethodView):
+    """API endpoint for singleton upsert (create or update)."""
+
+    def __init__(self):
+        """Initialize the service."""
+        self.service = CMSContentService(CMSContentServiceConfig())
+
+    def put(self, resource_type):
+        """Create or update singleton content.
+
+        Convenience endpoint for singletons - creates if not exists, updates if exists.
+
+        Body:
+            - data: Content data
+            - lang: Language (default: en)
+        """
+        data = request.get_json() or {}
+
+        try:
+            result = self.service.upsert_singleton(g.identity, resource_type, data)
             db.session.commit()
-            return jsonify({"message": "Category deleted"}), 200
-        except PermissionError as e:
+            return jsonify(result), 200
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 400
+        except PermissionError:
             return jsonify({"error": "Permission denied"}), 403
         except Exception as e:
             db.session.rollback()
-            return jsonify({"error": str(e)}), 400
+            return jsonify({"error": str(e)}), 500

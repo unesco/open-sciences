@@ -1,140 +1,165 @@
 /**
  * CMS Page Component
- * Administration interface for content management
+ * Administration interface for Resource-Driven content management
  */
 
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
+import { Breadcrumb, Icon } from "semantic-ui-react";
 
-// Sub-components
-import {
-  PageList,
-  PageEditor,
-  CategoryList,
-  CategoryEditor,
-  CMSNavigation,
-} from "./components";
+// Import components individually to catch import errors
+import { ResourceList } from "./components/ResourceList";
+import { ContentList } from "./components/ContentList";
+import { ContentEditor } from "./components/ContentEditor";
 
 /**
- * Main CMS Admin Component
- * Manages state for active view and edit modes
+ * Main Resource CMS Admin Component
+ * Manages state for active resource type and edit modes
  */
-export const CMS = ({ apiEndpoint = "/api/cms" }) => {
-  // Active view: "pages" or "categories"
-  const [activeView, setActiveView] = useState("pages");
+export const ResourceCMS = ({ apiEndpoint = "/data/cms" }) => {
+  // Current view state
+  const [currentView, setCurrentView] = useState("resources"); // "resources" | "content" | "editor"
 
-  // Edit mode states
-  const [editingPage, setEditingPage] = useState(null);
-  const [isEditingPage, setIsEditingPage] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [isEditingCategory, setIsEditingCategory] = useState(false);
+  // Selected resource type
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [resourceDefinition, setResourceDefinition] = useState(null);
 
-  // Refresh counters (to trigger re-fetch)
+  // Content being edited
+  const [editingContent, setEditingContent] = useState(null);
+
+  // Refresh counter
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Handle view change
-  const handleViewChange = useCallback((view) => {
-    // Reset edit modes when switching views
-    setIsEditingPage(false);
-    setEditingPage(null);
-    setIsEditingCategory(false);
-    setEditingCategory(null);
-    setActiveView(view);
+  // Handle resource selection
+  const handleSelectResource = useCallback((resourceType, definition) => {
+    setSelectedResource(resourceType);
+    setResourceDefinition(definition);
+    setCurrentView("content");
   }, []);
 
-  // Page handlers
-  const handleEditPage = useCallback((page) => {
-    setEditingPage(page);
-    setIsEditingPage(true);
+  // Handle back to resource list
+  const handleBackToResources = useCallback(() => {
+    setSelectedResource(null);
+    setResourceDefinition(null);
+    setEditingContent(null);
+    setCurrentView("resources");
   }, []);
 
-  const handleSavePage = useCallback((savedPage) => {
-    // Go back to list after successful save
-    setIsEditingPage(false);
-    setEditingPage(null);
+  // Handle edit content
+  const handleEditContent = useCallback((content) => {
+    setEditingContent(content);
+    setCurrentView("editor");
+  }, []);
+
+  // Handle save content
+  const handleSaveContent = useCallback((savedContent) => {
+    setEditingContent(null);
+    setCurrentView("content");
     setRefreshKey((prev) => prev + 1);
   }, []);
 
-  const handleCancelPageEdit = useCallback(() => {
-    setIsEditingPage(false);
-    setEditingPage(null);
+  // Handle cancel edit
+  const handleCancelEdit = useCallback(() => {
+    setEditingContent(null);
+    setCurrentView("content");
   }, []);
 
-  // Category handlers
-  const handleEditCategory = useCallback((category) => {
-    setEditingCategory(category);
-    setIsEditingCategory(true);
-  }, []);
+  // Render breadcrumb navigation
+  const renderBreadcrumb = () => {
+    if (currentView === "resources") return null;
 
-  const handleSaveCategory = useCallback((savedCategory) => {
-    // Go back to list after successful save
-    setIsEditingCategory(false);
-    setEditingCategory(null);
-    setRefreshKey((prev) => prev + 1);
-  }, []);
+    return (
+      <div
+        style={{
+          marginBottom: "1.5rem",
+          padding: "0.75rem 1rem",
+          background: "#f8f9fa",
+          borderRadius: "6px",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Breadcrumb size="small">
+          <Breadcrumb.Section
+            link
+            onClick={handleBackToResources}
+            style={{ color: "#667eea", cursor: "pointer" }}
+          >
+            <Icon name="home" /> Content Types
+          </Breadcrumb.Section>
 
-  const handleCancelCategoryEdit = useCallback(() => {
-    setIsEditingCategory(false);
-    setEditingCategory(null);
-  }, []);
+          {selectedResource && (
+            <>
+              <Breadcrumb.Divider icon="right chevron" />
+              <Breadcrumb.Section
+                link={currentView === "editor"}
+                active={currentView === "content"}
+                onClick={
+                  currentView === "editor"
+                    ? () => setCurrentView("content")
+                    : undefined
+                }
+                style={
+                  currentView === "editor"
+                    ? { color: "#667eea", cursor: "pointer" }
+                    : {}
+                }
+              >
+                {resourceDefinition?.label || selectedResource}
+              </Breadcrumb.Section>
+            </>
+          )}
 
-  // Refresh handler
-  const handleRefresh = useCallback(() => {
-    setRefreshKey((prev) => prev + 1);
-  }, []);
+          {currentView === "editor" && (
+            <>
+              <Breadcrumb.Divider icon="right chevron" />
+              <Breadcrumb.Section active>
+                {editingContent ? "Edit" : "New"}
+              </Breadcrumb.Section>
+            </>
+          )}
+        </Breadcrumb>
+      </div>
+    );
+  };
 
-  // Render active content based on view and edit mode
+  // Render active content based on view
   const renderContent = () => {
-    if (activeView === "pages") {
-      if (isEditingPage) {
+    switch (currentView) {
+      case "resources":
+        return <ResourceList onSelectResource={handleSelectResource} />;
+
+      case "content":
         return (
-          <PageEditor
-            page={editingPage}
-            onSave={handleSavePage}
-            onCancel={handleCancelPageEdit}
+          <ContentList
+            resourceType={selectedResource}
+            resourceDefinition={resourceDefinition}
+            onEdit={handleEditContent}
+            onBack={handleBackToResources}
+            refreshKey={refreshKey}
           />
         );
-      }
-      return (
-        <PageList
-          key={`pages-${refreshKey}`}
-          onEdit={handleEditPage}
-          onRefresh={handleRefresh}
-        />
-      );
-    }
 
-    if (activeView === "categories") {
-      if (isEditingCategory) {
+      case "editor":
         return (
-          <CategoryEditor
-            category={editingCategory}
-            onSave={handleSaveCategory}
-            onCancel={handleCancelCategoryEdit}
+          <ContentEditor
+            resourceType={selectedResource}
+            resourceDefinition={resourceDefinition}
+            content={editingContent}
+            onSave={handleSaveContent}
+            onCancel={handleCancelEdit}
           />
         );
-      }
-      return (
-        <CategoryList
-          key={`categories-${refreshKey}`}
-          onEdit={handleEditCategory}
-          onRefresh={handleRefresh}
-        />
-      );
-    }
 
-    return null;
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="cms-admin">
-      {/* Navigation tabs */}
-      {!isEditingPage && !isEditingCategory && (
-        <CMSNavigation
-          activeView={activeView}
-          onViewChange={handleViewChange}
-        />
-      )}
+    <div className="resource-cms-admin" style={{ padding: "0.5rem 0" }}>
+      {/* Breadcrumb navigation */}
+      {renderBreadcrumb()}
 
       {/* Main content area */}
       <div className="cms-content">{renderContent()}</div>
@@ -142,6 +167,18 @@ export const CMS = ({ apiEndpoint = "/api/cms" }) => {
   );
 };
 
-CMS.propTypes = {
+ResourceCMS.propTypes = {
   apiEndpoint: PropTypes.string,
 };
+
+// Also export as CMS for convenience
+export const CMS = ResourceCMS;
+
+// Re-export components for direct access if needed
+export { ResourceList, ContentList, ContentEditor };
+export { default as ConfirmModal } from "./components/ConfirmModal";
+
+// Re-export hooks
+export { useResourceCMSApi, useDebounce } from "./hooks";
+
+export default ResourceCMS;

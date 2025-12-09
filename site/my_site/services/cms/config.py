@@ -16,32 +16,23 @@ from invenio_records_resources.services import Link, ServiceConfig
 from invenio_records_resources.services.records.links import pagination_links
 from sqlalchemy import asc, desc
 
-from ...models.cms import CMSCategory, CMSPage
+from ...models.cms import CMSContent
 from .permissions import CMSPermissionPolicy
-from .schemas import CMSCategorySchema, CMSPageSchema
 
 
-class CMSPageLink(Link):
-    """Link variables setter for CMS Page links."""
-
-    @staticmethod
-    def vars(page, vars):
-        """Set variables for the URI template."""
-        vars.update({"id": page.id})
-
-
-class CMSCategoryLink(Link):
-    """Link variables setter for CMS Category links."""
+class CMSContentLink(Link):
+    """Link variables setter for CMS Content links."""
 
     @staticmethod
-    def vars(category, vars):
+    def vars(content, vars):
         """Set variables for the URI template."""
-        vars.update({"id": category.id})
+        vars.update({"id": content.id})
 
 
-class SearchOptions:
-    """Base search options for CMS resources."""
+class CMSContentSearchOptions:
+    """Search options for CMS content."""
 
+    sort_default = "created"
     sort_direction_default = "desc"
     sort_direction_options = {
         "asc": dict(
@@ -54,27 +45,10 @@ class SearchOptions:
         ),
     }
 
-    pagination_options = {
-        "default_results_per_page": 25,
-    }
-
-
-class CMSPageSearchOptions(SearchOptions):
-    """Search options for CMS pages."""
-
-    sort_default = "created"
     sort_options = {
         "id": dict(
             title=_("Id"),
             fields=["id"],
-        ),
-        "title": dict(
-            title=_("Title"),
-            fields=["title"],
-        ),
-        "slug": dict(
-            title=_("Slug"),
-            fields=["slug"],
         ),
         "created": dict(
             title=_("Created"),
@@ -84,86 +58,34 @@ class CMSPageSearchOptions(SearchOptions):
             title=_("Updated"),
             fields=["updated"],
         ),
-        "published_at": dict(
-            title=_("Published"),
-            fields=["published_at"],
-        ),
         "sort_order": dict(
             title=_("Sort Order"),
             fields=["sort_order"],
         ),
     }
 
-
-class CMSCategorySearchOptions(SearchOptions):
-    """Search options for CMS categories."""
-
-    sort_default = "sort_order"
-    sort_direction_default = "asc"
-
-    sort_options = {
-        "id": dict(
-            title=_("Id"),
-            fields=["id"],
-        ),
-        "name": dict(
-            title=_("Name"),
-            fields=["name"],
-        ),
-        "slug": dict(
-            title=_("Slug"),
-            fields=["slug"],
-        ),
-        "sort_order": dict(
-            title=_("Sort Order"),
-            fields=["sort_order"],
-        ),
-        "created": dict(
-            title=_("Created"),
-            fields=["created"],
-        ),
+    pagination_options = {
+        "default_results_per_page": 25,
     }
 
 
-class CMSPageServiceConfig(ServiceConfig):
-    """Configuration for CMS Page Service."""
+class CMSContentServiceConfig(ServiceConfig):
+    """Configuration for CMS Content Service."""
 
     # Permission policy
     permission_policy_cls = CMSPermissionPolicy
 
-    # Schema for serialization/deserialization
-    schema = CMSPageSchema
+    # Service components (not used in this service)
+    components = []
 
     # Search options
-    search = CMSPageSearchOptions
+    search = CMSContentSearchOptions
 
     # Model class
-    record_cls = CMSPage
+    record_cls = CMSContent
 
     # Links
     links_item = {
-        "self": CMSPageLink("{+api}/cms/pages/{id}"),
+        "self": CMSContentLink("{+api}/cms/content/{id}"),
     }
-    links_search = pagination_links("{+api}/cms/pages{?args*}")
-
-
-class CMSCategoryServiceConfig(ServiceConfig):
-    """Configuration for CMS Category Service."""
-
-    # Permission policy
-    permission_policy_cls = CMSPermissionPolicy
-
-    # Schema for serialization/deserialization
-    schema = CMSCategorySchema
-
-    # Search options
-    search = CMSCategorySearchOptions
-
-    # Model class
-    record_cls = CMSCategory
-
-    # Links
-    links_item = {
-        "self": CMSCategoryLink("{+api}/cms/categories/{id}"),
-    }
-    links_search = pagination_links("{+api}/cms/categories{?args*}")
+    links_search = pagination_links("{+api}/cms/content{?args*}")

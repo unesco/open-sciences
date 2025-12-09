@@ -5,15 +5,11 @@
 # UNESCO Science Portal is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-"""CMS SQLAlchemy models for custom content management.
+"""CMS Content SQLAlchemy model.
 
-This module defines the database models for the CMS system:
-- CMSPage: Main content pages
-- CMSCategory: Categories for organizing pages
-- CMSPageCategory: Many-to-many relationship between pages and categories
-
-These models integrate with InvenioRDM's database infrastructure using
-invenio_db and follow the same patterns as core Invenio modules.
+This module defines the unified CMS content model that stores
+all CMS resources (singletons and collections) in a single table
+with JSON data validated against resource-specific schemas.
 """
 
 from datetime import datetime
@@ -22,178 +18,65 @@ from typing import List, Optional
 import sqlalchemy as sa
 from invenio_accounts.models import User
 from invenio_db import db
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils.models import Timestamp
 
 
-class CMSCategory(db.Model, Timestamp):
-    """Category model for organizing CMS pages.
+class CMSContent(db.Model, Timestamp):
+    """Unified CMS Content model.
+
+    Stores all CMS content with resource-type-specific JSON data.
+    Singleton resources have unique (resource_type, lang) constraint.
+    Collection resources can have multiple entries per language.
 
     Attributes:
         id: Primary key
-        name: Category name (unique)
-        slug: URL-friendly identifier (unique)
-        description: Optional category description
-        sort_order: Order for display (lower = first)
-        is_active: Whether category is active/visible
-        created: Auto-set creation timestamp
-        updated: Auto-set update timestamp
-    """
-
-    __tablename__ = "cms_category"
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), nullable=False, unique=True)
-    slug = db.Column(db.String(255), nullable=False, unique=True, index=True)
-    description = db.Column(db.Text, nullable=True)
-    sort_order = db.Column(db.Integer, default=0, nullable=False)
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
-
-    # Relationships
-    pages = relationship(
-        "CMSPage",
-        secondary="cms_page_category",
-        back_populates="categories",
-        lazy="dynamic",
-    )
-
-    def __repr__(self):
-        """String representation."""
-        return f"<CMSCategory(id={self.id}, name='{self.name}')>"
-
-    @classmethod
-    def create(cls, data: dict) -> "CMSCategory":
-        """Create a new category.
-
-        Args:
-            data: Dictionary with category fields
-
-        Returns:
-            Created CMSCategory instance
-        """
-        category = cls(
-            name=data.get("name"),
-            slug=data.get("slug"),
-            description=data.get("description"),
-            sort_order=data.get("sort_order", 0),
-            is_active=data.get("is_active", True),
-        )
-        db.session.add(category)
-        return category
-
-    @classmethod
-    def get(cls, id: int) -> Optional["CMSCategory"]:
-        """Get category by ID.
-
-        Args:
-            id: Category ID
-
-        Returns:
-            CMSCategory instance or None
-        """
-        return cls.query.get(id)
-
-    @classmethod
-    def get_by_slug(cls, slug: str) -> Optional["CMSCategory"]:
-        """Get category by slug.
-
-        Args:
-            slug: Category slug
-
-        Returns:
-            CMSCategory instance or None
-        """
-        return cls.query.filter_by(slug=slug).first()
-
-    @classmethod
-    def get_active(cls) -> List["CMSCategory"]:
-        """Get all active categories ordered by sort_order.
-
-        Returns:
-            List of active CMSCategory instances
-        """
-        return cls.query.filter_by(is_active=True).order_by(cls.sort_order).all()
-
-    @classmethod
-    def search(cls, params: dict, filters: list = None) -> "sa.orm.Query":
-        """Search categories with filters.
-
-        Args:
-            params: Search parameters (q, page, size, sort, sort_direction)
-            filters: Additional SQLAlchemy filter conditions
-
-        Returns:
-            SQLAlchemy query object
-        """
-        query = cls.query
-
-        if filters:
-            for f in filters:
-                query = query.filter(f)
-
-        # Sorting
-        sort_field = params.get("sort", "sort_order")
-        sort_direction = params.get("sort_direction", "asc")
-
-        if hasattr(cls, sort_field):
-            order_col = getattr(cls, sort_field)
-            if sort_direction == "desc":
-                order_col = order_col.desc()
-            query = query.order_by(order_col)
-
-        # Pagination
-        page = params.get("page", 1)
-        size = params.get("size", 25)
-
-        return query.paginate(page=page, per_page=size, error_out=False)
-
-
-class CMSPage(db.Model, Timestamp):
-    """CMS Page model for content management.
-
-    Attributes:
-        id: Primary key
-        slug: URL-friendly identifier (unique)
-        title: Page title
-        content: HTML content
-        excerpt: Short description/preview
-        meta_title: SEO title
-        meta_description: SEO description
-        template_name: Jinja2 template path
-        is_published: Publication status
-        published_at: Publication date
-        author_id: Foreign key to accounts_user
+        resource_type: Type identifier (e.g., "footer", "plain_language_summary")
+        slug: URL-friendly identifier (for collections, unique per type+lang)
+        data: JSON content validated against resource schema
         lang: Language code (ISO 639-1)
-        sort_order: Order for display
+        is_published: Publication status
+        published_at: Publication timestamp
+        author_id: Creator/editor user ID
+        sort_order: Display ordering
         created: Auto-set creation timestamp
         updated: Auto-set update timestamp
     """
 
-    __tablename__ = "cms_page"
+    __tablename__ = "cms_content"
     __table_args__ = (
-        db.UniqueConstraint("slug", "lang", name="uq_cms_page_slug_lang"),
+        # For collections: unique slug per resource_type and language
+        db.UniqueConstraint(
+            "resource_type", "slug", "lang", name="uq_cms_content_type_slug_lang"
+        ),
+        # Index for common queries
+        db.Index("ix_cms_content_type_lang", "resource_type", "lang"),
+        db.Index("ix_cms_content_published", "is_published", "resource_type"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    slug = db.Column(db.String(500), nullable=False, index=True)
-    title = db.Column(db.String(500), nullable=False)
-    content = db.Column(db.Text, nullable=True)
-    excerpt = db.Column(db.Text, nullable=True)
 
-    # SEO fields
-    meta_title = db.Column(db.String(255), nullable=True)
-    meta_description = db.Column(db.String(500), nullable=True)
+    # Resource identification
+    resource_type = db.Column(db.String(100), nullable=False, index=True)
+    slug = db.Column(db.String(255), nullable=True, index=True)
 
-    # Template
-    template_name = db.Column(
-        db.String(255), default="my_site/cms/page.html", nullable=False
+    # Content stored as JSON (validated against resource schema)
+    data = db.Column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        comment="JSON content validated against resource schema",
     )
 
-    # Status
-    is_published = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    # Language
+    lang = db.Column(db.String(10), default="en", nullable=False, index=True)
+
+    # Publication status
+    is_published = db.Column(db.Boolean, default=False, nullable=False)
     published_at = db.Column(db.DateTime, nullable=True)
 
-    # Author - Foreign Key to InvenioRDM's User table
+    # Author tracking
     author_id = db.Column(
         db.Integer,
         db.ForeignKey("accounts_user.id", ondelete="SET NULL"),
@@ -201,126 +84,116 @@ class CMSPage(db.Model, Timestamp):
         index=True,
     )
 
-    # Language
-    lang = db.Column(db.String(10), default="en", nullable=False, index=True)
-
-    # Ordering
+    # Display ordering (for collections)
     sort_order = db.Column(db.Integer, default=0, nullable=False)
 
     # Relationships
-    author = relationship("User", backref="cms_pages")
-    categories = relationship(
-        "CMSCategory",
-        secondary="cms_page_category",
-        back_populates="pages",
-        lazy="joined",
-    )
+    author = relationship("User", backref="cms_contents")
 
     def __repr__(self):
         """String representation."""
-        return f"<CMSPage(id={self.id}, slug='{self.slug}', lang='{self.lang}')>"
+        return f"<CMSContent(id={self.id}, type='{self.resource_type}', slug='{self.slug}', lang='{self.lang}')>"
 
     @classmethod
-    def create(cls, data: dict) -> "CMSPage":
-        """Create a new page.
+    def create(cls, data: dict) -> "CMSContent":
+        """Create new CMS content.
 
         Args:
-            data: Dictionary with page fields
+            data: Dictionary with content fields
 
         Returns:
-            Created CMSPage instance
+            Created CMSContent instance
         """
-        page = cls(
+        content = cls(
+            resource_type=data.get("resource_type"),
             slug=data.get("slug"),
-            title=data.get("title"),
-            content=data.get("content"),
-            excerpt=data.get("excerpt"),
-            meta_title=data.get("meta_title"),
-            meta_description=data.get("meta_description"),
-            template_name=data.get("template_name", "my_site/cms/page.html"),
+            data=data.get("data", {}),
+            lang=data.get("lang", "en"),
             is_published=data.get("is_published", False),
             published_at=data.get("published_at"),
             author_id=data.get("author_id"),
-            lang=data.get("lang", "en"),
             sort_order=data.get("sort_order", 0),
         )
-        db.session.add(page)
-        return page
+        db.session.add(content)
+        return content
 
     @classmethod
-    def get(cls, id: int) -> Optional["CMSPage"]:
-        """Get page by ID.
+    def get(cls, id: int) -> Optional["CMSContent"]:
+        """Get content by ID.
 
         Args:
-            id: Page ID
+            id: Content ID
 
         Returns:
-            CMSPage instance or None
+            CMSContent instance or None
         """
         return cls.query.get(id)
 
     @classmethod
-    def get_by_slug(cls, slug: str, lang: str = "en") -> Optional["CMSPage"]:
-        """Get page by slug and language.
+    def get_singleton(
+        cls, resource_type: str, lang: str = "en"
+    ) -> Optional["CMSContent"]:
+        """Get singleton content by type and language.
+
+        For singleton resources, there's only one entry per language.
 
         Args:
-            slug: Page slug
+            resource_type: Resource type identifier
             lang: Language code
 
         Returns:
-            CMSPage instance or None
+            CMSContent instance or None
         """
-        return cls.query.filter_by(slug=slug, lang=lang).first()
+        return cls.query.filter_by(resource_type=resource_type, lang=lang).first()
 
     @classmethod
-    def get_published(cls, lang: str = None) -> List["CMSPage"]:
-        """Get all published pages.
+    def get_by_slug(
+        cls, resource_type: str, slug: str, lang: str = "en"
+    ) -> Optional["CMSContent"]:
+        """Get content by resource type, slug, and language.
 
         Args:
-            lang: Optional language filter
+            resource_type: Resource type identifier
+            slug: Content slug
+            lang: Language code
 
         Returns:
-            List of published CMSPage instances
+            CMSContent instance or None
         """
-        query = cls.query.filter_by(is_published=True)
+        return cls.query.filter_by(
+            resource_type=resource_type, slug=slug, lang=lang
+        ).first()
+
+    @classmethod
+    def get_by_type(
+        cls, resource_type: str, lang: str = None, published_only: bool = False
+    ) -> List["CMSContent"]:
+        """Get all content of a specific type.
+
+        Args:
+            resource_type: Resource type identifier
+            lang: Optional language filter
+            published_only: Filter to published content only
+
+        Returns:
+            List of CMSContent instances
+        """
+        query = cls.query.filter_by(resource_type=resource_type)
+
         if lang:
             query = query.filter_by(lang=lang)
-        return query.order_by(cls.sort_order).all()
 
-    @classmethod
-    def update(cls, data: dict, id: int) -> Optional["CMSPage"]:
-        """Update an existing page.
+        if published_only:
+            query = query.filter_by(is_published=True)
 
-        Args:
-            data: Dictionary with updated fields
-            id: Page ID to update
-
-        Returns:
-            Updated CMSPage instance or None
-        """
-        page = cls.get(id)
-        if page:
-            for key, value in data.items():
-                if hasattr(page, key) and key not in ("id", "created"):
-                    setattr(page, key, value)
-            page.updated = datetime.utcnow()
-        return page
-
-    @classmethod
-    def delete(cls, page: "CMSPage") -> None:
-        """Delete a page.
-
-        Args:
-            page: CMSPage instance to delete
-        """
-        db.session.delete(page)
+        return query.order_by(cls.sort_order, cls.created.desc()).all()
 
     @classmethod
     def search(cls, params: dict, filters: list = None) -> "sa.orm.Query":
-        """Search pages with filters.
+        """Search content with filters and pagination.
 
         Args:
-            params: Search parameters (q, page, size, sort, sort_direction)
+            params: Search parameters (resource_type, lang, q, page, size, sort)
             filters: Additional SQLAlchemy filter conditions
 
         Returns:
@@ -328,9 +201,33 @@ class CMSPage(db.Model, Timestamp):
         """
         query = cls.query
 
+        # Resource type filter
+        if params.get("resource_type"):
+            query = query.filter_by(resource_type=params["resource_type"])
+
+        # Language filter
+        if params.get("lang"):
+            query = query.filter_by(lang=params["lang"])
+
+        # Published filter
+        if params.get("published_only"):
+            query = query.filter_by(is_published=True)
+
+        # Additional filters
         if filters:
             for f in filters:
                 query = query.filter(f)
+
+        # Text search in JSON data (PostgreSQL specific)
+        if params.get("q"):
+            search_term = f"%{params['q']}%"
+            # Search in slug and cast JSON data to text
+            query = query.filter(
+                sa.or_(
+                    cls.slug.ilike(search_term),
+                    sa.cast(cls.data, sa.Text).ilike(search_term),
+                )
+            )
 
         # Sorting
         sort_field = params.get("sort", "created")
@@ -348,37 +245,48 @@ class CMSPage(db.Model, Timestamp):
 
         return query.paginate(page=page, per_page=size, error_out=False)
 
+    def update(self, data: dict) -> "CMSContent":
+        """Update content fields.
+
+        Args:
+            data: Dictionary with fields to update
+
+        Returns:
+            Updated CMSContent instance
+        """
+        updatable_fields = [
+            "slug",
+            "data",
+            "lang",
+            "is_published",
+            "published_at",
+            "sort_order",
+        ]
+
+        for key, value in data.items():
+            if key in updatable_fields:
+                setattr(self, key, value)
+
+        self.updated = datetime.utcnow()
+        return self
+
     def publish(self) -> None:
-        """Publish the page."""
+        """Publish the content."""
         self.is_published = True
         self.published_at = datetime.utcnow()
 
     def unpublish(self) -> None:
-        """Unpublish the page."""
+        """Unpublish the content."""
         self.is_published = False
 
+    def get_data_field(self, field: str, default=None):
+        """Get a specific field from JSON data.
 
-class CMSPageCategory(db.Model):
-    """Association table for many-to-many relationship between pages and categories.
+        Args:
+            field: Field name in data JSON
+            default: Default value if field not found
 
-    This is an explicit association model rather than a simple association table
-    to allow for additional metadata like ordering.
-    """
-
-    __tablename__ = "cms_page_category"
-    __table_args__ = (db.PrimaryKeyConstraint("page_id", "category_id"),)
-
-    page_id = db.Column(
-        db.Integer, db.ForeignKey("cms_page.id", ondelete="CASCADE"), nullable=False
-    )
-    category_id = db.Column(
-        db.Integer, db.ForeignKey("cms_category.id", ondelete="CASCADE"), nullable=False
-    )
-    # Optional: ordering within category
-    sort_order = db.Column(db.Integer, default=0, nullable=False)
-
-    def __repr__(self):
-        """String representation."""
-        return (
-            f"<CMSPageCategory(page_id={self.page_id}, category_id={self.category_id})>"
-        )
+        Returns:
+            Field value or default
+        """
+        return self.data.get(field, default) if self.data else default

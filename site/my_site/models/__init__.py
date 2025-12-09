@@ -7,10 +7,6 @@
 
 """Models module for CMS database tables."""
 
-from .cms import CMSPage, CMSCategory, CMSPageCategory
+from .cms import CMSContent
 
-__all__ = (
-    "CMSPage",
-    "CMSCategory",
-    "CMSPageCategory",
-)
+__all__ = ("CMSContent",)
