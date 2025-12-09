@@ -20,9 +20,8 @@ Endpoints follow RESTful conventions:
 Same pattern for categories at /api/cms/categories
 """
 
-from flask import jsonify, request
+from flask import g, jsonify, request
 from flask.views import MethodView
-from flask_login import current_user
 from invenio_db import db
 
 from ..services.cms import (
@@ -31,16 +30,6 @@ from ..services.cms import (
     CMSPageService,
     CMSPageServiceConfig,
 )
-
-
-def get_identity():
-    """Get current user identity or anonymous identity."""
-    if current_user.is_authenticated:
-        return current_user
-    # Return anonymous identity
-    from flask_principal import AnonymousIdentity
-
-    return AnonymousIdentity()
 
 
 class CMSPagesAPIView(MethodView):
@@ -63,7 +52,7 @@ class CMSPagesAPIView(MethodView):
             - lang: Language filter
             - category_id: Category filter
         """
-        identity = get_identity()
+        identity = g.identity
 
         params = {
             "q": request.args.get("q"),
@@ -85,7 +74,7 @@ class CMSPagesAPIView(MethodView):
 
     def post(self):
         """Create a new CMS page (admin only)."""
-        identity = get_identity()
+        identity = g.identity
         data = request.get_json() or {}
 
         try:
@@ -108,7 +97,7 @@ class CMSPageAPIView(MethodView):
 
     def get(self, id):
         """Get a single CMS page by ID."""
-        identity = get_identity()
+        identity = g.identity
 
         try:
             page = self.service.read(identity, int(id))
@@ -118,7 +107,7 @@ class CMSPageAPIView(MethodView):
 
     def put(self, id):
         """Update a CMS page (admin only)."""
-        identity = get_identity()
+        identity = g.identity
         data = request.get_json() or {}
 
         try:
@@ -133,7 +122,7 @@ class CMSPageAPIView(MethodView):
 
     def delete(self, id):
         """Delete a CMS page (admin only)."""
-        identity = get_identity()
+        identity = g.identity
 
         try:
             self.service.delete(identity, int(id))
@@ -159,7 +148,7 @@ class CMSPageBySlugAPIView(MethodView):
         Query params:
             - lang: Language code (default: en)
         """
-        identity = get_identity()
+        identity = g.identity
         lang = request.args.get("lang", "en")
 
         try:
@@ -178,7 +167,7 @@ class CMSPagePublishAPIView(MethodView):
 
     def post(self, id):
         """Publish a CMS page (admin only)."""
-        identity = get_identity()
+        identity = g.identity
 
         try:
             page = self.service.publish(identity, int(id))
@@ -200,7 +189,7 @@ class CMSPageUnpublishAPIView(MethodView):
 
     def post(self, id):
         """Unpublish a CMS page (admin only)."""
-        identity = get_identity()
+        identity = g.identity
 
         try:
             page = self.service.unpublish(identity, int(id))
@@ -231,7 +220,7 @@ class CMSCategoriesAPIView(MethodView):
             - sort_direction: asc/desc (default: asc)
             - active_only: Filter active only (default: false)
         """
-        identity = get_identity()
+        identity = g.identity
 
         params = {
             "q": request.args.get("q"),
@@ -250,7 +239,7 @@ class CMSCategoriesAPIView(MethodView):
 
     def post(self):
         """Create a new CMS category (admin only)."""
-        identity = get_identity()
+        identity = g.identity
         data = request.get_json() or {}
 
         try:
@@ -273,7 +262,7 @@ class CMSCategoryAPIView(MethodView):
 
     def get(self, id):
         """Get a single CMS category by ID."""
-        identity = get_identity()
+        identity = g.identity
 
         try:
             category = self.service.read(identity, int(id))
@@ -283,7 +272,7 @@ class CMSCategoryAPIView(MethodView):
 
     def put(self, id):
         """Update a CMS category (admin only)."""
-        identity = get_identity()
+        identity = g.identity
         data = request.get_json() or {}
 
         try:
@@ -298,7 +287,7 @@ class CMSCategoryAPIView(MethodView):
 
     def delete(self, id):
         """Delete a CMS category (admin only)."""
-        identity = get_identity()
+        identity = g.identity
 
         try:
             self.service.delete(identity, int(id))

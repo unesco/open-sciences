@@ -1,49 +1,219 @@
-/* CMS Page Styles */
+/* CMS Admin Styles */
 
-.cms-page {
+.cms-admin {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 0;
 }
 
-@media (max-width: 768px) {
-  .cms-page {
-    padding: 16px;
+/* Navigation tabs */
+.cms-navigation {
+  margin-bottom: 20px !important;
+
+  .item {
+    font-size: 14px !important;
+    padding: 12px 20px !important;
+
+    i.icon {
+      margin-right: 8px !important;
+    }
   }
 }
 
-.cms-header {
-  background: linear-gradient(135deg, #0077c8 0%, #00b398 100%);
-  border-radius: 8px;
-  padding: 32px;
-  margin-bottom: 24px;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 119, 200, 0.15);
-}
-
-.cms-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.cms-header p {
-  margin: 0;
-  opacity: 0.9;
-  font-size: 16px;
-}
-
-@media (max-width: 768px) {
-  .cms-header {
-    padding: 24px 20px;
-  }
-}
-
+/* Content area */
 .cms-content {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02),
-    0 2px 4px rgba(0, 0, 0, 0.02);
-  border: 1px solid #f0f0f0;
+  min-height: 400px;
+}
+
+/* Toolbar styles */
+.page-list-toolbar,
+.category-list-toolbar {
+  margin-bottom: 0 !important;
+  padding: 16px !important;
+  background: #fafafa !important;
+  border-bottom: none !important;
+
+  .toolbar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+/* Table container */
+.page-list-table,
+.category-list-table {
+  margin-top: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  overflow-x: auto;
+
+  .ui.table {
+    margin: 0;
+  }
+}
+
+/* Table footer */
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .total-count {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 13px;
+  }
+
+  .ui.pagination {
+    margin: 0;
+  }
+}
+
+/* Editor styles */
+.page-editor,
+.category-editor {
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    h2 {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: 10px;
+    }
+  }
+
+  .editor-footer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .ui.tab.pane {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 20px 0 !important;
+  }
+
+  .ui.pointing.secondary.menu {
+    margin-bottom: 0 !important;
+  }
+
+  textarea {
+    font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+}
+
+/* Labels */
+.ui.label code {
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 12px;
+}
+
+/* Status labels */
+.ui.green.label,
+.ui.grey.label {
+  font-weight: 500 !important;
+}
+
+/* Modal styles */
+.ui.modal > .header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cms-admin {
+    padding: 10px;
+  }
+
+  .toolbar-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+  }
+
+  .toolbar-right {
+    justify-content: flex-end;
+  }
+
+  .editor-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .table-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+}
+
+/* Button group in tables */
+.ui.table .ui.buttons .button {
+  padding: 8px 10px !important;
+}
+
+/* Improve form field spacing */
+.ui.form .field {
+  margin-bottom: 1.2em !important;
+}
+
+.ui.form .field > label {
+  font-weight: 600 !important;
+  margin-bottom: 6px !important;
+}
+
+/* Text area styling for HTML content */
+.ui.form textarea[name="content"] {
+  min-height: 350px;
+  resize: vertical;
+}
+
+/* Dropdown improvements */
+.ui.dropdown {
+  min-width: auto !important;
+}
+
+/* Search input in toolbar */
+.toolbar-left .ui.input {
+  flex-shrink: 0;
+}
+
+/* Message spacing */
+.ui.message {
+  margin-bottom: 16px !important;
 }

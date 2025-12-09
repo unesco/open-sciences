@@ -7,9 +7,8 @@
 
 """CMS page view for rendering published content."""
 
-from flask import abort, render_template, request
+from flask import abort, g, render_template, request
 from flask.views import MethodView
-from flask_login import current_user
 
 from ..services.cms import CMSPageService, CMSPageServiceConfig
 
@@ -21,21 +20,13 @@ class CMSPageView(MethodView):
         """Initialize the service."""
         self.service = CMSPageService(CMSPageServiceConfig())
 
-    def _get_identity(self):
-        """Get current user identity."""
-        if current_user.is_authenticated:
-            return current_user
-        from flask_principal import AnonymousIdentity
-
-        return AnonymousIdentity()
-
     def get(self, slug):
         """Render a CMS page by slug.
 
         Args:
             slug: Page URL slug
         """
-        identity = self._get_identity()
+        identity = g.identity
         lang = request.args.get("lang", "en")
 
         try:

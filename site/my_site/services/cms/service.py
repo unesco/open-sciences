@@ -59,15 +59,8 @@ class CMSPageService(Service):
         """
         self.require_permission(identity, "create")
 
-        # Validate data
-        validated_data, errors = self.schema.load(
-            data,
-            context={"identity": identity},
-        )
-
-        if errors:
-            # In production, you might want to raise a validation error
-            current_app.logger.warning(f"Validation errors: {errors}")
+        # Validate data (Marshmallow 3.x)
+        validated_data = self.schema.load(data)
 
         # Extract category IDs before creating page
         category_ids = validated_data.pop("category_ids", [])
@@ -196,12 +189,8 @@ class CMSPageService(Service):
         """
         self.require_permission(identity, "update")
 
-        # Validate data
-        validated_data, errors = self.schema.load(
-            data,
-            context={"identity": identity},
-            partial=True,  # Allow partial updates
-        )
+        # Validate data (Marshmallow 3.x - partial for updates)
+        validated_data = self.schema.load(data, partial=True)
 
         # Extract category IDs
         category_ids = validated_data.pop("category_ids", None)
@@ -323,11 +312,8 @@ class CMSCategoryService(Service):
         """
         self.require_permission(identity, "create")
 
-        # Validate data
-        validated_data, errors = self.schema.load(
-            data,
-            context={"identity": identity},
-        )
+        # Validate data (Marshmallow 3.x)
+        validated_data = self.schema.load(data)
 
         # Create category
         category = self.record_cls.create(validated_data)
@@ -425,12 +411,8 @@ class CMSCategoryService(Service):
         """
         self.require_permission(identity, "update")
 
-        # Validate data
-        validated_data, errors = self.schema.load(
-            data,
-            context={"identity": identity},
-            partial=True,
-        )
+        # Validate data (Marshmallow 3.x - partial for updates)
+        validated_data = self.schema.load(data, partial=True)
 
         category = self.record_cls.get(id)
         if not category:
