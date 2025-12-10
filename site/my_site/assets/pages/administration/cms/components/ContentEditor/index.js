@@ -150,21 +150,25 @@ const HtmlEditor = ({ label, value, onChange, required, description }) => {
           >
             <Button.Group size="mini" basic>
               <Button
+                type="button"
                 icon="bold"
                 title="Bold"
                 onClick={() => execCommand("bold")}
               />
               <Button
+                type="button"
                 icon="italic"
                 title="Italic"
                 onClick={() => execCommand("italic")}
               />
               <Button
+                type="button"
                 icon="underline"
                 title="Underline"
                 onClick={() => execCommand("underline")}
               />
               <Button
+                type="button"
                 icon="strikethrough"
                 title="Strikethrough"
                 onClick={() => execCommand("strikeThrough")}
@@ -173,11 +177,13 @@ const HtmlEditor = ({ label, value, onChange, required, description }) => {
 
             <Button.Group size="mini" basic>
               <Button
+                type="button"
                 icon="list ul"
                 title="Bullet List"
                 onClick={() => execCommand("insertUnorderedList")}
               />
               <Button
+                type="button"
                 icon="list ol"
                 title="Numbered List"
                 onClick={() => execCommand("insertOrderedList")}
@@ -186,16 +192,19 @@ const HtmlEditor = ({ label, value, onChange, required, description }) => {
 
             <Button.Group size="mini" basic>
               <Button
+                type="button"
                 icon="align left"
                 title="Align Left"
                 onClick={() => execCommand("justifyLeft")}
               />
               <Button
+                type="button"
                 icon="align center"
                 title="Align Center"
                 onClick={() => execCommand("justifyCenter")}
               />
               <Button
+                type="button"
                 icon="align right"
                 title="Align Right"
                 onClick={() => execCommand("justifyRight")}
@@ -203,22 +212,25 @@ const HtmlEditor = ({ label, value, onChange, required, description }) => {
             </Button.Group>
 
             <Button.Group size="mini" basic>
-              <Button icon="linkify" title="Insert Link" onClick={insertLink} />
+              <Button type="button" icon="linkify" title="Insert Link" onClick={insertLink} />
               <Button
+                type="button"
                 icon="unlinkify"
                 title="Remove Link"
                 onClick={() => execCommand("unlink")}
               />
-              <Button icon="image" title="Insert Image" onClick={insertImage} />
+              <Button type="button" icon="image" title="Insert Image" onClick={insertImage} />
             </Button.Group>
 
             <Button.Group size="mini" basic>
               <Button
+                type="button"
                 icon="indent"
                 title="Indent"
                 onClick={() => execCommand("indent")}
               />
               <Button
+                type="button"
                 icon="outdent"
                 title="Outdent"
                 onClick={() => execCommand("outdent")}
@@ -226,6 +238,7 @@ const HtmlEditor = ({ label, value, onChange, required, description }) => {
             </Button.Group>
 
             <Button
+              type="button"
               size="mini"
               basic
               icon="eraser"
