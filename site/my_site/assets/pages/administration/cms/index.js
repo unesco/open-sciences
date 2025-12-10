@@ -71,10 +71,7 @@ export const ResourceCMS = ({ apiEndpoint = "/data/cms" }) => {
     return (
       <div className="cms-breadcrumb">
         <Breadcrumb size="small">
-          <Breadcrumb.Section
-            link
-            onClick={handleBackToResources}
-          >
+          <Breadcrumb.Section link onClick={handleBackToResources}>
             <Icon name="home" /> Content Types
           </Breadcrumb.Section>
 

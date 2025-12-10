@@ -9,9 +9,39 @@
 
 This module contains default content for CMS resources.
 These fixtures are used to populate initial values when the CMS is set up.
+
+Static page content is loaded from HTML templates in the templates/ directory
+for better maintainability and editing.
 """
 
 from datetime import datetime
+from pathlib import Path
+
+# =============================================================================
+# TEMPLATE LOADING UTILITIES
+# =============================================================================
+
+# Base path for fixture templates
+TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+
+def load_template(resource_type: str, filename: str) -> str:
+    """Load an HTML template from the templates directory.
+
+    Args:
+        resource_type: The resource type subdirectory (e.g., "static_pages")
+        filename: The HTML file name (e.g., "about.html")
+
+    Returns:
+        The template content as a string, or empty string if not found
+    """
+    template_path = TEMPLATES_DIR / resource_type / filename
+    try:
+        return template_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        print(f"Warning: Template not found: {template_path}")
+        return ""
+
 
 # =============================================================================
 # HEADER FRONTPAGE FIXTURE
@@ -76,244 +106,98 @@ FOOTER_DEFAULT = {
 # =============================================================================
 # STATIC PAGES FIXTURES
 # =============================================================================
-ABOUT_PAGE_CONTENT = """<!-- Introduction Section -->
-<div class="intro-section">
-  <div class="section-container">
-    <h2 class="section-title">What is Open Science?</h2>
-    <div class="section-divider"></div>
-    <p class="lead-text">
-      Open Science represents a fundamental shift in how research is conducted,
-      shared, and utilized. It encompasses making scientific research, data, and
-      dissemination accessible to all levels of society, from professional
-      researchers to curious citizens.
-    </p>
 
-    <div class="intro-cards-grid">
-      <div class="intro-card">
-        <div class="intro-card-image">
-          <img
-            src="/static/images/science-education.jpg"
-            alt="Research Excellence"
-          />
-        </div>
-        <div class="intro-card-content">
-          <h3>Research Excellence</h3>
-          <p>
-            Promoting transparency and reproducibility in scientific research
-          </p>
-        </div>
-      </div>
-
-      <div class="intro-card">
-        <div class="intro-card-image">
-          <img
-            src="/static/images/natural-sciences.jpg"
-            alt="Global Collaboration"
-          />
-        </div>
-        <div class="intro-card-content">
-          <h3>Global Collaboration</h3>
-          <p>Connecting researchers and institutions worldwide</p>
-        </div>
-      </div>
-
-      <div class="intro-card">
-        <div class="intro-card-image">
-          <img src="/static/images/publish-research.jpg" alt="Open Access" />
-        </div>
-        <div class="intro-card-content">
-          <h3>Open Access</h3>
-          <p>Making knowledge freely available to everyone</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Stats Section -->
-<div class="stats-section">
-  <div class="section-container">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-number">2.5M+</div>
-        <div class="stat-label">Open Access Publications</div>
-        <div class="stat-description">Available on the platform</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">193</div>
-        <div class="stat-label">Member States</div>
-        <div class="stat-description">Supporting the initiative</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">85%</div>
-        <div class="stat-label">Increased Impact</div>
-        <div class="stat-description">Through open access</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- UNESCO Recommendation Section -->
-<div class="unesco-section">
-  <div class="section-container">
-    <h2 class="section-title">The UNESCO Recommendation on Open Science</h2>
-    <div class="section-divider"></div>
-
-    <p>
-      In November 2021, UNESCO's 193 Member States adopted the groundbreaking
-      Recommendation on Open Science. This historic agreement provides the first
-      international framework to guide the global transition towards open
-      science.
-    </p>
-
-    <div class="highlight-box">
-      <h3>Key Principles</h3>
-      <p>
-        The UNESCO Recommendation identifies
-        <strong>seven priority areas for action</strong>: promoting a common
-        understanding of open science, developing enabling policy environments,
-        investing in open science infrastructures, building capacity and skills,
-        fostering a culture of open science, aligning incentives for open
-        science, and promoting innovative approaches for open science at
-        different stages of the scientific process.
-      </p>
-    </div>
-  </div>
-</div>
-
-<div class="page-divider"></div>
-
-<!-- Impact Section -->
-<div class="impact-section">
-  <div class="section-container">
-    <h2 class="section-title">Impact on Global Research</h2>
-    <div class="section-divider"></div>
-
-    <div class="two-column-layout">
-      <div class="benefits-card">
-        <h3>For Researchers</h3>
-        <ul class="benefits-list">
-          <li>✓ Increased visibility and citation rates</li>
-          <li>✓ Enhanced collaboration opportunities</li>
-          <li>✓ Improved research quality and reproducibility</li>
-          <li>✓ Access to diverse datasets and tools</li>
-          <li>✓ Greater societal impact of research</li>
-        </ul>
-      </div>
-      <div class="benefits-card">
-        <h3>For Society</h3>
-        <ul class="benefits-list">
-          <li>✓ Accelerated innovation and discovery</li>
-          <li>✓ Evidence-based policy making</li>
-          <li>✓ Reduced research duplication</li>
-          <li>✓ Improved public trust in science</li>
-          <li>✓ Democratic access to knowledge</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="page-divider"></div>
-
-<!-- Success Stories Section -->
-<div class="stories-section">
-  <div class="section-container">
-    <h2 class="section-title">Success Stories</h2>
-    <div class="section-divider"></div>
-
-    <div class="story-cards-grid">
-      <div class="story-card">
-        <div class="story-card-image">
-          <img
-            src="/static/images/exact-sciences.jpg"
-            alt="COVID-19 Response"
-          />
-        </div>
-        <div class="story-card-content">
-          <h3>COVID-19 Response</h3>
-          <p>
-            Rapid sharing of genomic data and research findings enabled
-            unprecedented global collaboration, accelerating vaccine development
-            from years to months.
-          </p>
-        </div>
-      </div>
-
-      <div class="story-card">
-        <div class="story-card-image">
-          <img
-            src="/static/images/explore-research.jpg"
-            alt="Human Genome Project"
-          />
-        </div>
-        <div class="story-card-content">
-          <h3>Human Genome Project</h3>
-          <p>
-            A pioneering example of open science, releasing genomic data freely
-            and catalyzing advances in personalized medicine and biotechnology.
-          </p>
-        </div>
-      </div>
-
-      <div class="story-card">
-        <div class="story-card-image">
-          <img src="/static/images/climate-change.jpg" alt="Climate Science" />
-        </div>
-        <div class="story-card-content">
-          <h3>Climate Science</h3>
-          <p>
-            Open data initiatives have empowered communities to understand and
-            respond to local environmental challenges with evidence-based
-            solutions.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Call to Action Section -->
-<div class="cta-section">
-  <h3>Join the Open Science Movement</h3>
-  <p class="cta-description">
-    Explore our comprehensive database of open science publications, connect
-    with researchers worldwide, and contribute to building a more transparent
-    and collaborative research ecosystem.
-  </p>
-  <div class="cta-buttons">
-    <a href="/search" class="cta-button">Explore Publications</a>
-    <a href="/communities" class="cta-button cta-button-secondary"
-      >Join Communities</a
-    >
-  </div>
-</div>"""
-
-STATIC_PAGE_ABOUT = {
-    "title": "About Open Science",
-    "slug": "about",
-    "content": ABOUT_PAGE_CONTENT,
-    "meta_title": "About Open Science - UNESCO Open Science Platform",
-    "meta_description": "Learn about the open science movement and its global impact on research, collaboration, and knowledge sharing.",
+# Define static pages metadata - content is loaded from HTML templates
+# Templates are stored in: fixtures/templates/static_pages/<slug>.html
+STATIC_PAGES_METADATA = {
+    "about": {
+        "title": "About Open Science",
+        "slug": "about",
+        "template": "about.html",
+        "meta_title": "About Open Science - UNESCO Open Science Platform",
+        "meta_description": "Learn about the open science movement and its global impact on research, collaboration, and knowledge sharing.",
+    },
+    # Add more static pages here:
+    # "privacy": {
+    #     "title": "Privacy Policy",
+    #     "slug": "privacy",
+    #     "template": "privacy.html",
+    #     "meta_title": "Privacy Policy - UNESCO Open Science Platform",
+    #     "meta_description": "Privacy policy for the UNESCO Open Science Platform.",
+    # },
+    # "terms": {
+    #     "title": "Terms of Use",
+    #     "slug": "terms",
+    #     "template": "terms.html",
+    #     "meta_title": "Terms of Use - UNESCO Open Science Platform",
+    #     "meta_description": "Terms and conditions for using the UNESCO Open Science Platform.",
+    # },
 }
 
 
+def get_static_page_fixture(slug: str) -> dict:
+    """Get a static page fixture with loaded HTML content.
+
+    Args:
+        slug: The page slug (e.g., "about")
+
+    Returns:
+        Dictionary with page data including loaded content
+    """
+    if slug not in STATIC_PAGES_METADATA:
+        return {}
+
+    page_meta = STATIC_PAGES_METADATA[slug].copy()
+    template_file = page_meta.pop("template", f"{slug}.html")
+
+    # Load the HTML content from template
+    content = load_template("static_pages", template_file)
+
+    return {
+        **page_meta,
+        "content": content,
+    }
+
+
+def get_all_static_pages() -> dict:
+    """Get all static page fixtures with loaded content.
+
+    Returns:
+        Dictionary mapping slug to page fixture data
+    """
+    return {slug: get_static_page_fixture(slug) for slug in STATIC_PAGES_METADATA}
+
+
 # =============================================================================
-# ALL FIXTURES REGISTRY
+# ALL FIXTURES REGISTRY (built lazily)
 # =============================================================================
-CMS_FIXTURES = {
-    "header_frontpage": {
-        "en": HEADER_FRONTPAGE_DEFAULT,
-    },
-    "footer": {
-        "en": FOOTER_DEFAULT,
-    },
-    "static_page": {
-        "en": {
-            "about": STATIC_PAGE_ABOUT,
+_cms_fixtures_cache = None
+
+
+def _build_cms_fixtures() -> dict:
+    """Build the complete CMS fixtures dictionary.
+
+    This function loads static page templates at runtime.
+    """
+    return {
+        "header_frontpage": {
+            "en": HEADER_FRONTPAGE_DEFAULT,
         },
-    },
-}
+        "footer": {
+            "en": FOOTER_DEFAULT,
+        },
+        "static_page": {
+            "en": get_all_static_pages(),
+        },
+    }
+
+
+def _get_cms_fixtures() -> dict:
+    """Get CMS fixtures with lazy loading."""
+    global _cms_fixtures_cache
+    if _cms_fixtures_cache is None:
+        _cms_fixtures_cache = _build_cms_fixtures()
+    return _cms_fixtures_cache
 
 
 def get_fixture(resource_type: str, lang: str = "en") -> dict:
@@ -326,19 +210,21 @@ def get_fixture(resource_type: str, lang: str = "en") -> dict:
     Returns:
         Dictionary with fixture data, or empty dict if not found
     """
-    if resource_type not in CMS_FIXTURES:
+    fixtures = _get_cms_fixtures()
+
+    if resource_type not in fixtures:
         return {}
 
-    fixtures = CMS_FIXTURES[resource_type]
+    resource_fixtures = fixtures[resource_type]
 
     # Try requested language, fall back to English
-    if lang in fixtures:
-        return fixtures[lang]
-    elif "en" in fixtures:
-        return fixtures["en"]
+    if lang in resource_fixtures:
+        return resource_fixtures[lang]
+    elif "en" in resource_fixtures:
+        return resource_fixtures["en"]
     else:
         # Return first available language
-        return next(iter(fixtures.values()), {})
+        return next(iter(resource_fixtures.values()), {})
 
 
 def get_all_fixtures() -> dict:
@@ -347,4 +233,4 @@ def get_all_fixtures() -> dict:
     Returns:
         Dictionary with all fixtures organized by resource_type and lang
     """
-    return CMS_FIXTURES
+    return _get_cms_fixtures()

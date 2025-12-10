@@ -303,7 +303,11 @@ export const ContentList = ({
               </div>
             </div>
             <div className="cms-card-actions">
-              <Button primary className="cms-btn-primary" onClick={() => onEdit(item)}>
+              <Button
+                primary
+                className="cms-btn-primary"
+                onClick={() => onEdit(item)}
+              >
                 <Icon name="edit" /> Edit Content
               </Button>
               <Button
@@ -325,7 +329,12 @@ export const ContentList = ({
             <p className="cms-empty-description">
               Create content for this singleton resource to get started.
             </p>
-            <Button primary className="cms-btn-primary" size="large" onClick={() => onEdit(null)}>
+            <Button
+              primary
+              className="cms-btn-primary"
+              size="large"
+              onClick={() => onEdit(null)}
+            >
               <Icon name="plus" /> Create Content
             </Button>
           </div>
@@ -381,11 +390,7 @@ export const ContentList = ({
               </p>
             </div>
           </div>
-          <Button
-            inverted
-            onClick={() => onEdit(null)}
-            className="cms-btn-add"
-          >
+          <Button inverted onClick={() => onEdit(null)} className="cms-btn-add">
             <Icon name="plus" /> Add New
           </Button>
         </div>
@@ -612,7 +617,12 @@ export const ContentList = ({
                 }.`}
           </p>
           {!searchQuery && (
-            <Button primary className="cms-btn-primary" size="large" onClick={() => onEdit(null)}>
+            <Button
+              primary
+              className="cms-btn-primary"
+              size="large"
+              onClick={() => onEdit(null)}
+            >
               <Icon name="plus" /> Create First Item
             </Button>
           )}

@@ -2,7 +2,7 @@
 /* Inspired by Ant Design with UNESCO color palette */
 
 // UNESCO Brand Colors
-@unesco-primary: #0077D4;
+@unesco-primary: #0077d4;
 @unesco-primary-dark: #005ca8;
 @unesco-primary-light: #e6f4ff;
 @unesco-primary-lighter: #f0f7ff;
@@ -34,31 +34,31 @@
   border: 1px solid @unesco-primary-light;
   display: flex;
   align-items: center;
-  
+
   .ui.breadcrumb {
     .section {
       color: @unesco-text-secondary;
-      
+
       &.active {
         color: @unesco-text-primary;
         font-weight: 600;
       }
     }
-    
+
     a.section {
       color: @unesco-primary;
       cursor: pointer;
       transition: color 0.2s ease;
-      
+
       &:hover {
         color: @unesco-primary-dark;
       }
-      
+
       i.icon {
         opacity: 0.8;
       }
     }
-    
+
     .divider {
       color: @unesco-border;
     }
@@ -73,19 +73,19 @@
     border: 1px solid @unesco-border;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     transition: all 0.2s ease;
-    
+
     &:hover {
       border-color: @unesco-primary;
       box-shadow: 0 2px 8px rgba(0, 119, 212, 0.12);
     }
-    
+
     .content .header {
       color: @unesco-text-primary;
     }
-    
+
     .extra.content .ui.button.primary {
       background: @unesco-primary;
-      
+
       &:hover {
         background: @unesco-primary-dark;
       }
@@ -100,16 +100,16 @@
   .cms-resource-section {
     margin-bottom: 32px;
   }
-  
+
   .cms-section-header {
     color: @unesco-text-secondary !important;
     margin-bottom: 20px !important;
-    
+
     .sub.header {
       color: @unesco-text-tertiary !important;
     }
   }
-  
+
   .cms-section-icon {
     color: @unesco-primary !important;
   }
@@ -120,36 +120,36 @@
   border: 1px solid @unesco-border !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
   transition: all 0.2s ease !important;
-  
+
   &:hover {
     border-color: @unesco-primary !important;
     box-shadow: 0 4px 12px rgba(0, 119, 212, 0.15) !important;
     transform: translateY(-2px);
   }
-  
+
   .cms-resource-card-header {
     display: flex;
     align-items: center;
     margin-bottom: 12px;
   }
-  
+
   .cms-resource-card-icon {
     color: @unesco-primary !important;
     margin-right: 12px !important;
   }
-  
+
   .cms-resource-card-title {
     margin-bottom: 4px !important;
     color: @unesco-text-primary !important;
     font-weight: 600 !important;
   }
-  
+
   .cms-resource-card-format {
     background: @unesco-primary-light !important;
     color: @unesco-primary !important;
     border: none !important;
   }
-  
+
   .cms-resource-card-description {
     color: @unesco-text-secondary !important;
     font-size: 13px !important;
@@ -161,43 +161,47 @@
 // Content List Header (Unified UNESCO Style)
 // ==========================================
 .content-list-header {
-  background: linear-gradient(135deg, @unesco-primary 0%, @unesco-primary-dark 100%);
+  background: linear-gradient(
+    135deg,
+    @unesco-primary 0%,
+    @unesco-primary-dark 100%
+  );
   color: @unesco-white;
   padding: 20px 24px;
   border-radius: 8px;
   margin-bottom: 16px;
-  
+
   .header-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
-  
+
   .header-info {
     display: flex;
     align-items: center;
     gap: 16px;
   }
-  
+
   .header-icon {
     font-size: 28px;
     opacity: 0.9;
   }
-  
+
   .header-title {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 20px;
     font-weight: 600;
     margin: 0 0 4px 0;
     color: @unesco-white !important;
   }
-  
+
   .header-description {
     font-size: 14px;
     opacity: 0.85;
     margin: 0;
   }
-  
+
   .header-badge {
     background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -206,11 +210,11 @@
     padding: 4px 10px;
     border-radius: 4px;
   }
-  
+
   .ui.button.inverted {
     background: rgba(255, 255, 255, 0.15) !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    
+
     &:hover {
       background: rgba(255, 255, 255, 0.25) !important;
     }
@@ -221,36 +225,40 @@
 // CMS Resource Header (React Component Classes)
 // ==========================================
 .cms-resource-header {
-  background: linear-gradient(135deg, @unesco-primary 0%, @unesco-primary-dark 100%);
+  background: linear-gradient(
+    135deg,
+    @unesco-primary 0%,
+    @unesco-primary-dark 100%
+  );
   color: @unesco-white;
   padding: 20px 24px;
   border-radius: 8px;
   margin-bottom: 16px;
-  
+
   .cms-resource-header-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
-  
+
   .cms-resource-header-info {
     display: flex;
     align-items: center;
     gap: 16px;
   }
-  
+
   .cms-resource-header-icon {
     opacity: 0.9;
     margin-right: 0 !important;
   }
-  
+
   .cms-resource-header-title {
     font-size: 20px;
     font-weight: 600;
     margin: 0 0 4px 0 !important;
     color: @unesco-white !important;
   }
-  
+
   .cms-resource-header-description {
     font-size: 14px;
     opacity: 0.85;
@@ -273,7 +281,7 @@
 .cms-btn-add {
   background: rgba(255, 255, 255, 0.15) !important;
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  
+
   &:hover {
     background: rgba(255, 255, 255, 0.25) !important;
   }
@@ -281,7 +289,7 @@
 
 .cms-btn-primary {
   background: @unesco-primary !important;
-  
+
   &:hover {
     background: @unesco-primary-dark !important;
   }
@@ -296,15 +304,15 @@
   border-radius: 8px;
   padding: 24px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  
+
   &.cms-empty-state {
     text-align: center;
     padding: 48px 24px;
-    
+
     .ui.header {
       color: @unesco-text-primary;
     }
-    
+
     .cms-empty-description {
       color: @unesco-text-tertiary;
       margin-bottom: 20px;
@@ -333,31 +341,31 @@
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
-  
+
   .cms-toolbar-content {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
   }
-  
+
   .cms-search-input {
     flex: 1;
     min-width: 200px;
     max-width: 400px;
   }
-  
+
   .cms-toolbar-right {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  
+
   .cms-toolbar-label {
     color: @unesco-text-tertiary;
     font-size: 13px;
   }
-  
+
   .cms-toolbar-info {
     margin-left: auto;
     color: @unesco-text-tertiary;
@@ -371,7 +379,7 @@
 .cms-table {
   margin: 0 !important;
   border: none !important;
-  
+
   thead tr th {
     background: @unesco-background !important;
     color: @unesco-text-secondary !important;
@@ -380,44 +388,44 @@
     border-bottom: 1px solid @unesco-border !important;
     padding: 12px 16px !important;
   }
-  
+
   .cms-table-header-cell {
     cursor: pointer;
-    
+
     &:hover {
       background: @unesco-border-light !important;
     }
   }
-  
+
   .cms-table-row {
     cursor: pointer;
     transition: background 0.15s ease;
-    
+
     &:hover {
       background: @unesco-primary-lighter !important;
     }
-    
+
     td {
       padding: 14px 16px !important;
       border-bottom: 1px solid @unesco-border-light !important;
     }
   }
-  
+
   .cms-table-cell-title {
     padding: 14px 16px !important;
   }
-  
+
   .cms-table-title {
     font-weight: 600;
     color: @unesco-text-primary;
   }
-  
+
   .cms-table-slug {
     color: @unesco-text-tertiary;
     font-size: 12px;
     margin-top: 4px;
   }
-  
+
   .cms-table-cell-meta {
     color: @unesco-text-tertiary;
     font-size: 13px;
@@ -433,28 +441,28 @@
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
-  
+
   .toolbar-content {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
   }
-  
+
   .ui.input {
     flex: 1;
     min-width: 200px;
     max-width: 400px;
-    
+
     input {
       border-color: @unesco-border;
-      
+
       &:focus {
         border-color: @unesco-primary;
       }
     }
   }
-  
+
   .toolbar-info {
     margin-left: auto;
     color: @unesco-text-tertiary;
@@ -470,11 +478,11 @@
   border: 1px solid @unesco-border;
   border-radius: 8px;
   overflow: hidden;
-  
+
   .ui.table {
     margin: 0;
     border: none;
-    
+
     thead tr th {
       background: @unesco-background;
       color: @unesco-text-secondary;
@@ -482,23 +490,23 @@
       font-size: 13px;
       border-bottom: 1px solid @unesco-border;
       padding: 12px 16px;
-      
+
       &:hover {
         background: @unesco-border-light;
       }
-      
+
       &.sorted {
         background: @unesco-primary-lighter;
       }
     }
-    
+
     tbody tr {
       transition: background 0.15s ease;
-      
+
       &:hover {
         background: @unesco-primary-lighter;
       }
-      
+
       td {
         padding: 14px 16px;
         border-bottom: 1px solid @unesco-border-light;
@@ -515,19 +523,19 @@
   display: flex;
   justify-content: center;
   margin-top: 20px;
-  
+
   .ui.pagination.menu {
     border: 1px solid @unesco-border;
     box-shadow: none;
-    
+
     .item {
       color: @unesco-text-secondary;
-      
+
       &:hover {
         background: @unesco-primary-lighter;
         color: @unesco-primary;
       }
-      
+
       &.active {
         background: @unesco-primary;
         color: @unesco-white;
@@ -545,7 +553,7 @@
     color: @unesco-success;
     border: 1px solid #b7eb8f;
   }
-  
+
   &.status-draft {
     background: @unesco-background;
     color: @unesco-text-tertiary;
@@ -566,7 +574,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     h2 {
       margin: 0;
       color: @unesco-text-primary;
@@ -575,20 +583,20 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      
+
       i.icon {
         color: @unesco-primary;
       }
     }
   }
-  
+
   .editor-form {
     background: @unesco-white;
     border: 1px solid @unesco-border;
     border-radius: 8px;
     padding: 24px;
   }
-  
+
   .ui.form {
     .field > label {
       color: @unesco-text-primary;
@@ -596,11 +604,11 @@
       font-size: 14px;
       margin-bottom: 8px;
     }
-    
+
     .field .ui.input input,
     .field textarea {
       border-color: @unesco-border;
-      
+
       &:focus {
         border-color: @unesco-primary;
         box-shadow: 0 0 0 2px rgba(0, 119, 212, 0.1);
@@ -615,12 +623,12 @@
 .ui.button {
   &.primary {
     background: @unesco-primary;
-    
+
     &:hover {
       background: @unesco-primary-dark;
     }
   }
-  
+
   &.positive {
     background: @unesco-success;
   }
@@ -643,18 +651,18 @@
   background: @unesco-white;
   border: 1px solid @unesco-border;
   border-radius: 8px;
-  
+
   .icon {
     color: @unesco-border;
     margin-bottom: 16px;
   }
-  
+
   h3 {
     color: @unesco-text-primary;
     font-weight: 600;
     margin-bottom: 8px;
   }
-  
+
   p {
     color: @unesco-text-tertiary;
     margin-bottom: 20px;
@@ -671,45 +679,45 @@
     border-bottom: none;
     border-radius: 8px 8px 0 0;
     padding: 8px 12px;
-    
+
     .ui.button {
       background: @unesco-white;
       border: 1px solid @unesco-border;
-      
+
       &:hover {
         background: @unesco-primary-lighter;
         border-color: @unesco-primary;
         color: @unesco-primary;
       }
-      
+
       &.active {
         background: @unesco-primary;
         color: @unesco-white;
       }
     }
   }
-  
+
   .editor-content {
     border: 1px solid @unesco-border;
     border-radius: 0 0 8px 8px;
     min-height: 300px;
     padding: 16px;
     background: @unesco-white;
-    
+
     &:focus {
       border-color: @unesco-primary;
       outline: none;
     }
   }
-  
+
   .editor-source {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
     font-size: 13px;
     line-height: 1.5;
     border: 1px solid @unesco-border;
     border-radius: 8px;
     resize: vertical;
-    
+
     &:focus {
       border-color: @unesco-primary;
       outline: none;
@@ -723,14 +731,14 @@
 .ui.menu.secondary {
   &.pointing {
     border-bottom-color: @unesco-border;
-    
+
     .item {
       color: @unesco-text-secondary;
-      
+
       &:hover {
         color: @unesco-primary;
       }
-      
+
       &.active {
         color: @unesco-primary;
         border-color: @unesco-primary;
@@ -744,19 +752,19 @@
 // ==========================================
 .ui.message {
   border-radius: 8px;
-  
+
   &.positive {
     background: #f6ffed;
     border: 1px solid #b7eb8f;
     color: @unesco-success;
   }
-  
+
   &.negative {
     background: #fff2f0;
     border: 1px solid #ffccc7;
     color: @unesco-error;
   }
-  
+
   &.info {
     background: @unesco-primary-light;
     border: 1px solid #91caff;
@@ -771,31 +779,31 @@
   .cms-admin {
     padding: 12px;
   }
-  
+
   .content-list-header {
     padding: 16px;
-    
+
     .header-content {
       flex-direction: column;
       align-items: flex-start;
       gap: 12px;
     }
   }
-  
+
   .content-list-toolbar .toolbar-content {
     flex-direction: column;
     align-items: stretch;
-    
+
     .ui.input {
       max-width: none;
     }
-    
+
     .toolbar-info {
       margin-left: 0;
       text-align: center;
     }
   }
-  
+
   .content-editor .editor-header {
     flex-direction: column;
     align-items: flex-start;

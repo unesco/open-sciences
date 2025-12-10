@@ -7,10 +7,9 @@
 
 """Fixtures module for loading initial data."""
 
-from .cms import CMS_FIXTURES, get_all_fixtures, get_fixture
+from .cms import get_all_fixtures, get_fixture
 
 __all__ = (
-    "CMS_FIXTURES",
     "get_fixture",
     "get_all_fixtures",
 )
