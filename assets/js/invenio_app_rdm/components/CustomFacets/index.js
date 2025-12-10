@@ -41,7 +41,8 @@ export const CustomFacets = ({ aggs, appName }) => {
   // Monitor when results are loaded
   useEffect(() => {
     const checkResults = () => {
-      const resultsExist = document.querySelector('.divided.items .item') !== null;
+      const resultsExist =
+        document.querySelector(".divided.items .item") !== null;
       setResultsLoaded(resultsExist);
     };
 
@@ -50,7 +51,7 @@ export const CustomFacets = ({ aggs, appName }) => {
 
     // Set up a MutationObserver to watch for DOM changes
     const observer = new MutationObserver(checkResults);
-    const targetNode = document.querySelector('.relaxed.grid');
+    const targetNode = document.querySelector(".relaxed.grid");
     if (targetNode) {
       observer.observe(targetNode, { childList: true, subtree: true });
     }
@@ -77,74 +78,76 @@ export const CustomFacets = ({ aggs, appName }) => {
           }
         `}
       </style>
-      <div 
-        className={`custom-facets-container ${resultsLoaded ? 'results-loaded' : ''}`} 
-        style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}
+      <div
+        className={`custom-facets-container ${
+          resultsLoaded ? "results-loaded" : ""
+        }`}
+        style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
       >
-      <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
-      <ResourceTypeFacet key={`resource-type-${urlKey}`} />
-      <DynamicFacet
-        key={`author-${urlKey}`}
-        label="Author"
-        apiField="author"
-        queryField="metadata.creators.person_or_org.name"
-        placeholder="Search authors..."
-        icon="user"
-        maxResults={100}
-      />
-      <DynamicFacet
-        key={`affiliation-${urlKey}`}
-        label="Author Affiliation"
-        apiField="affiliation"
-        queryField="metadata.creators.affiliations.name"
-        placeholder="Search affiliations..."
-        icon="building"
-        maxResults={100}
-      />
-      <DynamicFacet
-        key={`country-${urlKey}`}
-        label="Author Affiliation Country"
-        apiField="country"
-        queryField="metadata.custom_fields.country"
-        placeholder="Search countries..."
-        icon="globe"
-        maxResults={100}
-        useFacetParameter={true}
-        facetName="publication_country"
-      />
-      <DynamicFacet
-        key={`subject-${urlKey}`}
-        label="Subject / Keyword"
-        apiField="subject"
-        queryField="metadata.subjects.subject"
-        placeholder="Search subjects..."
-        icon="tags"
-        maxResults={100}
-      />
-      <DynamicFacet
-        key={`funding-${urlKey}`}
-        label="Funding"
-        apiField="funding"
-        queryField="metadata.funding.funder.name"
-        placeholder="Search funding organizations..."
-        icon="money"
-        maxResults={100}
-        useFacetParameter={true}
-        facetName="funding_org"
-      />
-      <DynamicFacet
-        key={`year-${urlKey}`}
-        label="Publication Year"
-        apiField="year"
-        queryField="metadata.publication_date"
-        placeholder="Search years..."
-        icon="calendar"
-        maxResults={50}
-        useFacetParameter={true}
-        facetName="publication_year"
-      />
-      <UnescoToggleFacet key={`unesco-${urlKey}`} />
-    </div>
+        <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
+        <ResourceTypeFacet key={`resource-type-${urlKey}`} />
+        <DynamicFacet
+          key={`author-${urlKey}`}
+          label="Author"
+          apiField="author"
+          queryField="metadata.creators.person_or_org.name"
+          placeholder="Search authors..."
+          icon="user"
+          maxResults={100}
+        />
+        <DynamicFacet
+          key={`affiliation-${urlKey}`}
+          label="Author Affiliation"
+          apiField="affiliation"
+          queryField="metadata.creators.affiliations.name"
+          placeholder="Search affiliations..."
+          icon="building"
+          maxResults={100}
+        />
+        <DynamicFacet
+          key={`country-${urlKey}`}
+          label="Author Affiliation Country"
+          apiField="country"
+          queryField="metadata.custom_fields.country"
+          placeholder="Search countries..."
+          icon="globe"
+          maxResults={100}
+          useFacetParameter={true}
+          facetName="publication_country"
+        />
+        <DynamicFacet
+          key={`subject-${urlKey}`}
+          label="Subject / Keyword"
+          apiField="subject"
+          queryField="metadata.subjects.subject"
+          placeholder="Search subjects..."
+          icon="tags"
+          maxResults={100}
+        />
+        <DynamicFacet
+          key={`funding-${urlKey}`}
+          label="Funding"
+          apiField="funding"
+          queryField="metadata.funding.funder.name"
+          placeholder="Search funding organizations..."
+          icon="money"
+          maxResults={100}
+          useFacetParameter={true}
+          facetName="funding_org"
+        />
+        <DynamicFacet
+          key={`year-${urlKey}`}
+          label="Publication Year"
+          apiField="year"
+          queryField="metadata.publication_date"
+          placeholder="Search years..."
+          icon="calendar"
+          maxResults={50}
+          useFacetParameter={true}
+          facetName="publication_year"
+        />
+        <UnescoToggleFacet key={`unesco-${urlKey}`} />
+      </div>
     </>
   );
 };
