@@ -225,46 +225,42 @@
           </div>
           <div>
             <div class="unesco-link-item" style="display: block; cursor: default;">
-              <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-                <i class="file alternate outline icon" style="font-size: 20px; margin-right: 12px; color: #0077D4; margin-top: 2px;"></i>
-                <div style="flex: 1;">
-                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <span class="unesco-link-text" style="font-size: 16px;">{{ _('Pages') }}</span>
-                    <a href="{{ url_for('administration.pages') }}" class="ui mini primary button" style="background: #0077D4;">
-                      {{ _('Open') }}
-                    </a>
-                  </div>
-                  <div style="color: #595959; font-size: 13px; line-height: 1.6;">
-                    {{ _('Manage static pages:') }}
-                    <ul style="margin: 8px 0; padding-left: 20px;">
-                      <li>{{ _('Create About, Help, Terms pages') }}</li>
-                      <li>{{ _('Add custom URLs and routes') }}</li>
-                      <li>{{ _('Include Jinja2 templates and variables') }}</li>
-                      <li>{{ _('Configure page visibility and access') }}</li>
-                    </ul>
-                    <a href="https://inveniordm.docs.cern.ch/operate/customize/static_pages/" target="_blank" style="color: #0077D4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 4px;">
-                      <i class="book icon"></i>{{ _('View Documentation') }} <i class="external alternate icon" style="font-size: 11px;"></i>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="unesco-link-item" style="display: block; cursor: default;">
               <div style="display: flex; align-items: flex-start;">
                 <i class="edit outline icon" style="font-size: 20px; margin-right: 12px; color: #0077D4; margin-top: 2px;"></i>
                 <div style="flex: 1;">
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <span class="unesco-link-text" style="font-size: 16px;">{{ _('CMS') }}</span>
+                    <span class="unesco-link-text" style="font-size: 16px;">{{ _('Content Management System (CMS)') }}</span>
                     <a href="{{ url_for('administration.cms') }}" class="ui mini primary button" style="background: #0077D4;">
                       {{ _('Open') }}
                     </a>
                   </div>
                   <div style="color: #595959; font-size: 13px; line-height: 1.6;">
-                    {{ _('Content Management System:') }}
-                    <ul style="margin: 8px 0; padding-left: 20px;">
-                      <li>{{ _('TODO') }}</li>
-                    </ul>
+                    {{ _('Manage all site content through the resource-driven CMS:') }}
+                    
+                    <div style="margin: 12px 0;">
+                      <div style="font-weight: 600; color: #262626; margin-bottom: 6px;">
+                        <i class="cube icon" style="color: #667eea;"></i> {{ _('Singleton Resources') }}
+                      </div>
+                      <ul style="margin: 4px 0 12px 0; padding-left: 20px;">
+                        <li><strong>{{ _('Header Frontpage') }}</strong> - {{ _('Logo, background image, navigation links, hero title and subtitle') }}</li>
+                        <li><strong>{{ _('Footer') }}</strong> - {{ _('UNESCO logo, contact info, navigation links, copyright and tagline') }}</li>
+                      </ul>
+                    </div>
+                    
+                    <div style="margin: 12px 0;">
+                      <div style="font-weight: 600; color: #262626; margin-bottom: 6px;">
+                        <i class="clone outline icon" style="color: #11998e;"></i> {{ _('Collection Resources') }}
+                      </div>
+                      <ul style="margin: 4px 0 12px 0; padding-left: 20px;">
+                        <li><strong>{{ _('Static Pages') }}</strong> - {{ _('Create and manage static content pages (About, Terms, etc.) with WYSIWYG editor') }}</li>
+                      </ul>
+                    </div>
+                    
+                    <div style="background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 4px; padding: 10px 12px; margin-top: 12px;">
+                      <i class="check circle icon" style="color: #52c41a;"></i>
+                      <span style="color: #389e0d; font-weight: 500;">{{ _('Features:') }}</span>
+                      <span style="color: #595959;">{{ _('JSON Schema validation, publish/unpublish workflow, pagination & search filters') }}</span>
+                    </div>
                   </div>
                 </div>
               </div>

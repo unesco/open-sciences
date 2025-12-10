@@ -69,21 +69,11 @@ export const ResourceCMS = ({ apiEndpoint = "/data/cms" }) => {
     if (currentView === "resources") return null;
 
     return (
-      <div
-        style={{
-          marginBottom: "1.5rem",
-          padding: "0.75rem 1rem",
-          background: "#f8f9fa",
-          borderRadius: "6px",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+      <div className="cms-breadcrumb">
         <Breadcrumb size="small">
           <Breadcrumb.Section
             link
             onClick={handleBackToResources}
-            style={{ color: "#667eea", cursor: "pointer" }}
           >
             <Icon name="home" /> Content Types
           </Breadcrumb.Section>
@@ -98,11 +88,6 @@ export const ResourceCMS = ({ apiEndpoint = "/data/cms" }) => {
                   currentView === "editor"
                     ? () => setCurrentView("content")
                     : undefined
-                }
-                style={
-                  currentView === "editor"
-                    ? { color: "#667eea", cursor: "pointer" }
-                    : {}
                 }
               >
                 {resourceDefinition?.label || selectedResource}

@@ -43,6 +43,7 @@ export const ResourceList = ({ onSelectResource }) => {
   const getResourceIcon = (resourceType) => {
     const icons = {
       header: "window maximize outline",
+      header_frontpage: "home",
       footer: "window minimize outline",
       homepage_hero: "image outline",
       homepage_highlights: "star outline",
@@ -53,22 +54,6 @@ export const ResourceList = ({ onSelectResource }) => {
       static_page: "file alternate outline",
     };
     return icons[resourceType] || "file outline";
-  };
-
-  // Get color based on resource type category
-  const getResourceColor = (resourceType) => {
-    const colors = {
-      header: "blue",
-      footer: "blue",
-      homepage_hero: "purple",
-      homepage_highlights: "purple",
-      homepage_partners: "purple",
-      homepage_infographics: "purple",
-      privacy_policy: "teal",
-      plain_language_summary: "orange",
-      static_page: "green",
-    };
-    return colors[resourceType] || "grey";
   };
 
   if (loading && resources.length === 0) {
@@ -101,37 +86,26 @@ export const ResourceList = ({ onSelectResource }) => {
     <Card
       key={resource.type}
       onClick={() => onSelectResource(resource.type, resource)}
-      style={{ cursor: "pointer" }}
+      className="cms-resource-card"
       raised
     >
       <Card.Content>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "0.75rem",
-          }}
-        >
+        <div className="cms-resource-card-header">
           <Icon
             name={getResourceIcon(resource.type)}
             size="big"
-            color={getResourceColor(resource.type)}
-            style={{ marginRight: "0.75rem" }}
+            className="cms-resource-card-icon"
           />
           <div style={{ flex: 1 }}>
-            <Card.Header style={{ marginBottom: "0.25rem" }}>
+            <Card.Header className="cms-resource-card-title">
               {resource.label}
             </Card.Header>
-            <Label
-              size="tiny"
-              color={resource.output_format === "html" ? "blue" : "green"}
-              style={{ marginRight: "0.5rem" }}
-            >
+            <Label size="tiny" className="cms-resource-card-format">
               {resource.output_format.toUpperCase()}
             </Label>
           </div>
         </div>
-        <Card.Description style={{ color: "#666", fontSize: "0.9rem" }}>
+        <Card.Description className="cms-resource-card-description">
           {resource.description}
         </Card.Description>
       </Card.Content>
@@ -143,18 +117,19 @@ export const ResourceList = ({ onSelectResource }) => {
           icon="arrow right"
           labelPosition="right"
           content="Manage"
+          className="cms-btn-primary"
         />
       </Card.Content>
     </Card>
   );
 
   return (
-    <div className="resource-list">
+    <div className="resource-list cms-resource-list">
       {/* Singleton Resources */}
       {singletons.length > 0 && (
-        <div style={{ marginBottom: "2rem" }}>
-          <Header as="h3" dividing style={{ color: "#555" }}>
-            <Icon name="cube" />
+        <div className="cms-resource-section">
+          <Header as="h3" dividing className="cms-section-header">
+            <Icon name="cube" className="cms-section-icon" />
             <Header.Content>
               Site Components
               <Header.Subheader>
@@ -170,9 +145,9 @@ export const ResourceList = ({ onSelectResource }) => {
 
       {/* Collection Resources */}
       {collections.length > 0 && (
-        <div>
-          <Header as="h3" dividing style={{ color: "#555" }}>
-            <Icon name="copy outline" />
+        <div className="cms-resource-section">
+          <Header as="h3" dividing className="cms-section-header">
+            <Icon name="copy outline" className="cms-section-icon" />
             <Header.Content>
               Content Collections
               <Header.Subheader>

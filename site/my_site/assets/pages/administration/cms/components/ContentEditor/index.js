@@ -717,54 +717,31 @@ export const ContentEditor = ({
   return (
     <div className="content-editor">
       {/* Header Card */}
-      <Segment
-        style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          color: "white",
-          marginBottom: "1.5rem",
-          borderRadius: "8px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center" }}>
+      <div className="cms-resource-header">
+        <div className="cms-resource-header-content">
+          <div className="cms-resource-header-info">
             <Icon
               name={getResourceIcon()}
               size="big"
-              style={{ marginRight: "1rem", opacity: 0.9 }}
+              className="cms-resource-header-icon"
             />
             <div>
-              <Header
-                as="h2"
-                style={{ color: "white", margin: 0, marginBottom: "0.25rem" }}
-              >
+              <Header as="h2" className="cms-resource-header-title">
                 {isNew ? "Create New" : "Edit"}{" "}
                 {resourceDefinition?.label || resourceType}
               </Header>
-              <p style={{ margin: 0, opacity: 0.85, fontSize: "0.95rem" }}>
+              <p className="cms-resource-header-description">
                 {resourceDefinition?.description ||
                   "Configure content settings and data"}
               </p>
             </div>
           </div>
-          <Label
-            size="small"
-            style={{
-              background: "rgba(255,255,255,0.2)",
-              color: "white",
-              border: "1px solid rgba(255,255,255,0.3)",
-            }}
-          >
+          <span className="cms-badge">
             <Icon name={isSingleton ? "cube" : "copy"} />
             {isSingleton ? "Singleton" : "Collection"}
-          </Label>
+          </span>
         </div>
-      </Segment>
+      </div>
 
       {error && (
         <Message negative icon>
@@ -939,10 +916,10 @@ export const ContentEditor = ({
             type="submit"
             primary
             size="large"
+            className="cms-btn-primary"
             style={{
               paddingLeft: "2rem",
               paddingRight: "2rem",
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
             }}
           >
             <Icon name="save" />

@@ -46,7 +46,7 @@ export const ContentList = ({
 
   const [items, setItems] = useState([]);
   const [deleteModal, setDeleteModal] = useState({ open: false, item: null });
-  
+
   // Pagination state
   const [pagination, setPagination] = useState({
     page: 1,
@@ -54,47 +54,63 @@ export const ContentList = ({
     total: 0,
     pages: 1,
   });
-  
+
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState("created");
   const [sortDirection, setSortDirection] = useState("desc");
-  
+
   // Debounce search query to avoid too many API calls
   const debouncedSearch = useDebounce(searchQuery, 300);
-  
+
   // Track if this is initial load
   const isInitialLoad = useRef(true);
 
   // Fetch content with pagination and filters
-  const fetchContent = useCallback(async (params = {}) => {
-    try {
-      const queryParams = {
-        page: params.page || pagination.page,
-        size: params.size || pagination.size,
-        q: params.q !== undefined ? params.q : debouncedSearch,
-        sort: params.sort || sortField,
-        sort_direction: params.sort_direction || sortDirection,
-      };
-      
-      const result = await listContent(resourceType, queryParams);
-      
-      if (result.is_singleton) {
-        setItems(result.content ? [result.content] : []);
-        setPagination({ page: 1, size: 1, total: result.content ? 1 : 0, pages: 1 });
-      } else {
-        setItems(result.hits || []);
-        setPagination({
-          page: result.page || 1,
-          size: result.size || 10,
-          total: result.total || 0,
-          pages: result.pages || 1,
-        });
+  const fetchContent = useCallback(
+    async (params = {}) => {
+      try {
+        const queryParams = {
+          page: params.page || pagination.page,
+          size: params.size || pagination.size,
+          q: params.q !== undefined ? params.q : debouncedSearch,
+          sort: params.sort || sortField,
+          sort_direction: params.sort_direction || sortDirection,
+        };
+
+        const result = await listContent(resourceType, queryParams);
+
+        if (result.is_singleton) {
+          setItems(result.content ? [result.content] : []);
+          setPagination({
+            page: 1,
+            size: 1,
+            total: result.content ? 1 : 0,
+            pages: 1,
+          });
+        } else {
+          setItems(result.hits || []);
+          setPagination({
+            page: result.page || 1,
+            size: result.size || 10,
+            total: result.total || 0,
+            pages: result.pages || 1,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching content:", err);
       }
-    } catch (err) {
-      console.error("Error fetching content:", err);
-    }
-  }, [listContent, resourceType, pagination.page, pagination.size, debouncedSearch, sortField, sortDirection]);
+    },
+    [
+      listContent,
+      resourceType,
+      pagination.page,
+      pagination.size,
+      debouncedSearch,
+      sortField,
+      sortDirection,
+    ]
+  );
 
   // Initial fetch
   useEffect(() => {
@@ -103,14 +119,14 @@ export const ContentList = ({
       fetchContent({ page: 1 });
     }
   }, []);
-  
+
   // Refetch on refresh key change
   useEffect(() => {
     if (!isInitialLoad.current) {
       fetchContent({ page: 1 });
     }
   }, [refreshKey]);
-  
+
   // Refetch when search query changes (debounced)
   useEffect(() => {
     if (!isInitialLoad.current) {
@@ -122,15 +138,16 @@ export const ContentList = ({
   const handlePageChange = (e, { activePage }) => {
     fetchContent({ page: activePage });
   };
-  
+
   // Handle sort change
   const handleSortChange = (field) => {
-    const newDirection = sortField === field && sortDirection === "desc" ? "asc" : "desc";
+    const newDirection =
+      sortField === field && sortDirection === "desc" ? "asc" : "desc";
     setSortField(field);
     setSortDirection(newDirection);
     fetchContent({ page: 1, sort: field, sort_direction: newDirection });
   };
-  
+
   // Handle page size change
   const handleSizeChange = (e, { value }) => {
     fetchContent({ page: 1, size: value });
@@ -221,51 +238,28 @@ export const ContentList = ({
     return (
       <div className="content-list">
         {/* Header */}
-        <Segment
-          style={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-            marginBottom: "1.5rem",
-            borderRadius: "8px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center" }}>
+        <div className="cms-resource-header">
+          <div className="cms-resource-header-content">
+            <div className="cms-resource-header-info">
               <Icon
                 name={getResourceIcon()}
                 size="big"
-                style={{ marginRight: "1rem", opacity: 0.9 }}
+                className="cms-resource-header-icon"
               />
               <div>
-                <Header
-                  as="h2"
-                  style={{ color: "white", margin: 0, marginBottom: "0.25rem" }}
-                >
+                <Header as="h2" className="cms-resource-header-title">
                   {resourceDefinition?.label || resourceType}
                 </Header>
-                <p style={{ margin: 0, opacity: 0.85, fontSize: "0.95rem" }}>
+                <p className="cms-resource-header-description">
                   {resourceDefinition?.description}
                 </p>
               </div>
             </div>
-            <Label
-              size="small"
-              style={{
-                background: "rgba(255,255,255,0.2)",
-                color: "white",
-                border: "1px solid rgba(255,255,255,0.3)",
-              }}
-            >
+            <span className="cms-badge">
               <Icon name="cube" /> Singleton
-            </Label>
+            </span>
           </div>
-        </Segment>
+        </div>
 
         {error && (
           <Message negative icon>
@@ -278,7 +272,7 @@ export const ContentList = ({
         )}
 
         {item ? (
-          <Segment raised style={{ borderRadius: "8px" }}>
+          <div className="cms-card" style={{ padding: "1.5rem" }}>
             <div
               style={{
                 display: "flex",
@@ -288,16 +282,10 @@ export const ContentList = ({
             >
               <div>
                 <Header as="h3" style={{ marginBottom: "0.5rem" }}>
-                  <Icon name="file text" color="blue" />
+                  <Icon name="file text" style={{ color: "#0077D4" }} />
                   {getContentTitle(item)}
                 </Header>
-                <div
-                  style={{
-                    color: "#666",
-                    fontSize: "0.9rem",
-                    marginBottom: "1rem",
-                  }}
-                >
+                <div className="cms-meta">
                   <span style={{ marginRight: "1.5rem" }}>
                     <Icon name="globe" /> {item.lang || "en"}
                   </span>
@@ -314,14 +302,8 @@ export const ContentList = ({
                 </div>
               </div>
             </div>
-            <div
-              style={{
-                borderTop: "1px solid #eee",
-                paddingTop: "1rem",
-                marginTop: "0.5rem",
-              }}
-            >
-              <Button primary onClick={() => onEdit(item)}>
+            <div className="cms-card-actions">
+              <Button primary className="cms-btn-primary" onClick={() => onEdit(item)}>
                 <Icon name="edit" /> Edit Content
               </Button>
               <Button
@@ -333,33 +315,20 @@ export const ContentList = ({
                 {item.is_published ? "Unpublish" : "Publish"}
               </Button>
             </div>
-          </Segment>
+          </div>
         ) : (
-          <Segment placeholder style={{ borderRadius: "8px" }}>
+          <div className="cms-card cms-empty-state">
             <Header icon>
               <Icon name="file outline" color="grey" />
               No content configured yet
             </Header>
-            <p
-              style={{
-                color: "#888",
-                textAlign: "center",
-                marginBottom: "1.5rem",
-              }}
-            >
+            <p className="cms-empty-description">
               Create content for this singleton resource to get started.
             </p>
-            <Button
-              primary
-              size="large"
-              onClick={() => onEdit(null)}
-              style={{
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              }}
-            >
+            <Button primary className="cms-btn-primary" size="large" onClick={() => onEdit(null)}>
               <Icon name="plus" /> Create Content
             </Button>
-          </Segment>
+          </div>
         )}
 
         <ConfirmModal
@@ -395,35 +364,19 @@ export const ContentList = ({
   return (
     <div className="content-list">
       {/* Header */}
-      <Segment
-        style={{
-          background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
-          color: "white",
-          marginBottom: "1.5rem",
-          borderRadius: "8px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center" }}>
+      <div className="cms-resource-header">
+        <div className="cms-resource-header-content">
+          <div className="cms-resource-header-info">
             <Icon
               name={getResourceIcon()}
               size="big"
-              style={{ marginRight: "1rem", opacity: 0.9 }}
+              className="cms-resource-header-icon"
             />
             <div>
-              <Header
-                as="h2"
-                style={{ color: "white", margin: 0, marginBottom: "0.25rem" }}
-              >
+              <Header as="h2" className="cms-resource-header-title">
                 {resourceDefinition?.label || resourceType}
               </Header>
-              <p style={{ margin: 0, opacity: 0.85, fontSize: "0.95rem" }}>
+              <p className="cms-resource-header-description">
                 {resourceDefinition?.description}
               </p>
             </div>
@@ -431,25 +384,25 @@ export const ContentList = ({
           <Button
             inverted
             onClick={() => onEdit(null)}
-            style={{ background: "rgba(255,255,255,0.15)" }}
+            className="cms-btn-add"
           >
             <Icon name="plus" /> Add New
           </Button>
         </div>
-      </Segment>
+      </div>
 
       {/* Search and Filter Toolbar */}
-      <Segment style={{ marginBottom: "1rem", padding: "1rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+      <div className="cms-toolbar">
+        <div className="cms-toolbar-content">
           <Input
             icon="search"
             placeholder="Search by title or slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ flex: "1", minWidth: "200px", maxWidth: "400px" }}
+            className="cms-search-input"
           />
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span style={{ color: "#666", fontSize: "0.9rem" }}>Show:</span>
+          <div className="cms-toolbar-right">
+            <span className="cms-toolbar-label">Show:</span>
             <Dropdown
               selection
               compact
@@ -459,17 +412,19 @@ export const ContentList = ({
               style={{ minWidth: "130px" }}
             />
           </div>
-          <div style={{ marginLeft: "auto", color: "#666", fontSize: "0.9rem" }}>
+          <div className="cms-toolbar-info">
             {pagination.total > 0 ? (
               <>
-                Showing {((pagination.page - 1) * pagination.size) + 1} - {Math.min(pagination.page * pagination.size, pagination.total)} of {pagination.total} items
+                Showing {(pagination.page - 1) * pagination.size + 1} -{" "}
+                {Math.min(pagination.page * pagination.size, pagination.total)}{" "}
+                of {pagination.total} items
               </>
             ) : (
               "No items found"
             )}
           </div>
         </div>
-      </Segment>
+      </div>
 
       {error && (
         <Message negative icon>
@@ -483,23 +438,27 @@ export const ContentList = ({
 
       {loading && items.length === 0 ? (
         <Segment placeholder style={{ minHeight: "200px" }}>
-          <Loader active size="large">Loading content...</Loader>
+          <Loader active size="large">
+            Loading content...
+          </Loader>
         </Segment>
       ) : items.length > 0 ? (
         <>
-          <Segment
-            raised
-            style={{ borderRadius: "8px", padding: 0, overflow: "hidden" }}
-          >
-            <Table basic="very" selectable sortable style={{ margin: 0 }}>
+          <div className="cms-card" style={{ padding: 0, overflow: "hidden" }}>
+            <Table basic="very" selectable sortable className="cms-table">
               <Table.Header>
-                <Table.Row style={{ background: "#f9fafb" }}>
-                  <Table.HeaderCell 
-                    style={{ padding: "1rem", cursor: "pointer" }}
+                <Table.Row>
+                  <Table.HeaderCell
+                    className="cms-table-header-cell"
                     onClick={() => handleSortChange("slug")}
                   >
                     Title
-                    {getSortIcon("slug") && <Icon name={getSortIcon("slug")} style={{ marginLeft: "0.5rem" }} />}
+                    {getSortIcon("slug") && (
+                      <Icon
+                        name={getSortIcon("slug")}
+                        style={{ marginLeft: "0.5rem" }}
+                      />
+                    )}
                   </Table.HeaderCell>
                   <Table.HeaderCell width={2} textAlign="center">
                     Lang
@@ -507,21 +466,31 @@ export const ContentList = ({
                   <Table.HeaderCell width={2} textAlign="center">
                     Status
                   </Table.HeaderCell>
-                  <Table.HeaderCell 
+                  <Table.HeaderCell
                     width={3}
-                    style={{ cursor: "pointer" }}
+                    className="cms-table-header-cell"
                     onClick={() => handleSortChange("updated")}
                   >
                     Updated
-                    {getSortIcon("updated") && <Icon name={getSortIcon("updated")} style={{ marginLeft: "0.5rem" }} />}
+                    {getSortIcon("updated") && (
+                      <Icon
+                        name={getSortIcon("updated")}
+                        style={{ marginLeft: "0.5rem" }}
+                      />
+                    )}
                   </Table.HeaderCell>
-                  <Table.HeaderCell 
+                  <Table.HeaderCell
                     width={3}
-                    style={{ cursor: "pointer" }}
+                    className="cms-table-header-cell"
                     onClick={() => handleSortChange("created")}
                   >
                     Created
-                    {getSortIcon("created") && <Icon name={getSortIcon("created")} style={{ marginLeft: "0.5rem" }} />}
+                    {getSortIcon("created") && (
+                      <Icon
+                        name={getSortIcon("created")}
+                        style={{ marginLeft: "0.5rem" }}
+                      />
+                    )}
                   </Table.HeaderCell>
                   <Table.HeaderCell width={2} textAlign="center">
                     Actions
@@ -529,89 +498,100 @@ export const ContentList = ({
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-              {items.map((item) => (
-                <Table.Row key={item.id} style={{ cursor: "pointer" }}>
-                  <Table.Cell style={{ padding: "1rem" }}>
-                    <div style={{ fontWeight: 600, color: "#333" }}>
-                      {getContentTitle(item)}
-                    </div>
-                    <div
-                      style={{
-                        color: "#999",
-                        fontSize: "0.85rem",
-                        marginTop: "0.25rem",
-                      }}
-                    >
-                      <Icon name="linkify" size="small" /> /{item.slug}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell textAlign="center">
-                    <Label size="small" basic>
-                      {item.lang || "en"}
-                    </Label>
-                  </Table.Cell>
-                  <Table.Cell textAlign="center">
-                    <Label
-                      size="small"
-                      color={item.is_published ? "green" : "grey"}
-                    >
-                      <Icon
-                        name={item.is_published ? "check" : "clock outline"}
-                      />
-                      {item.is_published ? "Live" : "Draft"}
-                    </Label>
-                  </Table.Cell>
-                  <Table.Cell style={{ color: "#666", fontSize: "0.9rem" }}>
-                    {formatDate(item.updated)}
-                  </Table.Cell>
-                  <Table.Cell style={{ color: "#666", fontSize: "0.9rem" }}>
-                    {formatDate(item.created)}
-                  </Table.Cell>
-                  <Table.Cell textAlign="center">
-                    <Button.Group size="small" basic>
-                      <Popup
-                        content="Edit"
-                        trigger={
-                          <Button icon="edit" onClick={() => onEdit(item)} />
-                        }
-                      />
-                      <Popup
-                        content={item.is_published ? "Unpublish" : "Publish"}
-                        trigger={
-                          <Button
-                            icon={item.is_published ? "eye slash" : "eye"}
-                            onClick={() => handleTogglePublish(item)}
-                          />
-                        }
-                      />
-                      <Popup
-                        content="Delete"
-                        trigger={
-                          <Button
-                            icon="trash"
-                            color="red"
-                            onClick={() => setDeleteModal({ open: true, item })}
-                          />
-                        }
-                      />
-                    </Button.Group>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
+                {items.map((item) => (
+                  <Table.Row key={item.id} className="cms-table-row">
+                    <Table.Cell className="cms-table-cell-title">
+                      <div className="cms-table-title">
+                        {getContentTitle(item)}
+                      </div>
+                      <div className="cms-table-slug">
+                        <Icon name="linkify" size="small" /> /{item.slug}
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell textAlign="center">
+                      <Label size="small" basic>
+                        {item.lang || "en"}
+                      </Label>
+                    </Table.Cell>
+                    <Table.Cell textAlign="center">
+                      <Label
+                        size="small"
+                        color={item.is_published ? "green" : "grey"}
+                      >
+                        <Icon
+                          name={item.is_published ? "check" : "clock outline"}
+                        />
+                        {item.is_published ? "Live" : "Draft"}
+                      </Label>
+                    </Table.Cell>
+                    <Table.Cell className="cms-table-cell-meta">
+                      {formatDate(item.updated)}
+                    </Table.Cell>
+                    <Table.Cell className="cms-table-cell-meta">
+                      {formatDate(item.created)}
+                    </Table.Cell>
+                    <Table.Cell textAlign="center">
+                      <Button.Group size="small" basic>
+                        <Popup
+                          content="Edit"
+                          trigger={
+                            <Button icon="edit" onClick={() => onEdit(item)} />
+                          }
+                        />
+                        <Popup
+                          content={item.is_published ? "Unpublish" : "Publish"}
+                          trigger={
+                            <Button
+                              icon={item.is_published ? "eye slash" : "eye"}
+                              onClick={() => handleTogglePublish(item)}
+                            />
+                          }
+                        />
+                        <Popup
+                          content="Delete"
+                          trigger={
+                            <Button
+                              icon="trash"
+                              color="red"
+                              onClick={() =>
+                                setDeleteModal({ open: true, item })
+                              }
+                            />
+                          }
+                        />
+                      </Button.Group>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
               </Table.Body>
             </Table>
-          </Segment>
+          </div>
 
           {/* Pagination */}
           {pagination.pages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", marginTop: "1.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "1.5rem",
+              }}
+            >
               <Pagination
                 activePage={pagination.page}
                 totalPages={pagination.pages}
                 onPageChange={handlePageChange}
-                ellipsisItem={{ content: <Icon name="ellipsis horizontal" />, icon: true }}
-                firstItem={{ content: <Icon name="angle double left" />, icon: true }}
-                lastItem={{ content: <Icon name="angle double right" />, icon: true }}
+                ellipsisItem={{
+                  content: <Icon name="ellipsis horizontal" />,
+                  icon: true,
+                }}
+                firstItem={{
+                  content: <Icon name="angle double left" />,
+                  icon: true,
+                }}
+                lastItem={{
+                  content: <Icon name="angle double right" />,
+                  icon: true,
+                }}
                 prevItem={{ content: <Icon name="angle left" />, icon: true }}
                 nextItem={{ content: <Icon name="angle right" />, icon: true }}
               />
@@ -619,44 +599,29 @@ export const ContentList = ({
           )}
         </>
       ) : (
-        <Segment placeholder style={{ borderRadius: "8px" }}>
+        <div className="cms-card cms-empty-state">
           <Header icon>
             <Icon name="folder open outline" color="grey" />
             {searchQuery ? "No matching items" : "No content items yet"}
           </Header>
-          <p
-            style={{
-              color: "#888",
-              textAlign: "center",
-              marginBottom: "1.5rem",
-            }}
-          >
-            {searchQuery 
+          <p className="cms-empty-description">
+            {searchQuery
               ? `No items match "${searchQuery}". Try a different search term.`
-              : `Get started by creating your first ${resourceDefinition?.label || resourceType}.`
-            }
+              : `Get started by creating your first ${
+                  resourceDefinition?.label || resourceType
+                }.`}
           </p>
           {!searchQuery && (
-            <Button
-              primary
-              size="large"
-              onClick={() => onEdit(null)}
-              style={{
-                background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
-              }}
-            >
+            <Button primary className="cms-btn-primary" size="large" onClick={() => onEdit(null)}>
               <Icon name="plus" /> Create First Item
             </Button>
           )}
           {searchQuery && (
-            <Button
-              basic
-              onClick={() => setSearchQuery("")}
-            >
+            <Button basic onClick={() => setSearchQuery("")}>
               <Icon name="times" /> Clear Search
             </Button>
           )}
-        </Segment>
+        </div>
       )}
 
       <ConfirmModal
