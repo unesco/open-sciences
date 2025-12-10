@@ -170,22 +170,52 @@ class CMSContentService(Service):
         resource_type: str,
         lang: str = None,
         published_only: bool = False,
-    ) -> List[Dict]:
-        """List all content of a specific type.
+        page: int = 1,
+        size: int = 25,
+        q: str = None,
+        sort: str = "created",
+        sort_direction: str = "desc",
+    ) -> Dict:
+        """List content of a specific type with pagination and filtering.
 
         Args:
             identity: User identity
             resource_type: Resource type
             lang: Optional language filter
             published_only: Filter published only
+            page: Page number (1-indexed)
+            size: Items per page
+            q: Search query (searches in title, slug, and content)
+            sort: Sort field (created, updated, slug)
+            sort_direction: Sort direction (asc, desc)
 
         Returns:
-            List of serialized content
+            Dictionary with hits, total, and pagination info
         """
         self.require_permission(identity, "search")
 
-        contents = CMSContent.get_by_type(resource_type, lang, published_only)
-        return [self._serialize_content(c) for c in contents]
+        # Build search params
+        params = {
+            "resource_type": resource_type,
+            "lang": lang,
+            "published_only": published_only,
+            "page": page,
+            "size": size,
+            "q": q,
+            "sort": sort,
+            "sort_direction": sort_direction,
+        }
+
+        # Use the search method for pagination
+        pagination = CMSContent.search(params)
+
+        return {
+            "hits": [self._serialize_content(c) for c in pagination.items],
+            "total": pagination.total,
+            "page": pagination.page,
+            "size": pagination.per_page,
+            "pages": pagination.pages,
+        }
 
     @unit_of_work()
     def create(

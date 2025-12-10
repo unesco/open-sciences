@@ -122,11 +122,16 @@ class CMSContentByTypeAPIView(MethodView):
         """List content of a specific type.
 
         For singletons: returns the single item (or null)
-        For collections: returns list of items
+        For collections: returns paginated list with filtering
 
         Query params:
             - lang: Language filter (default: en)
             - published_only: Filter published only
+            - page: Page number (default: 1)
+            - size: Items per page (default: 25)
+            - q: Search query (searches in title, slug, content)
+            - sort: Sort field (default: created)
+            - sort_direction: Sort direction (default: desc)
         """
         from ..services.cms import get_resource
 
@@ -150,17 +155,30 @@ class CMSContentByTypeAPIView(MethodView):
                     200,
                 )
             else:
-                # Return collection
-                contents = self.service.list_by_type(
-                    g.identity, resource_type, lang, published_only
+                # Return paginated collection with filters
+                page = int(request.args.get("page", 1))
+                size = int(request.args.get("size", 25))
+                q = request.args.get("q", "").strip() or None
+                sort = request.args.get("sort", "created")
+                sort_direction = request.args.get("sort_direction", "desc")
+
+                result = self.service.list_by_type(
+                    g.identity,
+                    resource_type,
+                    lang=lang,
+                    published_only=published_only,
+                    page=page,
+                    size=size,
+                    q=q,
+                    sort=sort,
+                    sort_direction=sort_direction,
                 )
                 return (
                     jsonify(
                         {
                             "resource_type": resource_type,
                             "is_singleton": False,
-                            "hits": contents,
-                            "total": len(contents),
+                            **result,
                         }
                     ),
                     200,
