@@ -212,14 +212,24 @@ const HtmlEditor = ({ label, value, onChange, required, description }) => {
             </Button.Group>
 
             <Button.Group size="mini" basic>
-              <Button type="button" icon="linkify" title="Insert Link" onClick={insertLink} />
+              <Button
+                type="button"
+                icon="linkify"
+                title="Insert Link"
+                onClick={insertLink}
+              />
               <Button
                 type="button"
                 icon="unlinkify"
                 title="Remove Link"
                 onClick={() => execCommand("unlink")}
               />
-              <Button type="button" icon="image" title="Insert Image" onClick={insertImage} />
+              <Button
+                type="button"
+                icon="image"
+                title="Insert Image"
+                onClick={insertImage}
+              />
             </Button.Group>
 
             <Button.Group size="mini" basic>
