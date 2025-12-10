@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Checkbox, Icon, Popup } from "semantic-ui-react";
+import { Card, Checkbox, Popup, Icon } from "semantic-ui-react";
 
 const OpenAccessToggleFacet = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -47,25 +47,28 @@ const OpenAccessToggleFacet = () => {
   return (
     <Card
       className="borderless facet"
-      style={{ boxShadow: "none", border: "none" }}
+      style={{ boxShadow: "none", border: "none", width: "100%" }}
     >
-      <Card.Content style={{ padding: "0.65rem" }}>
-        <Card.Header
-          as="h2"
+      <Card.Content style={{ padding: "0.65rem", paddingRight: 0 }}>
+        <div
           style={{
-            color: "#2185d0",
             display: "flex",
             alignItems: "center",
-            marginBottom: "0.75rem",
-            fontSize: "0.92rem",
-            fontWeight: 600,
+            justifyContent: "flex-start",
+            gap: "12px",
           }}
         >
-          <Icon
-            name="unlock alternate"
-            style={{ marginRight: "8px", color: "#2185d0" }}
-          />
-          <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <Checkbox toggle checked={isChecked} onChange={handleToggle} />
+          <span
+            style={{
+              color: "#212121",
+              fontSize: "0.92rem",
+              fontWeight: 600,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
+          >
             Open Access
             <Popup
               trigger={
@@ -75,8 +78,9 @@ const OpenAccessToggleFacet = () => {
                     fontSize: "0.85rem",
                     color: "rgba(0, 0, 0, 0.4)",
                     cursor: "help",
-                    display: "flex",
-                    alignItems: "center",
+                    margin: 0,
+                    lineHeight: 1,
+                    verticalAlign: "middle",
                   }}
                 />
               }
@@ -86,9 +90,6 @@ const OpenAccessToggleFacet = () => {
               inverted
             />
           </span>
-        </Card.Header>
-        <div style={{ marginTop: "0.5rem" }}>
-          <Checkbox toggle checked={isChecked} onChange={handleToggle} />
         </div>
       </Card.Content>
     </Card>

@@ -9,7 +9,6 @@ import { SearchItemCreators } from "@js/invenio_app_rdm/utils";
 import PropTypes from "prop-types";
 import { Item, Label, Icon } from "semantic-ui-react";
 import { buildUID } from "react-searchkit";
-import { CompactStats } from "@js/invenio_app_rdm/components/CompactStats";
 import { DisplayPartOfCommunities } from "@js/invenio_app_rdm/components/DisplayPartOfCommunities";
 
 const CustomRecordsResultsListItem = ({
@@ -49,12 +48,6 @@ const CustomRecordsResultsListItem = ({
   const title = _get(result, "metadata.title", i18next.t("No title"));
   const version = _get(result, "ui.version", null);
   const versions = _get(result, "versions");
-  const uniqueViews = _get(result, "stats.all_versions.unique_views", 0);
-  const uniqueDownloads = _get(
-    result,
-    "stats.all_versions.unique_downloads",
-    0
-  );
 
   const publishingInformation = _get(
     result,
@@ -77,7 +70,8 @@ const CustomRecordsResultsListItem = ({
 
   // Parse lens:references and lens:scholarly_citations from JSON strings
   let referencesCount = 0;
-  let citationsCount = 0;
+  let scholarlyCitationsCount = 0;
+  let patentCitationsCount = 0;
 
   try {
     const referencesData = _get(result, "custom_fields.lens:references", null);
@@ -103,10 +97,25 @@ const CustomRecordsResultsListItem = ({
         typeof citationsData === "string"
           ? JSON.parse(citationsData)
           : citationsData;
-      citationsCount = parsed.count || 0;
+      scholarlyCitationsCount = parsed.count || 0;
     }
   } catch (e) {
     console.error("Error parsing lens:scholarly_citations", e);
+  }
+
+  try {
+    const patentData = _get(
+      result,
+      "custom_fields.lens:patent_citations",
+      null
+    );
+    if (patentData) {
+      const parsed =
+        typeof patentData === "string" ? JSON.parse(patentData) : patentData;
+      patentCitationsCount = parsed.count || 0;
+    }
+  } catch (e) {
+    console.error("Error parsing lens:patent_citations", e);
   }
 
   const filters =
@@ -148,42 +157,99 @@ const CustomRecordsResultsListItem = ({
       allVersionsVisible={allVersionsVisible}
       numOtherVersions={numOtherVersions}
     >
-      <Item key={key ?? result.id}>
+      <Item key={key ?? result.id} className="unesco-search-result-item">
         <Item.Content>
-          <Item.Extra className="labels-actions">
-            <Label horizontal size="small" className="primary theme-primary">
-              {publicationDate} ({version})
-            </Label>
-            <Label horizontal size="small" className="neutral">
-              {resourceType}
-            </Label>
-            <Label
-              horizontal
-              size="small"
-              className={`access-status ${accessStatusId}`}
+          <Item.Extra
+            className="unesco-tags-row"
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+              marginBottom: "12px",
+            }}
+          >
+            <span
+              className="unesco-tag unesco-tag-date"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "6px 12px",
+                backgroundColor: "#CEE9FF",
+                color: "#212121",
+                borderRadius: "4px",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
             >
-              {accessStatusIcon && <Icon name={accessStatusIcon} />}
-              {accessStatus}
-            </Label>
-            {isOpenAccess === "true" && (
-              <Label
-                horizontal
-                size="small"
-                className={
-                  openAccessColour === "gold"
-                    ? "yellow"
-                    : openAccessColour === "green"
-                    ? "green"
-                    : openAccessColour === "bronze"
-                    ? "brown"
-                    : openAccessColour === "hybrid"
-                    ? "teal"
-                    : "teal"
-                }
+              {publicationDate} ({version})
+            </span>
+            <span
+              className="unesco-tag unesco-tag-type"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "6px 12px",
+                backgroundColor: "#F1F4F6",
+                color: "#4C5054",
+                borderRadius: "4px",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
+            >
+              {resourceType}
+            </span>
+            {accessStatusId !== "metadata-only" && (
+              <span
+                className={`unesco-tag unesco-tag-access-${accessStatusId}`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "6px 12px",
+                  backgroundColor:
+                    accessStatusId === "open"
+                      ? "#4FB293"
+                      : accessStatusId === "embargoed"
+                      ? "#F39C12"
+                      : accessStatusId === "restricted"
+                      ? "#E74C3C"
+                      : "#F1F4F6",
+                  color: "#FFFFFF",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  gap: "6px",
+                }}
               >
-                <Icon name="unlock" />
+                {accessStatusIcon && (
+                  <Icon
+                    name={accessStatusIcon}
+                    style={{ margin: 0, display: "flex", alignItems: "center" }}
+                  />
+                )}
+                {accessStatus}
+              </span>
+            )}
+            {isOpenAccess === "true" && (
+              <span
+                className="unesco-tag unesco-tag-open-access"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "6px 12px",
+                  backgroundColor: "#4FB293",
+                  color: "#FFFFFF",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  gap: "6px",
+                }}
+              >
+                <Icon
+                  name="unlock"
+                  style={{ margin: 0, display: "flex", alignItems: "center" }}
+                />
                 Open Access
-              </Label>
+              </span>
             )}
           </Item.Extra>
           <Item.Header as="h2" className="theme-primary-text">
@@ -217,42 +283,112 @@ const CustomRecordsResultsListItem = ({
 
                 {/* Journal information */}
                 {journalDisplay && (
-                  <p>
-                    <Icon name="book" />
-                    {journalDisplay}
-                  </p>
+                  <span
+                    className="unesco-journal-item"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      fontSize: "14px",
+                      color: "#212121",
+                      marginTop: "12px",
+                    }}
+                  >
+                    <Icon
+                      name="book"
+                      style={{
+                        margin: 0,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    />
+                    <span>{journalDisplay}</span>
+                  </span>
                 )}
 
-                <p>
-                  {createdDate && (
-                    <>
-                      {i18next.t("Uploaded on {{uploadDate}}", {
-                        uploadDate: createdDate,
-                      })}
-                    </>
-                  )}
-                </p>
-
-                {/* References and Citations counts */}
-                {(referencesCount > 0 || citationsCount > 0) && (
-                  <p>
+                {/* Citations counts - Patents and Scholarly Works side by side */}
+                {(patentCitationsCount > 0 ||
+                  scholarlyCitationsCount > 0 ||
+                  referencesCount > 0) && (
+                  <div
+                    className="unesco-citations-row"
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "32px",
+                      marginTop: "12px",
+                      alignItems: "center",
+                    }}
+                  >
+                    {patentCitationsCount > 0 && (
+                      <span
+                        className="unesco-citation-item"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          fontSize: "14px",
+                          color: "#212121",
+                        }}
+                      >
+                        <Icon
+                          name="file alternate outline"
+                          style={{
+                            margin: 0,
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        />
+                        <span>Cited by patents: {patentCitationsCount}</span>
+                      </span>
+                    )}
+                    {scholarlyCitationsCount > 0 && (
+                      <span
+                        className="unesco-citation-item"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          fontSize: "14px",
+                          color: "#212121",
+                        }}
+                      >
+                        <Icon
+                          name="quote right"
+                          style={{
+                            margin: 0,
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        />
+                        <span>
+                          Cited by scholarly works: {scholarlyCitationsCount}
+                        </span>
+                      </span>
+                    )}
                     {referencesCount > 0 && (
-                      <span style={{ marginRight: "15px" }}>
-                        <Icon name="linkify" />
-                        {i18next.t("{{count}} references", {
-                          count: referencesCount,
-                        })}
+                      <span
+                        className="unesco-citation-item"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          fontSize: "14px",
+                          color: "#212121",
+                        }}
+                      >
+                        <Icon
+                          name="linkify"
+                          style={{
+                            margin: 0,
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        />
+                        <span>References: {referencesCount}</span>
                       </span>
                     )}
-                    {citationsCount > 0 && (
-                      <span>
-                        <Icon name="quote right" />
-                        {i18next.t("{{count}} citations", {
-                          count: citationsCount,
-                        })}
-                      </span>
-                    )}
-                  </p>
+                  </div>
                 )}
 
                 {!allVersionsVisible && versions.index > 1 && (
@@ -267,13 +403,6 @@ const CustomRecordsResultsListItem = ({
                     </b>
                   </p>
                 )}
-              </small>
-
-              <small>
-                <CompactStats
-                  uniqueViews={uniqueViews}
-                  uniqueDownloads={uniqueDownloads}
-                />
               </small>
             </div>
           </Item.Extra>

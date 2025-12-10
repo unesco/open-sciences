@@ -160,21 +160,16 @@ const ResourceTypeFacet = () => {
         <Card.Header
           as="h2"
           style={{
-            color: "#2185d0",
+            color: "#212121",
             display: "flex",
             alignItems: "center",
+            justifyContent: "flex-start",
             marginBottom: "0.75rem",
             fontSize: "0.92rem",
             fontWeight: 600,
           }}
         >
-          <Icon
-            name="file alternate"
-            style={{ marginRight: "8px", color: "#2185d0" }}
-          />
-          <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            Resources Type
-          </span>
+          Resources Type
         </Card.Header>
         <div
           style={{
