@@ -14,6 +14,7 @@ import {
 export const CustomFacets = ({ aggs, appName }) => {
   // Force re-render when URL changes (e.g., when "Start over" is clicked)
   const [urlKey, setUrlKey] = useState(window.location.search);
+  const [resultsLoaded, setResultsLoaded] = useState(false);
 
   useEffect(() => {
     // Listen for URL changes (browser back/forward, Start over button, etc.)
@@ -37,8 +38,49 @@ export const CustomFacets = ({ aggs, appName }) => {
     };
   }, [urlKey]);
 
+  // Monitor when results are loaded
+  useEffect(() => {
+    const checkResults = () => {
+      const resultsExist = document.querySelector('.divided.items .item') !== null;
+      setResultsLoaded(resultsExist);
+    };
+
+    // Check immediately
+    checkResults();
+
+    // Set up a MutationObserver to watch for DOM changes
+    const observer = new MutationObserver(checkResults);
+    const targetNode = document.querySelector('.relaxed.grid');
+    if (targetNode) {
+      observer.observe(targetNode, { childList: true, subtree: true });
+    }
+
+    // Also check periodically as fallback
+    const intervalId = setInterval(checkResults, 300);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(intervalId);
+    };
+  }, [urlKey]);
+
   return (
-    <div className="custom-facets-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+    <>
+      <style>
+        {`
+          /* Align facets container with Sort by row - only when results are loaded */
+          /* Only apply on desktop/tablet (computer only column), not mobile */
+          @media (min-width: 768px) {
+            .computer.only.column .custom-facets-container.results-loaded {
+              margin-top: -58px;
+            }
+          }
+        `}
+      </style>
+      <div 
+        className={`custom-facets-container ${resultsLoaded ? 'results-loaded' : ''}`} 
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}
+      >
       <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
       <ResourceTypeFacet key={`resource-type-${urlKey}`} />
       <DynamicFacet
@@ -103,6 +145,7 @@ export const CustomFacets = ({ aggs, appName }) => {
       />
       <UnescoToggleFacet key={`unesco-${urlKey}`} />
     </div>
+    </>
   );
 };
 

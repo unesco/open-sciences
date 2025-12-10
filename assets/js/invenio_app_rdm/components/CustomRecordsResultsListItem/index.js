@@ -157,7 +157,7 @@ const CustomRecordsResultsListItem = ({
       allVersionsVisible={allVersionsVisible}
       numOtherVersions={numOtherVersions}
     >
-      <Item key={key ?? result.id} className="unesco-search-result-item">
+      <Item key={key ?? result.id} className="unesco-search-result-item" style={{ marginTop: 0, paddingTop: "12px" }}>
         <Item.Content>
           <Item.Extra
             className="unesco-tags-row"

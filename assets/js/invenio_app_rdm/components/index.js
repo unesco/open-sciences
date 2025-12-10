@@ -3,3 +3,4 @@
 
 export { default as CustomRecordsResultsListItem } from "./CustomRecordsResultsListItem";
 export { default as CustomFacets } from "./CustomFacets";
+export { default as CustomResultOptions } from "./CustomResultOptions";
