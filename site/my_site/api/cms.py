@@ -358,7 +358,7 @@ class CMSPublicRenderAPIView(MethodView):
     """
 
     # Resource types allowed for public access
-    PUBLIC_RESOURCES = {"footer", "header", "homepage_hero"}
+    PUBLIC_RESOURCES = {"footer", "header_frontpage"}
 
     def __init__(self):
         """Initialize the service."""

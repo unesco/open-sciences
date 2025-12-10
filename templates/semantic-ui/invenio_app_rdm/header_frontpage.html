@@ -1,11 +1,32 @@
 {# -*- coding: utf-8 -*- Copyright (C) 2020 CERN. Copyright (C) 2020
-Northwestern University. Copyright (C) 2021 New York University. Invenio App RDM
-is free software; you can redistribute it and/or modify it under the terms of
-the MIT License; see LICENSE file for more details. #} {%- extends
-config.THEME_HEADER_TEMPLATE %} {#- Remove search field from top bar on
-frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
+Northwestern University. Copyright (C) 2021 New York University. Copyright (C)
+2024-2025 UNESCO. Invenio App RDM is free software; you can redistribute it 
+and/or modify it under the terms of the MIT License; see LICENSE file for more 
+details. #}
+
+{#
+  Header Frontpage Template with CMS Integration
+
+  This header loads its content from the CMS API at /data/cms/public/header_frontpage.
+  If CMS data is not available, it falls back to default values defined here.
+
+  Managed fields:
+  - Logo image (upload or default)
+  - Background image (upload or default)
+  - Navigation links (max 5)
+  - Title and subtitle
+  - Search placeholder and advanced search label
+#}
+
+{%- extends config.THEME_HEADER_TEMPLATE %}
+
+{#- Remove search field from top bar on frontpage #}
+{%- block navbar_search %}{% endblock %}
+
+{%- block brand %}
 <a class="logo-link" href="/" style="display: flex; align-items: center;">
   <img
+    id="header-logo"
     src="/static/images/unesco-logo.svg"
     alt="UNESCO"
     style="height: 56px; margin-top: 25px;"
@@ -15,23 +36,24 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
 
 {%- block navbar_nav %}
 <!-- Desktop navigation - hidden on mobile -->
-<div class="computer large screen widescreen only" style="display: flex; align-items: center; gap: 32px; flex: 1; justify-content: right; margin-right: 40px;">
+<div id="header-nav-desktop" class="computer large screen widescreen only" style="display: flex; align-items: center; gap: 32px; flex: 1; justify-content: right; margin-right: 40px;">
   <a href="/about" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;">About</a>
-  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;">Natural Sciences</a>
-  <a href="#" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;">Open Science</a>
+  <a href="https://www.unesco.org/en/natural-sciences" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;">Natural Sciences</a>
+  <a href="https://www.unesco.org/en/open-science" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;">Open Science</a>
 </div>
 
 <!-- Mobile navigation - shown only on mobile -->
-<div class="mobile tablet only" style="display: flex; flex-direction: column; width: 100%; padding: 20px 0;">
+<div id="header-nav-mobile" class="mobile tablet only" style="display: flex; flex-direction: column; width: 100%; padding: 20px 0;">
   <a href="/about" class="item" style="color: #212121 !important; font-family: 'Inter'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none; border-bottom: 1px solid #e0e0e0;">About</a>
-  <a href="#" class="item" style="color: #212121 !important; font-family: 'Inter'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none; border-bottom: 1px solid #e0e0e0;">UNESCO Natural Sciences Family</a>
-  <a href="#" class="item" style="color: #212121 !important; font-family: 'Inter'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none;">UNESCO Open Science</a>
+  <a href="https://www.unesco.org/en/natural-sciences" target="_blank" rel="noopener noreferrer" class="item" style="color: #212121 !important; font-family: 'Inter'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none; border-bottom: 1px solid #e0e0e0;">UNESCO Natural Sciences Family</a>
+  <a href="https://www.unesco.org/en/open-science" target="_blank" rel="noopener noreferrer" class="item" style="color: #212121 !important; font-family: 'Inter'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none;">UNESCO Open Science</a>
 </div>
 {%- endblock navbar_nav %}
 
 {%- block navbar %}
 <!-- Wrapper with background for entire header -->
 <div
+  id="header-background"
   class="outer-navbar"
   style="
     background: linear-gradient(
@@ -58,10 +80,10 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
       <div class="row">
         <div class="sixteen wide column center aligned">
           {%- block frontpage_title %}
-          <h1 class="ui center aligned header inverted" style="font-size: 2.8rem; font-weight: 700; margin-bottom: 0.8rem; line-height: 1.2;">
+          <h1 id="header-title" class="ui center aligned header inverted" style="font-size: 2.8rem; font-weight: 700; margin-bottom: 0.8rem; line-height: 1.2;">
             UNESCO Open Science Platform
           </h1>
-          <p style="color: rgba(255,255,255,0.95); font-size: 1.15rem; margin-bottom: 2rem; line-height: 1.6;">
+          <p id="header-subtitle" style="color: rgba(255,255,255,0.95); font-size: 1.15rem; margin-bottom: 2rem; line-height: 1.6;">
             Your Gateway to Knowledge from the UNESCO Natural Science Family
           </p>
           {%- endblock frontpage_title %}
@@ -81,6 +103,7 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
           >
             <div style="position: relative; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #4C5054; border-radius: 100px; padding: 20px 30px; gap: 8px;">
               <input
+                id="header-search-input"
                 type="text"
                 name="q"
                 class="form-control"
@@ -117,7 +140,7 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
               </button>
             </div>
             <div style="display: flex; justify-content: flex-end; padding: 0 24px; margin-top: 4px;">
-              <a href="/search" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 26px; text-align: right; text-decoration: none;">
+              <a id="header-advanced-search" href="/search" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 26px; text-align: right; text-decoration: none;">
                 Advanced search
               </a>
             </div>
@@ -131,4 +154,123 @@ frontpage #} {%- block navbar_search %}{% endblock %} {%- block brand %}
   {%- endblock frontpage_search %}
 </div>
 <!-- End of background wrapper -->
+
+<!-- CMS Header Frontpage Integration Script -->
+<script>
+(function() {
+  // Default paths (fallback)
+  var DEFAULT_LOGO = '/static/images/unesco-logo.svg';
+  var DEFAULT_BACKGROUND = '/static/images/science-background1.jpg';
+
+  // Get current language from HTML lang attribute or default to 'en'
+  var lang = document.documentElement.lang || 'en';
+
+  // Fetch header data from CMS public API
+  fetch('/data/cms/public/header_frontpage?lang=' + lang)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch header data');
+      }
+      return response.json();
+    })
+    .then(function(result) {
+      var data = result.data || {};
+
+      // Update logo
+      var logo = document.getElementById('header-logo');
+      if (logo && data.logo) {
+        logo.src = '/static/' + data.logo;
+        logo.onerror = function() {
+          this.onerror = null;
+          this.src = DEFAULT_LOGO;
+        };
+      }
+
+      // Update background image
+      var bgElement = document.getElementById('header-background');
+      if (bgElement && data.background_image) {
+        var bgUrl = '/static/' + data.background_image;
+        bgElement.style.background = 'linear-gradient(135deg, rgba(0, 115, 183, 0.85) 0%, rgba(0, 0, 0, 0.75) 100%), url(\'' + bgUrl + '\')';
+        bgElement.style.backgroundSize = 'cover';
+        bgElement.style.backgroundPosition = 'center';
+        bgElement.style.backgroundRepeat = 'no-repeat';
+        bgElement.style.backgroundAttachment = 'fixed';
+      }
+
+      // Update navigation links (desktop)
+      if (data.navigation_links && Array.isArray(data.navigation_links)) {
+        var navDesktop = document.getElementById('header-nav-desktop');
+        var navMobile = document.getElementById('header-nav-mobile');
+
+        if (navDesktop) {
+          navDesktop.innerHTML = '';
+          data.navigation_links.forEach(function(link) {
+            var a = document.createElement('a');
+            a.href = link.url;
+            a.textContent = link.label;
+            a.style.cssText = 'color: #FFFFFF; font-family: \'Inter\'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;';
+            if (link.external) {
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+            }
+            navDesktop.appendChild(a);
+          });
+        }
+
+        if (navMobile) {
+          navMobile.innerHTML = '';
+          data.navigation_links.forEach(function(link, index) {
+            var a = document.createElement('a');
+            a.href = link.url;
+            a.textContent = link.label;
+            a.className = 'item';
+            var borderStyle = index < data.navigation_links.length - 1 ? 'border-bottom: 1px solid #e0e0e0;' : '';
+            a.style.cssText = 'color: #212121 !important; font-family: \'Inter\'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none; ' + borderStyle;
+            if (link.external) {
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+            }
+            navMobile.appendChild(a);
+          });
+        }
+      }
+
+      // Update title
+      if (data.title) {
+        var title = document.getElementById('header-title');
+        if (title) {
+          title.textContent = data.title;
+        }
+      }
+
+      // Update subtitle
+      if (data.subtitle) {
+        var subtitle = document.getElementById('header-subtitle');
+        if (subtitle) {
+          subtitle.textContent = data.subtitle;
+        }
+      }
+
+      // Update search placeholder
+      if (data.search_placeholder) {
+        var searchInput = document.getElementById('header-search-input');
+        if (searchInput) {
+          searchInput.placeholder = data.search_placeholder;
+        }
+      }
+
+      // Update advanced search label
+      if (data.advanced_search_label) {
+        var advancedSearch = document.getElementById('header-advanced-search');
+        if (advancedSearch) {
+          advancedSearch.textContent = data.advanced_search_label;
+        }
+      }
+    })
+    .catch(function(error) {
+      // Silently fail - default content is already displayed
+      console.debug('Header CMS: Using default content', error.message);
+    });
+})();
+</script>
 {%- endblock navbar %}

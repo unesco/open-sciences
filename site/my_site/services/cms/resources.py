@@ -25,29 +25,86 @@ CMS_RESOURCES = {
     # ===========================================
     # SINGLETON RESOURCES (one per language)
     # ===========================================
-    "header": {
-        "label": "Header",
-        "description": "Site header configuration",
+    "header_frontpage": {
+        "label": "Header Frontpage",
+        "description": "Homepage header with hero section and search",
         "is_singleton": True,
         "output_format": "json",
         "template": None,
-        "component": "HeaderEditor",
+        "component": "HeaderFrontpageEditor",
         "schema": {
             "type": "object",
             "properties": {
-                "unesco_logo_url": {
+                # Logo
+                "logo": {
                     "type": "string",
-                    "format": "uri",
-                    "title": "UNESCO Logo URL",
-                    "description": "URL to the UNESCO logotype image",
+                    "title": "Logo",
+                    "description": "Upload a custom logo. Leave empty to use the default UNESCO logo.",
+                    "format": "image",
                 },
-                "site_title": {
+                # Background
+                "background_image": {
                     "type": "string",
-                    "title": "Site Title",
+                    "title": "Background Image",
+                    "description": "Upload a background image for the hero section.",
+                    "format": "image",
+                },
+                # Navigation links
+                "navigation_links": {
+                    "type": "array",
+                    "title": "Navigation Links",
+                    "description": "Header navigation links (max 5)",
+                    "maxItems": 5,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "type": "string",
+                                "title": "Link Label",
+                                "maxLength": 100,
+                            },
+                            "url": {
+                                "type": "string",
+                                "title": "Link URL",
+                            },
+                            "external": {
+                                "type": "boolean",
+                                "title": "External Link",
+                                "description": "Opens in new tab if true",
+                                "default": False,
+                            },
+                        },
+                        "required": ["label", "url"],
+                    },
+                },
+                # Hero section
+                "title": {
+                    "type": "string",
+                    "title": "Title",
+                    "description": "Main hero title",
                     "maxLength": 200,
                 },
+                "subtitle": {
+                    "type": "string",
+                    "title": "Subtitle",
+                    "description": "Hero subtitle text",
+                    "maxLength": 300,
+                },
+                # Search
+                "search_placeholder": {
+                    "type": "string",
+                    "title": "Search Placeholder",
+                    "description": "Placeholder text in search box",
+                    "maxLength": 200,
+                },
+                "advanced_search_label": {
+                    "type": "string",
+                    "title": "Advanced Search Label",
+                    "description": "Text for advanced search link",
+                    "maxLength": 100,
+                },
             },
-            "required": [],
+            "required": ["title"],
         },
     },
     "footer": {
@@ -130,246 +187,12 @@ CMS_RESOURCES = {
             "required": ["contact_email"],
         },
     },
-    "homepage_hero": {
-        "label": "Homepage Hero",
-        "description": "Homepage hero section with search",
-        "is_singleton": True,
-        "output_format": "json",
-        "template": None,
-        "component": "HomepageHeroEditor",
-        "schema": {
-            "type": "object",
-            "properties": {
-                "search_placeholder": {
-                    "type": "string",
-                    "title": "Search Placeholder",
-                    "description": "Watermark text for search input box",
-                    "maxLength": 200,
-                },
-                "recommendation_title": {
-                    "type": "string",
-                    "title": "Recommendation Title",
-                    "description": "2021 UNESCO Recommendation title",
-                },
-                "recommendation_text": {
-                    "type": "string",
-                    "title": "Recommendation Text",
-                    "description": "2021 UNESCO Recommendation on Open Science text",
-                    "format": "html",
-                },
-                "recommendation_link": {
-                    "type": "string",
-                    "format": "uri",
-                    "title": "Recommendation Link",
-                },
-            },
-            "required": ["search_placeholder"],
-        },
-    },
-    "homepage_highlights": {
-        "label": "Homepage Highlights",
-        "description": "Evidence-based highlights section",
-        "is_singleton": True,
-        "output_format": "json",
-        "template": None,
-        "component": "HomepageHighlightsEditor",
-        "schema": {
-            "type": "object",
-            "properties": {
-                "section_title": {
-                    "type": "string",
-                    "title": "Section Title",
-                    "description": "Header for the highlights section",
-                },
-                "tiles": {
-                    "type": "array",
-                    "title": "Highlight Tiles",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "title": {"type": "string", "title": "Tile Title"},
-                            "description": {"type": "string", "title": "Description"},
-                            "icon": {"type": "string", "title": "Icon name or URL"},
-                            "link": {
-                                "type": "string",
-                                "format": "uri",
-                                "title": "Link URL",
-                            },
-                            "image_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "title": "Image URL",
-                            },
-                        },
-                        "required": ["title"],
-                    },
-                },
-            },
-            "required": ["section_title"],
-        },
-    },
-    "homepage_partners": {
-        "label": "Homepage Partners",
-        "description": "Partners section with logos",
-        "is_singleton": True,
-        "output_format": "json",
-        "template": None,
-        "component": "HomepagePartnersEditor",
-        "schema": {
-            "type": "object",
-            "properties": {
-                "section_title": {
-                    "type": "string",
-                    "title": "Section Title",
-                },
-                "section_text": {
-                    "type": "string",
-                    "title": "Partners Text",
-                    "format": "html",
-                },
-                "partners": {
-                    "type": "array",
-                    "title": "Partners",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "name": {"type": "string", "title": "Partner Name"},
-                            "logo_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "title": "Logo URL",
-                            },
-                            "website_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "title": "Website URL",
-                            },
-                        },
-                        "required": ["name", "logo_url"],
-                    },
-                },
-            },
-            "required": ["section_title"],
-        },
-    },
-    "homepage_infographics": {
-        "label": "Homepage Infographics",
-        "description": "Infographics section on homepage",
-        "is_singleton": True,
-        "output_format": "json",
-        "template": None,
-        "component": "HomepageInfographicsEditor",
-        "schema": {
-            "type": "object",
-            "properties": {
-                "section_title": {
-                    "type": "string",
-                    "title": "Section Title",
-                },
-                "infographics": {
-                    "type": "array",
-                    "title": "Infographics",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "title": {"type": "string", "title": "Title"},
-                            "image_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "title": "Image URL",
-                            },
-                            "description": {"type": "string", "title": "Description"},
-                            "link": {
-                                "type": "string",
-                                "format": "uri",
-                                "title": "Link",
-                            },
-                        },
-                        "required": ["title", "image_url"],
-                    },
-                },
-            },
-            "required": [],
-        },
-    },
-    "privacy_policy": {
-        "label": "Privacy Policy",
-        "description": "Privacy statement page",
-        "is_singleton": True,
-        "output_format": "html",
-        "template": "my_site/cms/privacy_policy.html",
-        "component": "RichTextPageEditor",
-        "schema": {
-            "type": "object",
-            "properties": {
-                "title": {
-                    "type": "string",
-                    "title": "Page Title",
-                    "maxLength": 200,
-                },
-                "content": {
-                    "type": "string",
-                    "title": "Content",
-                    "format": "html",
-                    "description": "Privacy statement HTML content",
-                },
-                "meta_description": {
-                    "type": "string",
-                    "title": "Meta Description",
-                    "maxLength": 300,
-                },
-            },
-            "required": ["title", "content"],
-        },
-    },
     # ===========================================
     # COLLECTION RESOURCES (multiple per language)
     # ===========================================
-    "plain_language_summary": {
-        "label": "Plain Language Summary",
-        "description": "Accessible summaries of scientific content",
-        "is_singleton": False,
-        "output_format": "html",
-        "template": "my_site/cms/plain_language_summary.html",
-        "component": "PlainLanguageSummaryEditor",
-        "schema": {
-            "type": "object",
-            "properties": {
-                "title": {
-                    "type": "string",
-                    "title": "Title",
-                    "maxLength": 200,
-                },
-                "slug": {
-                    "type": "string",
-                    "title": "URL Slug",
-                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-                    "maxLength": 200,
-                },
-                "description": {
-                    "type": "string",
-                    "title": "Description",
-                    "format": "html",
-                    "description": "Main content (WYSIWYG)",
-                },
-                "image_url": {
-                    "type": "string",
-                    "format": "uri",
-                    "title": "Featured Image URL",
-                },
-                "excerpt": {
-                    "type": "string",
-                    "title": "Excerpt",
-                    "maxLength": 500,
-                    "description": "Short summary for listings",
-                },
-            },
-            "required": ["title", "slug", "description"],
-        },
-    },
     "static_page": {
         "label": "Static Page",
-        "description": "Generic static content pages",
+        "description": "Generic static content pages (About, Privacy Policy, etc.)",
         "is_singleton": False,
         "output_format": "html",
         "template": "my_site/cms/static_page.html",

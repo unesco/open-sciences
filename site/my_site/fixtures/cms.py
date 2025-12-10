@@ -14,6 +14,36 @@ These fixtures are used to populate initial values when the CMS is set up.
 from datetime import datetime
 
 # =============================================================================
+# HEADER FRONTPAGE FIXTURE
+# =============================================================================
+HEADER_FRONTPAGE_DEFAULT = {
+    "logo": "",  # Empty = use default /static/images/unesco-logo.svg
+    "background_image": "",  # Empty = use default /static/images/science-background1.jpg
+    "navigation_links": [
+        {
+            "label": "About",
+            "url": "/about",
+            "external": False,
+        },
+        {
+            "label": "Natural Sciences",
+            "url": "https://www.unesco.org/en/natural-sciences",
+            "external": True,
+        },
+        {
+            "label": "Open Science",
+            "url": "https://www.unesco.org/en/open-science",
+            "external": True,
+        },
+    ],
+    "title": "UNESCO Open Science Platform",
+    "subtitle": "Your Gateway to Knowledge from the UNESCO Natural Science Family",
+    "search_placeholder": "Search UNESCO research publications",
+    "advanced_search_label": "Advanced search",
+}
+
+
+# =============================================================================
 # FOOTER FIXTURE
 # =============================================================================
 FOOTER_DEFAULT = {
@@ -47,6 +77,9 @@ FOOTER_DEFAULT = {
 # ALL FIXTURES REGISTRY
 # =============================================================================
 CMS_FIXTURES = {
+    "header_frontpage": {
+        "en": HEADER_FRONTPAGE_DEFAULT,
+    },
     "footer": {
         "en": FOOTER_DEFAULT,
     },

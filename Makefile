@@ -573,6 +573,6 @@ db-init-cms:
 
 # Load CMS fixtures (default content for footer, header, etc.)
 cms-fixtures:
-	@echo "📦 Loading CMS fixtures..."
-	$(VENV_ACTIVATE) && invenio cms load-fixtures
+	@echo "📦 Loading CMS fixtures (force overwrite)..."
+	$(VENV_ACTIVATE) && invenio cms load-fixtures --force
 	@echo "✅ CMS fixtures loaded!"
