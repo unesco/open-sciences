@@ -23,26 +23,19 @@ class CMSPageView(MethodView):
     def get(self, slug):
         """Render a CMS page by slug.
 
-        This view supports rendering content from any resource type
-        that has output_format="html". The slug format is:
-        - For collections: resource_type/content_slug (e.g., "privacy_policy/en")
-        - For singletons: resource_type (e.g., "footer")
+        For static_page resources, the URL format is:
+        - /pages/about -> renders static_page with slug "about"
 
         Args:
-            slug: Page URL slug (can include resource_type prefix)
+            slug: Page URL slug
         """
         identity = g.identity
         lang = request.args.get("lang", "en")
 
         try:
-            # Try to parse slug as resource_type/content_slug
-            parts = slug.split("/", 1)
-            if len(parts) == 2:
-                resource_type, content_slug = parts
-            else:
-                # Assume the whole slug is the resource_type (singleton)
-                resource_type = slug
-                content_slug = slug
+            # For now, we only support static_page resource type
+            resource_type = "static_page"
+            content_slug = slug
 
             # Get content by slug
             content = self.service.read_by_slug(
@@ -64,22 +57,29 @@ class CMSPageView(MethodView):
 
             # Determine template
             template = (
-                resource_def.get("template", "my_site/cms/page.html")
+                resource_def.get("template", "my_site/cms/static_page.html")
                 if resource_def
-                else "my_site/cms/page.html"
+                else "my_site/cms/static_page.html"
             )
 
-            # Get title and description from content data
+            # Get data from content
             data = content.data or {}
-            title = data.get("title") or data.get("heading") or content.slug
-            description = data.get("description") or data.get("excerpt") or ""
+            page_title = data.get("title", content_slug.replace("-", " ").title())
+            page_content = data.get("content", "")
+            meta_title = data.get("meta_title") or page_title
+            meta_description = data.get("meta_description", "")
 
             return render_template(
                 template,
                 content=content,
                 resource_type=resource_type,
-                meta_title=title,
-                meta_description=description,
+                page_title=page_title,
+                page_content=page_content,
+                meta_title=meta_title,
+                meta_description=meta_description,
             )
         except Exception as e:
+            import traceback
+
+            traceback.print_exc()
             abort(404)

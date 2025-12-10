@@ -80,42 +80,52 @@ def load_fixtures(resource, lang, force):
             if lang and fixture_lang != lang:
                 continue
 
-            # For singletons, slug = resource_type
-            slug = resource_type if is_singleton else data.get("slug", resource_type)
-
-            # Check if content already exists
-            existing = CMSContent.query.filter_by(
-                resource_type=resource_type, slug=slug, lang=fixture_lang
-            ).first()
-
-            if existing:
-                if force:
-                    # Update existing and publish
-                    from datetime import datetime
-
-                    existing.data = data
-                    existing.is_published = True
-                    existing.published_at = datetime.utcnow()
-                    updated += 1
-                    click.echo(f"✏️  Updated: {resource_type}/{slug} ({fixture_lang})")
-                else:
-                    skipped += 1
-                    click.echo(
-                        f"⏭️  Skipped (exists): {resource_type}/{slug} ({fixture_lang})"
-                    )
+            if is_singleton:
+                # Singleton: data is the content directly
+                # slug = resource_type
+                items_to_create = [(resource_type, data)]
             else:
-                # Create new
-                content = CMSContent.create(
-                    {
-                        "resource_type": resource_type,
-                        "slug": slug,
-                        "data": data,
-                        "lang": fixture_lang,
-                        "is_published": True,  # Fixtures are published by default
-                    }
-                )
-                created += 1
-                click.echo(f"✅ Created: {resource_type}/{slug} ({fixture_lang})")
+                # Collection: data is {slug: content_data}
+                items_to_create = [
+                    (slug, content_data) for slug, content_data in data.items()
+                ]
+
+            for slug, content_data in items_to_create:
+                # Check if content already exists
+                existing = CMSContent.query.filter_by(
+                    resource_type=resource_type, slug=slug, lang=fixture_lang
+                ).first()
+
+                if existing:
+                    if force:
+                        # Update existing and publish
+                        from datetime import datetime
+
+                        existing.data = content_data
+                        existing.is_published = True
+                        existing.published_at = datetime.utcnow()
+                        updated += 1
+                        click.echo(
+                            f"✏️  Updated: {resource_type}/{slug} ({fixture_lang})"
+                        )
+                    else:
+                        skipped += 1
+                        click.echo(
+                            f"⏭️  Skipped (exists): {resource_type}/{slug} ({fixture_lang})"
+                        )
+                else:
+                    # Create new
+                    content = CMSContent.create(
+                        {
+                            "resource_type": resource_type,
+                            "slug": slug,
+                            "data": content_data,
+                            "lang": fixture_lang,
+                            "is_published": True,  # Fixtures are published by default
+                        }
+                    )
+                    created += 1
+                    click.echo(f"✅ Created: {resource_type}/{slug} ({fixture_lang})")
 
     db.session.commit()
 

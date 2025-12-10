@@ -466,8 +466,10 @@ RDM_SEARCH = {
 # See https://inveniordm.docs.cern.ch/customize/static_pages/
 
 # Register static pages with their URL paths
+# DEPRECATED: Static pages are now managed via CMS at /administration/cms
+# The About page is available at /pages/about
 APP_RDM_PAGES = {
-    "about": "/about",
+    # "about": "/about",  # Moved to CMS
 }
 
 # Define custom templates for static pages

@@ -3,7 +3,7 @@
  * Dynamic form editor based on JSON Schema for CMS content
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import {
   Form,
@@ -14,8 +14,298 @@ import {
   Icon,
   Divider,
   Label,
+  Menu,
 } from "semantic-ui-react";
 import { useResourceCMSApi } from "../../hooks";
+
+/**
+ * HtmlEditor - WYSIWYG editor with HTML source code toggle
+ *
+ * Uses contentEditable with careful state management to avoid cursor jumping issues.
+ * The key insight is to NOT re-render the contentEditable div from React state
+ * during active editing - only sync when switching modes or on initial load.
+ */
+const HtmlEditor = ({ label, value, onChange, required, description }) => {
+  const [mode, setMode] = useState("visual"); // "visual" or "source"
+  const [sourceContent, setSourceContent] = useState(value || "");
+  const editorRef = useRef(null);
+  const lastExternalValue = useRef(value || "");
+  const isUserEditing = useRef(false);
+
+  // Sync from props when value changes externally (e.g., data loaded from API)
+  // Only update if the value actually changed AND user is not actively editing
+  useEffect(() => {
+    if (value !== lastExternalValue.current && !isUserEditing.current) {
+      lastExternalValue.current = value || "";
+      setSourceContent(value || "");
+      if (editorRef.current && mode === "visual") {
+        editorRef.current.innerHTML = value || "";
+      }
+    }
+  }, [value, mode]);
+
+  // Sync content when switching modes
+  const switchToVisual = () => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = sourceContent;
+    }
+    setMode("visual");
+  };
+
+  const switchToSource = () => {
+    if (editorRef.current) {
+      setSourceContent(editorRef.current.innerHTML);
+    }
+    setMode("source");
+  };
+
+  // Handle focus - mark as editing
+  const handleFocus = () => {
+    isUserEditing.current = true;
+  };
+
+  // Handle visual editor blur - sync to parent
+  const handleVisualBlur = () => {
+    isUserEditing.current = false;
+    if (editorRef.current) {
+      const content = editorRef.current.innerHTML;
+      setSourceContent(content);
+      lastExternalValue.current = content;
+      onChange(content);
+    }
+  };
+
+  // Handle source code changes
+  const handleSourceChange = (e) => {
+    isUserEditing.current = true;
+    const content = e.target.value;
+    setSourceContent(content);
+    onChange(content);
+  };
+
+  // Handle source code blur
+  const handleSourceBlur = () => {
+    isUserEditing.current = false;
+    lastExternalValue.current = sourceContent;
+  };
+
+  // Execute formatting command (doesn't trigger re-render)
+  const execCommand = (command, commandValue = null) => {
+    document.execCommand(command, false, commandValue);
+    editorRef.current?.focus();
+  };
+
+  // Insert link
+  const insertLink = () => {
+    const url = prompt("Enter URL:");
+    if (url) {
+      execCommand("createLink", url);
+    }
+  };
+
+  // Insert image
+  const insertImage = () => {
+    const url = prompt("Enter image URL:");
+    if (url) {
+      execCommand("insertImage", url);
+    }
+  };
+
+  return (
+    <Form.Field required={required}>
+      <label>{label}</label>
+
+      {/* Mode toggle and toolbar */}
+      <div style={{ marginBottom: "0.5em" }}>
+        <Menu secondary size="small" style={{ marginBottom: "0.5em" }}>
+          <Menu.Item
+            name="visual"
+            active={mode === "visual"}
+            onClick={switchToVisual}
+          >
+            <Icon name="eye" /> Visual
+          </Menu.Item>
+          <Menu.Item
+            name="source"
+            active={mode === "source"}
+            onClick={switchToSource}
+          >
+            <Icon name="code" /> HTML Source
+          </Menu.Item>
+        </Menu>
+
+        {/* Formatting toolbar (only in visual mode) */}
+        {mode === "visual" && (
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "4px",
+              padding: "8px",
+              background: "#f9f9f9",
+              border: "1px solid #ddd",
+              borderBottom: "none",
+              borderRadius: "4px 4px 0 0",
+            }}
+          >
+            <Button.Group size="mini" basic>
+              <Button
+                icon="bold"
+                title="Bold"
+                onClick={() => execCommand("bold")}
+              />
+              <Button
+                icon="italic"
+                title="Italic"
+                onClick={() => execCommand("italic")}
+              />
+              <Button
+                icon="underline"
+                title="Underline"
+                onClick={() => execCommand("underline")}
+              />
+              <Button
+                icon="strikethrough"
+                title="Strikethrough"
+                onClick={() => execCommand("strikeThrough")}
+              />
+            </Button.Group>
+
+            <Button.Group size="mini" basic>
+              <Button
+                icon="list ul"
+                title="Bullet List"
+                onClick={() => execCommand("insertUnorderedList")}
+              />
+              <Button
+                icon="list ol"
+                title="Numbered List"
+                onClick={() => execCommand("insertOrderedList")}
+              />
+            </Button.Group>
+
+            <Button.Group size="mini" basic>
+              <Button
+                icon="align left"
+                title="Align Left"
+                onClick={() => execCommand("justifyLeft")}
+              />
+              <Button
+                icon="align center"
+                title="Align Center"
+                onClick={() => execCommand("justifyCenter")}
+              />
+              <Button
+                icon="align right"
+                title="Align Right"
+                onClick={() => execCommand("justifyRight")}
+              />
+            </Button.Group>
+
+            <Button.Group size="mini" basic>
+              <Button icon="linkify" title="Insert Link" onClick={insertLink} />
+              <Button
+                icon="unlinkify"
+                title="Remove Link"
+                onClick={() => execCommand("unlink")}
+              />
+              <Button icon="image" title="Insert Image" onClick={insertImage} />
+            </Button.Group>
+
+            <Button.Group size="mini" basic>
+              <Button
+                icon="indent"
+                title="Indent"
+                onClick={() => execCommand("indent")}
+              />
+              <Button
+                icon="outdent"
+                title="Outdent"
+                onClick={() => execCommand("outdent")}
+              />
+            </Button.Group>
+
+            <Button
+              size="mini"
+              basic
+              icon="eraser"
+              title="Clear Formatting"
+              onClick={() => execCommand("removeFormat")}
+            />
+
+            <select
+              onChange={(e) => execCommand("formatBlock", e.target.value)}
+              style={{ marginLeft: "8px", padding: "4px", fontSize: "12px" }}
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Format
+              </option>
+              <option value="p">Paragraph</option>
+              <option value="h1">Heading 1</option>
+              <option value="h2">Heading 2</option>
+              <option value="h3">Heading 3</option>
+              <option value="h4">Heading 4</option>
+              <option value="blockquote">Quote</option>
+              <option value="pre">Code</option>
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Editor content */}
+      {mode === "visual" ? (
+        <div
+          ref={editorRef}
+          contentEditable
+          onFocus={handleFocus}
+          onBlur={handleVisualBlur}
+          style={{
+            minHeight: "300px",
+            maxHeight: "600px",
+            overflowY: "auto",
+            padding: "16px",
+            border: "1px solid #ddd",
+            borderRadius: "0 0 4px 4px",
+            background: "#fff",
+            outline: "none",
+          }}
+        />
+      ) : (
+        <textarea
+          value={sourceContent}
+          onChange={handleSourceChange}
+          onBlur={handleSourceBlur}
+          rows={15}
+          style={{
+            width: "100%",
+            fontFamily: "Monaco, Consolas, 'Courier New', monospace",
+            fontSize: "13px",
+            lineHeight: "1.5",
+            padding: "16px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            resize: "vertical",
+          }}
+        />
+      )}
+
+      {description && (
+        <small style={{ color: "#888", display: "block", marginTop: "0.5em" }}>
+          {description}
+        </small>
+      )}
+    </Form.Field>
+  );
+};
+
+HtmlEditor.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  required: PropTypes.bool,
+  description: PropTypes.string,
+};
 
 /**
  * DynamicField - Renders a form field based on JSON Schema property
@@ -90,18 +380,15 @@ const DynamicField = ({ name, schema, value, onChange, required }) => {
         );
       }
       if (schema.format === "html") {
-        // HTML editor (simple textarea for now, could be replaced with rich editor)
+        // HTML editor with WYSIWYG and source code toggle
         return (
-          <Form.Field required={required}>
-            <label>{label}</label>
-            <textarea
-              value={value || ""}
-              onChange={(e) => onChange(name, e.target.value)}
-              rows={8}
-              style={{ fontFamily: "monospace" }}
-            />
-            <small style={{ color: "#888" }}>HTML content allowed</small>
-          </Form.Field>
+          <HtmlEditor
+            label={label}
+            value={value || ""}
+            onChange={(newValue) => onChange(name, newValue)}
+            required={required}
+            description={schema.description}
+          />
         );
       }
       if (schema.format === "image") {
