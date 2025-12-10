@@ -1,62 +1,185 @@
 {# Copyright (C) 2019-2020 CERN. Copyright (C) 2019-2020 Northwestern
 University. Copyright (C) 2019-2020 Graz University of Technology. Copyright (C)
-2024 KTH Royal Institute of Technology. Invenio App RDM is free software; you
-can redistribute it and/or modify it under the terms of the MIT License; see
-LICENSE file for more details. #}
+2024 KTH Royal Institute of Technology. Copyright (C) 2024-2025 UNESCO.
+Invenio App RDM is free software; you can redistribute it and/or modify it
+under the terms of the MIT License; see LICENSE file for more details. #}
+
+{#
+  Footer Template with CMS Integration
+
+  This footer loads its content from the CMS API at /data/cms/public/footer.
+  If CMS data is not available, it falls back to default values defined here.
+
+  The footer structure:
+  - Left Column: UNESCO logo and website link
+  - Right Column: Contact email and navigation links (max 4)
+  - Bottom: Copyright text and tagline
+
+  Note: The "Log in" link is hardcoded and not managed by CMS.
+#}
 
 {%- block footer_top %}
-<!-- Footer Top Section -->
-<div style="background-color: #0077D4; padding: 40px 0; width: 100%;">
-  <div style="max-width: 1221px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 20px;">
-    
-    <!-- Left Column: Logo and Website Link -->
-    <div style="display: flex; flex-direction: column; gap: 21px; width: 261.269px;">
-      <div style="height: 56px; width: 100%;">
-        <img src="{{ url_for('static', filename='images/unesco-logo1.svg') }}" alt="UNESCO" style="height: 56px; width: auto;" />
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <a href="https://www.unesco.org" target="_blank" rel="noopener noreferrer" style="font-family: 'Inter', sans-serif; font-weight: 400; font-size: 14px; line-height: 20px; color: #FFFFFF; text-decoration: none;">
-          Official UNESCO Website
-        </a>
-      </div>
-    </div>
-    
-    <!-- Right Column: Contact and Navigation -->
-    <div style="display: flex; flex-direction: column; gap: 24px; width: 301px;">
-      <!-- Email -->
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <a href="mailto:open-science-platform@unesco.org" style="font-family: 'Inter', sans-serif; font-weight: 400; font-size: 16px; line-height: 24px; color: #FFFFFF; text-decoration: none;">
-          open-science-platform@unesco.org
-        </a>
-      </div>
-      
-      <!-- Navigation Links -->
-      <div style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 16px; line-height: 22px;">
-        <a href="/about" style="color: #FFFFFF; text-decoration: none; margin: 0;">About</a>
-        <a href="#" style="color: #FFFFFF; text-decoration: none; margin: 0;">UNESCO Natural Sciences Family</a>
-        <a href="#" style="color: #FFFFFF; text-decoration: none; margin: 0;">UNESCO Open Science</a>
-        {%- if config.ACCOUNTS and not current_user.is_authenticated %}
-        <a href="{{ url_for_security('login', next=request.path) }}" style="color: #FFFFFF; text-decoration: none; margin: 0; display: flex; align-items: center; gap: 6px;">
-          {{ _('Log in') }}
-        </a>
-        {%- endif %}
-      </div>
-    </div>
-    
-  </div>
-</div>
+<!-- Footer Container -->
+<footer id="unesco-footer">
+  <!-- Footer Top Section -->
+  <div style="background-color: #0077D4; padding: 40px 0; width: 100%;">
+    <div style="max-width: 1221px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 20px;">
 
-<!-- Footer Bottom Section: Copyright -->
-<div style="background-color: #0077D4; padding: 40px 0; width: 100%;">
-  <div style="max-width: 1221px; margin: 0 auto; padding: 0 20px;">
-    <div style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 400; color: #FFFFFF;">
-      <p style="margin: 0; font-size: 16px; line-height: 20px;">
-        Ⓒ 2025 UNESCO Open Science Portal - Unites Nations Educational, Scientific and Cultural Organization
-      </p>
-      <p style="margin: 0; font-size: 14px; line-height: 20px;">
-        Promoting international cooperation in education, science, and culture worldwide.
-      </p>
+      <!-- Left Column: Logo and Website Link -->
+      <div style="display: flex; flex-direction: column; gap: 21px; width: 261.269px;">
+        <div style="height: 56px; width: 100%;">
+          <img id="footer-logo" src="{{ url_for('static', filename='images/unesco-logo1.svg') }}" alt="UNESCO" style="height: 56px; width: auto;" />
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a id="footer-unesco-link" href="https://www.unesco.org" target="_blank" rel="noopener noreferrer" style="font-family: 'Inter', sans-serif; font-weight: 400; font-size: 14px; line-height: 20px; color: #FFFFFF; text-decoration: none;">
+            Official UNESCO Website
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Column: Contact and Navigation -->
+      <div style="display: flex; flex-direction: column; gap: 24px; width: 301px;">
+        <!-- Email -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a id="footer-email" href="mailto:open-science-platform@unesco.org" style="font-family: 'Inter', sans-serif; font-weight: 400; font-size: 16px; line-height: 24px; color: #FFFFFF; text-decoration: none;">
+            open-science-platform@unesco.org
+          </a>
+        </div>
+
+        <!-- Navigation Links (managed by CMS) -->
+        <div id="footer-nav-links" style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 16px; line-height: 22px;">
+          <!-- Default links (will be replaced by CMS data) -->
+          <a href="/about" style="color: #FFFFFF; text-decoration: none; margin: 0;">About</a>
+          <a href="https://www.unesco.org/en/natural-sciences" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; text-decoration: none; margin: 0;">UNESCO Natural Sciences Family</a>
+          <a href="https://www.unesco.org/en/open-science" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; text-decoration: none; margin: 0;">UNESCO Open Science</a>
+          {# Login link - NOT managed by CMS #}
+          {%- if config.ACCOUNTS and not current_user.is_authenticated %}
+          <a href="{{ url_for_security('login', next=request.path) }}" style="color: #FFFFFF; text-decoration: none; margin: 0; display: flex; align-items: center; gap: 6px;">
+            {{ _('Log in') }}
+          </a>
+          {%- endif %}
+        </div>
+      </div>
+
     </div>
   </div>
-</div>
+
+  <!-- Footer Bottom Section: Copyright -->
+  <div style="background-color: #0077D4; padding: 40px 0; width: 100%;">
+    <div style="max-width: 1221px; margin: 0 auto; padding: 0 20px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 400; color: #FFFFFF;">
+        <p id="footer-copyright" style="margin: 0; font-size: 16px; line-height: 20px;">
+          © 2025 UNESCO Open Science Portal - United Nations Educational, Scientific and Cultural Organization
+        </p>
+        <p id="footer-tagline" style="margin: 0; font-size: 14px; line-height: 20px;">
+          Promoting international cooperation in education, science, and culture worldwide.
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- CMS Footer Integration Script -->
+<script>
+(function() {
+  // Default logo path (fallback)
+  var DEFAULT_LOGO = '/static/images/unesco-logo1.svg';
+
+  // Get current language from HTML lang attribute or default to 'en'
+  var lang = document.documentElement.lang || 'en';
+
+  // Fetch footer data from CMS public API
+  fetch('/data/cms/public/footer?lang=' + lang)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch footer data');
+      }
+      return response.json();
+    })
+    .then(function(result) {
+      var data = result.data || {};
+
+      // Update UNESCO website link
+      if (data.unesco_website_url) {
+        var unescoLink = document.getElementById('footer-unesco-link');
+        if (unescoLink) {
+          unescoLink.href = data.unesco_website_url;
+          if (data.unesco_website_label) {
+            unescoLink.textContent = data.unesco_website_label;
+          }
+        }
+      }
+
+      // Update logo (if custom upload provided)
+      var logo = document.getElementById('footer-logo');
+      if (logo && data.unesco_logo) {
+        logo.src = '/static/' + data.unesco_logo;
+        // Fallback to default if image fails to load
+        logo.onerror = function() {
+          this.onerror = null;
+          this.src = DEFAULT_LOGO;
+        };
+      }
+
+      // Update contact email
+      if (data.contact_email) {
+        var emailLink = document.getElementById('footer-email');
+        if (emailLink) {
+          emailLink.href = 'mailto:' + data.contact_email;
+          emailLink.textContent = data.contact_email;
+        }
+      }
+
+      // Update navigation links
+      if (data.navigation_links && Array.isArray(data.navigation_links)) {
+        var navContainer = document.getElementById('footer-nav-links');
+        if (navContainer) {
+          // Find the login link if it exists (we need to preserve it)
+          var loginLink = navContainer.querySelector('a[href*="login"]');
+
+          // Clear existing links
+          navContainer.innerHTML = '';
+
+          // Add CMS navigation links
+          data.navigation_links.forEach(function(link) {
+            var a = document.createElement('a');
+            a.href = link.url;
+            a.textContent = link.label;
+            a.style.cssText = 'color: #FFFFFF; text-decoration: none; margin: 0;';
+            if (link.external) {
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+            }
+            navContainer.appendChild(a);
+          });
+
+          // Re-add login link at the end if it existed
+          if (loginLink) {
+            navContainer.appendChild(loginLink);
+          }
+        }
+      }
+
+      // Update copyright text
+      if (data.copyright_text) {
+        var copyright = document.getElementById('footer-copyright');
+        if (copyright) {
+          copyright.textContent = data.copyright_text;
+        }
+      }
+
+      // Update tagline
+      if (data.tagline) {
+        var tagline = document.getElementById('footer-tagline');
+        if (tagline) {
+          tagline.textContent = data.tagline;
+        }
+      }
+    })
+    .catch(function(error) {
+      // Silently fail - default content is already displayed
+      console.debug('Footer CMS: Using default content', error.message);
+    });
+})();
+</script>
 {%- endblock footer_top %}

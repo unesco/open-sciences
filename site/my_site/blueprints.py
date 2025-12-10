@@ -32,7 +32,9 @@ def create_blueprint(app):
         CMSContentPublishAPIView,
         CMSContentUnpublishAPIView,
         CMSRenderAPIView,
+        CMSPublicRenderAPIView,
         CMSSingletonUpsertAPIView,
+        CMSUploadAPIView,
     )
 
     blueprint = Blueprint(
@@ -149,6 +151,26 @@ def create_blueprint(app):
         f"{API_PREFIX}/cms/singleton/<string:resource_type>",
         view_func=CMSSingletonUpsertAPIView.as_view("cms_singleton_upsert_api"),
         methods=["PUT"],
+    )
+
+    # CMS File upload endpoint
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/upload",
+        view_func=CMSUploadAPIView.as_view("cms_upload_api"),
+        methods=["POST"],
+    )
+
+    # ========================================
+    # PUBLIC CMS API (No Authentication Required)
+    # ========================================
+
+    # Public render endpoint for templates (footer, header, etc.)
+    # This endpoint is used by Jinja templates to fetch CMS content
+    # with fallback to fixtures if no DB content exists
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/cms/public/<string:resource_type>",
+        view_func=CMSPublicRenderAPIView.as_view("cms_public_render_api"),
+        methods=["GET"],
     )
 
     return blueprint

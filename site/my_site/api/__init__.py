@@ -8,10 +8,12 @@ from .cms import (
     CMSContentPublishAPIView,
     CMSContentSearchAPIView,
     CMSContentUnpublishAPIView,
+    CMSPublicRenderAPIView,
     CMSRenderAPIView,
     CMSResourceDefinitionAPIView,
     CMSResourcesAPIView,
     CMSSingletonUpsertAPIView,
+    CMSUploadAPIView,
 )
 
 # Other APIs
@@ -31,5 +33,7 @@ __all__ = [
     "CMSContentPublishAPIView",
     "CMSContentUnpublishAPIView",
     "CMSRenderAPIView",
+    "CMSPublicRenderAPIView",
     "CMSSingletonUpsertAPIView",
+    "CMSUploadAPIView",
 ]

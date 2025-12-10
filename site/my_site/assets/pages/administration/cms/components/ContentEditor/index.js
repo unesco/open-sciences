@@ -104,6 +104,85 @@ const DynamicField = ({ name, schema, value, onChange, required }) => {
           </Form.Field>
         );
       }
+      if (schema.format === "image") {
+        // Image upload field
+        const handleFileChange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            // For now, just store the filename - actual upload will be handled separately
+            // The file will be uploaded to /static/uploads/cms/
+            const filename = `uploads/cms/${file.name}`;
+            onChange(name, filename);
+
+            // Upload file to server
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("path", "uploads/cms");
+
+            fetch("/data/cms/upload", {
+              method: "POST",
+              body: formData,
+              credentials: "same-origin",
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.path) {
+                  onChange(name, data.path);
+                }
+              })
+              .catch((err) => {
+                console.error("Upload failed:", err);
+              });
+          }
+        };
+
+        const handleClear = () => {
+          onChange(name, "");
+        };
+
+        return (
+          <Form.Field required={required}>
+            <label>{label}</label>
+            {value && (
+              <div style={{ marginBottom: "0.5em" }}>
+                <img
+                  src={`/static/${value}`}
+                  alt="Preview"
+                  style={{
+                    maxHeight: "100px",
+                    maxWidth: "200px",
+                    objectFit: "contain",
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                  }}
+                />
+                <div style={{ marginTop: "0.25em" }}>
+                  <small style={{ color: "#666" }}>{value}</small>
+                  <Button
+                    icon="trash"
+                    basic
+                    negative
+                    size="mini"
+                    onClick={handleClear}
+                    style={{ marginLeft: "0.5em" }}
+                  />
+                </div>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              style={{ display: "block", marginTop: "0.5em" }}
+            />
+            <small style={{ color: "#888" }}>
+              {schema.description ||
+                "Upload an image file. Leave empty to use default."}
+            </small>
+          </Form.Field>
+        );
+      }
       // Default text input
       return (
         <Form.Input
@@ -471,20 +550,19 @@ export const ContentEditor = ({
               >
                 <Icon name="globe" /> Language
               </span>
-              <Form.Select
-                name="lang"
-                value={formData.lang}
-                onChange={handleFieldChange}
-                options={[
-                  { key: "en", text: "🇬🇧 English", value: "en" },
-                  { key: "fr", text: "🇫🇷 Français", value: "fr" },
-                  { key: "es", text: "🇪🇸 Español", value: "es" },
-                  { key: "ar", text: "🇸🇦 العربية", value: "ar" },
-                  { key: "zh", text: "🇨🇳 中文", value: "zh" },
-                  { key: "ru", text: "🇷🇺 Русский", value: "ru" },
-                ]}
-                style={{ minWidth: "100%" }}
-              />
+              {/* Only English supported for now */}
+              <div
+                style={{
+                  padding: "0.67857143em 1em",
+                  background: "#f9f9f9",
+                  border: "1px solid rgba(34,36,38,.15)",
+                  borderRadius: ".28571429rem",
+                  color: "rgba(0,0,0,.6)",
+                }}
+              >
+                🇬🇧 English
+              </div>
+              <input type="hidden" name="lang" value="en" />
             </Form.Field>
           </Form.Group>
         </Segment>

@@ -350,6 +350,98 @@ class CMSRenderAPIView(MethodView):
             return jsonify({"error": str(e)}), 500
 
 
+class CMSPublicRenderAPIView(MethodView):
+    """Public API endpoint for rendering public CMS content (no auth required).
+
+    This endpoint is used by templates to fetch content like footer, header, etc.
+    It returns data with fallback to fixtures if no content exists in DB.
+    """
+
+    # Resource types allowed for public access
+    PUBLIC_RESOURCES = {"footer", "header", "homepage_hero"}
+
+    def __init__(self):
+        """Initialize the service."""
+        self.service = CMSContentService(CMSContentServiceConfig())
+
+    def get(self, resource_type):
+        """Get public content for a resource type.
+
+        This endpoint:
+        1. Checks if resource_type is allowed for public access
+        2. Tries to fetch published content from DB
+        3. Falls back to fixtures if no content exists
+        4. Returns data ready for template rendering
+
+        Query params:
+            - lang: Language (default: en)
+
+        Returns:
+            JSON with content data
+        """
+        # Check if resource type is allowed for public access
+        if resource_type not in self.PUBLIC_RESOURCES:
+            return jsonify({"error": "Resource not available for public access"}), 403
+
+        lang = request.args.get("lang", "en")
+
+        try:
+            # Try to get published content from DB
+            from ..models import CMSContent
+            from ..fixtures import get_fixture
+
+            content = CMSContent.query.filter_by(
+                resource_type=resource_type,
+                slug=resource_type,  # Singletons have slug = resource_type
+                lang=lang,
+                is_published=True,
+            ).first()
+
+            if content:
+                # Return DB content
+                return (
+                    jsonify(
+                        {
+                            "resource_type": resource_type,
+                            "lang": lang,
+                            "data": content.data,
+                            "source": "database",
+                        }
+                    ),
+                    200,
+                )
+            else:
+                # Fall back to fixtures
+                fixture_data = get_fixture(resource_type, lang)
+                if fixture_data:
+                    return (
+                        jsonify(
+                            {
+                                "resource_type": resource_type,
+                                "lang": lang,
+                                "data": fixture_data,
+                                "source": "fixture",
+                            }
+                        ),
+                        200,
+                    )
+                else:
+                    return (
+                        jsonify(
+                            {
+                                "resource_type": resource_type,
+                                "lang": lang,
+                                "data": {},
+                                "source": "empty",
+                            }
+                        ),
+                        200,
+                    )
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
 class CMSSingletonUpsertAPIView(MethodView):
     """API endpoint for singleton upsert (create or update)."""
 
@@ -380,3 +472,76 @@ class CMSSingletonUpsertAPIView(MethodView):
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": str(e)}), 500
+
+
+class CMSUploadAPIView(MethodView):
+    """API endpoint for CMS file uploads."""
+
+    def post(self):
+        """Upload a file to the CMS static directory.
+
+        Form data:
+            - file: The file to upload
+            - path: Target subdirectory within static (default: uploads/cms)
+
+        Returns:
+            JSON with the relative path to the uploaded file
+        """
+        import os
+        from werkzeug.utils import secure_filename
+        from flask import current_app
+
+        # Check for file in request
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+        if file.filename == "":
+            return jsonify({"error": "No file selected"}), 400
+
+        # Get target path (default: uploads/cms)
+        target_path = request.form.get("path", "uploads/cms")
+
+        # Secure the filename
+        filename = secure_filename(file.filename)
+        if not filename:
+            return jsonify({"error": "Invalid filename"}), 400
+
+        # Build the full path
+        # Static folder is typically at instance/static or static/
+        static_folder = current_app.static_folder
+        if not static_folder:
+            # Fallback to instance static folder
+            static_folder = os.path.join(current_app.instance_path, "static")
+
+        upload_dir = os.path.join(static_folder, target_path)
+
+        # Create directory if it doesn't exist
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # Save the file
+        file_path = os.path.join(upload_dir, filename)
+
+        # If file exists, add a suffix
+        base, ext = os.path.splitext(filename)
+        counter = 1
+        while os.path.exists(file_path):
+            filename = f"{base}_{counter}{ext}"
+            file_path = os.path.join(upload_dir, filename)
+            counter += 1
+
+        file.save(file_path)
+
+        # Return the relative path for storage in CMS
+        relative_path = f"{target_path}/{filename}"
+
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "path": relative_path,
+                    "filename": filename,
+                }
+            ),
+            200,
+        )

@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install
+.PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures
 
 # Default target
 help:
@@ -30,6 +30,7 @@ help:
 	@echo "Database Migration Commands:"
 	@echo "  site-install - Reinstall site package (after model changes)"
 	@echo "  db-init-cms  - Initialize CMS tables (first-time setup)"
+	@echo "  cms-fixtures - Load CMS fixtures (footer, header, etc.)"
 	@echo "  db-status    - Show migration status for all branches"
 	@echo "  db-current   - Show current database revision"
 	@echo "  db-history   - Show migration history"
@@ -80,6 +81,8 @@ init:
 	$(MAKE) users
 	@echo "🗃️  Initializing CMS database tables..."
 	$(MAKE) db-init-cms
+	@echo "📦 Loading CMS fixtures..."
+	$(MAKE) cms-fixtures
 	@echo "🔧 Installing openscience_tools package..."
 	$(MAKE) tools-install
 	@echo "✅ Initialization complete! Use 'make up' to start the server."
@@ -547,7 +550,7 @@ db-init-cms:
 	@echo "📋 Step 2/4: Stamping base dependency (if needed)..."
 	-$(VENV_ACTIVATE) && invenio alembic stamp dbdbc1b19cf2 2>/dev/null || true
 	@echo "🔍 Step 3/4: Checking if CMS tables already exist..."
-	@CMS_EXISTS=$$($(VENV_ACTIVATE) && invenio shell -c "from invenio_db import db; r=db.session.execute(db.text(\"SELECT COUNT(*) FROM pg_tables WHERE tablename='cms_page'\")); print(r.scalar())" 2>/dev/null || echo "0"); \
+	@CMS_EXISTS=$$($(VENV_ACTIVATE) && invenio shell -c "from invenio_db import db; r=db.session.execute(db.text(\"SELECT COUNT(*) FROM pg_tables WHERE tablename='cms_content'\")); print(r.scalar())" 2>/dev/null || echo "0"); \
 	if [ "$$CMS_EXISTS" = "1" ]; then \
 		echo "ℹ️  CMS tables already exist, stamping migration as applied..."; \
 		$(VENV_ACTIVATE) && invenio alembic stamp my_site@head; \
@@ -558,12 +561,18 @@ db-init-cms:
 	@echo "✅ CMS tables initialized!"
 	@echo ""
 	@echo "📋 Tables:"
-	@echo "   - cms_category"
-	@echo "   - cms_page"
-	@echo "   - cms_page_category"
+	@echo "   - cms_content (unified Resource-Driven CMS)"
 	@echo ""
 	@echo "🔗 API endpoints available at:"
-	@echo "   - GET/POST    /api/cms/pages"
-	@echo "   - GET/PUT/DEL /api/cms/pages/<id>"
-	@echo "   - GET/POST    /api/cms/categories"
-	@echo "   - GET/PUT/DEL /api/cms/categories/<id>"
+	@echo "   - GET    /data/cms/resources"
+	@echo "   - GET    /data/cms/public/<type> (public, no auth)"
+	@echo "   - GET    /data/cms/content/<type>"
+	@echo "   - POST   /data/cms/content/<type>"
+	@echo "   - PUT    /data/cms/content/<type>/<id>"
+	@echo "   - DELETE /data/cms/content/<type>/<id>"
+
+# Load CMS fixtures (default content for footer, header, etc.)
+cms-fixtures:
+	@echo "📦 Loading CMS fixtures..."
+	$(VENV_ACTIVATE) && invenio cms load-fixtures
+	@echo "✅ CMS fixtures loaded!"

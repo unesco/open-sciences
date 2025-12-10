@@ -18,11 +18,6 @@ This module defines the available CMS resource types with their:
 # Available languages for CMS content
 CMS_LANGUAGES = [
     {"code": "en", "name": "English"},
-    {"code": "fr", "name": "Français"},
-    {"code": "es", "name": "Español"},
-    {"code": "ar", "name": "العربية"},
-    {"code": "ru", "name": "Русский"},
-    {"code": "zh", "name": "中文"},
 ]
 
 # Resource Registry
@@ -65,26 +60,71 @@ CMS_RESOURCES = {
         "schema": {
             "type": "object",
             "properties": {
+                # Left column - Logo
+                "unesco_logo": {
+                    "type": "string",
+                    "title": "UNESCO Logo",
+                    "description": "Upload a custom logo image. Leave empty to use the default UNESCO logo.",
+                    "format": "image",
+                },
+                # Left column - Website link
+                "unesco_website_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "title": "UNESCO Website URL",
+                    "description": "Link to official UNESCO website",
+                    "default": "https://www.unesco.org",
+                },
+                "unesco_website_label": {
+                    "type": "string",
+                    "title": "UNESCO Website Label",
+                    "description": "Text for UNESCO website link",
+                    "default": "Official UNESCO Website",
+                },
+                # Right column
                 "contact_email": {
                     "type": "string",
                     "format": "email",
                     "title": "Contact Email",
                     "description": "Contact email displayed in footer",
                 },
-                "unesco_logo_url": {
-                    "type": "string",
-                    "format": "uri",
-                    "title": "UNESCO Logo URL",
+                "navigation_links": {
+                    "type": "array",
+                    "title": "Navigation Links",
+                    "description": "Footer navigation links (max 4)",
+                    "maxItems": 4,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "type": "string",
+                                "title": "Link Label",
+                                "maxLength": 100,
+                            },
+                            "url": {
+                                "type": "string",
+                                "title": "Link URL",
+                            },
+                            "external": {
+                                "type": "boolean",
+                                "title": "External Link",
+                                "description": "Opens in new tab if true",
+                                "default": False,
+                            },
+                        },
+                        "required": ["label", "url"],
+                    },
                 },
-                "platform_text": {
+                # Bottom section
+                "copyright_text": {
                     "type": "string",
-                    "title": "Platform Text",
-                    "description": "UNESCO Open Science Platform text",
+                    "title": "Copyright Text",
+                    "description": "Main copyright line",
                 },
-                "privacy_page_url": {
+                "tagline": {
                     "type": "string",
-                    "title": "Privacy Page URL",
-                    "description": "Link to privacy policy page",
+                    "title": "Tagline",
+                    "description": "Secondary tagline text",
                 },
             },
             "required": ["contact_email"],
@@ -150,8 +190,16 @@ CMS_RESOURCES = {
                             "title": {"type": "string", "title": "Tile Title"},
                             "description": {"type": "string", "title": "Description"},
                             "icon": {"type": "string", "title": "Icon name or URL"},
-                            "link": {"type": "string", "format": "uri", "title": "Link URL"},
-                            "image_url": {"type": "string", "format": "uri", "title": "Image URL"},
+                            "link": {
+                                "type": "string",
+                                "format": "uri",
+                                "title": "Link URL",
+                            },
+                            "image_url": {
+                                "type": "string",
+                                "format": "uri",
+                                "title": "Image URL",
+                            },
                         },
                         "required": ["title"],
                     },
@@ -186,8 +234,16 @@ CMS_RESOURCES = {
                         "type": "object",
                         "properties": {
                             "name": {"type": "string", "title": "Partner Name"},
-                            "logo_url": {"type": "string", "format": "uri", "title": "Logo URL"},
-                            "website_url": {"type": "string", "format": "uri", "title": "Website URL"},
+                            "logo_url": {
+                                "type": "string",
+                                "format": "uri",
+                                "title": "Logo URL",
+                            },
+                            "website_url": {
+                                "type": "string",
+                                "format": "uri",
+                                "title": "Website URL",
+                            },
                         },
                         "required": ["name", "logo_url"],
                     },
@@ -217,9 +273,17 @@ CMS_RESOURCES = {
                         "type": "object",
                         "properties": {
                             "title": {"type": "string", "title": "Title"},
-                            "image_url": {"type": "string", "format": "uri", "title": "Image URL"},
+                            "image_url": {
+                                "type": "string",
+                                "format": "uri",
+                                "title": "Image URL",
+                            },
                             "description": {"type": "string", "title": "Description"},
-                            "link": {"type": "string", "format": "uri", "title": "Link"},
+                            "link": {
+                                "type": "string",
+                                "format": "uri",
+                                "title": "Link",
+                            },
                         },
                         "required": ["title", "image_url"],
                     },
@@ -412,9 +476,7 @@ def validate_resource_data(resource_type: str, data: dict) -> tuple:
     errors = list(validator.iter_errors(data))
 
     if errors:
-        error_messages = [
-            {"path": list(e.path), "message": e.message} for e in errors
-        ]
+        error_messages = [{"path": list(e.path), "message": e.message} for e in errors]
         return False, error_messages
 
     return True, []
