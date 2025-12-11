@@ -114,20 +114,11 @@
   <div class="ui divider"></div>
 {% endif %}
 
-{# Publisher - Card Style #}
-{# Moved to custom_fields_panel.html #}
-
-{# Related identifiers - Card Style #}
-{# Moved to custom_fields_panel.html #}
-
-{# Funding - Card Style #}
-{# Moved to custom_fields_panel.html #}
-
 {# === LENS.ORG BADGE/TAG === #}
-{% include "invenio_app_rdm/records/details/custom_fields_lens_id.html" %}
+{% include "invenio_app_rdm/records/details/partials/_lens_id.html" %}
 
 {# === UNESCO CUSTOM FIELDS PANEL (Publisher, Related, Funding, Lens.org fields) === #}
-{% include "invenio_app_rdm/records/details/custom_fields_panel.html" %}
+{% include "invenio_app_rdm/records/details/partials/_panel.html" %}
 
 {# Locations #}
 {% if metadata.locations %}
@@ -178,123 +169,3 @@
   {% endif %}
 {% endif %}
 
-{# Custom fields - LENS.ORG SECTION (no accordion) #}
-{% if record_ui["custom_fields"] %}
-  {%- for section_cfg in custom_fields_ui %}
-    {% set section_has_fields = namespace(value=false) %}
-    {# Show the section if at least one of its fields is in record #}
-    {% for field_cfg in section_cfg.fields %}
-      {% if record_ui["custom_fields"].get(field_cfg.field) %}
-        {% set section_has_fields.value = true %}
-      {% endif %}
-    {% endfor %}
-
-    {% if section_has_fields.value %}
-      {# LENS.ORG: Render without accordion, full-width #}
-      {% if section_cfg.section == "Lens.org" %}
-        {# Render each field individually #}
-        {% for field_cfg in section_cfg.fields %}
-          {% set field_value = record_ui["custom_fields"].get(field_cfg.field) %}
-          {% if field_value %}
-            {% if field_cfg.template %}
-              {# Custom template (like lens:open_access) - renders without dl wrapper #}
-              {% include field_cfg.template %}
-            {% else %}
-              {# Standard fields - render with dl wrapper #}
-              <dl class="details-list">
-                <dt class="ui tiny header">
-                  {{ field_cfg.props.label }}
-                  {% if config.RDM_NAMESPACES.get(field_cfg.field.split(':')[0]) %}
-                    <a href="{{ config.RDM_NAMESPACES[field_cfg.field.split(':')[0]] }}{{ field_cfg.field.split(':')[1] }}" aria-label="{{ config.RDM_NAMESPACES[field_cfg.field.split(':')[0]] }}{{ field_cfg.field.split(':')[1] }}">
-                      <i class="icon external" aria-hidden="true"></i>
-                    </a>
-                  {% endif %}
-                </dt>
-                <dd>
-                  <a href="/search?q=custom_fields.{{ field_cfg.field | replace(':', '%5C:') }}:{{ field_value }}">{{ field_value }}</a>
-                </dd>
-              </dl>
-            {% endif %}
-          {% endif %}
-        {% endfor %}
-      {% else %}
-        {# OTHER SECTIONS: Keep accordion #}
-        <div class="ui fluid accordion padded grid rel-mb-1">
-          <div class="active title sixteen wide mobile four wide tablet three wide computer column">
-            <h3 class="ui header">
-              <div
-                id="custom-fields-accordion-trigger"
-                role="button"
-                tabindex="0"
-                aria-expanded="true"
-                aria-controls="custom-fields-panel"
-                class="trigger"
-              >
-                <i class="caret right icon" aria-hidden="true"></i>{{ section_cfg.section }}
-              </div>
-            </h3>
-          </div>
-          <div
-            id="custom-fields-panel"
-            role="region"
-            aria-labelledby="custom-fields-accordion-trigger"
-            class="active content sixteen wide mobile twelve wide tablet thirteen wide computer column"
-          >
-            <dl class="details-list">
-              {{ show_section_custom_fields(record_ui["ui"]["custom_fields"], section_cfg.fields) }}
-            </dl>
-          </div>
-        </div>
-        <div class="ui divider"></div>
-      {% endif %}
-    {% endif %}
-  {%- endfor %}
-{% endif %}
-
-{# References #}
-{% if metadata.references %}
-  {% if metadata.references|length > 5 %}
-    <div class="ui fluid accordion padded grid rel-mb-1">
-      <div class="active title sixteen wide mobile four wide tablet three wide computer column">
-        <h3 class="ui header">
-          <div
-            id="references-accordion-trigger"
-            role="button"
-            tabindex="0"
-            aria-expanded="true"
-            aria-controls="references-panel"
-            class="trigger"
-          >
-            <i class="caret right icon" aria-hidden="true"></i>{{ _('References') }}
-          </div>
-        </h3>
-      </div>
-      <div
-        id="references-panel"
-        role="region"
-        aria-labelledby="references-accordion-trigger"
-        class="active content sixteen wide mobile twelve wide tablet thirteen wide computer column text-break"
-      >
-        <ol class="references-list">
-          {% for reference in metadata.references %}
-            <li>{{ reference.reference }}</li>
-          {% endfor %}
-        </ol>
-      </div>
-    </div>
-  {% else %}
-    <div class="ui grid">
-      <div class="sixteen wide mobile four wide tablet three wide computer column">
-        <h3 class="ui header">{{ _('References') }}</h3>
-      </div>
-      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column text-break">
-        <ol class="references-list">
-          {% for reference in metadata.references %}
-            <li>{{ reference.reference }}</li>
-          {% endfor %}
-        </ol>
-      </div>
-    </div>
-  {% endif %}
-  <div class="ui divider"></div>
-{% endif %}

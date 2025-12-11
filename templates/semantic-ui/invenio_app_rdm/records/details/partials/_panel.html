@@ -7,20 +7,11 @@
   - Funding
   - Lens.org fields (Open Access, External IDs, References, Citations, MeSH, Chemicals)
   
-  Note: Keywords/Subjects are in custom_fields_keywords.html (card style)
-  Note: Lens.org badge is in custom_fields_lens_id.html
+  Note: Keywords/Subjects are in partials/_keywords.html (card style)
+  Note: Lens.org badge is in partials/_lens_id.html
   
-  Each section is modularized in partials/ folder for easier maintenance:
-  - partials/_panel_styles.html       - All CSS styles
-  - partials/_publication_details.html
-  - partials/_related_works.html
-  - partials/_funding.html
-  - partials/_open_access.html
-  - partials/_external_ids.html
-  - partials/_references.html
-  - partials/_cited_by.html
-  - partials/_mesh_terms.html
-  - partials/_chemicals.html
+  Sections are modularized in partials/ folder for easier maintenance.
+  CSS styles are in assets/less/site/globals/unesco-panel.overrides
 #}
 
 {# ========== VARIABLE DEFINITIONS ========== #}
@@ -43,9 +34,6 @@
 {%- set has_any_content = has_publisher or has_related or has_funding or has_lens -%}
 
 {%- if has_any_content -%}
-
-{# ========== STYLES ========== #}
-{% include "invenio_app_rdm/records/details/partials/_panel_styles.html" %}
 
 {# ========== PANEL STRUCTURE ========== #}
 <div class="unesco-panel">
