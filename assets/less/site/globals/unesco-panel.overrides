@@ -404,14 +404,14 @@
   }
 }
 
-/* ========== UNIFIED LIST STYLE ========== */
-.unesco-list {
+/* ========== UNIFIED LIST STYLE (scoped to panel) ========== */
+.unesco-panel .unesco-list {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-.unesco-list-item {
+.unesco-panel .unesco-list-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -425,7 +425,7 @@
   }
 }
 
-.unesco-list-text {
+.unesco-panel .unesco-list-text {
   color: #333;
   font-size: 0.95em;
   flex: 1;
@@ -435,12 +435,12 @@
   white-space: nowrap;
 }
 
-.unesco-list-subtext {
+.unesco-panel .unesco-list-subtext {
   color: #666;
   font-size: 0.9em;
 }
 
-.unesco-find-more-btn {
+.unesco-panel .unesco-find-more-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -473,7 +473,7 @@
 }
 
 /* Link semplice per related works */
-.unesco-external-link {
+.unesco-panel .unesco-external-link {
   color: #0077b6;
   text-decoration: none;
   font-size: 0.9em;
@@ -530,8 +530,8 @@
   }
 }
 
-/* ========== CITATION LIST ========== */
-.unesco-citation-item {
+/* ========== CITATION LIST (scoped to panel) ========== */
+.unesco-panel .unesco-citation-item {
   padding: 10px 14px;
   background: #f8f9fa;
   border-left: 2px solid #ddd;
