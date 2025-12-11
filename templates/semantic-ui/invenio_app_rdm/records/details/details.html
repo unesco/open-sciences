@@ -52,7 +52,7 @@
 {% endif %}
 
 {# Subjects - Card Style #}
-{% include "invenio_app_rdm/records/details/subjects_card.html" %}
+{# Moved to custom_fields_panel.html #}
 
 {# Languages #}
 {% if metadata.languages %}
@@ -115,13 +115,19 @@
 {% endif %}
 
 {# Publisher - Card Style #}
-{% include "invenio_app_rdm/records/details/publisher_card.html" %}
+{# Moved to custom_fields_panel.html #}
 
 {# Related identifiers - Card Style #}
-{% include "invenio_app_rdm/records/details/related_works_card.html" %}
+{# Moved to custom_fields_panel.html #}
 
 {# Funding - Card Style #}
-{% include "invenio_app_rdm/records/details/funding_card.html" %}
+{# Moved to custom_fields_panel.html #}
+
+{# === LENS.ORG BADGE/TAG === #}
+{% include "invenio_app_rdm/records/details/custom_fields_lens_id.html" %}
+
+{# === UNESCO CUSTOM FIELDS PANEL (Publisher, Related, Funding, Lens.org fields) === #}
+{% include "invenio_app_rdm/records/details/custom_fields_panel.html" %}
 
 {# Locations #}
 {% if metadata.locations %}

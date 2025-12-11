@@ -1,0 +1,24 @@
+{#
+  Keywords/Subjects Card Component
+  Shows keywords/subjects as clickable tags in sidebar card format
+  Style matches InvenioRDM default sidebar cards
+#}
+
+{%- if metadata.subjects and metadata.subjects|length > 0 -%}
+<section id="keywords-and-topics" class="sidebar-container" aria-label="{{ _('Keywords and topics') }}">
+  <h2 class="ui medium top attached header mt-0">{{ _('Keywords and topics') }}</h2>
+  <div class="ui segment bottom attached rdm-sidebar">
+    <div class="keywords-tags" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      {%- for subject_item in metadata.subjects -%}
+        {%- if subject_item.subject -%}
+      <a href="/search?q=metadata.subjects.subject:{{ subject_item.subject | urlencode }}" 
+         class="ui label basic"
+         style="margin: 0; border-radius: 4px; font-weight: normal;">
+        {{ subject_item.subject }}
+      </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+{%- endif -%}

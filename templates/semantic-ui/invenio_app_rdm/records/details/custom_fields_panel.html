@@ -1,0 +1,1036 @@
+{#
+  UNESCO Open Science Portal - Custom Fields Panel
+  
+  A unified accordion panel containing all custom sections:
+  - Publisher  
+  - Related Works
+  - Funding
+  - Lens.org fields (Open Access, External IDs, References, Citations, MeSH, Chemicals)
+  
+  Note: Keywords/Subjects are now in custom_fields_keywords.html (card style)
+  Note: Lens.org badge is in custom_fields_lens_id.html
+  Note: Source section removed (data shown in Publisher section)
+  
+  Each section is collapsible/expandable independently
+#}
+
+{# Check if we have any content to display #}
+{%- set has_publisher = metadata.publisher -%}
+{%- set has_related = metadata.related_identifiers and metadata.related_identifiers|length > 0 -%}
+{%- set has_funding = metadata.funding and metadata.funding|length > 0 -%}
+
+{# Check Lens.org custom fields #}
+{%- set lens_open_access = record_ui.custom_fields.get('lens:open_access') if record_ui.custom_fields else none -%}
+{%- set lens_id = record_ui.custom_fields.get('lens:id') if record_ui.custom_fields else none -%}
+{%- set lens_external_ids = record_ui.custom_fields.get('lens:external_ids') if record_ui.custom_fields else none -%}
+{%- set lens_source = record_ui.custom_fields.get('lens:source') if record_ui.custom_fields else none -%}
+{%- set lens_references = record_ui.custom_fields.get('lens:references') if record_ui.custom_fields else none -%}
+{%- set lens_citations = record_ui.custom_fields.get('lens:scholarly_citations') if record_ui.custom_fields else none -%}
+{%- set lens_mesh = record_ui.custom_fields.get('lens:mesh_terms') if record_ui.custom_fields else none -%}
+{%- set lens_chemicals = record_ui.custom_fields.get('lens:chemicals') if record_ui.custom_fields else none -%}
+
+{%- set has_lens = lens_open_access or lens_external_ids or lens_references or lens_citations or lens_mesh or lens_chemicals -%}
+{%- set has_any_content = has_publisher or has_related or has_funding or has_lens -%}
+
+{%- if has_any_content -%}
+<style>
+  .unesco-panel {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  
+  .unesco-panel-header {
+    background: linear-gradient(135deg, #0077b6 0%, #023e8a 100%);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .unesco-panel-header h2 {
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: 600;
+    color: white;
+  }
+  
+  .unesco-panel-header .icon {
+    font-size: 1.4em;
+  }
+  
+  .unesco-section {
+    border-bottom: 1px solid #e8e8e8;
+  }
+  
+  .unesco-section:last-child {
+    border-bottom: none;
+  }
+  
+  .unesco-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+  }
+  
+  .unesco-section-header:hover {
+    background: #e9ecef;
+  }
+  
+  .unesco-section-header h3 {
+    margin: 0;
+    font-size: 1.05em;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .unesco-section-header h3 i.icon {
+    color: #0077b6;
+    margin: 0;
+    line-height: 1;
+    height: auto;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .unesco-section-header .icon {
+    color: #0077b6;
+  }
+  
+  .unesco-section-header .badge {
+    background: #0077b6;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+  
+  .unesco-section-header .badge.gold { background: #f4a100; }
+  .unesco-section-header .badge.green { background: #27ae60; }
+  .unesco-section-header .badge.bronze { background: #cd7f32; }
+  .unesco-section-header .badge.hybrid { background: #9b59b6; }
+  
+  .unesco-section-header .chevron {
+    transition: transform 0.3s;
+    color: #666;
+  }
+  
+  .unesco-section.collapsed .unesco-section-header .chevron {
+    transform: rotate(-90deg);
+  }
+  
+  .unesco-section-content {
+    padding: 16px 20px;
+    background: #fff;
+    overflow: hidden;
+    max-height: 2000px;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+  }
+  
+  .unesco-section.collapsed .unesco-section-content {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  
+  /* Subject tags */
+  .unesco-subject-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .unesco-subject-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f0f7ff;
+    border: 1px solid #d0e3f7;
+    border-radius: 16px;
+    color: #333;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: all 0.2s;
+  }
+  
+  .unesco-subject-tag:hover {
+    background: #d0e3f7;
+    border-color: #0077b6;
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+  
+  .unesco-subject-tag .scheme {
+    padding: 2px 6px;
+    background: rgba(0,119,182,0.1);
+    border-radius: 8px;
+    font-size: 0.85em;
+    color: #0077b6;
+  }
+  
+  /* Publisher details (Container style) */
+  .publisher-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .publisher-detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .publisher-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95em;
+  }
+  
+  .publisher-value {
+    color: #555;
+    font-size: 0.95em;
+  }
+  
+  .publisher-value a {
+    color: #333;
+    text-decoration: underline;
+  }
+  
+  .publisher-value a:hover {
+    color: #0077b6;
+  }
+  
+  .publisher-inline-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 4px;
+  }
+  
+  .publisher-inline-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .publisher-inline-item i.icon {
+    color: #888;
+    font-size: 0.9em;
+    margin: 0;
+    line-height: 1;
+    height: auto;
+  }
+  
+  .publisher-inline-item .publisher-label {
+    font-weight: 500;
+    font-size: 0.9em;
+    color: #555;
+  }
+  
+  .publisher-inline-item .publisher-value {
+    font-size: 0.9em;
+  }
+  
+  /* Links list */
+  .unesco-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .unesco-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-left: 3px solid #0077b6;
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+  }
+  
+  .unesco-link:hover {
+    background: #e9ecef;
+    text-decoration: none;
+    transform: translateX(2px);
+  }
+  
+  .unesco-link-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .unesco-link-icon {
+    color: #0077b6;
+    font-size: 1.1em;
+    margin: 0;
+    line-height: 1;
+    height: auto;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .unesco-link-text {
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .unesco-link-badge {
+    padding: 4px 10px;
+    background: #e8f4f8;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #0077b6;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Funding item */
+  .unesco-funding-item {
+    padding: 14px;
+    background: #f8f9fa;
+    border-left: 3px solid #0077b6;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  
+  .unesco-funding-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .unesco-funding-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .unesco-funding-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .unesco-funding-name {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .unesco-funding-id {
+    font-size: 0.85em;
+    color: #666;
+    font-family: monospace;
+  }
+  
+  .unesco-funding-award {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e0e0e0;
+    margin-left: 32px;
+  }
+  
+  .unesco-award-title {
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .unesco-award-number {
+    font-size: 0.9em;
+    color: #666;
+    font-family: monospace;
+  }
+  
+  .unesco-search-btn {
+    color: #0077b6;
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid #0077b6;
+    border-radius: 4px;
+    font-size: 0.85em;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  
+  .unesco-search-btn:hover {
+    background: #0077b6;
+    color: white;
+    text-decoration: none;
+  }
+  
+  /* Publication details */
+  .unesco-pub-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-top: 12px;
+  }
+  
+  .unesco-pub-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95em;
+  }
+  
+  .unesco-pub-detail .label {
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .unesco-pub-detail .value {
+    color: #333;
+    font-weight: 600;
+  }
+  
+  /* Info box */
+  .unesco-info-box {
+    padding: 12px 16px;
+    background: #f0f7ff;
+    border-left: 3px solid #0077b6;
+    border-radius: 4px;
+    font-size: 0.95em;
+    color: #333;
+  }
+  
+  .unesco-info-box .label {
+    font-weight: 600;
+    color: #0077b6;
+  }
+  
+  /* License badge */
+  .unesco-license-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    color: white;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  
+  /* Terms list (MeSH, Chemicals) */
+  .unesco-terms-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .unesco-term-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #f0f0f0;
+    border-radius: 12px;
+    font-size: 0.85em;
+    color: #555;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  
+  .unesco-term-tag:hover {
+    background: #e0e0e0;
+    text-decoration: none;
+  }
+  
+  /* Citation list - no scroll, show all items */
+  .unesco-citation-item {
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-left: 2px solid #ddd;
+    margin-bottom: 6px;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.9em;
+  }
+  
+  .unesco-citation-item:hover {
+    border-left-color: #0077b6;
+    background: #f0f7ff;
+  }
+</style>
+
+<div class="unesco-panel">
+  {# Panel Header #}
+  
+  {# === SUBJECTS/KEYWORDS - Moved to custom_fields_keywords.html as a card === #}
+  
+  {# === PUBLICATION DETAILS SECTION === #}
+  {%- if has_publisher -%}
+  <div class="unesco-section" id="unesco-publisher-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-publisher-section')">
+      <h3>
+        <i class="book icon"></i>
+        {{ _('Publication details') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        {%- if metadata.resource_type and metadata.resource_type.title -%}
+        <span class="badge">{{ metadata.resource_type.title.en or metadata.resource_type.id }}</span>
+        {%- endif -%}
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      {# Publication Details - Journal info #}
+      {%- set journal = record_ui.custom_fields.get('journal:journal', {}) if record_ui.custom_fields else {} -%}
+      {%- set lens_source_raw = record_ui.custom_fields.get('lens:source', '{}') if record_ui.custom_fields else '{}' -%}
+      
+      <div class="publisher-details">
+        {# Journal Title #}
+        {%- if journal and journal.title -%}
+        <div class="publisher-detail-row">
+          <span class="publisher-label">{{ _('Journal') }}:</span>
+          <span class="publisher-value">{{ journal.title }}</span>
+        </div>
+        {%- endif -%}
+        
+        {# Publisher #}
+        {%- if metadata.publisher -%}
+        <div class="publisher-detail-row">
+          <span class="publisher-label">{{ _('Publisher') }}:</span>
+          <span class="publisher-value">
+            <a href="/search?q=metadata.publisher:{{ metadata.publisher | urlencode }}">{{ metadata.publisher }}</a>
+          </span>
+        </div>
+        {%- endif -%}
+        
+        {# ISSN from lens:source or related_identifiers #}
+        {%- set issn_value = none -%}
+        {%- if lens_source_raw and '"issn"' in lens_source_raw -%}
+          {# Try to extract ISSN from lens:source JSON #}
+          {%- if '"value":' in lens_source_raw -%}
+            {%- set issn_part = lens_source_raw.split('"issn"')[1] if '"issn"' in lens_source_raw else '' -%}
+            {%- if '"value":' in issn_part -%}
+              {%- set issn_value = issn_part.split('"value":')[1].split('"')[1] if '"value":' in issn_part else none -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endif -%}
+        {# Fallback: check related_identifiers for ISSN #}
+        {%- if not issn_value and metadata.related_identifiers -%}
+          {%- for rel_id in metadata.related_identifiers -%}
+            {%- if rel_id.scheme == 'issn' -%}
+              {%- set issn_value = rel_id.identifier -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+        {%- if issn_value -%}
+        <div class="publisher-detail-row">
+          <span class="publisher-label">{{ _('ISSN') }}:</span>
+          <span class="publisher-value publisher-link">
+            <a href="https://portal.issn.org/resource/ISSN/{{ issn_value }}" target="_blank" rel="noopener noreferrer">{{ issn_value }}</a>
+          </span>
+        </div>
+        {%- endif -%}
+        
+        {# Volume and Pages on same row #}
+        {%- if journal and (journal.volume or journal.pages) -%}
+        <div class="publisher-inline-row">
+          {%- if journal.volume -%}
+          <div class="publisher-inline-item">
+            <i class="book icon"></i>
+            <span class="publisher-label">{{ _('Volume') }}:</span>
+            <span class="publisher-value">{{ journal.volume }}</span>
+          </div>
+          {%- endif -%}
+          {%- if journal.pages -%}
+          <div class="publisher-inline-item">
+            <i class="book icon"></i>
+            <span class="publisher-label">{{ _('Pages') }}:</span>
+            <span class="publisher-value">{{ journal.pages }}</span>
+          </div>
+          {%- endif -%}
+        </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+  
+  {# === RELATED WORKS SECTION === #}
+  {%- if has_related -%}
+  <div class="unesco-section" id="unesco-related-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-related-section')">
+      <h3>
+        <i class="linkify icon"></i>
+        {{ _('Related Works') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="badge">{{ metadata.related_identifiers|length }}</span>
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      <div class="unesco-links">
+        {%- for rel_id in metadata.related_identifiers -%}
+        <a href="{% if rel_id.scheme == 'doi' %}https://doi.org/{{ rel_id.identifier }}{% elif rel_id.scheme == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}{% elif rel_id.scheme == 'url' %}{{ rel_id.identifier }}{% else %}#{% endif %}" 
+           class="unesco-link"
+           {% if rel_id.scheme in ['doi', 'pmid', 'url'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+          <div class="unesco-link-left">
+            <i class="{% if rel_id.scheme == 'doi' %}certificate{% elif rel_id.scheme == 'pmid' %}medkit{% elif rel_id.scheme == 'url' %}globe{% else %}link{% endif %} icon unesco-link-icon"></i>
+            <span class="unesco-link-text">
+              {%- if rel_id.relation_type and rel_id.relation_type.title -%}
+                {{ rel_id.relation_type.title.en or rel_id.relation_type.id }}
+              {%- else -%}
+                {{ _('Related identifier') }}
+              {%- endif -%}
+            </span>
+          </div>
+          <span class="unesco-link-badge">
+            {{ rel_id.scheme | upper }}: {{ rel_id.identifier | truncate(35) }}
+          </span>
+        </a>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+  
+  {# === FUNDING SECTION === #}
+  {%- if has_funding -%}
+  <div class="unesco-section" id="unesco-funding-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-funding-section')">
+      <h3>
+        <i class="money bill alternate icon"></i>
+        {{ _('Funding') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="badge">{{ metadata.funding|length }}</span>
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      {%- for funding_item in metadata.funding -%}
+      <div class="unesco-funding-item">
+        <div class="unesco-funding-header">
+          <div class="unesco-funding-info">
+            <i class="university icon" style="color: #0077b6; font-size: 1.2em;"></i>
+            <div>
+              <div class="unesco-funding-name">{{ funding_item.funder.name }}</div>
+              {%- if funding_item.funder.id -%}
+              <div class="unesco-funding-id">ID: {{ funding_item.funder.id }}</div>
+              {%- endif -%}
+            </div>
+          </div>
+          <a href="/search?q=metadata.funding.funder.name:{{ funding_item.funder.name | urlencode }}" 
+             class="unesco-search-btn"
+             title="{{ _('Find more records funded by') }} {{ funding_item.funder.name }}">
+            <i class="search icon"></i> {{ _('Find more') }}
+          </a>
+        </div>
+        
+        {%- if funding_item.award -%}
+        <div class="unesco-funding-award">
+          <i class="certificate icon" style="color: #f39c12;"></i>
+          {%- if funding_item.award.title -%}
+          <span class="unesco-award-title">
+            {{ funding_item.award.title.en if funding_item.award.title.en else funding_item.award.title }}
+          </span>
+          {%- endif -%}
+          {%- if funding_item.award.number -%}
+          <span class="unesco-award-number"> — Grant: {{ funding_item.award.number }}</span>
+          {%- endif -%}
+        </div>
+        {%- endif -%}
+      </div>
+      {%- endfor -%}
+    </div>
+  </div>
+  {%- endif -%}
+  
+  {# ========== LENS.ORG CUSTOM FIELDS ========== #}
+  
+  {# === OPEN ACCESS SECTION === #}
+  {%- if lens_open_access -%}
+  {%- set oa_data = lens_open_access -%}
+  {# Parse Open Access data #}
+  {%- set oa_colour = '' -%}
+  {%- set oa_license = '' -%}
+  {%- if '"colour":' in oa_data -%}
+    {%- set oa_colour = oa_data.split('"colour":')[1].split(',')[0].split('}')[0].replace('"', '').strip() -%}
+  {%- endif -%}
+  {%- if '"license":' in oa_data -%}
+    {%- set oa_license = oa_data.split('"license":')[1].split(',')[0].replace('"', '').strip() -%}
+  {%- endif -%}
+  <div class="unesco-section" id="unesco-openaccess-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-openaccess-section')">
+      <h3>
+        <i class="unlock alternate icon"></i>
+        {{ _('Open Access') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="badge {{ oa_colour }}">{{ oa_colour | capitalize if oa_colour else 'Available' }}</span>
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      {# License display #}
+      {%- if oa_license -%}
+      <div style="color: #666; font-size: 0.95em; margin-bottom: 12px;">
+        {{ _('Licence Attribution') }} (
+        {%- if 'cc-by-nc-sa' in oa_license -%}CC BY-NC-SA
+        {%- elif 'cc-by-nc-nd' in oa_license -%}CC BY-NC-ND
+        {%- elif 'cc-by-nc' in oa_license -%}CC BY-NC
+        {%- elif 'cc-by-sa' in oa_license -%}CC BY-SA
+        {%- elif 'cc-by-nd' in oa_license -%}CC BY-ND
+        {%- elif 'cc-by' in oa_license -%}CC BY
+        {%- elif 'cc0' in oa_license -%}CC0
+        {%- else -%}{{ oa_license | upper }}
+        {%- endif -%})
+      </div>
+      {%- endif -%}
+      {# Publisher Website link #}
+      {%- if '"landing_page_urls":' in oa_data -%}
+        {%- set urls_str = oa_data.split('"landing_page_urls":')[1].split(']')[0].replace('[', '') -%}
+        {%- set first_url = namespace(value='') -%}
+        {%- for url in urls_str.split(',') -%}
+          {%- set clean_url = url.replace('"', '').strip() -%}
+          {%- if clean_url and clean_url.startswith('http') and not first_url.value -%}
+            {%- set first_url.value = clean_url -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if first_url.value -%}
+      <a href="{{ first_url.value }}" class="unesco-link" target="_blank" rel="noopener noreferrer">
+        <div class="unesco-link-left">
+          <span class="unesco-link-text">{{ _('Publisher Website') }}</span>
+        </div>
+        <span class="unesco-link-badge" style="border: 1px solid #0077b6; background: transparent; color: #0077b6;">
+          {{ _('Find more') }} <i class="external alternate icon" style="margin-left: 4px;"></i>
+        </span>
+      </a>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+  {%- endif -%}
+  
+  {# === LENS ID - Moved to details.html as a badge/tag above the panel === #}
+  
+  {# === EXTERNAL IDS SECTION === #}
+  {%- if lens_external_ids -%}
+  {%- set ext_ids = lens_external_ids -%}
+  
+  {# Parse JSON array format: [{"type": "doi", "value": "..."}] #}
+  {%- set parsed_ids = namespace(list=[]) -%}
+  {%- if '"type":' in ext_ids -%}
+    {%- for item in ext_ids.split('{') -%}
+      {%- if '"type":' in item and '"value":' in item -%}
+        {%- set type_part = item.split('"type":')[1].split(',')[0].split('}')[0].strip() -%}
+        {%- set id_type = type_part.replace('"', '').strip() -%}
+        {%- set value_part = item.split('"value":')[1].split('}')[0].split(',')[0].strip() -%}
+        {%- set id_value = value_part.replace('"', '').strip() -%}
+        {%- if id_type and id_value -%}
+          {%- set _ = parsed_ids.list.append({'type': id_type, 'value': id_value}) -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+  
+  {%- if parsed_ids.list -%}
+  <div class="unesco-section collapsed" id="unesco-extids-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-extids-section')">
+      <h3>
+        <i class="id card icon"></i>
+        {{ _('External Identifiers') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="badge">{{ parsed_ids.list|length }}</span>
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      <div class="unesco-links">
+        {%- for id in parsed_ids.list -%}
+        <a href="{% if id.type == 'doi' %}https://doi.org/{{ id.value }}{% elif id.type == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}{% elif id.type == 'pmcid' %}https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}{% elif id.type == 'arxiv' %}https://arxiv.org/abs/{{ id.value }}{% elif id.type == 'issn' %}https://portal.issn.org/resource/ISSN/{{ id.value }}{% else %}#{% endif %}" 
+           class="unesco-link" 
+           {% if id.type in ['doi', 'pmid', 'pmcid', 'arxiv', 'issn'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+          <div class="unesco-link-left">
+            <i class="{% if id.type == 'doi' %}certificate{% elif id.type == 'pmid' or id.type == 'pmcid' %}medkit{% elif id.type == 'arxiv' %}file alternate{% elif id.type == 'issn' %}newspaper{% else %}hashtag{% endif %} icon unesco-link-icon"></i>
+            <span class="unesco-link-text">
+              {%- if id.type == 'doi' -%}DOI
+              {%- elif id.type == 'pmid' -%}PubMed
+              {%- elif id.type == 'pmcid' -%}PubMed Central
+              {%- elif id.type == 'arxiv' -%}arXiv
+              {%- elif id.type == 'issn' -%}ISSN
+              {%- else -%}{{ id.type | upper }}
+              {%- endif -%}
+            </span>
+          </div>
+          <span class="unesco-link-badge">{{ id.value }}</span>
+        </a>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+  {%- endif -%}
+  
+  {# === SOURCE SECTION - REMOVED (data shown in Publisher section) === #}
+  
+  {# === REFERENCES SECTION === #}
+  {%- if lens_references -%}
+  {# Extract count from JSON: {"count": 42, ...} #}
+  {%- set refs_count = 0 -%}
+  {%- if '"count":' in lens_references -%}
+    {%- set refs_count_str = lens_references.split('"count":')[1].split(',')[0].strip() -%}
+    {%- set refs_count = refs_count_str | int -%}
+  {%- endif -%}
+  
+  {# Parse items from JSON #}
+  {%- set refs_items = namespace(list=[]) -%}
+  {%- if '"items":' in lens_references -%}
+    {%- for item in lens_references.split('{') -%}
+      {%- if '"lens_id":' in item -%}
+        {%- set item_lens_id = item.split('"lens_id":')[1].split('"')[1] if '"lens_id":' in item else '' -%}
+        {%- set item_text = '' -%}
+        {%- if '"text":' in item -%}
+          {%- set text_raw = item.split('"text":')[1] -%}
+          {%- if '"' in text_raw -%}
+            {%- set item_text = text_raw.split('"')[1] -%}
+          {%- endif -%}
+        {%- endif -%}
+        {%- if item_lens_id -%}
+          {%- set _ = refs_items.list.append({'lens_id': item_lens_id, 'text': item_text}) -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+  
+  <div class="unesco-section collapsed" id="unesco-refs-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-refs-section')">
+      <h3>
+        <i class="quote left icon"></i>
+        {{ _('References') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        {%- if refs_count > 0 -%}
+        <span class="badge">{{ refs_count }}</span>
+        {%- endif -%}
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      {%- if refs_items.list -%}
+      <div class="unesco-citations-list">
+        {%- for ref in refs_items.list[:10] -%}
+        <div class="unesco-citation-item">
+          <a href="https://www.lens.org/lens/scholar/article/{{ ref.lens_id }}/main" 
+             target="_blank" rel="noopener noreferrer"
+             style="color: #0077b6; text-decoration: none;">
+            <i class="external alternate icon" style="margin-right: 6px;"></i>
+            {%- if ref.text -%}
+              {{ ref.text[:150] }}{% if ref.text|length > 150 %}...{% endif %}
+            {%- else -%}
+              {{ ref.lens_id }}
+            {%- endif -%}
+          </a>
+        </div>
+        {%- endfor -%}
+      </div>
+      {%- if refs_count > 10 -%}
+      <div class="unesco-info-box" style="margin-top: 12px;">
+        <i class="info circle icon"></i>
+        {{ _('Showing 10 of') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
+        {%- if lens_id -%}
+        <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/references" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
+          {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
+        </a>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+      {%- else -%}
+      <div class="unesco-info-box">
+        <i class="info circle icon"></i>
+        {{ _('This article cites') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
+        {%- if lens_id -%}
+        <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/references" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
+          {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
+        </a>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+  </div>
+  {%- endif -%}
+  
+  {# === SCHOLARLY CITATIONS SECTION === #}
+  {%- if lens_citations -%}
+  {# Extract count from JSON: {"count": 6, ...} #}
+  {%- set cit_count = 0 -%}
+  {%- if '"count":' in lens_citations -%}
+    {%- set cit_count_str = lens_citations.split('"count":')[1].split(',')[0].strip() -%}
+    {%- set cit_count = cit_count_str | int -%}
+  {%- endif -%}
+  
+  {# Parse items from JSON #}
+  {%- set cit_items = namespace(list=[]) -%}
+  {%- if '"items":' in lens_citations -%}
+    {%- for item in lens_citations.split('{') -%}
+      {%- if '"lens_id":' in item -%}
+        {%- set item_lens_id = item.split('"lens_id":')[1].split('"')[1] if '"lens_id":' in item else '' -%}
+        {%- if item_lens_id -%}
+          {%- set _ = cit_items.list.append({'lens_id': item_lens_id}) -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+  
+  <div class="unesco-section collapsed" id="unesco-citations-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-citations-section')">
+      <h3>
+        <i class="quote right icon"></i>
+        {{ _('Cited By') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        {%- if cit_count > 0 -%}
+        <span class="badge">{{ cit_count }}</span>
+        {%- endif -%}
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      {%- if cit_items.list -%}
+      <div class="unesco-citations-list">
+        {%- for cit in cit_items.list[:10] -%}
+        <div class="unesco-citation-item">
+          <a href="https://www.lens.org/lens/scholar/article/{{ cit.lens_id }}/main" 
+             target="_blank" rel="noopener noreferrer"
+             style="color: #0077b6; text-decoration: none;">
+            <i class="external alternate icon" style="margin-right: 6px;"></i>
+            {{ cit.lens_id }}
+          </a>
+        </div>
+        {%- endfor -%}
+      </div>
+      {%- if cit_count > 10 -%}
+      <div class="unesco-info-box" style="margin-top: 12px;">
+        <i class="info circle icon"></i>
+        {{ _('Showing 10 of') }} <strong>{{ cit_count }}</strong> {{ _('citing works') }}.
+        {%- if lens_id -%}
+        <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/citations" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
+          {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
+        </a>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+      {%- else -%}
+      <div class="unesco-info-box">
+        <i class="info circle icon"></i>
+        {{ _('This article is cited by') }} <strong>{{ cit_count }}</strong> {{ _('scholarly works') }}.
+        {%- if lens_id -%}
+        <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/citations" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
+          {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
+        </a>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+  </div>
+  {%- endif -%}
+  
+  {# === MESH TERMS SECTION === #}
+  {%- if lens_mesh -%}
+  {%- set mesh_count = lens_mesh.count('"descriptor_name"') -%}
+  <div class="unesco-section collapsed" id="unesco-mesh-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-mesh-section')">
+      <h3>
+        <i class="dna icon"></i>
+        {{ _('MeSH Terms') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        {%- if mesh_count > 0 -%}
+        <span class="badge">{{ mesh_count }}</span>
+        {%- endif -%}
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      <div class="unesco-terms-list">
+        {# Parse MeSH terms - extract descriptor_name values #}
+        {%- for term_part in lens_mesh.split('"descriptor_name":')[1:] -%}
+          {%- set term_name = term_part.split(',')[0].split('}')[0].replace('"', '').strip() -%}
+          {%- if term_name -%}
+          <a href="https://www.ncbi.nlm.nih.gov/mesh?term={{ term_name | urlencode }}" 
+             class="unesco-term-tag" target="_blank" rel="noopener noreferrer"
+             title="{{ _('Search MeSH database') }}">
+            <i class="tag icon"></i>
+            {{ term_name }}
+          </a>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+  
+  {# === CHEMICALS SECTION === #}
+  {%- if lens_chemicals -%}
+  {%- set chem_count = lens_chemicals.count('"substance_name"') -%}
+  <div class="unesco-section collapsed" id="unesco-chemicals-section">
+    <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-chemicals-section')">
+      <h3>
+        <i class="flask icon"></i>
+        {{ _('Chemical Substances') }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        {%- if chem_count > 0 -%}
+        <span class="badge">{{ chem_count }}</span>
+        {%- endif -%}
+        <i class="chevron down icon chevron"></i>
+      </div>
+    </div>
+    <div class="unesco-section-content">
+      <div class="unesco-terms-list">
+        {# Parse chemicals - extract substance_name values #}
+        {%- for chem_part in lens_chemicals.split('"substance_name":')[1:] -%}
+          {%- set chem_name = chem_part.split(',')[0].split('}')[0].replace('"', '').strip() -%}
+          {%- if chem_name -%}
+          <a href="https://pubchem.ncbi.nlm.nih.gov/#query={{ chem_name | urlencode }}" 
+             class="unesco-term-tag" target="_blank" rel="noopener noreferrer"
+             title="{{ _('Search PubChem') }}">
+            <i class="flask icon"></i>
+            {{ chem_name }}
+          </a>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+  
+</div>
+
+<script>
+function toggleUnescoSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (section) {
+    section.classList.toggle('collapsed');
+  }
+}
+</script>
+{%- endif -%}

@@ -1,0 +1,53 @@
+{#
+  Lens.org Badge/Tag Component
+  Shows a badge linking to Lens.org when lens:id is available
+#}
+
+{%- set lens_id = record_ui.custom_fields.get('lens:id') if record_ui.custom_fields else none -%}
+{%- if lens_id -%}
+<style>
+  .lens-badge-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #6b7280;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+  .lens-badge-link:hover {
+    background: #4b5563;
+    color: white;
+    text-decoration: none;
+  }
+  .lens-badge-link svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+</style>
+<a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/main" 
+   class="lens-badge-link"
+   target="_blank" 
+   rel="noopener noreferrer"
+   title="{{ _('View on Lens.org') }}">
+  Enabled by The Lens
+  <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="white">
+    <!-- Top line -->
+    <rect x="7" y="2" width="18" height="2" rx="1"/>
+    <!-- Bottom line -->
+    <rect x="7" y="28" width="18" height="2" rx="1"/>
+    <!-- Left line -->
+    <rect x="2" y="7" width="2" height="18" rx="1"/>
+    <!-- Right line -->
+    <rect x="28" y="7" width="2" height="18" rx="1"/>
+    <!-- Center circle -->
+    <circle cx="16" cy="16" r="6" fill="none" stroke="white" stroke-width="2"/>
+  </svg>
+</a>
+{%- endif -%}
