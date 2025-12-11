@@ -11,7 +11,7 @@
   Note: Lens.org badge is in partials/_lens_id.html
   
   Sections are modularized in partials/ folder for easier maintenance.
-  CSS styles are in assets/less/site/globals/unesco-panel.overrides
+  CSS styles are in static/css/unesco-panel.css (no build required)
 #}
 
 {# ========== VARIABLE DEFINITIONS ========== #}
@@ -91,10 +91,38 @@
 <script>
 function toggleUnescoSection(sectionId) {
   const section = document.getElementById(sectionId);
-  if (section) {
-    section.classList.toggle('collapsed');
+  if (!section) return;
+  
+  const content = section.querySelector('.unesco-section-content');
+  const isCollapsed = section.classList.contains('collapsed');
+  
+  if (isCollapsed) {
+    // Expanding: set height to scrollHeight, then auto after transition
+    section.classList.remove('collapsed');
+    content.style.maxHeight = content.scrollHeight + 'px';
+    
+    // After transition, set to 'none' for truly dynamic height
+    setTimeout(() => {
+      if (!section.classList.contains('collapsed')) {
+        content.style.maxHeight = 'none';
+      }
+    }, 400);
+  } else {
+    // Collapsing: first set explicit height, then collapse
+    content.style.maxHeight = content.scrollHeight + 'px';
+    // Force reflow
+    content.offsetHeight;
+    section.classList.add('collapsed');
+    content.style.maxHeight = '0';
   }
 }
+
+// Initialize all sections on page load
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.unesco-section:not(.collapsed) .unesco-section-content').forEach(function(content) {
+    content.style.maxHeight = 'none';
+  });
+});
 </script>
 
 {%- endif -%}

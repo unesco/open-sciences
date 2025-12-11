@@ -5,7 +5,7 @@
   - metadata.funding
 #}
 
-<div class="unesco-section" id="unesco-funding-section">
+<div class="unesco-section collapsed" id="unesco-funding-section">
   <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-funding-section')">
     <h3>
       <i class="money bill alternate icon"></i>
@@ -17,39 +17,22 @@
     </div>
   </div>
   <div class="unesco-section-content">
-    {%- for funding_item in metadata.funding -%}
-    <div class="unesco-funding-item">
-      <div class="unesco-funding-header">
-        <div class="unesco-funding-info">
-          <i class="university icon" style="color: #0077b6; font-size: 1.2em;"></i>
-          <div>
-            <div class="unesco-funding-name">{{ funding_item.funder.name }}</div>
-            {%- if funding_item.funder.id -%}
-            <div class="unesco-funding-id">ID: {{ funding_item.funder.id }}</div>
-            {%- endif -%}
-          </div>
-        </div>
+    <div class="unesco-list">
+      {%- for funding_item in metadata.funding -%}
+      <div class="unesco-list-item">
+        <span class="unesco-list-text" title="{{ funding_item.funder.name }}{% if funding_item.award and funding_item.award.number %} — Grant: {{ funding_item.award.number }}{% endif %}">
+          {{ funding_item.funder.name }}
+          {%- if funding_item.award and funding_item.award.number -%}
+          <span class="unesco-list-subtext"> — Grant: {{ funding_item.award.number }}</span>
+          {%- endif -%}
+        </span>
         <a href="/search?q=metadata.funding.funder.name:{{ funding_item.funder.name | urlencode }}" 
-           class="unesco-search-btn"
+           class="unesco-find-more-btn"
            title="{{ _('Find more records funded by') }} {{ funding_item.funder.name }}">
-          <i class="search icon"></i> {{ _('Find more') }}
+          {{ _('Find more') }} <i class="external alternate icon"></i>
         </a>
       </div>
-      
-      {%- if funding_item.award -%}
-      <div class="unesco-funding-award">
-        <i class="certificate icon" style="color: #f39c12;"></i>
-        {%- if funding_item.award.title -%}
-        <span class="unesco-award-title">
-          {{ funding_item.award.title.en if funding_item.award.title.en else funding_item.award.title }}
-        </span>
-        {%- endif -%}
-        {%- if funding_item.award.number -%}
-        <span class="unesco-award-number"> — Grant: {{ funding_item.award.number }}</span>
-        {%- endif -%}
-      </div>
-      {%- endif -%}
+      {%- endfor -%}
     </div>
-    {%- endfor -%}
   </div>
 </div>

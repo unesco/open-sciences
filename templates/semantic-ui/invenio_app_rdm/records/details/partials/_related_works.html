@@ -5,7 +5,7 @@
   - metadata.related_identifiers
 #}
 
-<div class="unesco-section" id="unesco-related-section">
+<div class="unesco-section collapsed" id="unesco-related-section">
   <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-related-section')">
     <h3>
       <i class="linkify icon"></i>
@@ -17,25 +17,23 @@
     </div>
   </div>
   <div class="unesco-section-content">
-    <div class="unesco-links">
+    <div class="unesco-list">
       {%- for rel_id in metadata.related_identifiers -%}
-      <a href="{% if rel_id.scheme == 'doi' %}https://doi.org/{{ rel_id.identifier }}{% elif rel_id.scheme == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}{% elif rel_id.scheme == 'url' %}{{ rel_id.identifier }}{% else %}#{% endif %}" 
-         class="unesco-link"
-         {% if rel_id.scheme in ['doi', 'pmid', 'url'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
-        <div class="unesco-link-left">
-          <i class="{% if rel_id.scheme == 'doi' %}certificate{% elif rel_id.scheme == 'pmid' %}medkit{% elif rel_id.scheme == 'url' %}globe{% else %}link{% endif %} icon unesco-link-icon"></i>
-          <span class="unesco-link-text">
-            {%- if rel_id.relation_type and rel_id.relation_type.title -%}
-              {{ rel_id.relation_type.title.en or rel_id.relation_type.id }}
-            {%- else -%}
-              {{ _('Related identifier') }}
-            {%- endif -%}
-          </span>
-        </div>
-        <span class="unesco-link-badge">
-          {{ rel_id.scheme | upper }}: {{ rel_id.identifier | truncate(35) }}
+      <div class="unesco-list-item">
+        <span class="unesco-list-text" title="{{ rel_id.identifier }}">
+          {%- if rel_id.relation_type and rel_id.relation_type.title -%}
+            {{ rel_id.relation_type.title.en or rel_id.relation_type.id }}
+          {%- else -%}
+            {{ _('Related') }}
+          {%- endif -%}
         </span>
-      </a>
+        <a href="{% if rel_id.scheme == 'doi' %}https://doi.org/{{ rel_id.identifier }}{% elif rel_id.scheme == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}{% elif rel_id.scheme == 'url' %}{{ rel_id.identifier }}{% else %}#{% endif %}" 
+           class="unesco-external-link"
+           title="{{ rel_id.scheme | upper }}: {{ rel_id.identifier }}"
+           {% if rel_id.scheme in ['doi', 'pmid', 'url'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+          {{ rel_id.scheme | upper }}: {{ rel_id.identifier | truncate(40) }} <i class="external alternate icon"></i>
+        </a>
+      </div>
       {%- endfor -%}
     </div>
   </div>

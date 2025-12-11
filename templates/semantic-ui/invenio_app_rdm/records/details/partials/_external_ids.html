@@ -36,25 +36,17 @@
     </div>
   </div>
   <div class="unesco-section-content">
-    <div class="unesco-links">
+    <div class="unesco-list">
       {%- for id in parsed_ids.list -%}
-      <a href="{% if id.type == 'doi' %}https://doi.org/{{ id.value }}{% elif id.type == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}{% elif id.type == 'pmcid' %}https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}{% elif id.type == 'arxiv' %}https://arxiv.org/abs/{{ id.value }}{% elif id.type == 'issn' %}https://portal.issn.org/resource/ISSN/{{ id.value }}{% else %}#{% endif %}" 
-         class="unesco-link" 
-         {% if id.type in ['doi', 'pmid', 'pmcid', 'arxiv', 'issn'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
-        <div class="unesco-link-left">
-          <i class="{% if id.type == 'doi' %}certificate{% elif id.type == 'pmid' or id.type == 'pmcid' %}medkit{% elif id.type == 'arxiv' %}file alternate{% elif id.type == 'issn' %}newspaper{% else %}hashtag{% endif %} icon unesco-link-icon"></i>
-          <span class="unesco-link-text">
-            {%- if id.type == 'doi' -%}DOI
-            {%- elif id.type == 'pmid' -%}PubMed
-            {%- elif id.type == 'pmcid' -%}PubMed Central
-            {%- elif id.type == 'arxiv' -%}arXiv
-            {%- elif id.type == 'issn' -%}ISSN
-            {%- else -%}{{ id.type | upper }}
-            {%- endif -%}
-          </span>
-        </div>
-        <span class="unesco-link-badge">{{ id.value }}</span>
-      </a>
+      <div class="unesco-list-item">
+        <span class="unesco-list-text" title="{{ id.value }}">{{ id.value }}</span>
+        <a href="{% if id.type == 'doi' %}https://doi.org/{{ id.value }}{% elif id.type == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}{% elif id.type == 'pmcid' %}https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}{% elif id.type == 'arxiv' %}https://arxiv.org/abs/{{ id.value }}{% elif id.type == 'issn' %}https://portal.issn.org/resource/ISSN/{{ id.value }}{% else %}#{% endif %}" 
+           class="unesco-find-more-btn"
+           title="{{ _('View') }} {{ id.type | upper }}: {{ id.value }}"
+           {% if id.type in ['doi', 'pmid', 'pmcid', 'arxiv', 'issn'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+          {{ _('Find more') }} <i class="external alternate icon"></i>
+        </a>
+      </div>
       {%- endfor -%}
     </div>
   </div>

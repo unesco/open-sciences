@@ -10,7 +10,7 @@
 {%- set journal = record_ui.custom_fields.get('journal:journal', {}) if record_ui.custom_fields else {} -%}
 {%- set lens_source_raw = record_ui.custom_fields.get('lens:source', '{}') if record_ui.custom_fields else '{}' -%}
 
-<div class="unesco-section" id="unesco-publisher-section">
+<div class="unesco-section collapsed" id="unesco-publisher-section">
   <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-publisher-section')">
     <h3>
       <i class="book icon"></i>

@@ -48,42 +48,49 @@
   </div>
   <div class="unesco-section-content">
     {%- if refs_items.list -%}
-    <div class="unesco-citations-list">
+    <div class="unesco-list">
       {%- for ref in refs_items.list[:10] -%}
-      <div class="unesco-citation-item">
-        <a href="https://www.lens.org/lens/scholar/article/{{ ref.lens_id }}/main" 
-           target="_blank" rel="noopener noreferrer"
-           style="color: #0077b6; text-decoration: none;">
-          <i class="external alternate icon" style="margin-right: 6px;"></i>
+      <div class="unesco-list-item">
+        <span class="unesco-list-text" title="{% if ref.text %}{{ ref.text }}{% else %}{{ ref.lens_id }}{% endif %}">
           {%- if ref.text -%}
-            {{ ref.text[:150] }}{% if ref.text|length > 150 %}...{% endif %}
+            {{ ref.text[:80] }}{% if ref.text|length > 80 %}...{% endif %}
           {%- else -%}
             {{ ref.lens_id }}
           {%- endif -%}
+        </span>
+        <a href="https://www.lens.org/lens/scholar/article/{{ ref.lens_id }}/main" 
+           class="unesco-find-more-btn"
+           title="{{ _('View on Lens.org') }}"
+           target="_blank" rel="noopener noreferrer">
+          {{ _('Find more') }} <i class="external alternate icon"></i>
         </a>
       </div>
       {%- endfor -%}
     </div>
     {%- if refs_count > 10 -%}
     <div class="unesco-info-box" style="margin-top: 12px;">
-      <i class="info circle icon"></i>
-      {{ _('Showing 10 of') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
-      {%- if lens_id -%}
-      <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/references" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
-        {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
-      </a>
-      {%- endif -%}
+      <small>
+        <i class="info circle icon"></i>
+        {{ _('Showing 10 of') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
+        {%- if lens_id -%}
+        <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/references" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
+          {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
+        </a>
+        {%- endif -%}
+      </small>
     </div>
     {%- endif -%}
     {%- else -%}
     <div class="unesco-info-box">
-      <i class="info circle icon"></i>
-      {{ _('This article cites') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
-      {%- if lens_id -%}
-      <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/references" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
-        {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
-      </a>
-      {%- endif -%}
+      <small>
+        <i class="info circle icon"></i>
+        {{ _('This article cites') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
+        {%- if lens_id -%}
+        <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/references" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
+          {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
+        </a>
+        {%- endif -%}
+      </small>
     </div>
     {%- endif -%}
   </div>
