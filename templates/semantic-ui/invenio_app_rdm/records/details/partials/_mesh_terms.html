@@ -1,0 +1,71 @@
+{#
+  UNESCO Open Science Portal - MeSH Terms Section
+  
+  Variables required (from parent context):
+  - lens_mesh (JSON string with array of mesh terms)
+#}
+
+{# Parse JSON string to extract MeSH terms with full details #}
+{%- set mesh = namespace(terms=[]) -%}
+
+{%- if '"mesh_heading":' in lens_mesh -%}
+  {%- for item in lens_mesh.split('{') -%}
+    {%- if '"mesh_heading":' in item and '"mesh_id":' in item -%}
+      {# Extract mesh_heading #}
+      {%- set heading_part = item.split('"mesh_heading":')[1].split(',')[0].strip() -%}
+      {%- set heading = heading_part.replace('"', '').strip() -%}
+      
+      {# Extract mesh_id #}
+      {%- set id_part = item.split('"mesh_id":')[1].split(',')[0].split('"qualifier')[0].split('}')[0].strip() -%}
+      {%- set mesh_id = id_part.replace('"', '').strip() -%}
+      
+      {# Extract optional qualifier_name #}
+      {%- set qualifier = '' -%}
+      {%- if '"qualifier_name":' in item -%}
+        {%- set qual_part = item.split('"qualifier_name":')[1].split(',')[0].split('"qualifier_id"')[0].split('}')[0].strip() -%}
+        {%- set qualifier = qual_part.replace('"', '').strip() -%}
+      {%- endif -%}
+      
+      {%- if heading and mesh_id -%}
+        {%- set _ = mesh.terms.append({'heading': heading, 'id': mesh_id, 'qualifier': qualifier}) -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- if mesh.terms | length > 0 -%}
+<div class="unesco-section collapsed" id="unesco-mesh-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-mesh-section')">
+    <h3>
+      <i class="dna icon"></i>
+      {{ _('MeSH Terms') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="badge">{{ mesh.terms | length }}</span>
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    <div class="unesco-mesh-tags">
+      {%- for term in mesh.terms -%}
+      <a href="https://meshb.nlm.nih.gov/record/ui?ui={{ term.id }}" 
+         class="unesco-mesh-tag" target="_blank" rel="noopener noreferrer"
+         title="{{ _('View') }} {{ term.heading }} {{ _('on MeSH Browser') }}">
+        <i class="tag icon"></i>
+        <span>{{ term.heading }}</span>
+        {%- if term.qualifier -%}
+        <span class="unesco-mesh-qualifier">{{ term.qualifier }}</span>
+        {%- endif -%}
+      </a>
+      {%- endfor -%}
+    </div>
+    <div class="unesco-info-box" style="margin-top: 16px; background: #f0f8ff;">
+      <small>
+        <i class="info circle icon" style="color: #3498DB;"></i>
+        <strong>MeSH</strong> (Medical Subject Headings) {{ _('is the NLM controlled vocabulary for indexing biomedical articles.') }}
+        {{ _('Click any term to view its definition and hierarchy.') }}
+      </small>
+    </div>
+  </div>
+</div>
+{%- endif -%}

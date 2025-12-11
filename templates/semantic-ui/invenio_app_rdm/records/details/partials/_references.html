@@ -1,0 +1,90 @@
+{#
+  UNESCO Open Science Portal - References Section
+  
+  Variables required (from parent context):
+  - lens_references (JSON string with count, resolved_count, items)
+  - lens_id (for Lens.org links)
+#}
+
+{# Extract count from JSON: {"count": 42, ...} #}
+{%- set refs_count = 0 -%}
+{%- if '"count":' in lens_references -%}
+  {%- set refs_count_str = lens_references.split('"count":')[1].split(',')[0].strip() -%}
+  {%- set refs_count = refs_count_str | int -%}
+{%- endif -%}
+
+{# Parse items from JSON #}
+{%- set refs_items = namespace(list=[]) -%}
+{%- if '"items":' in lens_references -%}
+  {%- for item in lens_references.split('{') -%}
+    {%- if '"lens_id":' in item -%}
+      {%- set item_lens_id = item.split('"lens_id":')[1].split('"')[1] if '"lens_id":' in item else '' -%}
+      {%- set item_text = '' -%}
+      {%- if '"text":' in item -%}
+        {%- set text_raw = item.split('"text":')[1] -%}
+        {%- if '"' in text_raw -%}
+          {%- set item_text = text_raw.split('"')[1] -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- if item_lens_id -%}
+        {%- set _ = refs_items.list.append({'lens_id': item_lens_id, 'text': item_text}) -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+<div class="unesco-section collapsed" id="unesco-refs-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-refs-section')">
+    <h3>
+      <i class="quote left icon"></i>
+      {{ _('References') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      {%- if refs_count > 0 -%}
+      <span class="badge">{{ refs_count }}</span>
+      {%- endif -%}
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    {%- if refs_items.list -%}
+    <div class="unesco-citations-list">
+      {%- for ref in refs_items.list[:10] -%}
+      <div class="unesco-citation-item">
+        <a href="https://www.lens.org/lens/scholar/article/{{ ref.lens_id }}/main" 
+           target="_blank" rel="noopener noreferrer"
+           style="color: #0077b6; text-decoration: none;">
+          <i class="external alternate icon" style="margin-right: 6px;"></i>
+          {%- if ref.text -%}
+            {{ ref.text[:150] }}{% if ref.text|length > 150 %}...{% endif %}
+          {%- else -%}
+            {{ ref.lens_id }}
+          {%- endif -%}
+        </a>
+      </div>
+      {%- endfor -%}
+    </div>
+    {%- if refs_count > 10 -%}
+    <div class="unesco-info-box" style="margin-top: 12px;">
+      <i class="info circle icon"></i>
+      {{ _('Showing 10 of') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
+      {%- if lens_id -%}
+      <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/references" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
+        {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
+      </a>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+    {%- else -%}
+    <div class="unesco-info-box">
+      <i class="info circle icon"></i>
+      {{ _('This article cites') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
+      {%- if lens_id -%}
+      <a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/references" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">
+        {{ _('View all on Lens.org') }} <i class="external alternate icon"></i>
+      </a>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+  </div>
+</div>

@@ -1,0 +1,93 @@
+{#
+  UNESCO Open Science Portal - Publication Details Section
+  
+  Variables required (from parent context):
+  - metadata.publisher
+  - metadata.resource_type
+  - record_ui.custom_fields
+#}
+
+{%- set journal = record_ui.custom_fields.get('journal:journal', {}) if record_ui.custom_fields else {} -%}
+{%- set lens_source_raw = record_ui.custom_fields.get('lens:source', '{}') if record_ui.custom_fields else '{}' -%}
+
+<div class="unesco-section" id="unesco-publisher-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-publisher-section')">
+    <h3>
+      <i class="book icon"></i>
+      {{ _('Publication details') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      {%- if metadata.resource_type and metadata.resource_type.title -%}
+      <span class="badge">{{ metadata.resource_type.title.en or metadata.resource_type.id }}</span>
+      {%- endif -%}
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    <div class="publisher-details">
+      {# Journal Title #}
+      {%- if journal and journal.title -%}
+      <div class="publisher-detail-row">
+        <span class="publisher-label">{{ _('Journal') }}:</span>
+        <span class="publisher-value">{{ journal.title }}</span>
+      </div>
+      {%- endif -%}
+      
+      {# Publisher #}
+      {%- if metadata.publisher -%}
+      <div class="publisher-detail-row">
+        <span class="publisher-label">{{ _('Publisher') }}:</span>
+        <span class="publisher-value">
+          <a href="/search?q=metadata.publisher:{{ metadata.publisher | urlencode }}">{{ metadata.publisher }}</a>
+        </span>
+      </div>
+      {%- endif -%}
+      
+      {# ISSN from lens:source or related_identifiers #}
+      {%- set issn_value = none -%}
+      {%- if lens_source_raw and '"issn"' in lens_source_raw -%}
+        {%- if '"value":' in lens_source_raw -%}
+          {%- set issn_part = lens_source_raw.split('"issn"')[1] if '"issn"' in lens_source_raw else '' -%}
+          {%- if '"value":' in issn_part -%}
+            {%- set issn_value = issn_part.split('"value":')[1].split('"')[1] if '"value":' in issn_part else none -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- if not issn_value and metadata.related_identifiers -%}
+        {%- for rel_id in metadata.related_identifiers -%}
+          {%- if rel_id.scheme == 'issn' -%}
+            {%- set issn_value = rel_id.identifier -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+      {%- if issn_value -%}
+      <div class="publisher-detail-row">
+        <span class="publisher-label">{{ _('ISSN') }}:</span>
+        <span class="publisher-value publisher-link">
+          <a href="https://portal.issn.org/resource/ISSN/{{ issn_value }}" target="_blank" rel="noopener noreferrer">{{ issn_value }}</a>
+        </span>
+      </div>
+      {%- endif -%}
+      
+      {# Volume and Pages on same row #}
+      {%- if journal and (journal.volume or journal.pages) -%}
+      <div class="publisher-inline-row">
+        {%- if journal.volume -%}
+        <div class="publisher-inline-item">
+          <i class="book icon"></i>
+          <span class="publisher-label">{{ _('Volume') }}:</span>
+          <span class="publisher-value">{{ journal.volume }}</span>
+        </div>
+        {%- endif -%}
+        {%- if journal.pages -%}
+        <div class="publisher-inline-item">
+          <i class="book icon"></i>
+          <span class="publisher-label">{{ _('Pages') }}:</span>
+          <span class="publisher-value">{{ journal.pages }}</span>
+        </div>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>

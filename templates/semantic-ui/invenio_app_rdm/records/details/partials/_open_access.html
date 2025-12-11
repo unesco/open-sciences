@@ -1,0 +1,68 @@
+{#
+  UNESCO Open Science Portal - Open Access Section
+  
+  Variables required (from parent context):
+  - lens_open_access (JSON string with license, colour, landing_page_urls)
+#}
+
+{%- set oa_data = lens_open_access -%}
+{# Parse Open Access data #}
+{%- set oa_colour = '' -%}
+{%- set oa_license = '' -%}
+{%- if '"colour":' in oa_data -%}
+  {%- set oa_colour = oa_data.split('"colour":')[1].split(',')[0].split('}')[0].replace('"', '').strip() -%}
+{%- endif -%}
+{%- if '"license":' in oa_data -%}
+  {%- set oa_license = oa_data.split('"license":')[1].split(',')[0].replace('"', '').strip() -%}
+{%- endif -%}
+
+<div class="unesco-section" id="unesco-openaccess-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-openaccess-section')">
+    <h3>
+      <i class="unlock alternate icon"></i>
+      {{ _('Open Access') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="badge {{ oa_colour }}">{{ oa_colour | capitalize if oa_colour else 'Available' }}</span>
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    {# License display #}
+    {%- if oa_license -%}
+    <div style="color: #666; font-size: 0.95em; margin-bottom: 12px;">
+      {{ _('Licence Attribution') }} (
+      {%- if 'cc-by-nc-sa' in oa_license -%}CC BY-NC-SA
+      {%- elif 'cc-by-nc-nd' in oa_license -%}CC BY-NC-ND
+      {%- elif 'cc-by-nc' in oa_license -%}CC BY-NC
+      {%- elif 'cc-by-sa' in oa_license -%}CC BY-SA
+      {%- elif 'cc-by-nd' in oa_license -%}CC BY-ND
+      {%- elif 'cc-by' in oa_license -%}CC BY
+      {%- elif 'cc0' in oa_license -%}CC0
+      {%- else -%}{{ oa_license | upper }}
+      {%- endif -%})
+    </div>
+    {%- endif -%}
+    {# Publisher Website link #}
+    {%- if '"landing_page_urls":' in oa_data -%}
+      {%- set urls_str = oa_data.split('"landing_page_urls":')[1].split(']')[0].replace('[', '') -%}
+      {%- set first_url = namespace(value='') -%}
+      {%- for url in urls_str.split(',') -%}
+        {%- set clean_url = url.replace('"', '').strip() -%}
+        {%- if clean_url and clean_url.startswith('http') and not first_url.value -%}
+          {%- set first_url.value = clean_url -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- if first_url.value -%}
+    <a href="{{ first_url.value }}" class="unesco-link" target="_blank" rel="noopener noreferrer">
+      <div class="unesco-link-left">
+        <span class="unesco-link-text">{{ _('Publisher Website') }}</span>
+      </div>
+      <span class="unesco-link-badge" style="border: 1px solid #0077b6; background: transparent; color: #0077b6;">
+        {{ _('Find more') }} <i class="external alternate icon" style="margin-left: 4px;"></i>
+      </span>
+    </a>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</div>

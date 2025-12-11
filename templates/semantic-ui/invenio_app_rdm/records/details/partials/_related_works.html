@@ -1,0 +1,42 @@
+{#
+  UNESCO Open Science Portal - Related Works Section
+  
+  Variables required (from parent context):
+  - metadata.related_identifiers
+#}
+
+<div class="unesco-section" id="unesco-related-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-related-section')">
+    <h3>
+      <i class="linkify icon"></i>
+      {{ _('Related Works') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="badge">{{ metadata.related_identifiers|length }}</span>
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    <div class="unesco-links">
+      {%- for rel_id in metadata.related_identifiers -%}
+      <a href="{% if rel_id.scheme == 'doi' %}https://doi.org/{{ rel_id.identifier }}{% elif rel_id.scheme == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}{% elif rel_id.scheme == 'url' %}{{ rel_id.identifier }}{% else %}#{% endif %}" 
+         class="unesco-link"
+         {% if rel_id.scheme in ['doi', 'pmid', 'url'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+        <div class="unesco-link-left">
+          <i class="{% if rel_id.scheme == 'doi' %}certificate{% elif rel_id.scheme == 'pmid' %}medkit{% elif rel_id.scheme == 'url' %}globe{% else %}link{% endif %} icon unesco-link-icon"></i>
+          <span class="unesco-link-text">
+            {%- if rel_id.relation_type and rel_id.relation_type.title -%}
+              {{ rel_id.relation_type.title.en or rel_id.relation_type.id }}
+            {%- else -%}
+              {{ _('Related identifier') }}
+            {%- endif -%}
+          </span>
+        </div>
+        <span class="unesco-link-badge">
+          {{ rel_id.scheme | upper }}: {{ rel_id.identifier | truncate(35) }}
+        </span>
+      </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+{#
+  UNESCO Open Science Portal - External Identifiers Section
+  
+  Variables required (from parent context):
+  - lens_external_ids (JSON string with array of {type, value})
+#}
+
+{%- set ext_ids = lens_external_ids -%}
+
+{# Parse JSON array format: [{"type": "doi", "value": "..."}] #}
+{%- set parsed_ids = namespace(list=[]) -%}
+{%- if '"type":' in ext_ids -%}
+  {%- for item in ext_ids.split('{') -%}
+    {%- if '"type":' in item and '"value":' in item -%}
+      {%- set type_part = item.split('"type":')[1].split(',')[0].split('}')[0].strip() -%}
+      {%- set id_type = type_part.replace('"', '').strip() -%}
+      {%- set value_part = item.split('"value":')[1].split('}')[0].split(',')[0].strip() -%}
+      {%- set id_value = value_part.replace('"', '').strip() -%}
+      {%- if id_type and id_value -%}
+        {%- set _ = parsed_ids.list.append({'type': id_type, 'value': id_value}) -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- if parsed_ids.list -%}
+<div class="unesco-section collapsed" id="unesco-extids-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-extids-section')">
+    <h3>
+      <i class="id card icon"></i>
+      {{ _('External Identifiers') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="badge">{{ parsed_ids.list|length }}</span>
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    <div class="unesco-links">
+      {%- for id in parsed_ids.list -%}
+      <a href="{% if id.type == 'doi' %}https://doi.org/{{ id.value }}{% elif id.type == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}{% elif id.type == 'pmcid' %}https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}{% elif id.type == 'arxiv' %}https://arxiv.org/abs/{{ id.value }}{% elif id.type == 'issn' %}https://portal.issn.org/resource/ISSN/{{ id.value }}{% else %}#{% endif %}" 
+         class="unesco-link" 
+         {% if id.type in ['doi', 'pmid', 'pmcid', 'arxiv', 'issn'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+        <div class="unesco-link-left">
+          <i class="{% if id.type == 'doi' %}certificate{% elif id.type == 'pmid' or id.type == 'pmcid' %}medkit{% elif id.type == 'arxiv' %}file alternate{% elif id.type == 'issn' %}newspaper{% else %}hashtag{% endif %} icon unesco-link-icon"></i>
+          <span class="unesco-link-text">
+            {%- if id.type == 'doi' -%}DOI
+            {%- elif id.type == 'pmid' -%}PubMed
+            {%- elif id.type == 'pmcid' -%}PubMed Central
+            {%- elif id.type == 'arxiv' -%}arXiv
+            {%- elif id.type == 'issn' -%}ISSN
+            {%- else -%}{{ id.type | upper }}
+            {%- endif -%}
+          </span>
+        </div>
+        <span class="unesco-link-badge">{{ id.value }}</span>
+      </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+{%- endif -%}

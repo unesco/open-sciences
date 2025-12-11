@@ -1,0 +1,55 @@
+{#
+  UNESCO Open Science Portal - Funding Section
+  
+  Variables required (from parent context):
+  - metadata.funding
+#}
+
+<div class="unesco-section" id="unesco-funding-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-funding-section')">
+    <h3>
+      <i class="money bill alternate icon"></i>
+      {{ _('Funding') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="badge">{{ metadata.funding|length }}</span>
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    {%- for funding_item in metadata.funding -%}
+    <div class="unesco-funding-item">
+      <div class="unesco-funding-header">
+        <div class="unesco-funding-info">
+          <i class="university icon" style="color: #0077b6; font-size: 1.2em;"></i>
+          <div>
+            <div class="unesco-funding-name">{{ funding_item.funder.name }}</div>
+            {%- if funding_item.funder.id -%}
+            <div class="unesco-funding-id">ID: {{ funding_item.funder.id }}</div>
+            {%- endif -%}
+          </div>
+        </div>
+        <a href="/search?q=metadata.funding.funder.name:{{ funding_item.funder.name | urlencode }}" 
+           class="unesco-search-btn"
+           title="{{ _('Find more records funded by') }} {{ funding_item.funder.name }}">
+          <i class="search icon"></i> {{ _('Find more') }}
+        </a>
+      </div>
+      
+      {%- if funding_item.award -%}
+      <div class="unesco-funding-award">
+        <i class="certificate icon" style="color: #f39c12;"></i>
+        {%- if funding_item.award.title -%}
+        <span class="unesco-award-title">
+          {{ funding_item.award.title.en if funding_item.award.title.en else funding_item.award.title }}
+        </span>
+        {%- endif -%}
+        {%- if funding_item.award.number -%}
+        <span class="unesco-award-number"> — Grant: {{ funding_item.award.number }}</span>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+    {%- endfor -%}
+  </div>
+</div>
