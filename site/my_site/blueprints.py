@@ -20,6 +20,7 @@ def create_blueprint(app):
     """
     from .views import StatisticsView, CMSPageView
     from .api import (
+        ExportAPIView,
         SearchAPIView,
         StatisticsAPIView,
         # Resource-Driven CMS API
@@ -76,6 +77,13 @@ def create_blueprint(app):
     blueprint.add_url_rule(
         f"{API_PREFIX}/search",
         view_func=SearchAPIView.as_view("search_api"),
+        methods=["GET"],
+    )
+
+    # Export search results as XLSX
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/export",
+        view_func=ExportAPIView.as_view("export_api"),
         methods=["GET"],
     )
 

@@ -17,10 +17,12 @@ from .cms import (
 )
 
 # Other APIs
+from .export import ExportAPIView
 from .search import SearchAPIView
 from .statistics import StatisticsAPIView
 
 __all__ = [
+    "ExportAPIView",
     "SearchAPIView",
     "StatisticsAPIView",
     # CMS Content API

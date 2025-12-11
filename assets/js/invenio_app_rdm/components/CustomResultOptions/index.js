@@ -1,7 +1,7 @@
-// Custom ResultOptions component with Download CSV button
+// Custom ResultOptions component with Download XLSX button
 // Positioned to the left of Sort by
 
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import Overridable from "react-overridable";
 import { Count, LayoutSwitcher, Sort } from "react-searchkit";
 import { Grid, Button, Icon } from "semantic-ui-react";
@@ -9,91 +9,53 @@ import { SearchConfigurationContext } from "@js/invenio_search_ui/components/con
 import { i18next } from "@translations/invenio_search_ui/i18next";
 import { AppMedia } from "@js/invenio_theme/Media";
 
-// Function to convert results to CSV
-const convertToCSV = (results) => {
-  if (!results || results.length === 0) return "";
+// Function to trigger download from backend API
+const downloadXLSX = async (setLoading) => {
+  setLoading(true);
+  try {
+    // Get current URL search params to pass to the export endpoint
+    const currentParams = new URLSearchParams(window.location.search);
 
-  // Define CSV headers
-  const headers = [
-    "Title",
-    "Authors",
-    "Publication Date",
-    "Resource Type",
-    "DOI",
-    "Access Status",
-    "Description",
-    "Subjects",
-  ];
+    // Build export URL with same parameters
+    const exportUrl = `/data/export?${currentParams.toString()}`;
 
-  // Map results to CSV rows
-  const rows = results.map((record) => {
-    const metadata = record.metadata || {};
-    const ui = record.ui || {};
+    // Use fetch to download the file
+    const response = await fetch(exportUrl);
 
-    // Extract authors
-    const authors = (metadata.creators || [])
-      .map((c) => c.person_or_org?.name || "")
-      .filter(Boolean)
-      .join("; ");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Export failed");
+    }
 
-    // Extract subjects
-    const subjects = (ui.subjects || [])
-      .map((s) => s.title_l10n || s.subject || "")
-      .filter(Boolean)
-      .join("; ");
+    // Get the blob from response
+    const blob = await response.blob();
 
-    // Extract DOI
-    const doi = record.pids?.doi?.identifier || "";
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
 
-    // Escape CSV values
-    const escapeCSV = (value) => {
-      if (!value) return "";
-      const str = String(value);
-      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
-    };
+    // Get filename from Content-Disposition header or use default
+    const contentDisposition = response.headers.get("Content-Disposition");
+    let filename = `unesco_export_${
+      new Date().toISOString().split("T")[0]
+    }.xlsx`;
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?([^"]+)"?/);
+      if (match) filename = match[1];
+    }
 
-    return [
-      escapeCSV(metadata.title),
-      escapeCSV(authors),
-      escapeCSV(ui.publication_date_l10n_long || metadata.publication_date),
-      escapeCSV(ui.resource_type?.title_l10n || ""),
-      escapeCSV(doi),
-      escapeCSV(ui.access_status?.title_l10n || ""),
-      escapeCSV(ui.description_stripped || ""),
-      escapeCSV(subjects),
-    ].join(",");
-  });
-
-  // Combine headers and rows
-  return [headers.join(","), ...rows].join("\n");
-};
-
-// Function to download CSV
-const downloadCSV = (results) => {
-  const csv = convertToCSV(results);
-  if (!csv) {
-    alert("No results to download");
-    return;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Export error:", error);
+    alert(`Error downloading results: ${error.message}`);
+  } finally {
+    setLoading(false);
   }
-
-  // Create blob and download
-  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-
-  link.setAttribute("href", url);
-  link.setAttribute(
-    "download",
-    `search-results-${new Date().toISOString().split("T")[0]}.csv`
-  );
-  link.style.visibility = "hidden";
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 };
 
 // This component receives props from the Overridable wrapper
@@ -108,10 +70,15 @@ export const CustomResultOptions = ({
     SearchConfigurationContext
   );
   const multipleLayouts = layoutOptions?.listView && layoutOptions?.gridView;
-  const hits = currentResultsState?.data?.hits || [];
+  const [isLoading, setIsLoading] = useState(false);
+  const totalResults = currentResultsState?.data?.total || 0;
 
   const handleDownload = () => {
-    downloadCSV(hits);
+    if (totalResults === 0) {
+      alert("No results to download");
+      return;
+    }
+    downloadXLSX(setIsLoading);
   };
 
   return (
@@ -159,7 +126,7 @@ export const CustomResultOptions = ({
                 gap: "16px",
               }}
             >
-              {/* Download CSV Button */}
+              {/* Download XLSX Button */}
               <style>
                 {`
                   .unesco-download-btn.ui.button,
@@ -173,13 +140,18 @@ export const CustomResultOptions = ({
                   .unesco-download-btn.ui.button:hover {
                     background-color: rgba(0, 119, 212, 0.1) !important;
                   }
+                  .unesco-download-btn.ui.button.loading {
+                    pointer-events: none;
+                    opacity: 0.7;
+                  }
                 `}
               </style>
               <Button
-                className="unesco-download-btn"
+                className={`unesco-download-btn ${isLoading ? "loading" : ""}`}
                 compact
                 onClick={handleDownload}
-                title="Download current page results as CSV"
+                disabled={isLoading || totalResults === 0}
+                title="Download current page results as Excel (XLSX)"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -193,8 +165,12 @@ export const CustomResultOptions = ({
                   boxSizing: "border-box",
                 }}
               >
-                Download
-                <Icon name="download" style={{ margin: 0 }} />
+                {isLoading ? "Downloading..." : "Download"}
+                <Icon
+                  name={isLoading ? "spinner" : "download"}
+                  loading={isLoading}
+                  style={{ margin: 0 }}
+                />
               </Button>
 
               {/* Sort by */}
