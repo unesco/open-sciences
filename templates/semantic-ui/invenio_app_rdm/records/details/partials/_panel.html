@@ -117,6 +117,56 @@ function toggleUnescoSection(sectionId) {
   }
 }
 
+// Download with loading state
+function downloadLensExport(button, exportType, lensId) {
+  // Prevent double clicks
+  if (button.classList.contains('loading')) return;
+  
+  // Save original content
+  const originalContent = button.innerHTML;
+  
+  // Set loading state
+  button.classList.add('loading');
+  button.innerHTML = '<i class="spinner loading icon"></i> Downloading...';
+  button.style.pointerEvents = 'none';
+  
+  // Build URL
+  const url = '/data/lens/export?type=' + encodeURIComponent(exportType) + '&lens_id=' + encodeURIComponent(lensId);
+  
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Export failed: ' + response.status);
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      // Create download link
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = exportType + '_' + lensId + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      // Reset button
+      button.classList.remove('loading');
+      button.innerHTML = originalContent;
+      button.style.pointerEvents = '';
+    })
+    .catch(error => {
+      console.error('Download error:', error);
+      alert('Download failed. Please try again.');
+      
+      // Reset button
+      button.classList.remove('loading');
+      button.innerHTML = originalContent;
+      button.style.pointerEvents = '';
+    });
+}
+
 // Initialize all sections on page load
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.unesco-section:not(.collapsed) .unesco-section-content').forEach(function(content) {

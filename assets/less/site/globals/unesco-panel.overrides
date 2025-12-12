@@ -493,6 +493,71 @@
   }
 }
 
+/* ========== DOWNLOAD BUTTON ========== */
+.unesco-download-btn,
+a.unesco-download-btn,
+button.unesco-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #0077b6;
+  color: white !important;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+  line-height: 1;
+  font-family: inherit;
+  
+  i.icon {
+    margin: 0 !important;
+    font-size: 1em;
+    line-height: 1;
+    height: auto;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  &:hover {
+    background: #005f92;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 119, 182, 0.3);
+    color: white !important;
+    text-decoration: none !important;
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  /* Loading state */
+  &.loading {
+    background: #6c757d;
+    cursor: wait;
+    opacity: 0.9;
+    
+    &:hover {
+      background: #6c757d;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    i.spinner.loading.icon {
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ========== LICENSE BADGE ========== */
 .unesco-license-badge {
   display: inline-flex;

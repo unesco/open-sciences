@@ -16,6 +16,9 @@ from .cms import (
     CMSUploadAPIView,
 )
 
+# Lens.org Proxy API
+from .lens_proxy import LensExportProxyAPIView
+
 # Other APIs
 from .export import ExportAPIView
 from .search import SearchAPIView
@@ -23,6 +26,7 @@ from .statistics import StatisticsAPIView
 
 __all__ = [
     "ExportAPIView",
+    "LensExportProxyAPIView",
     "SearchAPIView",
     "StatisticsAPIView",
     # CMS Content API

@@ -21,6 +21,7 @@ def create_blueprint(app):
     from .views import StatisticsView, CMSPageView
     from .api import (
         ExportAPIView,
+        LensExportProxyAPIView,
         SearchAPIView,
         StatisticsAPIView,
         # Resource-Driven CMS API
@@ -84,6 +85,13 @@ def create_blueprint(app):
     blueprint.add_url_rule(
         f"{API_PREFIX}/export",
         view_func=ExportAPIView.as_view("export_api"),
+        methods=["GET"],
+    )
+
+    # Lens.org export proxy (bypasses CORS)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/lens/export",
+        view_func=LensExportProxyAPIView.as_view("lens_export_proxy_api"),
         methods=["GET"],
     )
 
