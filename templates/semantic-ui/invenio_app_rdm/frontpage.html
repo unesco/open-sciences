@@ -37,74 +37,78 @@
       <div class="swiper-wrapper">
         <!-- Highlight Card 1 -->
         <div class="swiper-slide">
-        <div class="highlight-card">
-          <div class="highlight-image">
-            <img src="/static/images/highlight1.jpg" alt="Highlight 1" />
+          <div class="highlight-card">
+            <div class="highlight-image" style="background-image: url('/static/images/highlight1.png');"></div>
+            <div class="highlight-content">
+              <div class="highlight-text-wrapper">
+                <div class="highlight-number">60%</div>
+                <p class="highlight-description">of global vertebrate species richness is found within UNESCO sites.</p>
+              </div>
+              <a href="/search?q=biodiversity" class="highlight-button">
+                <span>See more</span>
+                <svg class="highlight-button-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z"/>
+                </svg>
+              </a>
+            </div>
           </div>
-          <div class="highlight-content">
-            <div class="highlight-number">60%</div>
-            <p class="highlight-description">
-              of the world's poor live in just 5 countries, showing the ongoing need to address inequality
-            </p>
-            <a href="/search?q=inequality" class="ui basic small button highlight-button">
-              See more
-            </a>
-          </div>
-        </div>
         </div>
         
         <!-- Highlight Card 2 -->
         <div class="swiper-slide">
-        <div class="highlight-card">
-          <div class="highlight-image">
-            <img src="/static/images/highlight1.jpg" alt="Highlight 2" />
+          <div class="highlight-card">
+            <div class="highlight-image" style="background-image: url('/static/images/highlight2.png');"></div>
+            <div class="highlight-content">
+              <div class="highlight-text-wrapper">
+                <div class="highlight-number">23.3%</div>
+                <p class="highlight-description">of marine key biodiversity areas are covered by protected areas globally.</p>
+              </div>
+              <a href="/search?q=marine+biodiversity" class="highlight-button">
+                <span>See more</span>
+                <svg class="highlight-button-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z"/>
+                </svg>
+              </a>
+            </div>
           </div>
-          <div class="highlight-content">
-            <div class="highlight-number">>23.3%</div>
-            <p class="highlight-description">
-              of annual family (Oct-March) so UNESCO and its partners have observed that access to the necessary southern
-            </p>
-            <a href="/search?q=climate" class="ui basic small button highlight-button">
-              See more
-            </a>
-          </div>
-        </div>
         </div>
         
         <!-- Highlight Card 3 -->
         <div class="swiper-slide">
-        <div class="highlight-card">
-          <div class="highlight-image">
-            <img src="/static/images/highlight1.jpg" alt="Highlight 3" />
+          <div class="highlight-card">
+            <div class="highlight-image" style="background-image: url('/static/images/highlight3.png');"></div>
+            <div class="highlight-content">
+              <div class="highlight-text-wrapper">
+                <div class="highlight-number">1.5°C</div>
+                <p class="highlight-description">global temperature rise threshold that UNESCO monitors through its climate research programs.</p>
+              </div>
+              <a href="/search?q=climate+change" class="highlight-button">
+                <span>See more</span>
+                <svg class="highlight-button-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z"/>
+                </svg>
+              </a>
+            </div>
           </div>
-          <div class="highlight-content">
-            <div class="highlight-number">>23.3%</div>
-            <p class="highlight-description">
-              of annual family (Oct-March) so UNESCO and its partners have observed that access to the necessary southern
-            </p>
-            <a href="/search?q=arctic" class="ui basic small button highlight-button">
-              See more
-            </a>
-          </div>
-        </div>
         </div>
         
         <!-- Highlight Card 4 -->
         <div class="swiper-slide">
-        <div class="highlight-card">
-          <div class="highlight-image">
-            <img src="/static/images/highlight1.jpg" alt="Highlight 4" />
+          <div class="highlight-card">
+            <div class="highlight-image" style="background-image: url('/static/images/highlight4.png');"></div>
+            <div class="highlight-content">
+              <div class="highlight-text-wrapper">
+                <div class="highlight-number">40%</div>
+                <p class="highlight-description">of the world's population lacks access to quality science education resources.</p>
+              </div>
+              <a href="/search?q=science+education" class="highlight-button">
+                <span>See more</span>
+                <svg class="highlight-button-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z"/>
+                </svg>
+              </a>
+            </div>
           </div>
-          <div class="highlight-content">
-            <div class="highlight-number">>23.3%</div>
-            <p class="highlight-description">
-              of annual family (Oct-March) so UNESCO and its partners have observed that access to the necessary southern
-            </p>
-            <a href="/search?q=research" class="ui basic small button highlight-button">
-              See more
-            </a>
-          </div>
-        </div>
         </div>
       </div>
       <div class="swiper-pagination"></div>
@@ -244,23 +248,27 @@
     // Highlights Swiper
     var highlightsSwiper = new Swiper(".highlightsSwiper", {
       slidesPerView: 1,
-      spaceBetween: 20,
+      spaceBetween: 24,
       pagination: {
         el: ".highlightsSwiper .swiper-pagination",
         clickable: true,
       },
       breakpoints: {
+        576: {
+          slidesPerView: 1,
+          spaceBetween: 24,
+        },
         768: {
           slidesPerView: 2,
-          spaceBetween: 20,
+          spaceBetween: 24,
         },
-        992: {
+        1024: {
           slidesPerView: 3,
-          spaceBetween: 20,
+          spaceBetween: 24,
         },
-        1200: {
+        1400: {
           slidesPerView: 4,
-          spaceBetween: 20,
+          spaceBetween: 24,
         },
       },
     });
