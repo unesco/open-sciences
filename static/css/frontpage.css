@@ -362,65 +362,135 @@
   background: #fff;
 }
 
-.research-family-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+/* ========================================
+   Research Card Component - Figma Design
+   ======================================== */
 
-.research-family-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-}
-
-.research-family-image {
-  width: 100%;
-  height: 160px;
-  overflow: hidden;
+.research-card {
   position: relative;
-}
-
-.research-family-image img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: 440px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.research-family-content {
-  padding: 20px;
-  flex: 1;
+.research-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #212121;
+  opacity: 0.4;
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.research-card:hover .research-card-overlay {
+  opacity: 0.5;
+}
+
+.research-card-content {
+  position: absolute;
+  top: 24px;
+  left: 24px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  z-index: 1;
 }
 
-.research-family-content h3 {
-  font-size: 16px;
+.research-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  width: 209px;
+}
+
+.research-card-title {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-  line-height: 1.4;
+  font-size: 18px;
+  line-height: 24px;
+  color: #ffffff;
+  margin: 0;
 }
 
-.research-family-content p {
+.research-card-button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 24px;
+  gap: 10px;
+  background: #0077d4;
+  border-radius: 24px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.research-card-button:hover {
+  background: #005fa3;
+  text-decoration: none;
+}
+
+.research-card-button span {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 600;
   font-size: 14px;
-  color: #666;
-  line-height: 1.6;
-  margin: 0 0 16px 0;
-  flex: 1;
+  line-height: 16px;
+  color: #ffffff;
 }
 
-.research-family-content .button {
-  align-self: flex-start;
+/* Responsive adjustments for research cards */
+@media only screen and (max-width: 991px) {
+  .research-card {
+    height: 380px;
+  }
+
+  .research-card-text {
+    width: 180px;
+  }
+
+  .research-card-title {
+    font-size: 16px;
+    line-height: 22px;
+  }
 }
 
-.research-family-pagination {
-  text-align: center;
-  margin-top: 30px;
+@media only screen and (max-width: 767px) {
+  .research-card {
+    height: 340px;
+  }
+
+  .research-card-content {
+    top: 20px;
+    left: 20px;
+    gap: 20px;
+  }
+
+  .research-card-text {
+    width: 160px;
+  }
+
+  .research-card-title {
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .research-card-button {
+    padding: 10px 20px;
+  }
+
+  .research-card-button span {
+    font-size: 13px;
+  }
 }
 
 /* Dashboards Section */
