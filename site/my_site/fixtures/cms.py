@@ -89,13 +89,13 @@ FOOTER_DEFAULT = {
         },
         {
             "label": "UNESCO Natural Sciences Family",
-            "url": "https://www.unesco.org/en/natural-sciences",
-            "external": True,
+            "url": "/pages/natural-sciences-family",
+            "external": False,
         },
         {
-            "label": "UNESCO Open Science",
-            "url": "https://www.unesco.org/en/open-science",
-            "external": True,
+            "label": "Privacy",
+            "url": "/pages/privacy",
+            "external": False,
         },
     ],
     "copyright_text": "© 2025 UNESCO Open Science Portal - United Nations Educational, Scientific and Cultural Organization",
@@ -117,14 +117,21 @@ STATIC_PAGES_METADATA = {
         "meta_title": "About Open Science - UNESCO Open Science Platform",
         "meta_description": "Learn about the open science movement and its global impact on research, collaboration, and knowledge sharing.",
     },
+    "privacy": {
+        "title": "Privacy Notice",
+        "slug": "privacy",
+        "template": "privacy.html",
+        "meta_title": "Privacy Notice - UNESCO Open Science Platform",
+        "meta_description": "Privacy notice for the UNESCO Open Science Platform.",
+    },
+    "natural-sciences-family": {
+        "title": "UNESCO Natural Sciences Family",
+        "slug": "natural-sciences-family",
+        "template": "natural-sciences-family.html",
+        "meta_title": "UNESCO Natural Sciences Family - UNESCO Open Science Platform",
+        "meta_description": "Learn about the UNESCO Natural Sciences Family and its role in open science.",
+    },
     # Add more static pages here:
-    # "privacy": {
-    #     "title": "Privacy Policy",
-    #     "slug": "privacy",
-    #     "template": "privacy.html",
-    #     "meta_title": "Privacy Policy - UNESCO Open Science Platform",
-    #     "meta_description": "Privacy policy for the UNESCO Open Science Platform.",
-    # },
     # "terms": {
     #     "title": "Terms of Use",
     #     "slug": "terms",

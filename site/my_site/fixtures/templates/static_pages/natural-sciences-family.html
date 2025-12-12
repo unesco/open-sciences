@@ -1,14 +1,14 @@
-<!-- About Section -->
-<div class="about-page">
+<!-- UNESCO Natural Sciences Family Section -->
+<div class="natural-sciences-page">
   <div class="ui container">
-    <p class="about-text">
+    <p class="page-text">
       UNESCO works to accelerate scientific progress and ensure that knowledge
       benefits everyone through open science. The UNESCO Recommendation on Open
       Science, supported by 194 countries, outlines a set of actions to ensure
       open science for all.
     </p>
 
-    <p class="about-text">
+    <p class="page-text">
       Open science aims at making scientific knowledge openly available,
       accessible and reusable. The key elements of open science include: open
       access to scientific knowledge (including open access to scientific
@@ -17,18 +17,21 @@
       and <a href="#">traditional knowledge systems</a>, among others.
     </p>
 
-    <div class="about-image">
-      <img src="/static/images/about.png" alt="Open Science illustration" />
+    <div class="page-image">
+      <img
+        src="/static/images/about.png"
+        alt="UNESCO Natural Sciences Family illustration"
+      />
     </div>
 
-    <p class="about-text">
+    <p class="page-text">
       UNESCO works to accelerate scientific progress and ensure that knowledge
       benefits everyone through open science. The UNESCO Recommendation on Open
       Science, supported by 194 countries, outlines a set of actions to ensure
       open science for all.
     </p>
 
-    <p class="about-text">
+    <p class="page-text">
       Open science aims at making scientific knowledge openly available,
       accessible and reusable. The key elements of open science include: open
       access to scientific knowledge (including open access to scientific
@@ -40,11 +43,20 @@
 </div>
 
 <style>
-  .about-page {
+  .natural-sciences-page {
     background: #ffffff;
   }
 
-  .about-text {
+  .natural-sciences-page .page-title {
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1.2;
+    color: #212121;
+    margin-bottom: 24px;
+  }
+
+  .natural-sciences-page .page-text {
     font-family: "Inter", sans-serif;
     font-weight: 400;
     font-size: 16px;
@@ -53,20 +65,20 @@
     margin-bottom: 16px;
   }
 
-  .about-text a {
+  .natural-sciences-page .page-text a {
     color: #0077d4;
     text-decoration: underline;
   }
 
-  .about-text a:hover {
+  .natural-sciences-page .page-text a:hover {
     color: #005fa3;
   }
 
-  .about-image {
+  .natural-sciences-page .page-image {
     margin: 32px 0;
   }
 
-  .about-image img {
+  .natural-sciences-page .page-image img {
     width: 100%;
     max-width: 600px;
     height: auto;
@@ -74,7 +86,11 @@
   }
 
   @media only screen and (max-width: 767px) {
-    .about-text {
+    .natural-sciences-page .page-title {
+      font-size: 28px;
+    }
+
+    .natural-sciences-page .page-text {
       font-size: 15px;
     }
   }
