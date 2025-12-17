@@ -302,57 +302,52 @@ All jobs use the `ost_` prefix to avoid conflicts with other pipelines in the re
 
 ### How to Publish
 
-#### Step 1: Push Changes to Branch
+#### Step 1: Update the Version
 
-```bash
-# Make your changes in openscience_tools/
-cd openscience_tools
-# ... edit files ...
-
-# Commit and push to the openscience_tools branch
-git add .
-git commit -m "feat: add new feature"
-git push origin openscience_tools
-```
-
-#### Step 2: Monitor Pipeline
-
-The pipeline will automatically trigger on push to `openscience_tools` branch:
-
-1. Go to: https://repository.unesco.org/gitlab/icc/openscience-tools/-/pipelines
-2. Find the latest pipeline for `openscience_tools` branch
-3. The **ost_build** job will run automatically
-4. Wait for it to complete successfully
-
-#### Step 3: Manually Trigger Publish
-
-Once the build completes:
-
-1. In the pipeline view, locate the **ost_publish** job
-2. Click the ▶️ **Play** button to manually trigger publishing
-3. Monitor the job logs to verify successful upload
-4. Package will be available at: https://repository.unesco.org/gitlab/icc/openscience-tools/-/packages
-
-### Updating Package Version
-
-Before publishing a new version:
+Before publishing, bump the version number in all relevant files:
 
 ```bash
 cd openscience_tools
+
 # 1. Update version in pyproject.toml
-# Edit: version = ${VERSION}
+#    Edit: version = "X.Y.Z"
 
 # 2. Update version in ./openscience_tools/__init__.py
-# Edit: __version__: ${VERSION}
+#    Edit: __version__ = "X.Y.Z"
 
-# 2. Update version in .gitlab-ci.yml
-# Edit: PACKAGE_VERSION: ${VERSION}
+# 3. Update version in .gitlab-ci.yml (at repository root)
+#    Edit: PACKAGE_VERSION: "X.Y.Z"
 
-# 3. Commit version bump
-git add pyproject.toml ../.gitlab-ci.yml
-git commit -m "chore: bump version to ${VERSION}"
-git push origin openscience_tools
+# 4. Commit the version bump
+git add pyproject.toml openscience_tools/__init__.py ../.gitlab-ci.yml
+git commit -m "chore: bump version to X.Y.Z"
 ```
+
+#### Step 2: Push to the `ost` Branch
+
+Push your changes to the `ost` branch to trigger the CI/CD pipeline:
+
+```bash
+git push origin ost
+```
+
+This will automatically start the pipeline defined in `.gitlab-ci.yml`.
+
+#### Step 3: Monitor the Pipeline
+
+1. Go to: https://repository.unesco.org/gitlab/sc/sc-openscience/-/pipelines
+2. Find the latest pipeline for the `ost` branch
+3. The pipeline will execute:
+   - **ost_prepare** → Builds the Docker image with publishing tools
+   - **ost_build** → Creates distribution packages (.whl and .tar.gz)
+   - **ost_publish** → Uploads to GitLab Package Registry
+
+#### Step 4: Verify Publication
+
+Once the pipeline completes successfully:
+
+- View the published package at: https://repository.unesco.org/gitlab/sc/sc-openscience/-/packages
+- The new version should appear in the package list
 
 ### Pipeline Configuration Details
 
