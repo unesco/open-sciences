@@ -60,19 +60,6 @@ def check_invenio_running():
     print("   Run 'make up' to start InvenioRDM before continuing")
     return False
 
-
-def activate_venv_and_run(cmd):
-    """Activates virtual environment and executes a command"""
-    venv_path = Path.cwd() / ".venv"
-    if not venv_path.exists():
-        print("❌ Virtual environment not found. Run 'make init' first.")
-        return None
-
-    # Command with venv activation
-    full_cmd = f"source {venv_path}/bin/activate && {cmd}"
-    return run_command(full_cmd, shell=True)
-
-
 def get_existing_token():
     """Searches for existing token in .env file"""
     env_file = Path(".env")
@@ -101,7 +88,7 @@ def create_api_token():
     # The -i flag creates an internal token with more permissions
     cmd = f'invenio tokens create -n "{token_name}" -u "{admin_email}" -i'
 
-    output = activate_venv_and_run(cmd)
+    output = run_command(cmd)
     if output is None:
         print("❌ Error creating token")
         print("   Make sure user admin@unesco.org exists")
