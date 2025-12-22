@@ -5,8 +5,8 @@
 /* Import UNESCO panel styles */
 @import 'unesco-panel.overrides';
 
-/* Import Inter font from Google Fonts - UNESCO Official Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Inter font is loaded via <link> tag in page.html template
+   This avoids webpack build failures when network is unavailable */
 
 /* Apply Inter font globally */
 body {
