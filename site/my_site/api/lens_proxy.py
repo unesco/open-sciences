@@ -149,18 +149,43 @@ class LensExportProxyAPIView(MethodView):
                     "Accept": "*/*",
                     "User-Agent": "Mozilla/5.0 (compatible; UNESCO-OpenScience/1.0)",
                 },
-                timeout=60,
+                timeout=180,
+                stream=True,  # Stream large responses
             )
 
             if response.status_code == 200:
-                # Return the CSV file
-                return Response(
-                    response.content,
-                    mimetype="text/csv",
-                    headers={
-                        "Content-Disposition": f"attachment; filename=lens-{export_type}-{lens_id}.csv"
-                    },
-                )
+                try:
+                    # Read response in chunks for better handling of large payloads
+                    chunks = []
+                    received_bytes = 0
+                    chunk_size = 8192  # 8KB chunks
+                    
+                    for chunk in response.iter_content(chunk_size=chunk_size):
+                        if chunk:
+                            chunks.append(chunk)
+                            received_bytes += len(chunk)
+                    
+                    content = b''.join(chunks)
+                    
+                    # Return the CSV file
+                    return Response(
+                        content,
+                        mimetype="text/csv",
+                        headers={
+                            "Content-Disposition": f"attachment; filename=lens-{export_type}-{lens_id}.csv"
+                        },
+                    )
+                except Exception as e:
+                    # Handle content reading errors (truncated/incomplete response)
+                    expected_size = response.headers.get('content-length', 'unknown')
+                    return {
+                        "error": "Failed to read complete response from Lens.org",
+                        "error_type": "incomplete_response",
+                        "details": str(e),
+                        "expected_size": expected_size,
+                        "received_bytes": received_bytes if 'received_bytes' in dir() else 0,
+                        "suggestion": "The response may be too large or incomplete. Try reducing the request size."
+                    }, 502
             else:
                 return {
                     "error": f"Lens.org returned status {response.status_code}",
@@ -168,6 +193,21 @@ class LensExportProxyAPIView(MethodView):
                 }, response.status_code
 
         except requests.exceptions.Timeout:
-            return {"error": "Request to Lens.org timed out"}, 504
+            # Use custom timeout status code (524 for external service timeout)
+            from flask import current_app
+            status_code = current_app.config.get('GATEWAY_TIMEOUT_STATUS_CODE', 504)
+            return {
+                "error": "Request to Lens.org timed out",
+                "error_type": "external_timeout",
+                "retry_after": 60
+            }, status_code
+        except requests.exceptions.ChunkedEncodingError as e:
+            # Handle incomplete chunk errors (common with large payloads)
+            return {
+                "error": "Incomplete response from Lens.org",
+                "error_type": "chunked_encoding_error",
+                "details": str(e),
+                "suggestion": "The response was truncated. Try reducing the size parameter."
+            }, 502
         except requests.exceptions.RequestException as e:
             return {"error": f"Failed to connect to Lens.org: {str(e)}"}, 502

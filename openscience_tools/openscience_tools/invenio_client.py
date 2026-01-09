@@ -29,17 +29,19 @@ class InvenioRDMClient:
     - Users and communities management
     """
 
-    def __init__(self, base_url: str, token: Optional[str] = None):
+    def __init__(self, base_url: str, token: Optional[str] = None, timeout: int = 300):
         """
         Initialize the InvenioRDM client.
 
         Args:
             base_url: Base URL of the InvenioRDM instance (e.g., 'https://your-rdm.example.com')
             token: API Bearer token for authentication
+            timeout: Request timeout in seconds (default: 300 for large publications)
         """
         self.base_url = base_url.rstrip("/")
         self.api_url = urljoin(self.base_url, "/api/")
         self.token = token
+        self.timeout = timeout  # Default 5 minutes for large payloads with many authors
         self.session = requests.Session()
 
         # Disable SSL verification for development with self-signed certificates
@@ -74,18 +76,56 @@ class InvenioRDMClient:
             requests.RequestException: For HTTP errors
         """
         url = urljoin(self.api_url, endpoint.lstrip("/"))
+        
+        # Use configured timeout if not specified
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = self.timeout
 
         try:
             response = self.session.request(method, url, **kwargs)
             response.raise_for_status()
             return response
+        except requests.exceptions.Timeout as e:
+            logger.error(f"Request timed out after {self.timeout}s: {method} {url}")
+            raise
         except requests.RequestException as e:
             error_msg = f"Request failed: {method} {url} - {e}"
             try:
                 error_details = response.json()
                 logger.error(f"{error_msg}\nDetails: {json.dumps(error_details, indent=2)}")
+            except json.JSONDecodeError:
+                # Handle empty or malformed response (common with large payloads)
+                content_length = response.headers.get('content-length', 'unknown')
+                received = len(response.content) if hasattr(response, 'content') else 0
+                logger.error(f"{error_msg}\nJSON parse failed - expected: {content_length} bytes, received: {received} bytes")
             except:
                 logger.error(error_msg)
+            raise
+    
+    def _safe_json(self, response: requests.Response) -> Dict[str, Any]:
+        """
+        Safely parse JSON response with detailed error handling.
+        
+        Args:
+            response: requests.Response object
+            
+        Returns:
+            Parsed JSON as dictionary
+            
+        Raises:
+            json.JSONDecodeError: With detailed size information
+        """
+        try:
+            return response.json()
+        except json.JSONDecodeError as e:
+            content_length = response.headers.get('content-length', 'unknown')
+            received = len(response.content) if response.content else 0
+            logger.error(
+                f"JSON parse error: {e}\n"
+                f"Expected size: {content_length} bytes\n"
+                f"Received size: {received} bytes\n"
+                f"Response preview: {response.text[:200] if response.text else '(empty)'}"
+            )
             raise
 
     def get_info(self) -> Dict[str, Any]:
@@ -181,7 +221,7 @@ class InvenioRDMClient:
             data["custom_fields"] = custom_fields
 
         response = self._make_request("POST", "/records", json=data)
-        return response.json()
+        return self._safe_json(response)
 
     def create_draft_from_record(self, record_id: str) -> Dict[str, Any]:
         """
@@ -240,7 +280,7 @@ class InvenioRDMClient:
             data["files"] = files
 
         response = self._make_request("PUT", f"/records/{record_id}/draft", json=data)
-        return response.json()
+        return self._safe_json(response)
 
     def publish_draft(self, record_id: str) -> Dict[str, Any]:
         """
@@ -253,7 +293,7 @@ class InvenioRDMClient:
             Published record data
         """
         response = self._make_request("POST", f"/records/{record_id}/draft/actions/publish")
-        return response.json()
+        return self._safe_json(response)
 
     def delete_draft(self, record_id: str) -> bool:
         """

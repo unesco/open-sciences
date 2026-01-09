@@ -19,4 +19,22 @@ __version__ = "1.0.0"
 # Import models to ensure they are registered with SQLAlchemy
 from .models import CMSContent
 
-__all__ = ("CMSContent",)
+# Import error handlers and custom exceptions
+from .error_handlers import (
+    register_error_handlers, 
+    configure_timeout_settings,
+    TimeoutError,
+    PublicationTimeoutError,
+    PayloadTooLargeError,
+    JSONParseError
+)
+
+__all__ = (
+    "CMSContent", 
+    "register_error_handlers", 
+    "configure_timeout_settings",
+    "TimeoutError",
+    "PublicationTimeoutError",
+    "PayloadTooLargeError",
+    "JSONParseError"
+)

@@ -38,6 +38,11 @@ def create_blueprint(app):
         CMSSingletonUpsertAPIView,
         CMSUploadAPIView,
     )
+    
+    # Register custom error handlers
+    from .error_handlers import register_error_handlers, configure_timeout_settings
+    register_error_handlers(app)
+    configure_timeout_settings(app)
 
     blueprint = Blueprint(
         "my_site",
