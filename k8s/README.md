@@ -196,7 +196,7 @@ make kind-init
 ```bash
 # Check vocabularies loaded
 kubectl exec -n unesco-rdm deployment/unesco-rdm-invenio-web -c web -- \
-  invenio shell -c "from invenio_vocabularies.proxies import current_service; print(current_service.read_all(identity=system_identity, type='resourcetypes').total)"
+  invenio shell -c "from invenio_access.permissions import system_identity; from invenio_vocabularies.proxies import current_service; print(current_service.search(identity=system_identity, type='resourcetypes', size=1).total)"
 # Should show: 45
 ```
 
