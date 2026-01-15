@@ -26,6 +26,13 @@ The UNESCO Open Science Portal includes:
 - Admin interface at `/administration/cms`
 - Multilingual support with fixtures
 
+**Custom Fields & Facets:**
+- `publication:year` - Publication year for faceted search
+- `publication:country` - Countries from author affiliations
+- `publication:funding_org` - Funding organizations
+- `publication:is_open_access` - Boolean flag for open access status
+- `publication:open_access_colour` - Color category (gold, green, hybrid, bronze)
+
 **Technical Stack:**
 - InvenioRDM with custom site package
 - Docker Compose for container orchestration
@@ -76,9 +83,13 @@ git pull origin dev
 
 ---
 
-### Step 2: Update Configuration invenio.cfg
+### Step 2: Update Configuration
 
-⚠️ **IMPORTANT:** The `invenio.cfg` file contains environment-specific secrets and is **NOT** tracked in Git. After pulling new code, you must manually update this file on the server.
+⚠️ **CRITICAL NOTES:**
+- The `invenio.cfg` file contains environment-specific secrets and is **NOT** tracked in Git
+- The file is typically a **bind mount** from the host filesystem (e.g., `/opt/dockerapps/sc-openscience-dev/invenio.cfg` → `/opt/invenio/var/instance/invenio.cfg`)
+- Always backup the **host file** before making changes
+- After pulling new code, you must manually update this file on the server
 
 #### 2.1 Backup Current Configuration
 
@@ -136,6 +147,11 @@ vi /opt/invenio/var/instance/invenio.cfg
 ```
 
 **Step B.2:** Edit what you want to change
+
+1. **Example - Update SECURITY_REGISTERABLE** (if applicable):
+   ```python
+   SECURITY_REGISTERABLE = False  # Disable public registration
+   ```
 
 **Step B.3:** Save and exit (in vim: `ESC` → `:wq` → `Enter`)
 
@@ -209,7 +225,65 @@ cms_content
 
 ---
 
-### Step 5: Load CMS Content
+### Step 5: Initialize Custom Fields
+
+⚠️ **CRITICAL STEP:** This registers new custom fields in the database.
+
+```bash
+# Initialize custom fields (required for new publication:* fields)
+docker compose exec web-ui invenio rdm-records custom-fields init
+```
+
+**Expected output:**
+```
+Initializing custom fields...
+✓ lens:id
+✓ lens:open_access
+✓ lens:external_ids
+✓ lens:source
+✓ lens:references
+✓ lens:mesh_terms
+✓ lens:scholarly_citations
+✓ lens:chemicals
+✓ publication:open_access_colour
+✓ publication:is_open_access
+✓ publication:year
+✓ publication:country
+✓ publication:funding_org
+Custom fields initialized successfully.
+```
+
+---
+
+### Step 6: Rebuild Search Indices
+
+⚠️ **CRITICAL STEP:** New facets require updated index mappings.
+
+```bash
+# 1. Destroy existing indices (removes old mappings)
+docker compose exec web-ui invenio index destroy --force --yes-i-know
+
+# 2. Create indices with new mappings
+docker compose exec web-ui invenio index init
+
+# 3. Rebuild all record indices (re-index all records)
+docker compose exec web-ui invenio rdm-records rebuild-index
+```
+
+⚠️ **Note:** Step 3 may take several minutes depending on record count. Search will be unavailable during this process.
+
+**Verify indices:**
+```bash
+# List indices
+docker compose exec web-ui invenio index list
+
+# Check if records were indexed
+docker compose exec web-ui invenio shell -c "from invenio_search import current_search_client; print(current_search_client.count(index='*records*'))"
+```
+
+---
+
+### Step 7: Load CMS Content
 
 Load default content for footer, header, and static pages:
 
@@ -237,10 +311,11 @@ static_page (en): 3 entries
 
 ---
 
-### Step 6: Build Frontend Assets
+### Step 8: Build Frontend Assets
 
 ```bash
-# Build CSS and JavaScript assets
+# Build CSS and JavaScript assets (use invenio, not invenio-cli in containers)
+docker compose exec web-ui invenio webpack buildall
 docker compose exec web-ui invenio-cli assets build
 ```
 
@@ -250,11 +325,16 @@ docker compose exec web-ui invenio-cli assets build
 # Clean and rebuild
 docker compose exec web-ui invenio webpack clean
 docker compose exec web-ui invenio webpack buildall
+
+# If you encounter memory issues (exit code -9), increase Node.js memory:
+docker compose exec \
+  -e NODE_OPTIONS="--max-old-space-size=3072" \
+  web-ui invenio webpack buildall
 ```
 
 ---
 
-### Step 7: Collect Static Files
+### Step 9: Collect Static Files
 
 ```bash
 docker compose exec web-ui invenio collect -v
@@ -262,7 +342,7 @@ docker compose exec web-ui invenio collect -v
 
 ---
 
-### Step 8: Restart Services
+### Step 10: Restart Services
 
 ```bash
 # Restart all InvenioRDM services
@@ -277,7 +357,29 @@ docker compose up -d
 
 ## Verification
 
-### 9.1 Check Services Health
+### Check Custom Fields Configuration
+
+```bash
+# Verify custom fields are registered
+docker compose exec web-ui invenio shell -c "from flask import current_app; print([f.name for f in current_app.config.get('RDM_CUSTOM_FIELDS', [])])"
+```
+
+**Expected:** Should list all custom fields including `publication:year`, `publication:country`, `publication:funding_org`, `publication:is_open_access`, `publication:open_access_colour`
+1   
+### Check Facets in API
+
+```bash
+# Test facets/aggregations
+curl -s "https://your-domain.org/api/records?size=1" | jq '.aggregations'
+```
+
+**Expected:** Should include aggregations for:
+- `publication_year`
+- `publication_country`
+- `funding_org`
+- `is_open_access`
+
+### Check Services Health
 
 ```bash
 # Check all containers are running
@@ -289,7 +391,7 @@ docker compose logs --tail=50 web-api
 docker compose logs --tail=50 worker
 ```
 
-### 9.2 Verify Frontend Changes
+### Verify Frontend Changes
 
 Open in browser and verify:
 
@@ -307,7 +409,7 @@ Open in browser and verify:
    - Collapsible metadata panels display
    - UNESCO styling applied
 
-### 9.3 Verify Static Pages
+### Verify Static Pages
 
 ```bash
 # Test About page
@@ -320,7 +422,7 @@ curl -s "https://open-science-dev.unesco.org/pages/privacy" | grep -i "privacy" 
 curl -s "https://open-science-dev.unesco.org/pages/natural-sciences-family" | grep -i "science" | head -5
 ```
 
-### 9.4 Verify CMS API
+### Verify CMS API
 
 ```bash
 # Get footer content (public endpoint)
@@ -498,11 +600,19 @@ docker compose build web-ui web-api
 docker compose exec web-ui pip install -e /opt/invenio/src/site/
 docker compose exec web-ui invenio alembic upgrade my_site@head
 
+# Initialize custom fields (CRITICAL!)
+docker compose exec web-ui invenio rdm-records custom-fields init
+
+# Rebuild search indices (CRITICAL!)
+docker compose exec web-ui invenio index destroy --force --yes-i-know
+docker compose exec web-ui invenio index init
+docker compose exec web-ui invenio rdm-records rebuild-index
+
 # Load CMS content
 docker compose exec web-ui invenio cms load-fixtures --force
 
 # Build assets
-docker compose exec web-ui invenio-cli assets build
+docker compose exec web-ui invenio webpack buildall
 docker compose exec web-ui invenio collect -v
 
 # Restart services
