@@ -1,0 +1,63 @@
+site_name: UNESCO Open Science Portal
+site_description: Documentation for the UNESCO Open Science Portal powered by InvenioRDM
+site_author: UNESCO
+
+site_url: ""
+
+theme:
+  name: material
+  favicon: img/favicon.ico
+  features:
+    - content.code.annotate
+    - content.tabs.link
+
+plugins:
+  - search
+  - print-site:
+      add_cover_page: true
+
+nav:
+  - Getting started: index.md
+  - Installation Guide: readme.md
+  - Kubernetes Deployment: kubernetes.md
+  - Production Deployment: deployment.md
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.tabbed
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/config.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/tables.js
+  - https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.2.1/tablesort.min.js
+
+copyright: © Copyright 2021-2026, UNESCO.

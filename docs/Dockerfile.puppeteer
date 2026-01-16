@@ -1,0 +1,27 @@
+FROM node:18-bullseye-slim
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV CHROME_BIN=/usr/bin/chromium
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    chromium \
+    ca-certificates \
+    fonts-liberation \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    libx11-6 \
+    libxss1 \
+    libasound2 \
+    libnss3 \
+    libxrandr2 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+# copy your print script
+COPY print.js /app/print.js
+
+# lightweight npm install for puppeteer (we skip chromium download because system chromium is installed)
+RUN npm init -y \
+    && npm install puppeteer@latest --no-audit --no-fund
+
+ENTRYPOINT ["node", "/app/print.js", "http://docs:9000/print_page", "/app/site/documentation.pdf", "UNESCO Open Science Portal"]

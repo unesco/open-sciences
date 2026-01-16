@@ -1,15 +1,6 @@
-# UNESCO Open Science Portal
+# UNESCO Open Science Portal - Complete Guide
 
 Welcome to the UNESCO Open Science Portal powered by InvenioRDM - a modern research data management platform.
-
-## Start the user guide
-
-Info on how to start this application module are given in its own user guide. To see it, follow these steps:
-
-- Install Docker
-- Clone the repo
-- Run `docker-compose -f docker-compose.docs.yaml up`
-- Access [http://localhost:9000](http://localhost:9000) to see the user guide
 
 ## Overview
 
@@ -353,23 +344,6 @@ This UNESCO Science Portal instance includes:
 - Inter font family (UNESCO's official typeface)
 - Custom footer with UNESCO links
 - Favicon and logo customizations
-
-## 🚀 Production Deployment
-
-For production and Kubernetes deployment guides, see the complete documentation:
-
-```bash
-# Start the documentation server
-docker-compose -f docker-compose.docs.yaml up
-
-# Access the user guide at http://localhost:9000
-```
-
-The documentation includes:
-- Complete development guide
-- Kubernetes/Kind deployment guide
-- Production deployment procedures
-- Troubleshooting tips
 
 ## Documentation
 
