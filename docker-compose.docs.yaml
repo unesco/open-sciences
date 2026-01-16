@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  docs:
+    build:
+      context: ./docs
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./docs:/code
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import socket,sys; s=socket.socket(); s.settimeout(2); s.connect((''127.0.0.1'',9000)); s.close()" || exit 1',
+        ]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+    networks:
+      - default
+
+  pdf-exporter:
+    build:
+      context: ./docs
+      dockerfile: Dockerfile.puppeteer
+    depends_on:
+      docs:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "require(''http'').get(''http://docs:9000/'', res=>{process.exit(res.statusCode<400?0:1)}).on(''error'',()=>process.exit(1))"',
+        ]
+      interval: 5s
+      timeout: 2s
+      retries: 30
+      start_period: 10s
+    volumes:
+      - ./docs/pdf:/app/site:rw
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge

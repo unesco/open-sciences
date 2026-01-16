@@ -1,4 +1,4 @@
-# UNESCO Open Science Portal - Deployment Guide
+# UNESCO Open Science Portal - Production Deployment Guide
 
 This guide covers deploying the UNESCO Open Science Portal (InvenioRDM) to production or staging environments.
 
@@ -42,6 +42,7 @@ The UNESCO Open Science Portal includes:
 ---
 
 ## Pre-Deployment Checklist
+
 Before starting deployment, ensure you have:
 
 - [ ] SSH access to the deployment server
@@ -148,11 +149,6 @@ vi /opt/invenio/var/instance/invenio.cfg
 
 **Step B.2:** Edit what you want to change
 
-1. **Example - Update SECURITY_REGISTERABLE** (if applicable):
-   ```python
-   SECURITY_REGISTERABLE = False  # Disable public registration
-   ```
-
 **Step B.3:** Save and exit (in vim: `ESC` → `:wq` → `Enter`)
 
 **Step B.4:** Exit container and verify:
@@ -160,7 +156,7 @@ vi /opt/invenio/var/instance/invenio.cfg
 ```bash
 exit
 
-# Verify configuration was updated (should show 2 lines) [ Example Command to check cdn.jsdelivr.net is there config]
+# Verify configuration was updated
 docker compose exec web-ui grep "cdn.jsdelivr.net" /opt/invenio/var/instance/invenio.cfg
 ```
 
@@ -365,7 +361,7 @@ docker compose exec web-ui invenio shell -c "from flask import current_app; prin
 ```
 
 **Expected:** Should list all custom fields including `publication:year`, `publication:country`, `publication:funding_org`, `publication:is_open_access`, `publication:open_access_colour`
-1   
+   
 ### Check Facets in API
 
 ```bash
@@ -413,28 +409,15 @@ Open in browser and verify:
 
 ```bash
 # Test About page
-curl -s "https://open-science-dev.unesco.org/pages/about" | grep -i "unesco" | head -5
+curl -s "https://your-domain.org/pages/about" | grep -i "unesco" | head -5
 
 # Test Privacy page
-curl -s "https://open-science-dev.unesco.org/pages/privacy" | grep -i "privacy" | head -5
-
-# Test Natural Sciences Family page
-curl -s "https://open-science-dev.unesco.org/pages/natural-sciences-family" | grep -i "science" | head -5
-```
-
-### Verify CMS API
-
-```bash
-# Get footer content (public endpoint)
-curl -s "https://open-science-dev.unesco.org/data/cms/public/footer?lang=en" | jq
-
-# Get static pages (public endpoint)
-curl -s "https://open-science-dev.unesco.org/data/cms/public/static_page?lang=en" | jq
+curl -s "https://your-domain.org/pages/privacy" | grep -i "privacy" | head -5
 ```
 
 ---
 
-## Troubleshooting Guide [ Common Issues ]
+## Troubleshooting Guide
 
 ### Issue: Swiper.js Carousel Not Working
 
@@ -653,5 +636,3 @@ docker compose exec web-ui invenio collect -v
 ```
 
 ---
-
-
