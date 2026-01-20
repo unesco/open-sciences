@@ -247,6 +247,22 @@ make tools-view RECORD_ID='abc-123'
 make tools-view RECORD_ID='abc-123' OPTS='--format json'
 ```
 
+**Export Records:**
+
+```bash
+# Export all records to CSV
+make tools-export OUTPUT='records.csv'
+
+# Export with all available fields
+make tools-export OUTPUT='full_records.csv' OPTS='--all-fields'
+
+# Export filtered records
+make tools-export OUTPUT='climate.csv' OPTS='--query "climate"'
+
+# Export from different instance (e.g., dev environment at https://open-science-dev.unesco.org)
+make tools-export OUTPUT='dev_records.csv' BASE_URL='https://open-science-dev.unesco.org' TOKEN='your-token'
+```
+
 **Import Data:**
 
 ```bash
@@ -288,6 +304,7 @@ make tools-reset FILE='openscience_tools/openscience_tools/sources/lens/data/pub
 | `make tools-setup-env`   | Generate API token and configure environment |
 | `make tools-search`      | Search records (use QUERY='...')             |
 | `make tools-view`        | View record details (use RECORD_ID='...')    |
+| `make tools-export`      | Export records to CSV (use OUTPUT='...')     |
 | `make tools-cleanup`     | Delete all records                           |
 | `make tools-import-lens` | Import from Lens.org (use FILE='...')        |
 | `make tools-reset`       | Delete all + import from Lens                |
@@ -366,6 +383,7 @@ docker-compose -f docker-compose.docs.yaml up
 ```
 
 The documentation includes:
+
 - Complete development guide
 - Kubernetes/Kind deployment guide
 - Production deployment procedures

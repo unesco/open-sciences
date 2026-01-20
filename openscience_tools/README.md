@@ -11,7 +11,8 @@ OpenScience Tools is a comprehensive toolkit for managing and importing data int
 - **🐍 Python SDK**: Programmatic insert, update, delete operations for integration into your apps
 - **🔍 Search & Discovery**: Search and browse records with flexible filters
 - **👁️ Record Management**: View detailed record information and manage records
-- **🗑️ Cleanup Operations**: Delete records with dry-run support
+- **� CSV Export**: Export all records to CSV format for analysis and backup
+- **�🗑️ Cleanup Operations**: Delete records with dry-run support
 - **📚 Lens.org Import**: Import publications from Lens.org JSON exports with full metadata mapping
 - **🔧 Flexible Configuration**: Use environment variables or command-line options
 - **⚡ Fast & Lightweight**: No Docker overhead, direct Python package
@@ -146,6 +147,36 @@ openscience-tools view abc-123 --format json
 openscience-tools view abc-123 --verbose
 ```
 
+### Export Records to CSV
+
+Export all or filtered records from your InvenioRDM instance to CSV format:
+
+```bash
+# Export all records to default file (records.csv)
+openscience-tools export
+
+# Export to specific file
+openscience-tools export --output my_records.csv
+
+# Export only climate-related records
+openscience-tools export -q "climate" -o climate_records.csv
+
+# Export with all available fields
+openscience-tools export --all-fields -o full_export.csv
+
+# Export specific query with verbose output
+openscience-tools export -q "dataset" -o datasets.csv --verbose
+```
+
+**CSV Export Features:**
+
+- ✅ Automatic pagination (fetches all records)
+- ✅ Basic fields: ID, title, creators, date, type, description, access
+- ✅ Extended fields (with `--all-fields`): affiliations, DOI, ISBN, ISSN, subjects, related identifiers, language, rights, files info, URLs
+- ✅ Query filtering support
+- ✅ Progress tracking
+- ✅ UTF-8 encoding for international characters
+
 ### Delete Records
 
 Remove all records from your InvenioRDM instance:
@@ -266,6 +297,10 @@ make tools-search QUERY='test' OPTS='--detailed'
 
 # View record
 make tools-view RECORD_ID='abc-123'
+
+# Export to CSV
+make tools-export OUTPUT='records.csv'
+make tools-export OUTPUT='climate.csv' OPTS='--query "climate" --all-fields'
 
 # Cleanup
 make tools-cleanup OPTS='--dry-run'
