@@ -5,7 +5,7 @@ Provides a unified command-line interface for all tools.
 """
 
 import click
-from .tools import search, view, cleanup
+from .tools import search, view, cleanup, export
 from .sources.lens.main import main as lens_import
 
 
@@ -39,6 +39,7 @@ def main(ctx, base_url, token):
 main.add_command(search.main, name="search")
 main.add_command(view.main, name="view")
 main.add_command(cleanup.main, name="cleanup")
+main.add_command(export.main, name="export")
 main.add_command(lens_import, name="import-lens")
 
 

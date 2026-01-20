@@ -43,6 +43,7 @@ help:
 	@echo "  tools-setup-env      - Setup environment variables for tools"
 	@echo "  tools-search         - Search records (use QUERY='search term')"
 	@echo "  tools-view           - View record details (use RECORD_ID='abc-123')"
+	@echo "  tools-export         - Export records to CSV (use OUTPUT='records.csv')"
 	@echo "  tools-cleanup        - Delete all records"
 	@echo "  tools-import-lens    - Import from Lens.org (use FILE='path/to/file.json')"
 	@echo "  tools-reset          - Delete all + import from Lens (use FILE='path/to/file.json')"
@@ -281,6 +282,22 @@ tools-view:
 			exit 1; \
 		fi; \
 		$(VENV_ACTIVATE) && openscience-tools --base-url "$$BASE_URL" --token "$$TOKEN" view $(RECORD_ID) $(OPTS); \
+	else \
+		echo "❌ .env file not found. Run 'make config' first."; \
+		exit 1; \
+	fi
+
+tools-export:
+	@echo "📤 Exporting records to CSV..."
+	@if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		OUTPUT_FILE=$${OUTPUT:-records.csv}; \
+		$(VENV_ACTIVATE) && openscience-tools --base-url "$$BASE_URL" --token "$$TOKEN" export --output "$$OUTPUT_FILE" $(OPTS); \
 	else \
 		echo "❌ .env file not found. Run 'make config' first."; \
 		exit 1; \
