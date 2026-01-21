@@ -10,6 +10,7 @@ provides filtering capabilities for specific fields (country, author, etc.).
 from typing import Optional
 from .base import BaseFilterBackend
 from .affiliation import AffiliationFilterBackend
+from .affiliation_region import AffiliationRegionFilterBackend
 from .author import AuthorFilterBackend
 from .country import CountryFilterBackend
 from .funding import FundingOrgFilterBackend
@@ -21,6 +22,7 @@ from .year import PublicationYearFilterBackend
 # Registry of available filter backends
 FILTER_BACKENDS_REGISTRY = {
     "affiliation": AffiliationFilterBackend,
+    "affiliation_region": AffiliationRegionFilterBackend,
     "author": AuthorFilterBackend,
     "country": CountryFilterBackend,
     "funding": FundingOrgFilterBackend,
@@ -50,6 +52,7 @@ def get_filter_backend(filter_key: str) -> Optional[BaseFilterBackend]:
 __all__ = [
     "BaseFilterBackend",
     "AffiliationFilterBackend",
+    "AffiliationRegionFilterBackend",
     "AuthorFilterBackend",
     "CountryFilterBackend",
     "FundingOrgFilterBackend",
