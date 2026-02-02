@@ -11,7 +11,9 @@ Maps Lens.org-specific data that doesn't fit into standard InvenioRDM fields:
 - Lens-specific identifiers
 """
 
+import json
 import logging
+import os
 import re
 from typing import Dict, Any, List, Optional
 
@@ -19,6 +21,79 @@ from ..base import BaseMapper, MappingError
 from ..config import LensImportConfig
 
 logger = logging.getLogger(__name__)
+
+# Import region display names from site constants
+try:
+    import sys
+    from pathlib import Path
+    # Add site directory to path to import constants
+    site_path = Path(__file__).parent.parent.parent.parent.parent.parent / "site"
+    if site_path.exists():
+        sys.path.insert(0, str(site_path))
+        from my_site.constants import REGION_DISPLAY_NAMES
+        sys.path.pop(0)
+    else:
+        # Fallback if import fails
+        REGION_DISPLAY_NAMES = {
+            "EUROPE_NORTH_AMERICA": "Europe & North America",
+            "ARAB_STATES": "Arab States",
+            "AFRICA": "Africa",
+            "LATIN_AMERICA_CARIBBEAN": "Latin America & the Caribbean",
+            "ASIA_PACIFIC": "Asia & the Pacific",
+        }
+except ImportError:
+    # Fallback if import fails
+    REGION_DISPLAY_NAMES = {
+        "EUROPE_NORTH_AMERICA": "Europe & North America",
+        "ARAB_STATES": "Arab States",
+        "AFRICA": "Africa",
+        "LATIN_AMERICA_CARIBBEAN": "Latin America & the Caribbean",
+        "ASIA_PACIFIC": "Asia & the Pacific",
+    }
+
+
+def _load_country_to_region_mapping() -> Dict[str, str]:
+    """
+    Load country code to region mapping from JSON file.
+    
+    Returns:
+        Dict mapping country code (ISO alpha-2) to region display name
+    """
+    # Find the project root by looking for site directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Navigate up until we find the directory containing 'site'
+    while current_dir != os.path.dirname(current_dir):  # Not at root
+        site_path = os.path.join(current_dir, "site", "my_site", "filters", "data", "country_code_region_mapping.json")
+        if os.path.exists(site_path):
+            json_path = site_path
+            break
+        current_dir = os.path.dirname(current_dir)
+    else:
+        logger.warning("Could not find country_code_region_mapping.json in project structure")
+        return {}
+    
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            country_code_to_region_key = json.load(f)
+        
+        # Convert region keys to display names
+        mapping = {
+            code: REGION_DISPLAY_NAMES[region_key]
+            for code, region_key in country_code_to_region_key.items()
+        }
+        logger.info(f"Loaded {len(mapping)} country code-to-region mappings from {json_path}")
+        return mapping
+    except FileNotFoundError:
+        logger.warning(f"Country code-region mapping file not found at {json_path}")
+        return {}
+    except Exception as e:
+        logger.warning(f"Error loading country code-region mapping: {e}")
+        return {}
+
+
+# Load mapping at module level (once on import)
+COUNTRY_CODE_TO_REGION = _load_country_to_region_mapping()
 
 
 class CustomFieldsMapper(BaseMapper):
@@ -76,9 +151,15 @@ class CustomFieldsMapper(BaseMapper):
                 custom_fields["publication:is_open_access"] = "true" if is_oa else "false"
 
             # Affiliation countries for faceting (extract from authors' affiliations)
-            affiliation_countries = self._extract_affiliation_countries(lens_record)
-            if affiliation_countries:
-                custom_fields["publication:country"] = affiliation_countries
+            country_names, country_codes = self._extract_affiliation_countries(lens_record)
+            if country_names:
+                custom_fields["publication:country"] = country_names
+            
+            # Map country codes to UNESCO regions
+            if country_codes:
+                regions = self._map_country_codes_to_regions(country_codes)
+                if regions:
+                    custom_fields["publication:affiliation_region"] = regions
 
             # Publication year for faceting (extract from year_published or date_published)
             year = self.safe_get(lens_record, "year_published")
@@ -720,9 +801,9 @@ class CustomFieldsMapper(BaseMapper):
 
         return funding_orgs if funding_orgs else None
 
-    def _extract_affiliation_countries(self, lens_record: Dict[str, Any]) -> Optional[List[str]]:
+    def _extract_affiliation_countries(self, lens_record: Dict[str, Any]) -> tuple[Optional[List[str]], Optional[List[str]]]:
         """
-        Extract country names from authors' affiliations.
+        Extract country names and codes from authors' affiliations.
 
         Extracts country_code from each author's affiliations and converts
         them to full country names using pycountry.
@@ -731,7 +812,7 @@ class CustomFieldsMapper(BaseMapper):
             lens_record: Raw Lens.org publication record
 
         Returns:
-            List of unique country names or None if no country data
+            Tuple of (country_names, country_codes) or (None, None) if no country data
         """
         try:
             import pycountry
@@ -763,21 +844,52 @@ class CustomFieldsMapper(BaseMapper):
                     country_codes.add(country_code.strip().upper())
 
         if not country_codes:
-            return None
+            return None, None
 
         # Convert country codes to full names
         country_names = []
+        valid_codes = []
         for code in sorted(country_codes):  # Sort for consistency
             try:
                 country = pycountry.countries.get(alpha_2=code)
                 if country:
                     country_names.append(country.name)
+                    valid_codes.append(code)
                 else:
                     self.logger.warning(f"Unknown country code: {code}")
             except Exception as e:
                 self.logger.warning(f"Error converting country code {code}: {e}")
 
-        return country_names if country_names else None
+        return (
+            country_names if country_names else None,
+            valid_codes if valid_codes else None
+        )
+
+    def _map_country_codes_to_regions(self, country_codes: List[str]) -> Optional[List[str]]:
+        """Map country codes to UNESCO regions.
+        
+        Args:
+            country_codes: List of ISO alpha-2 country codes (e.g., ['US', 'FR', 'JP'])
+            
+        Returns:
+            List of unique UNESCO region names or None
+        """
+        if not country_codes:
+            return None
+        
+        if not COUNTRY_CODE_TO_REGION:
+            self.logger.warning("Country code-to-region mapping not loaded")
+            return None
+        
+        regions = set()
+        for country_code in country_codes:
+            region = COUNTRY_CODE_TO_REGION.get(country_code)
+            if region:
+                regions.add(region)
+            else:
+                self.logger.warning(f"No region mapping found for country code: {country_code}")
+        
+        return sorted(list(regions)) if regions else None
 
     def _map_journal(self, lens_record: Dict[str, Any]) -> Optional[Dict[str, str]]:
         """

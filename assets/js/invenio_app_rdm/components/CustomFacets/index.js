@@ -116,6 +116,15 @@ export const CustomFacets = ({ aggs, appName }) => {
           facetName="publication_country"
         />
         <DynamicFacet
+          key={`affiliation-region-${urlKey}`}
+          label="Author Affiliation Region"
+          apiField="affiliation_region"
+          queryField="metadata.creators.affiliations.region"
+          placeholder="Search regions..."
+          icon="world"
+          maxResults={100}
+        />
+        <DynamicFacet
           key={`subject-${urlKey}`}
           label="Subject / Keyword"
           apiField="subject"

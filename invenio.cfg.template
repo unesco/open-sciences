@@ -312,6 +312,12 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="publication:country",
         multiple=True,
     ),
+    # Affiliation regions (UNESCO regional groups) for filtering
+    # Multiple regions allowed (one per unique country region)
+    KeywordCF(
+        name="publication:affiliation_region",
+        multiple=True,
+    ),
     # Funding organization for filtering (extracted from lens:funding)
     # Multiple funding organizations allowed
     KeywordCF(
@@ -454,11 +460,20 @@ RDM_FACETS = {
             "field": "custom_fields.publication:is_open_access",
         },
     },
+    "affiliation_region": {
+        "facet": CFTermsFacet(
+            field="publication:affiliation_region",
+            label=_("Affiliation Region"),
+        ),
+        "ui": {
+            "field": "custom_fields.publication:affiliation_region",
+        },
+    },
 }
 
 RDM_SEARCH = {
     **RDM_SEARCH,
-    "facets": RDM_SEARCH["facets"] + ["publication_year", "publication_country", "funding_org", "is_open_access"]
+    "facets": RDM_SEARCH["facets"] + ["publication_year", "publication_country", "funding_org", "is_open_access", "affiliation_region"]
 }
 
 # Static Pages Configuration

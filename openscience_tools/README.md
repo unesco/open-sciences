@@ -395,3 +395,4 @@ The pipeline is configured in `.gitlab-ci.yml` at the repository root:
   - Publish: Custom `ost-publish-tool:latest` (with twine 6.0+)
 - **Manual Jobs**: `ost_build_publish_image` and `ost_publish` require manual trigger
 - **Artifacts**: Distribution packages stored for 1 week
+
