@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { Button, Icon } from "semantic-ui-react";
 import {
   DynamicFacet,
   UnescoToggleFacet,
@@ -65,6 +66,19 @@ export const CustomFacets = ({ aggs, appName }) => {
     };
   }, [urlKey]);
 
+  // Check if there are active filters or search query
+  const hasActiveFiltersOrQuery = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const searchQuery = searchParams.get("q");
+    const facetFilters = searchParams.getAll("f");
+    return (searchQuery && searchQuery.trim() !== "") || facetFilters.length > 0;
+  };
+
+  // Clear all filters and search query
+  const handleClearFilters = () => {
+    window.location.href = "/search";
+  };
+
   return (
     <>
       <style>
@@ -84,6 +98,23 @@ export const CustomFacets = ({ aggs, appName }) => {
         }`}
         style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
       >
+        {/* Clear Filters Button */}
+        {hasActiveFiltersOrQuery() && (
+          <Button
+            fluid
+            basic
+            size="small"
+            onClick={handleClearFilters}
+            style={{
+              marginBottom: "0.5rem",
+              color: "#db2828",
+              borderColor: "#db2828",
+            }}
+          >
+            Clear All Filters
+          </Button>
+        )}
+        
         <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
         <ResourceTypeFacet key={`resource-type-${urlKey}`} />
         <DynamicFacet
