@@ -5,7 +5,7 @@ import _debounce from "lodash/debounce";
 export const useFacetSearch = (
   apiField,
   pageSize = 10,
-  isInitialized = false
+  isInitialized = false,
 ) => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,8 +19,23 @@ export const useFacetSearch = (
     (query, page = 1) => {
       setLoading(true);
 
+      // Get current search query from URL to filter aggregations
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentSearchQuery = urlParams.get("q") || "";
+
+      // Get facet filters from URL
+      const facetFilters = urlParams.getAll("f");
+
       const url = `/data/search?field=${apiField}${
         query ? `&q=${encodeURIComponent(query)}` : ""
+      }${
+        currentSearchQuery
+          ? `&searchQuery=${encodeURIComponent(currentSearchQuery)}`
+          : ""
+      }${
+        facetFilters.length > 0
+          ? `&facetFilters=${encodeURIComponent(facetFilters.join(","))}`
+          : ""
       }&page=${page}&size=${pageSize}&sort=count`;
 
       fetch(url)
@@ -48,7 +63,7 @@ export const useFacetSearch = (
           setLoading(false);
         });
     },
-    [apiField, pageSize]
+    [apiField, pageSize],
   );
 
   // Debounced search (resets to page 1)
@@ -56,7 +71,7 @@ export const useFacetSearch = (
     _debounce((query) => {
       setCurrentPage(1);
       fetchOptions(query, 1);
-    }, 300)
+    }, 300),
   ).current;
 
   // Initialize - fetch initial data only when isInitialized becomes true

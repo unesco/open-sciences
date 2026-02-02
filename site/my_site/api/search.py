@@ -30,6 +30,11 @@ class SearchAPIView(MethodView):
         size = int(request.args.get("size", 20))
         sort_by = request.args.get("sort", "count")
 
+        # Get current search query and facet filters for dynamic aggregations
+        search_query = request.args.get("searchQuery", "")
+        facet_filters_str = request.args.get("facetFilters", "")
+        facet_filters = facet_filters_str.split(",") if facet_filters_str else []
+
         # Validate required parameters
         if not filter_key:
             return (
@@ -61,6 +66,8 @@ class SearchAPIView(MethodView):
                 page=page,
                 size=size,
                 sort_by=sort_by,
+                search_query=search_query if search_query else None,
+                facet_filters=facet_filters,
             )
 
             # Handle both dict and list returns (for backward compatibility)

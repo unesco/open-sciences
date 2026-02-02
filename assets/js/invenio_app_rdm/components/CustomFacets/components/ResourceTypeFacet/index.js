@@ -49,6 +49,9 @@ const ResourceTypeFacet = () => {
 
   // Fetch resource types from InvenioRDM aggregations
   useEffect(() => {
+    // Invalidate cache when search context changes
+    cachedData = null;
+    
     // If we already have cached data, use it
     if (cachedData) {
       setData(cachedData);
@@ -65,10 +68,30 @@ const ResourceTypeFacet = () => {
       return;
     }
 
-    // Start a new fetch
+    // Start a new fetch - include current search query and facet filters for dynamic counts
     setLoading(true);
+    
+    // Get current search context from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get("q") || "";
+    const facetFilters = urlParams.getAll("f").filter(f => !f.startsWith("resource_type:"));
+    
+    // Build params with search context
+    const params = { size: 1 };
+    if (searchQuery) {
+      params.q = searchQuery;
+    }
+    if (facetFilters.length > 0) {
+      facetFilters.forEach(f => {
+        if (!params.f) params.f = [];
+        if (Array.isArray(params.f)) {
+          params.f.push(f);
+        }
+      });
+    }
+    
     fetchPromise = axios
-      .get("/api/records", { params: { size: 1 } })
+      .get("/api/records", { params })
       .then((response) => {
         const aggregations = response.data.aggregations || {};
         const resourceTypeBuckets = aggregations.resource_type?.buckets || [];
@@ -88,7 +111,7 @@ const ResourceTypeFacet = () => {
       setData(result);
       setLoading(false);
     });
-  }, []);
+  }, [window.location.search]); // Re-fetch when search context changes
 
   // Organize InvenioRDM aggregation buckets into parent-child hierarchy
   const organizeHierarchy = (buckets) => {

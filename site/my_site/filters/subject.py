@@ -28,6 +28,8 @@ class SubjectFilterBackend(BaseFilterBackend):
         page: int = 1,
         size: int = 20,
         sort_by: str = "count",
+        search_query: Optional[str] = None,
+        facet_filters: Optional[List[str]] = None,
     ) -> Dict:
         """
         Override execute for subjects - use aggregation for better performance.
@@ -37,6 +39,8 @@ class SubjectFilterBackend(BaseFilterBackend):
             page: Page number (1-indexed)
             size: Number of results per page
             sort_by: Sort order ('count' for doc_count desc, 'name' for alphabetical)
+            search_query: Optional user's main search query for dynamic aggregations
+            facet_filters: Optional list of active facet filters
 
         Returns:
             Dict with 'results' and pagination info
@@ -57,6 +61,11 @@ class SubjectFilterBackend(BaseFilterBackend):
                     },
                 }
 
+                # Add query filter from parent class if search_query or facet_filters present
+                base_query = self.build_query(search_term, search_query, facet_filters)
+                if "query" in base_query:
+                    query_body["query"] = base_query["query"]
+
                 result = current_search_client.search(
                     index=self.get_index_name(), body=query_body
                 )
@@ -76,7 +85,9 @@ class SubjectFilterBackend(BaseFilterBackend):
                 print(
                     f"Keyword aggregation failed, using scroll fallback: {keyword_error}"
                 )
-                return self._execute_with_scroll(search_term, page, size, sort_by)
+                return self._execute_with_scroll(
+                    search_term, page, size, sort_by, search_query, facet_filters
+                )
 
             # Normalize subject names
             normalized_counts = {}
@@ -157,17 +168,27 @@ class SubjectFilterBackend(BaseFilterBackend):
         page: int = 1,
         size: int = 20,
         sort_by: str = "count",
+        search_query: Optional[str] = None,
+        facet_filters: Optional[List[str]] = None,
     ) -> Dict:
         """
         Fallback method using scroll API - counts distinct documents per subject.
         """
         try:
-            # Build query - use scroll API to fetch ALL records
+            # Build base query with filters from search context
+            base_query = self.build_query(search_term, search_query, facet_filters)
+
+            # Build scroll query - use scroll API to fetch ALL records
             query_body = {
                 "size": 1000,
                 "_source": ["metadata.subjects"],
-                "query": {"exists": {"field": "metadata.subjects"}},
             }
+
+            # If there's a query filter, use it; otherwise just check field exists
+            if "query" in base_query:
+                query_body["query"] = base_query["query"]
+            else:
+                query_body["query"] = {"exists": {"field": "metadata.subjects"}}
 
             # Initialize scroll
             result = current_search_client.search(
