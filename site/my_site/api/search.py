@@ -29,7 +29,7 @@ class SearchAPIView(MethodView):
         page = int(request.args.get("page", 1))
         size = int(request.args.get("size", 20))
         sort_by = request.args.get("sort", "count")
-        
+
         # Get current search query and facet filters for dynamic aggregations
         search_query = request.args.get("searchQuery", "")
         facet_filters_str = request.args.get("facetFilters", "")

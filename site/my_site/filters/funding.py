@@ -60,7 +60,7 @@ class FundingOrgFilterBackend(BaseFilterBackend):
                         }
                     },
                 }
-                
+
                 # Add query filter from parent class if search_query or facet_filters present
                 base_query = self.build_query(search_term, search_query, facet_filters)
                 if "query" in base_query:
@@ -85,7 +85,9 @@ class FundingOrgFilterBackend(BaseFilterBackend):
                 print(
                     f"Keyword aggregation failed, using scroll fallback: {keyword_error}"
                 )
-                return self._execute_with_scroll(search_term, page, size, sort_by, search_query, facet_filters)
+                return self._execute_with_scroll(
+                    search_term, page, size, sort_by, search_query, facet_filters
+                )
 
             # Normalize funding organization names
             normalized_counts = {}
@@ -175,13 +177,13 @@ class FundingOrgFilterBackend(BaseFilterBackend):
         try:
             # Build base query with filters from search context
             base_query = self.build_query(search_term, search_query, facet_filters)
-            
+
             # Build scroll query - use scroll API to fetch ALL records
             query_body = {
                 "size": 1000,
                 "_source": ["metadata.funding"],
             }
-            
+
             # If there's a query filter, use it; otherwise just check field exists
             if "query" in base_query:
                 query_body["query"] = base_query["query"]
