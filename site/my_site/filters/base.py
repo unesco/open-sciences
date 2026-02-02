@@ -34,18 +34,18 @@ class BaseFilterBackend(ABC):
         return {"_key": "asc"}
 
     def build_query(
-        self, 
+        self,
         search_term: Optional[str] = None,
         search_query: Optional[str] = None,
         facet_filters: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Build the OpenSearch query with aggregations.
-        
+
         Args:
             search_term: Optional search term for filtering aggregation results
             search_query: Optional user's main search query (e.g., author name)
             facet_filters: Optional list of facet filters (e.g., ['country:Belgium'])
-        
+
         Returns:
             OpenSearch query dict with aggregations filtered by search context
         """
@@ -61,19 +61,16 @@ class BaseFilterBackend(ABC):
                 }
             },
         }
-        
+
         # Build query filter to match current search context
         must_queries = []
-        
+
         # Add user's search query if present
         if search_query:
-            must_queries.append({
-                "query_string": {
-                    "query": search_query,
-                    "default_operator": "AND"
-                }
-            })
-        
+            must_queries.append(
+                {"query_string": {"query": search_query, "default_operator": "AND"}}
+            )
+
         # Add facet filters if present (excluding the current facet being queried)
         if facet_filters:
             for facet_filter in facet_filters:
@@ -83,24 +80,28 @@ class BaseFilterBackend(ABC):
                     if facet_name != self.get_filter_key():
                         # Determine the field to filter on based on facet name
                         field_mapping = self._get_facet_field_mapping()
-                        field_name = field_mapping.get(facet_name, f"metadata.{facet_name}")
-                        must_queries.append({
-                            "term": {field_name: facet_value}
-                        })
-        
+                        field_name = field_mapping.get(
+                            facet_name, f"metadata.{facet_name}"
+                        )
+                        
+                        # Handle hierarchical resource_type format: "parent+inner:child"
+                        # For resource_type, extract the actual value after +inner:
+                        if facet_name == "resource_type" and "+inner:" in facet_value:
+                            # Format: "publication+inner:publication-article"
+                            # We want to filter by "publication-article"
+                            facet_value = facet_value.split("+inner:", 1)[1]
+                        
+                        must_queries.append({"term": {field_name: facet_value}})
+
         # Apply query filter if there are any conditions
         if must_queries:
-            query_dict["query"] = {
-                "bool": {
-                    "must": must_queries
-                }
-            }
-        
+            query_dict["query"] = {"bool": {"must": must_queries}}
+
         return query_dict
-    
+
     def _get_facet_field_mapping(self) -> Dict[str, str]:
         """Map facet names to their OpenSearch field paths.
-        
+
         Override this in subclasses if needed for custom mappings.
         """
         return {
