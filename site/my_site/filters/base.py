@@ -33,9 +33,23 @@ class BaseFilterBackend(ABC):
         """Return the aggregation order. Override if needed."""
         return {"_key": "asc"}
 
-    def build_query(self, search_term: Optional[str] = None) -> Dict[str, Any]:
-        """Build the OpenSearch query with aggregations."""
-        return {
+    def build_query(
+        self, 
+        search_term: Optional[str] = None,
+        search_query: Optional[str] = None,
+        facet_filters: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Build the OpenSearch query with aggregations.
+        
+        Args:
+            search_term: Optional search term for filtering aggregation results
+            search_query: Optional user's main search query (e.g., author name)
+            facet_filters: Optional list of facet filters (e.g., ['country:Belgium'])
+        
+        Returns:
+            OpenSearch query dict with aggregations filtered by search context
+        """
+        query_dict = {
             "size": 0,  # We don't need the actual documents
             "aggs": {
                 f"unique_{self.get_filter_key()}": {
@@ -47,6 +61,61 @@ class BaseFilterBackend(ABC):
                 }
             },
         }
+        
+        # Build query filter to match current search context
+        must_queries = []
+        
+        # Add user's search query if present
+        if search_query:
+            must_queries.append({
+                "query_string": {
+                    "query": search_query,
+                    "default_operator": "AND"
+                }
+            })
+        
+        # Add facet filters if present (excluding the current facet being queried)
+        if facet_filters:
+            for facet_filter in facet_filters:
+                if ":" in facet_filter:
+                    facet_name, facet_value = facet_filter.split(":", 1)
+                    # Skip if it's the same facet we're aggregating on
+                    if facet_name != self.get_filter_key():
+                        # Determine the field to filter on based on facet name
+                        field_mapping = self._get_facet_field_mapping()
+                        field_name = field_mapping.get(facet_name, f"metadata.{facet_name}")
+                        must_queries.append({
+                            "term": {field_name: facet_value}
+                        })
+        
+        # Apply query filter if there are any conditions
+        if must_queries:
+            query_dict["query"] = {
+                "bool": {
+                    "must": must_queries
+                }
+            }
+        
+        return query_dict
+    
+    def _get_facet_field_mapping(self) -> Dict[str, str]:
+        """Map facet names to their OpenSearch field paths.
+        
+        Override this in subclasses if needed for custom mappings.
+        """
+        return {
+            "resource_type": "metadata.resource_type.id",
+            "publication_country": "custom_fields.publication:country",
+            "affiliation_region": "custom_fields.publication:affiliation_region",
+            "subject": "metadata.subjects.subject",
+            "funding_org": "metadata.funding.funder.name",
+            "publication_year": "custom_fields.publication:year",
+            "is_open_access": "custom_fields.publication:is_open_access",
+            "author": "metadata.creators.person_or_org.name.keyword",
+            "affiliation": "metadata.creators.affiliations.name.keyword",
+            "country": "custom_fields.publication:country",
+            "funding": "metadata.funding.funder.name.keyword",
+        }
 
     def execute(
         self,
@@ -54,6 +123,8 @@ class BaseFilterBackend(ABC):
         page: int = 1,
         size: int = 20,
         sort_by: str = "count",
+        search_query: Optional[str] = None,
+        facet_filters: Optional[List[str]] = None,
     ) -> Dict:
         """Execute the search and return filtered results with pagination.
 
@@ -62,12 +133,14 @@ class BaseFilterBackend(ABC):
             page: Page number (1-indexed)
             size: Number of results per page
             sort_by: Sort order ('count' for doc_count desc, 'name' for alphabetical)
+            search_query: Optional user's main search query for dynamic aggregations
+            facet_filters: Optional list of active facet filters
 
         Returns:
             Dict with 'results', 'total', 'page', 'size', 'has_more'
         """
         try:
-            query = self.build_query(search_term)
+            query = self.build_query(search_term, search_query, facet_filters)
             result = current_search_client.search(
                 index=self.get_index_name(), body=query
             )

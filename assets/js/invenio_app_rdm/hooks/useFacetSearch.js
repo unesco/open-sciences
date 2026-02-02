@@ -19,8 +19,19 @@ export const useFacetSearch = (
     (query, page = 1) => {
       setLoading(true);
 
+      // Get current search query from URL to filter aggregations
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentSearchQuery = urlParams.get("q") || "";
+      
+      // Get facet filters from URL
+      const facetFilters = urlParams.getAll("f");
+
       const url = `/data/search?field=${apiField}${
         query ? `&q=${encodeURIComponent(query)}` : ""
+      }${
+        currentSearchQuery ? `&searchQuery=${encodeURIComponent(currentSearchQuery)}` : ""
+      }${
+        facetFilters.length > 0 ? `&facetFilters=${encodeURIComponent(facetFilters.join(","))}` : ""
       }&page=${page}&size=${pageSize}&sort=count`;
 
       fetch(url)
