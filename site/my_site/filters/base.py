@@ -84,14 +84,19 @@ class BaseFilterBackend(ABC):
                             facet_name, f"metadata.{facet_name}"
                         )
                         
-                        # Handle hierarchical resource_type format: "parent+inner:child"
-                        # For resource_type, extract the actual value after +inner:
-                        if facet_name == "resource_type" and "+inner:" in facet_value:
-                            # Format: "publication+inner:publication-article"
-                            # We want to filter by "publication-article"
-                            facet_value = facet_value.split("+inner:", 1)[1]
-                        
-                        must_queries.append({"term": {field_name: facet_value}})
+                        # Handle hierarchical resource_type format
+                        if facet_name == "resource_type":
+                            if "+inner:" in facet_value:
+                                # Format: "publication+inner:publication-article"
+                                # Extract the actual child value after +inner:
+                                facet_value = facet_value.split("+inner:", 1)[1]
+                                must_queries.append({"term": {field_name: facet_value}})
+                            else:
+                                # Format: "publication" (parent only)
+                                # Use prefix match to get all children (publication-article, publication-book, etc.)
+                                must_queries.append({"prefix": {field_name: f"{facet_value}-"}})
+                        else:
+                            must_queries.append({"term": {field_name: facet_value}})
 
         # Apply query filter if there are any conditions
         if must_queries:
