@@ -164,14 +164,17 @@
 
 .publisher-detail-row {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .publisher-label {
   font-weight: 600;
   color: #333;
   font-size: 0.95em;
+  white-space: nowrap;
 }
 
 .publisher-value {

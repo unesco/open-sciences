@@ -11,7 +11,7 @@
     <div class="keywords-tags" style="display: flex; flex-wrap: wrap; gap: 8px;">
       {%- for subject_item in metadata.subjects -%}
         {%- if subject_item.subject -%}
-      <a href="/search?q=metadata.subjects.subject:{{ subject_item.subject | urlencode }}" 
+      <a href="/search?q=metadata.subjects.subject:&quot;{{ subject_item.subject | urlencode }}&quot;" 
          class="ui label basic"
          style="margin: 0; border-radius: 4px; font-weight: normal;">
         {{ subject_item.subject }}
