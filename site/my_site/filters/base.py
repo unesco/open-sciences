@@ -83,7 +83,7 @@ class BaseFilterBackend(ABC):
                         field_name = field_mapping.get(
                             facet_name, f"metadata.{facet_name}"
                         )
-                        
+
                         # Handle hierarchical resource_type format
                         if facet_name == "resource_type":
                             if "+inner:" in facet_value:
@@ -94,7 +94,9 @@ class BaseFilterBackend(ABC):
                             else:
                                 # Format: "publication" (parent only)
                                 # Use prefix match to get all children (publication-article, publication-book, etc.)
-                                must_queries.append({"prefix": {field_name: f"{facet_value}-"}})
+                                must_queries.append(
+                                    {"prefix": {field_name: f"{facet_value}-"}}
+                                )
                         else:
                             must_queries.append({"term": {field_name: facet_value}})
 

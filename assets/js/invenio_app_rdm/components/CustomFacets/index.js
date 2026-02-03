@@ -71,7 +71,9 @@ export const CustomFacets = ({ aggs, appName }) => {
     const searchParams = new URLSearchParams(window.location.search);
     const searchQuery = searchParams.get("q");
     const facetFilters = searchParams.getAll("f");
-    return (searchQuery && searchQuery.trim() !== "") || facetFilters.length > 0;
+    return (
+      (searchQuery && searchQuery.trim() !== "") || facetFilters.length > 0
+    );
   };
 
   // Clear all filters and search query
@@ -114,7 +116,7 @@ export const CustomFacets = ({ aggs, appName }) => {
             Clear All Filters
           </Button>
         )}
-        
+
         <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
         <ResourceTypeFacet key={`resource-type-${urlKey}`} />
         <DynamicFacet
