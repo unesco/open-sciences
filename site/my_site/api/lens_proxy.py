@@ -24,26 +24,26 @@ class LensExportProxyAPIView(MethodView):
         if not lens_id:
             return {"error": "lens_id parameter is required"}, 400
 
-        # Build the Lens.org URL based on export type
-        # referenceId.must=XXX finds articles that have XXX in their references (articles citing XXX)
+        # Build the URL based on export type
+        # Lens.org uses different URL formats for references vs citations:
+        # - References: q=referenced_by:LENS_ID (query string)
+        # - Citations: referenceId.must=LENS_ID (URL parameter)
         if export_type == "references":
-            # For references: we need articles that THIS article references
-            # This requires a different approach - get the article's reference list
-            url = f"https://www.lens.org/lens/export/scholar?q=&st=true&citingId.must={lens_id}"
+            # For references: get articles that THIS article cites
+            url = f"https://www.lens.org/lens/export/scholar?q=referenced_by:{lens_id}&st=true"
         elif export_type == "citations":
-            # For citations: articles that cite THIS article (have this article in their references)
+            # For citations: get articles that cite THIS article  
             url = f"https://www.lens.org/lens/export/scholar?q=&st=true&referenceId.must={lens_id}"
         else:
             return {"error": "Invalid type. Use 'references' or 'citations'"}, 400
 
-        # Build the payload
+        # Build the payload (no query here - it's in the URL)
         payload = {
             "size": 1000,
             "from": 0,
             "sort": [
                 {
-                    "year_published": {"order": "desc"},
-                    "date_published": {"missing": "_last", "order": "desc"},
+                    "_score": {"order": "desc"}
                 }
             ],
             "_source": {
@@ -98,7 +98,7 @@ class LensExportProxyAPIView(MethodView):
                 },
                 "number_of_fragments": 3,
             },
-            "sortField": "year_published",
+            "sortField": "_score",
             "sortOrder": "DESC",
             "format": "CSV",
             "fields": [
