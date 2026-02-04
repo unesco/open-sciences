@@ -39,13 +39,18 @@
     <div class="unesco-list">
       {%- for id in parsed_ids.list -%}
       <div class="unesco-list-item">
-        <span class="unesco-list-text" title="{{ id.value }}">{{ id.value }}</span>
-        <a href="{% if id.type == 'doi' %}https://doi.org/{{ id.value }}{% elif id.type == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}{% elif id.type == 'pmcid' %}https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}{% elif id.type == 'arxiv' %}https://arxiv.org/abs/{{ id.value }}{% elif id.type == 'issn' %}https://portal.issn.org/resource/ISSN/{{ id.value }}{% else %}#{% endif %}" 
+        <span class="unesco-list-text">
+          <span class="badge" style="margin-right: 8px; font-size: 0.75em; padding: 2px 8px;">{{ id.type | upper }}</span>
+          <span title="{{ id.value }}">{{ id.value }}</span>
+        </span>
+        {%- if id.type in ['doi', 'pmid', 'pmcid', 'arxiv', 'issn', 'coreid'] -%}
+        <a href="{% if id.type == 'doi' %}https://doi.org/{{ id.value }}{% elif id.type == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}{% elif id.type == 'pmcid' %}https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}{% elif id.type == 'arxiv' %}https://arxiv.org/abs/{{ id.value }}{% elif id.type == 'issn' %}https://portal.issn.org/resource/ISSN/{{ id.value }}{% elif id.type == 'coreid' %}https://core.ac.uk/works/{{ id.value }}{% endif %}" 
            class="unesco-find-more-btn"
            title="{{ _('View') }} {{ id.type | upper }}: {{ id.value }}"
-           {% if id.type in ['doi', 'pmid', 'pmcid', 'arxiv', 'issn'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+           target="_blank" rel="noopener noreferrer">
           {{ _('Find more') }} <i class="external alternate icon"></i>
         </a>
+        {%- endif -%}
       </div>
       {%- endfor -%}
     </div>
