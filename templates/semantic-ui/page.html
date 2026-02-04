@@ -1,5 +1,10 @@
 {%- extends "invenio_theme/page.html" %} 
 
+{%- block head_meta %}
+{{ super() }}
+{%- include "invenio_app_rdm/_gtm_head.html" %}
+{%- endblock head_meta %}
+
 {%- block head_links %} 
 {{ super() }}
 <!-- Custom favicon -->
@@ -37,3 +42,7 @@
   }
 </style>
 {%- endblock head_links %}
+{%- block body_inner %}
+{%- include "invenio_app_rdm/_gtm_body.html" %}
+{{ super() }}
+{%- endblock body_inner %}

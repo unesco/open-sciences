@@ -59,7 +59,11 @@ APP_DEFAULT_SECURE_HEADERS = {
         ],
         'script-src': [
             "'self'", "blob:", "'wasm-unsafe-eval'", "'unsafe-inline'",  # for WASM-based workers and inline event handlers
-            "https://cdn.jsdelivr.net"  # for Swiper.js carousel library
+            "https://cdn.jsdelivr.net",  # for Swiper.js carousel library
+            "https://www.googletagmanager.com",  # Google Tag Manager
+            "https://*.google-analytics.com",  # Google Analytics
+            "https://*.googletagmanager.com",  # Google Tag Manager additional domains
+            "https://tag.aticdn.net"  # Piano Analytics
             # Multipart file uploads use a Web Worker running `hash-wasm` to compute content checksums
             # (e.g., MD5) of uploaded parts. This requires both 'blob:' and 'wasm-unsafe-eval' enabled in `script-src`.
         ],
@@ -68,6 +72,12 @@ APP_DEFAULT_SECURE_HEADERS = {
         ],
         'font-src': [
             "'self'", "data:", "https://fonts.gstatic.com"
+        ],
+        'img-src': [
+            "'self'", "data:", "https:",  # Allow all HTTPS images
+            "https://www.googletagmanager.com",
+            "https://*.google-analytics.com",
+            "https://*.googletagmanager.com"
         ],
         'connect-src': [
             "*",  # Allow AJAX calls to any domain

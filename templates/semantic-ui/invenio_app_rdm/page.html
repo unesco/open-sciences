@@ -1,5 +1,10 @@
 {%- extends "invenio_theme/page.html" %} 
 
+{%- block head_meta %}
+{{ super() }}
+{%- include "invenio_app_rdm/_gtm_head.html" %}
+{%- endblock head_meta %}
+
 {%- block head_links %} 
 {{ super() }}
 <!-- Import Inter font from Google Fonts - UNESCO Official Font -->
@@ -24,6 +29,7 @@
 {%- endblock head_links %}
 
 {%- block body_inner %}
+{%- include "invenio_app_rdm/_gtm_body.html" %}
 {{ super() }}
 
 
