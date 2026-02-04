@@ -447,17 +447,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 12px;
-  color: #0077b6;
-  background: transparent;
-  border: 1px solid #0077b6;
-  border-radius: 4px;
-  font-size: 0.85em;
+  gap: 6px;
+  padding: 8px 16px;
+  color: #0077D4;
+  background: white;
+  border: 1px solid #0077D4;
+  border-radius: 20px;
+  font-size: 0.875em;
+  font-weight: 500;
   text-decoration: none;
   transition: all 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  line-height: 1.5;
   
   i.icon {
     margin: 0 !important;
@@ -469,9 +471,15 @@
   }
   
   &:hover {
-    background: #0077b6;
+    background: #0077D4;
     color: white;
     text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 119, 212, 0.25);
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 }
 
@@ -503,18 +511,18 @@ button.unesco-download-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: #0077b6;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #0077D4;
   color: white !important;
   border: none;
-  border-radius: 4px;
-  font-size: 0.9em;
+  border-radius: 20px;
+  font-size: 0.875em;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none !important;
-  line-height: 1;
+  line-height: 1.5;
   font-family: inherit;
   
   i.icon {
@@ -527,9 +535,9 @@ button.unesco-download-btn {
   }
   
   &:hover {
-    background: #005f92;
+    background: #115A9E;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 119, 182, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 119, 212, 0.3);
     color: white !important;
     text-decoration: none !important;
   }
@@ -540,12 +548,12 @@ button.unesco-download-btn {
   
   /* Loading state */
   &.loading {
-    background: #6c757d;
+    background: #7F888F;
     cursor: wait;
     opacity: 0.9;
     
     &:hover {
-      background: #6c757d;
+      background: #7F888F;
       transform: none;
       box-shadow: none;
     }
