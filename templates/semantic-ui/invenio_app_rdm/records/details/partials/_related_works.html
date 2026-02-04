@@ -27,12 +27,18 @@
             {{ _('Related') }}
           {%- endif -%}
         </span>
-        <a href="{% if rel_id.scheme == 'doi' %}https://doi.org/{{ rel_id.identifier }}{% elif rel_id.scheme == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}{% elif rel_id.scheme == 'url' %}{{ rel_id.identifier }}{% else %}#{% endif %}" 
+        {%- if rel_id.scheme in ['doi', 'pmid', 'issn', 'url'] -%}
+        <a href="{% if rel_id.scheme == 'doi' %}https://doi.org/{{ rel_id.identifier }}{% elif rel_id.scheme == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}{% elif rel_id.scheme == 'issn' %}https://portal.issn.org/resource/ISSN/{{ rel_id.identifier }}{% elif rel_id.scheme == 'url' %}{{ rel_id.identifier }}{% endif %}" 
            class="unesco-external-link"
-           title="{{ rel_id.scheme | upper }}: {{ rel_id.identifier }}"
-           {% if rel_id.scheme in ['doi', 'pmid', 'url'] %}target="_blank" rel="noopener noreferrer"{% endif %}>
+           title="{{ _('View') }} {{ rel_id.scheme | upper }}: {{ rel_id.identifier }}"
+           target="_blank" rel="noopener noreferrer">
           {{ rel_id.scheme | upper }}: {{ rel_id.identifier | truncate(40) }} <i class="external alternate icon"></i>
         </a>
+        {%- else -%}
+        <span class="unesco-external-link" style="cursor: default; pointer-events: none;">
+          {{ rel_id.scheme | upper }}: {{ rel_id.identifier | truncate(40) }}
+        </span>
+        {%- endif -%}
       </div>
       {%- endfor -%}
     </div>
