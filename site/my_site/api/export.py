@@ -3,9 +3,8 @@
 import io
 from datetime import datetime
 
-from flask import request, send_file, current_app, g
+from flask import request, send_file, current_app
 from flask.views import MethodView
-from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_records_resources.services.errors import PermissionDeniedError
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -21,12 +20,13 @@ class ExportAPIView(MethodView):
     Query parameters (same as search page):
         - q (optional): Search query string
         - sort (optional): Sort field
-        - page (optional): Page number (default: 1)
-        - size (optional): Results per page (default: 10, max: 100)
+        - p (optional): Page number (default: 1)
+        - s (optional): Results per page (default: 10, max: 100)
+        - l (optional): Layout (list/grid)
         - All filter parameters from the search page
 
     Example requests:
-        /data/export?q=UNESCO&page=1&size=10
+        /data/export?q=UNESCO&p=1&s=10
         /data/export?q=climate&resource_type=publication-article
     """
 
@@ -54,10 +54,11 @@ class ExportAPIView(MethodView):
 
     def get(self):
         """Handle GET requests for export."""
-        # Get query parameters
+        # Get query parameters using InvenioRDM's URL parameter names
+        # p = page, s = size (matching search page URL structure)
         query = request.args.get("q", "")
-        page = int(request.args.get("page", 1))
-        size = min(int(request.args.get("size", 10)), self.MAX_EXPORT_SIZE)
+        page = int(request.args.get("p", 1))
+        size = min(int(request.args.get("s", 10)), self.MAX_EXPORT_SIZE)
         sort = request.args.get("sort", "newest")
 
         # Map sort options to service format
@@ -79,32 +80,73 @@ class ExportAPIView(MethodView):
             "sort": sort_option,
         }
 
-        # Add filters from request args
-        # Handle InvenioRDM filter format: resource_type, access_status, etc.
-        for key in ["resource_type", "access_status", "file_type", "language"]:
-            value = request.args.get(key)
-            if value:
-                search_params[key] = value
+        # Handle facet filters from 'f' parameter
+        # Format: f=facet_name:value or f=facet_name:parent+inner:child
+        # Convert to InvenioRDM API format: facet_name=value or facet_name=parent::child
+        facet_filters = request.args.getlist("f")
+        for facet_filter in facet_filters:
+            if ":" in facet_filter:
+                # Split facet name and value
+                facet_name, facet_value = facet_filter.split(":", 1)
+                
+                # Handle hierarchical format (e.g., resource_type:publication+inner:publication-article)
+                if "+inner:" in facet_value:
+                    # Convert parent+inner:child to parent::child format
+                    parts = facet_value.split("+inner:")
+                    facet_value = "::".join(parts)
+                
+                # Add to search params
+                # If facet already exists, make it a list
+                if facet_name in search_params:
+                    existing = search_params[facet_name]
+                    if isinstance(existing, list):
+                        existing.append(facet_value)
+                    else:
+                        search_params[facet_name] = [existing, facet_value]
+                else:
+                    search_params[facet_name] = facet_value
+        
+        # Add other filter parameters (excluding known UI parameters)
+        excluded_params = {"q", "p", "s", "sort", "l", "f", "page", "size"}
+        for key in request.args.keys():
+            if key not in excluded_params and key not in search_params:
+                values = request.args.getlist(key)
+                if values:
+                    # If multiple values, pass as list; if single value, pass as string
+                    search_params[key] = values if len(values) > 1 else values[0]
 
         try:
-            # Use the RDM records service to search
-            # Get identity from Flask g object (set by Invenio)
-            # This is the standard way to get the current user's identity
-            from flask_principal import AnonymousIdentity
-
-            identity = getattr(g, "identity", None)
-            if identity is None:
-                identity = AnonymousIdentity()
-
-            results = current_rdm_records_service.search(
-                identity=identity,
-                params=search_params,
-            )
-
-            # Convert results to list of dicts
-            # results.to_dict() returns the full response with 'hits' containing the records
-            results_dict = results.to_dict()
-            records = results_dict.get("hits", {}).get("hits", [])
+            # Use Flask test client to make internal API request
+            # This ensures facet filters are properly applied through the REST API's
+            # post_filter mechanism, which the service doesn't support directly
+            from urllib.parse import urlencode
+            
+            # Build query params for API request
+            api_params_list = []
+            for key, value in search_params.items():
+                if isinstance(value, list):
+                    for v in value:
+                        api_params_list.append((key, v))
+                else:
+                    api_params_list.append((key, value))
+            
+            # Build URL with properly encoded parameters
+            query_string = urlencode(api_params_list)
+            api_path = f"/api/records?{query_string}"
+            
+            # Make internal request using test client to preserve context
+            with current_app.test_client() as client:
+                response = client.get(
+                    api_path,
+                    headers={'Accept': 'application/vnd.inveniordm.v1+json'}
+                )
+                
+                if response.status_code != 200:
+                    current_app.logger.error(f"Export - API error: {response.status_code} - {response.data}")
+                    return {"error": f"Internal API error: {response.status_code}"}, 500
+                
+                results_dict = response.json
+                records = results_dict.get("hits", {}).get("hits", [])
 
             # Generate XLSX
             output = self._generate_xlsx(records, query, page, size)
