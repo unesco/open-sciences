@@ -97,6 +97,9 @@ class BaseFilterBackend(ABC):
                                 must_queries.append(
                                     {"prefix": {field_name: f"{facet_value}-"}}
                                 )
+                        # Handle funding_org with match_phrase for exact matching on text field
+                        elif facet_name == "funding_org":
+                            must_queries.append({"match_phrase": {field_name: facet_value}})
                         else:
                             must_queries.append({"term": {field_name: facet_value}})
 

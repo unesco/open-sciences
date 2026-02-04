@@ -19,7 +19,7 @@ const ResourceTypeFacet = () => {
   const [loading, setLoading] = useState(!cachedData);
   const [selectedType, setSelectedType] = useState(null); // Single selection
   const [expandedParents, setExpandedParents] = useState(
-    new Set(["publication"])
+    new Set(["publication"]),
   ); // Expand by default
 
   // Parse URL to get current filter (single selection)
@@ -29,7 +29,7 @@ const ResourceTypeFacet = () => {
 
     // Extract resource_type filter (supports both parent and inner formats)
     const resourceTypeFilter = facetFilters.find((f) =>
-      f.includes("resource_type:")
+      f.includes("resource_type:"),
     );
 
     if (resourceTypeFilter) {
@@ -51,7 +51,7 @@ const ResourceTypeFacet = () => {
   useEffect(() => {
     // Invalidate cache when search context changes
     cachedData = null;
-    
+
     // If we already have cached data, use it
     if (cachedData) {
       setData(cachedData);
@@ -68,34 +68,30 @@ const ResourceTypeFacet = () => {
       return;
     }
 
-    // Start a new fetch - include current search query and facet filters for dynamic counts
+    // Start a new fetch - use custom backend for filtered aggregations
     setLoading(true);
-    
+
     // Get current search context from URL
     const urlParams = new URLSearchParams(window.location.search);
     const searchQuery = urlParams.get("q") || "";
-    const facetFilters = urlParams.getAll("f").filter(f => !f.startsWith("resource_type:"));
-    
-    // Build params with search context
-    const params = { size: 1 };
+    const facetFilters = urlParams
+      .getAll("f")
+      .filter((f) => !f.startsWith("resource_type:"));
+
+    // Build URL for custom backend endpoint
+    let url = "/data/search?field=resource_type&size=1000";
     if (searchQuery) {
-      params.q = searchQuery;
+      url += `&searchQuery=${encodeURIComponent(searchQuery)}`;
     }
     if (facetFilters.length > 0) {
-      facetFilters.forEach(f => {
-        if (!params.f) params.f = [];
-        if (Array.isArray(params.f)) {
-          params.f.push(f);
-        }
-      });
+      url += `&facetFilters=${encodeURIComponent(facetFilters.join(","))}`;
     }
-    
+
     fetchPromise = axios
-      .get("/api/records", { params })
+      .get(url)
       .then((response) => {
-        const aggregations = response.data.aggregations || {};
-        const resourceTypeBuckets = aggregations.resource_type?.buckets || [];
-        const hierarchy = organizeHierarchy(resourceTypeBuckets);
+        const results = response.data.results || [];
+        const hierarchy = organizeHierarchyFromBackend(results);
         cachedData = hierarchy;
         return hierarchy;
       })
@@ -127,6 +123,66 @@ const ResourceTypeFacet = () => {
     }));
 
     return parents;
+  };
+
+  // Helper function to format resource type labels
+  const formatLabel = (typeId) => {
+    // For child types like "publication-article", extract and format the subtype
+    if (typeId.includes("-")) {
+      // Remove the parent prefix (e.g., "publication-article" -> "article")
+      const parts = typeId.split("-");
+      const subtype = parts.slice(1).join("-"); // Get everything after first hyphen
+      // Convert hyphenated words to proper case: "journal-article" -> "Journal Article"
+      return subtype
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+    // For parent types, just capitalize
+    return typeId.charAt(0).toUpperCase() + typeId.slice(1);
+  };
+
+  // Organize results from custom backend into parent-child hierarchy
+  const organizeHierarchyFromBackend = (results) => {
+    // Group by parent type (e.g., "publication", "image")
+    const parentMap = {};
+
+    results.forEach((item) => {
+      const typeId = item.value || item.name;
+
+      // Split on hyphen to determine parent-child relationship
+      if (typeId.includes("-")) {
+        const [parent, child] = typeId.split("-", 2);
+        if (!parentMap[parent]) {
+          parentMap[parent] = {
+            value: parent,
+            label: formatLabel(parent),
+            count: 0,
+            children: [],
+          };
+        }
+        parentMap[parent].children.push({
+          value: typeId,
+          label: formatLabel(typeId),
+          count: item.count || 0,
+        });
+        parentMap[parent].count += item.count || 0;
+      } else {
+        // Parent type
+        if (!parentMap[typeId]) {
+          parentMap[typeId] = {
+            value: typeId,
+            label: formatLabel(typeId),
+            count: item.count || 0,
+            children: [],
+          };
+        } else {
+          parentMap[typeId].label = formatLabel(typeId);
+        }
+      }
+    });
+
+    return Object.values(parentMap);
   };
 
   const handleToggleParent = (parentValue) => {
