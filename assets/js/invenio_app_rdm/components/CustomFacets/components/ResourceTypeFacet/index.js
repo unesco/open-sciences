@@ -68,7 +68,7 @@ const ResourceTypeFacet = () => {
       return;
     }
 
-    // Start a new fetch - include current search query and facet filters for dynamic counts
+    // Start a new fetch - use custom backend for filtered aggregations
     setLoading(true);
     
     // Get current search context from URL
@@ -76,26 +76,20 @@ const ResourceTypeFacet = () => {
     const searchQuery = urlParams.get("q") || "";
     const facetFilters = urlParams.getAll("f").filter(f => !f.startsWith("resource_type:"));
     
-    // Build params with search context
-    const params = { size: 1 };
+    // Build URL for custom backend endpoint
+    let url = "/data/search?field=resource_type&size=1000";
     if (searchQuery) {
-      params.q = searchQuery;
+      url += `&searchQuery=${encodeURIComponent(searchQuery)}`;
     }
     if (facetFilters.length > 0) {
-      facetFilters.forEach(f => {
-        if (!params.f) params.f = [];
-        if (Array.isArray(params.f)) {
-          params.f.push(f);
-        }
-      });
+      url += `&facetFilters=${encodeURIComponent(facetFilters.join(","))}`;
     }
     
     fetchPromise = axios
-      .get("/api/records", { params })
+      .get(url)
       .then((response) => {
-        const aggregations = response.data.aggregations || {};
-        const resourceTypeBuckets = aggregations.resource_type?.buckets || [];
-        const hierarchy = organizeHierarchy(resourceTypeBuckets);
+        const results = response.data.results || [];
+        const hierarchy = organizeHierarchyFromBackend(results);
         cachedData = hierarchy;
         return hierarchy;
       })
@@ -127,6 +121,49 @@ const ResourceTypeFacet = () => {
     }));
 
     return parents;
+  };
+
+  // Organize results from custom backend into parent-child hierarchy
+  const organizeHierarchyFromBackend = (results) => {
+    // Group by parent type (e.g., "publication", "image")
+    const parentMap = {};
+    
+    results.forEach((item) => {
+      const typeId = item.value || item.name;
+      
+      // Split on hyphen to determine parent-child relationship
+      if (typeId.includes("-")) {
+        const [parent, child] = typeId.split("-", 2);
+        if (!parentMap[parent]) {
+          parentMap[parent] = {
+            value: parent,
+            label: parent.charAt(0).toUpperCase() + parent.slice(1),
+            count: 0,
+            children: [],
+          };
+        }
+        parentMap[parent].children.push({
+          value: typeId,
+          label: item.text || item.name || typeId,
+          count: item.count || 0,
+        });
+        parentMap[parent].count += item.count || 0;
+      } else {
+        // Parent type
+        if (!parentMap[typeId]) {
+          parentMap[typeId] = {
+            value: typeId,
+            label: item.text || item.name || typeId,
+            count: item.count || 0,
+            children: [],
+          };
+        } else {
+          parentMap[typeId].label = item.text || item.name || typeId;
+        }
+      }
+    });
+    
+    return Object.values(parentMap);
   };
 
   const handleToggleParent = (parentValue) => {
