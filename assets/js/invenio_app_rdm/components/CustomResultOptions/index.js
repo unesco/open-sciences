@@ -67,7 +67,7 @@ export const CustomResultOptions = ({
 }) => {
   const { MediaContextProvider, Media } = AppMedia;
   const { sortOrderDisabled, buildUID } = useContext(
-    SearchConfigurationContext
+    SearchConfigurationContext,
   );
   const multipleLayouts = layoutOptions?.listView && layoutOptions?.gridView;
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +124,9 @@ export const CustomResultOptions = ({
                 alignItems: "center",
                 justifyContent: "flex-end",
                 gap: "16px",
+                flexWrap: "wrap",
               }}
+              className="result-options-container"
             >
               {/* Download XLSX Button */}
               <style>
@@ -143,6 +145,32 @@ export const CustomResultOptions = ({
                   .unesco-download-btn.ui.button.loading {
                     pointer-events: none;
                     opacity: 0.7;
+                  }
+                  
+                  /* Mobile responsiveness */
+                  @media only screen and (max-width: 767px) {
+                    .result-options-container {
+                      gap: 8px !important;
+                      padding: 0 8px;
+                    }
+                    .unesco-download-btn.ui.button {
+                      padding: 8px 12px !important;
+                      font-size: 0.9rem !important;
+                      height: 36px !important;
+                      min-width: auto !important;
+                    }
+                    .unesco-sort-wrapper {
+                      flex: 1 1 auto;
+                      min-width: 0;
+                    }
+                    .unesco-sort-wrapper label {
+                      font-size: 0.9rem !important;
+                    }
+                    .unesco-sort-wrapper .ui.selection.dropdown {
+                      min-height: 36px !important;
+                      padding: 8px 12px !important;
+                      font-size: 0.9rem !important;
+                    }
                   }
                 `}
               </style>

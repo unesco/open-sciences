@@ -222,6 +222,36 @@ select {
     margin-left: 1rem !important;
     margin-right: 1rem !important;
   }
+  
+  /* Fix mobile burger menu drawer overflow */
+  #invenio-menu {
+    max-width: 100vw !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  #invenio-menu .item,
+  #invenio-menu .menu,
+  #invenio-menu .item > * {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    word-wrap: break-word !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure drawer content has proper padding */
+  #invenio-menu.ui.menu {
+    padding: 1rem !important;
+  }
+  
+  /* Fix any wide elements in drawer */
+  #invenio-menu .search,
+  #invenio-menu .ui.input,
+  #invenio-menu input {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
 }
 
 /* Footer spacing management */
