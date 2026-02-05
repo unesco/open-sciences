@@ -156,6 +156,51 @@ def flatten_subjects(metadata: Dict[str, Any]) -> str:
     return "; ".join(keywords) if keywords else ""
 
 
+def extract_source_info(custom_fields: Dict[str, Any]) -> Dict[str, str]:
+    """
+    Extract source information from custom fields in a scalable way.
+
+    This function maps custom field namespaces to source names and extracts
+    the corresponding IDs. This approach is scalable - new sources can be
+    easily added by extending the SOURCE_MAPPING dictionary.
+
+    Args:
+        custom_fields: Custom fields dictionary from record
+
+    Returns:
+        Dictionary with 'source' and 'source_id' keys
+
+    Example:
+        custom_fields = {"lens:id": "000-123-456"}
+        -> {"source": "LensOrg", "source_id": "000-123-456"}
+    """
+    # Mapping of custom field namespace prefixes to source names
+    # This is where new sources would be added in the future
+    SOURCE_MAPPING = {
+        "lens": "LensOrg",
+        # Future sources can be added here, e.g.:
+        # "crossref": "Crossref",
+        # "datacite": "DataCite",
+        # "arxiv": "arXiv",
+    }
+
+    source = ""
+    source_id = ""
+
+    if not custom_fields:
+        return {"source": source, "source_id": source_id}
+
+    # Check each known source prefix
+    for prefix, source_name in SOURCE_MAPPING.items():
+        id_field = f"{prefix}:id"
+        if id_field in custom_fields:
+            source = source_name
+            source_id = custom_fields[id_field]
+            break  # Use the first match
+
+    return {"source": source, "source_id": source_id}
+
+
 def record_to_csv_row(record: Dict[str, Any], all_fields: bool = False) -> Dict[str, Any]:
     """
     Convert a record to a CSV row dictionary.
@@ -168,13 +213,21 @@ def record_to_csv_row(record: Dict[str, Any], all_fields: bool = False) -> Dict[
         Dictionary with CSV column values
     """
     metadata = record.get("metadata", {})
+    # custom_fields is at the root level of the record, not inside metadata
+    custom_fields = record.get("custom_fields", {})
     access = record.get("access", {})
     files = record.get("files", {})
     links = record.get("links", {})
 
+    # Extract source information (scalable for future sources)
+    source_info = extract_source_info(custom_fields)
+
     # Basic fields (always included)
+    # Note: source and source_id are placed right after record_id for better visibility
     row = {
         "record_id": record.get("id", ""),
+        "source": source_info["source"],
+        "source_id": source_info["source_id"],
         "title": metadata.get("title", ""),
         "creators": flatten_creators(metadata.get("creators", [])),
         "publication_date": metadata.get("publication_date", ""),
