@@ -55,10 +55,7 @@ class InvenioRDMClient:
         # Set default headers
         # Use InvenioRDM v1 API format to get full record data including custom_fields
         self.session.headers.update(
-            {
-                "Content-Type": "application/json",
-                "Accept": "application/vnd.inveniordm.v1+json"
-            }
+            {"Content-Type": "application/json", "Accept": "application/vnd.inveniordm.v1+json"}
         )
 
         if self.token:
@@ -80,10 +77,10 @@ class InvenioRDMClient:
             requests.RequestException: For HTTP errors
         """
         url = urljoin(self.api_url, endpoint.lstrip("/"))
-        
+
         # Use configured timeout if not specified
-        if 'timeout' not in kwargs:
-            kwargs['timeout'] = self.timeout
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = self.timeout
 
         try:
             response = self.session.request(method, url, **kwargs)
@@ -99,30 +96,32 @@ class InvenioRDMClient:
                 logger.error(f"{error_msg}\nDetails: {json.dumps(error_details, indent=2)}")
             except json.JSONDecodeError:
                 # Handle empty or malformed response (common with large payloads)
-                content_length = response.headers.get('content-length', 'unknown')
-                received = len(response.content) if hasattr(response, 'content') else 0
-                logger.error(f"{error_msg}\nJSON parse failed - expected: {content_length} bytes, received: {received} bytes")
+                content_length = response.headers.get("content-length", "unknown")
+                received = len(response.content) if hasattr(response, "content") else 0
+                logger.error(
+                    f"{error_msg}\nJSON parse failed - expected: {content_length} bytes, received: {received} bytes"
+                )
             except:
                 logger.error(error_msg)
             raise
-    
+
     def _safe_json(self, response: requests.Response) -> Dict[str, Any]:
         """
         Safely parse JSON response with detailed error handling.
-        
+
         Args:
             response: requests.Response object
-            
+
         Returns:
             Parsed JSON as dictionary
-            
+
         Raises:
             json.JSONDecodeError: With detailed size information
         """
         try:
             return response.json()
         except json.JSONDecodeError as e:
-            content_length = response.headers.get('content-length', 'unknown')
+            content_length = response.headers.get("content-length", "unknown")
             received = len(response.content) if response.content else 0
             logger.error(
                 f"JSON parse error: {e}\n"

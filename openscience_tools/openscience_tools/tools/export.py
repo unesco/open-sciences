@@ -159,17 +159,17 @@ def flatten_subjects(metadata: Dict[str, Any]) -> str:
 def extract_source_info(custom_fields: Dict[str, Any]) -> Dict[str, str]:
     """
     Extract source information from custom fields in a scalable way.
-    
+
     This function maps custom field namespaces to source names and extracts
     the corresponding IDs. This approach is scalable - new sources can be
     easily added by extending the SOURCE_MAPPING dictionary.
-    
+
     Args:
         custom_fields: Custom fields dictionary from record
-        
+
     Returns:
         Dictionary with 'source' and 'source_id' keys
-        
+
     Example:
         custom_fields = {"lens:id": "000-123-456"}
         -> {"source": "LensOrg", "source_id": "000-123-456"}
@@ -183,13 +183,13 @@ def extract_source_info(custom_fields: Dict[str, Any]) -> Dict[str, str]:
         # "datacite": "DataCite",
         # "arxiv": "arXiv",
     }
-    
+
     source = ""
     source_id = ""
-    
+
     if not custom_fields:
         return {"source": source, "source_id": source_id}
-    
+
     # Check each known source prefix
     for prefix, source_name in SOURCE_MAPPING.items():
         id_field = f"{prefix}:id"
@@ -197,7 +197,7 @@ def extract_source_info(custom_fields: Dict[str, Any]) -> Dict[str, str]:
             source = source_name
             source_id = custom_fields[id_field]
             break  # Use the first match
-    
+
     return {"source": source, "source_id": source_id}
 
 
