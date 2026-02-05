@@ -53,8 +53,12 @@ class InvenioRDMClient:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         # Set default headers
+        # Use InvenioRDM v1 API format to get full record data including custom_fields
         self.session.headers.update(
-            {"Content-Type": "application/json", "Accept": "application/json"}
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/vnd.inveniordm.v1+json"
+            }
         )
 
         if self.token:
