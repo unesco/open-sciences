@@ -237,6 +237,11 @@
                   font-weight: 400;
                   margin-left: auto;
                 }
+                .unesco-views-count i.icon {
+                  margin: 0 !important;
+                  display: flex;
+                  align-items: center;
+                }
                 .unesco-tag {
                   display: inline-flex;
                   align-items: center;
@@ -340,7 +345,7 @@
                   {% if views_count > 0 %}
                     <span class="unesco-views-count">
                       <i class="eye icon" aria-hidden="true"></i>
-                      <span>{{ "{:,}".format(views_count) }} views</span>
+                      <span>{{ "{:,}".format(views_count) }}</span>
                     </span>
                   {% endif %}
                 </div>
