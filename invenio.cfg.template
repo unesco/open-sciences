@@ -486,11 +486,11 @@ RDM_FACETS = {
 # Add sort options based on publication date
 RDM_SORT_OPTIONS.update({
     "published-desc": dict(
-        title=_("Recently published"),
+        title=_("Newest"),
         fields=["-metadata.publication_date"],
     ),
     "published-asc": dict(
-        title=_("Oldest published"),
+        title=_("Oldest"),
         fields=["metadata.publication_date"],
     ),
 })
@@ -498,7 +498,7 @@ RDM_SORT_OPTIONS.update({
 RDM_SEARCH = {
     **RDM_SEARCH,
     "facets": RDM_SEARCH["facets"] + ["publication_year", "publication_country", "funding_org", "is_open_access", "affiliation_region"],
-    "sort": ["bestmatch", "newest", "oldest", "published-desc", "published-asc", "version", "mostviewed", "mostdownloaded"]
+    "sort": ["bestmatch", "published-desc", "published-asc", "mostviewed"]
 }
 
 # Static Pages Configuration
