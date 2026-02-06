@@ -23,7 +23,7 @@ const CustomRecordsResultsListItem = ({
   const createdDate = _get(
     result,
     "ui.created_date_l10n_long",
-    i18next.t("No creation date found.")
+    i18next.t("No creation date found."),
   );
 
   const creators = result.ui.creators.creators;
@@ -31,18 +31,18 @@ const CustomRecordsResultsListItem = ({
   const descriptionStripped = _get(
     result,
     "ui.description_stripped",
-    i18next.t("No description")
+    i18next.t("No description"),
   );
 
   const publicationDate = _get(
     result,
     "ui.publication_date_l10n_long",
-    i18next.t("No publication date found.")
+    i18next.t("No publication date found."),
   );
   const resourceType = _get(
     result,
     "ui.resource_type.title_l10n",
-    i18next.t("No resource type")
+    i18next.t("No resource type"),
   );
   const subjects = _get(result, "ui.subjects", []);
   const title = _get(result, "metadata.title", i18next.t("No title"));
@@ -52,7 +52,7 @@ const CustomRecordsResultsListItem = ({
   const publishingInformation = _get(
     result,
     "ui.publishing_information.journal",
-    ""
+    "",
   );
 
   // Custom fields extraction
@@ -60,12 +60,12 @@ const CustomRecordsResultsListItem = ({
   const isOpenAccess = _get(
     result,
     "custom_fields.publication:is_open_access",
-    null
+    null,
   );
   const openAccessColour = _get(
     result,
     "custom_fields.publication:open_access_colour",
-    null
+    null,
   );
 
   // Extract views count from stats
@@ -93,7 +93,7 @@ const CustomRecordsResultsListItem = ({
     const citationsData = _get(
       result,
       "custom_fields.lens:scholarly_citations",
-      null
+      null,
     );
     if (citationsData) {
       const parsed =
@@ -110,7 +110,7 @@ const CustomRecordsResultsListItem = ({
     const patentData = _get(
       result,
       "custom_fields.lens:patent_citations",
-      null
+      null,
     );
     if (patentData) {
       const parsed =
@@ -160,7 +160,11 @@ const CustomRecordsResultsListItem = ({
       allVersionsVisible={allVersionsVisible}
       numOtherVersions={numOtherVersions}
     >
-      <Item key={key ?? result.id} className="unesco-search-result-item" style={{ marginTop: 0, paddingTop: "12px" }}>
+      <Item
+        key={key ?? result.id}
+        className="unesco-search-result-item"
+        style={{ marginTop: 0, paddingTop: "12px" }}
+      >
         <Item.Content>
           <Item.Extra
             className="unesco-tags-row"
@@ -189,53 +193,57 @@ const CustomRecordsResultsListItem = ({
               >
                 {publicationDate}
               </span>
-            <span
-              className="unesco-tag unesco-tag-type"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "6px 12px",
-                backgroundColor: "#F1F4F6",
-                color: "#4C5054",
-                borderRadius: "4px",
-                fontSize: "14px",
-                fontWeight: "600",
-              }}
-            >
-              {resourceType}
-            </span>
-            {accessStatusId !== "metadata-only" && (
               <span
-                className={`unesco-tag unesco-tag-access-${accessStatusId}`}
+                className="unesco-tag unesco-tag-type"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   padding: "6px 12px",
-                  backgroundColor:
-                    accessStatusId === "open"
-                      ? "#4FB293"
-                      : accessStatusId === "embargoed"
-                      ? "#F39C12"
-                      : accessStatusId === "restricted"
-                      ? "#E74C3C"
-                      : "#F1F4F6",
-                  color: "#FFFFFF",
+                  backgroundColor: "#F1F4F6",
+                  color: "#4C5054",
                   borderRadius: "4px",
                   fontSize: "14px",
-                  fontWeight: "400",
-                  gap: "6px",
+                  fontWeight: "600",
                 }}
               >
-                {accessStatusIcon && (
-                  <Icon
-                    name={accessStatusIcon}
-                    style={{ margin: 0, display: "flex", alignItems: "center" }}
-                  />
-                )}
-                {accessStatus}
+                {resourceType}
               </span>
-            )}
-            {isOpenAccess === "true" && (
+              {accessStatusId !== "metadata-only" && (
+                <span
+                  className={`unesco-tag unesco-tag-access-${accessStatusId}`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "6px 12px",
+                    backgroundColor:
+                      accessStatusId === "open"
+                        ? "#4FB293"
+                        : accessStatusId === "embargoed"
+                          ? "#F39C12"
+                          : accessStatusId === "restricted"
+                            ? "#E74C3C"
+                            : "#F1F4F6",
+                    color: "#FFFFFF",
+                    borderRadius: "4px",
+                    fontSize: "14px",
+                    fontWeight: "400",
+                    gap: "6px",
+                  }}
+                >
+                  {accessStatusIcon && (
+                    <Icon
+                      name={accessStatusIcon}
+                      style={{
+                        margin: 0,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    />
+                  )}
+                  {accessStatus}
+                </span>
+              )}
+              {isOpenAccess === "true" && (
                 <span
                   className="unesco-tag unesco-tag-open-access"
                   style={{
@@ -264,17 +272,18 @@ const CustomRecordsResultsListItem = ({
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "6px",
-                  fontSize: "14px",
-                  color: "#4C5054",
-                  fontWeight: "500",
+                  gap: "4px",
+                  fontSize: "12px",
+                  color: "#6C757D",
+                  fontWeight: "400",
+                  marginLeft: "auto",
                 }}
               >
                 <Icon
                   name="eye"
                   style={{ margin: 0, display: "flex", alignItems: "center" }}
                 />
-                <span>{viewsCount.toLocaleString()} views</span>
+                <span>{viewsCount.toLocaleString()}</span>
               </span>
             )}
           </Item.Extra>
@@ -424,7 +433,7 @@ const CustomRecordsResultsListItem = ({
                         "{{count}} more versions exist for this record",
                         {
                           count: numOtherVersions,
-                        }
+                        },
                       )}
                     </b>
                   </p>
