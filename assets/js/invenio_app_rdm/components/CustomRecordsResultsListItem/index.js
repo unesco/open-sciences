@@ -266,26 +266,24 @@ const CustomRecordsResultsListItem = ({
                 </span>
               )}
             </div>
-            {viewsCount > 0 && (
-              <span
-                className="unesco-views-count"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  fontSize: "12px",
-                  color: "#6C757D",
-                  fontWeight: "400",
-                  marginLeft: "auto",
-                }}
-              >
-                <Icon
-                  name="eye"
-                  style={{ margin: 0, display: "flex", alignItems: "center" }}
-                />
-                <span>{viewsCount.toLocaleString()}</span>
-              </span>
-            )}
+            <span
+              className="unesco-views-count"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "12px",
+                color: "#6C757D",
+                fontWeight: "400",
+                marginLeft: "auto",
+              }}
+            >
+              <Icon
+                name="eye"
+                style={{ margin: 0, display: "flex", alignItems: "center" }}
+              />
+              <span>{viewsCount.toLocaleString()}</span>
+            </span>
           </Item.Extra>
           <Item.Header as="h2" className="theme-primary-text">
             <a href={viewLink}>{title}</a>
