@@ -342,12 +342,10 @@
 
                   {# Views count - aligned to the right #}
                   {% set views_count = record_ui["stats"]["all_versions"]["unique_views"]|default(0) %}
-                  {% if views_count > 0 %}
-                    <span class="unesco-views-count">
-                      <i class="eye icon" aria-hidden="true"></i>
-                      <span>{{ "{:,}".format(views_count) }}</span>
-                    </span>
-                  {% endif %}
+                  <span class="unesco-views-count">
+                    <i class="eye icon" aria-hidden="true"></i>
+                    <span>{{ "{:,}".format(views_count) }} views</span>
+                  </span>
                 </div>
               </section>
               {# ========== END UNESCO CUSTOM RECORD INFO SECTION ========== #}
