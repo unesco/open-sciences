@@ -220,6 +220,22 @@
                   flex-wrap: wrap;
                   gap: 8px;
                   margin-bottom: 16px;
+                  justify-content: space-between;
+                  align-items: center;
+                }
+                .unesco-tags-left {
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 8px;
+                }
+                .unesco-views-count {
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 4px;
+                  font-size: 12px;
+                  color: #6C757D;
+                  font-weight: 400;
+                  margin-left: auto;
                 }
                 .unesco-tag {
                   display: inline-flex;
@@ -282,42 +298,51 @@
               <section id="record-info" aria-label="{{ _('Publication date and version number') }}">
                 {# Tags row - matching CustomRecordsResultsListItem styles #}
                 <div class="unesco-record-tags-row">
-                  
-                  {# Publication date + version tag #}
-                  <span class="unesco-tag unesco-tag-date">
-                    {{ record_ui["ui"]["publication_date_l10n_long"] }} ({{ record_ui["ui"]["version"] }})
-                  </span>
+                  <div class="unesco-tags-left">
+                    {# Publication date + version tag #}
+                    <span class="unesco-tag unesco-tag-date">
+                      {{ record_ui["ui"]["publication_date_l10n_long"] }} ({{ record_ui["ui"]["version"] }})
+                    </span>
 
-                  {# Resource type tag #}
-                  {% if record_ui["ui"]["resource_type"] %}
-                    <span class="unesco-tag unesco-tag-type">
-                      {{ record_ui["ui"]["resource_type"]["title_l10n"] }}
+                    {# Resource type tag #}
+                    {% if record_ui["ui"]["resource_type"] %}
+                      <span class="unesco-tag unesco-tag-type">
+                        {{ record_ui["ui"]["resource_type"]["title_l10n"] }}
+                      </span>
+                    {% endif %}
+
+                    {# Access status tag - only show if not metadata-only #}
+                    {% set access_status_id = record_ui["ui"]["access_status"]["id"] %}
+                    {% if access_status_id != "metadata-only" %}
+                      <span class="unesco-tag unesco-tag-access unesco-tag-access-{{ access_status_id }}"
+                            data-tooltip="{{ record_ui['ui']['access_status']['description_l10n'] }}"
+                            data-inverted="">
+                        {% if record_ui["ui"]["access_status"]["icon"] %}
+                          <i class="icon {{ record_ui['ui']['access_status']['icon'] }}" aria-hidden="true"></i>
+                        {% endif %}
+                        {{ record_ui["ui"]["access_status"]["title_l10n"] }}
+                      </span>
+                    {% endif %}
+
+                    {# Open Access tag from custom fields #}
+                    {% set custom_fields = record_ui.custom_fields|default({}) %}
+                    {% set is_open_access = custom_fields.get("publication:is_open_access", "") %}
+                    {% if is_open_access == "true" %}
+                      <span class="unesco-tag unesco-tag-open-access">
+                        <i class="unlock icon" aria-hidden="true"></i>
+                        Open Access
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  {# Views count - aligned to the right #}
+                  {% set views_count = record_ui["stats"]["all_versions"]["unique_views"]|default(0) %}
+                  {% if views_count > 0 %}
+                    <span class="unesco-views-count">
+                      <i class="eye icon" aria-hidden="true"></i>
+                      <span>{{ "{:,}".format(views_count) }} views</span>
                     </span>
                   {% endif %}
-
-                  {# Access status tag - only show if not metadata-only #}
-                  {% set access_status_id = record_ui["ui"]["access_status"]["id"] %}
-                  {% if access_status_id != "metadata-only" %}
-                    <span class="unesco-tag unesco-tag-access unesco-tag-access-{{ access_status_id }}"
-                          data-tooltip="{{ record_ui['ui']['access_status']['description_l10n'] }}"
-                          data-inverted="">
-                      {% if record_ui["ui"]["access_status"]["icon"] %}
-                        <i class="icon {{ record_ui['ui']['access_status']['icon'] }}" aria-hidden="true"></i>
-                      {% endif %}
-                      {{ record_ui["ui"]["access_status"]["title_l10n"] }}
-                    </span>
-                  {% endif %}
-
-                  {# Open Access tag from custom fields #}
-                  {% set custom_fields = record_ui.custom_fields|default({}) %}
-                  {% set is_open_access = custom_fields.get("publication:is_open_access", "") %}
-                  {% if is_open_access == "true" %}
-                    <span class="unesco-tag unesco-tag-open-access">
-                      <i class="unlock icon" aria-hidden="true"></i>
-                      Open Access
-                    </span>
-                  {% endif %}
-
                 </div>
               </section>
               {# ========== END UNESCO CUSTOM RECORD INFO SECTION ========== #}
