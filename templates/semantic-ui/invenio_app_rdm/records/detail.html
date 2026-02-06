@@ -186,7 +186,8 @@
 
               {% endblock record_header_button %}
 
-              {% if show_record_management_menu %}
+              {# UNESC-149: Hide Manage record menu for authenticated users #}
+              {# {% if show_record_management_menu %}
                 <section id="mobile-record-management"
                          class="ui grid tablet only mobile only">
                   <div class="sixteen wide column right aligned">
@@ -210,7 +211,7 @@
                   >
                   </div>
                 </section>
-              {% endif %}
+              {% endif %} #}
 
               {# ========== UNESCO CUSTOM RECORD INFO SECTION ========== #}
               <style>
