@@ -68,6 +68,9 @@ const CustomRecordsResultsListItem = ({
     null
   );
 
+  // Extract views count from stats
+  const viewsCount = _get(result, "stats.all_versions.unique_views", 0);
+
   // Parse lens:references and lens:scholarly_citations from JSON strings
   let referencesCount = 0;
   let scholarlyCitationsCount = 0;
@@ -166,23 +169,26 @@ const CustomRecordsResultsListItem = ({
               flexWrap: "wrap",
               gap: "8px",
               marginBottom: "12px",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            <span
-              className="unesco-tag unesco-tag-date"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "6px 12px",
-                backgroundColor: "#CEE9FF",
-                color: "#212121",
-                borderRadius: "4px",
-                fontSize: "14px",
-                fontWeight: "600",
-              }}
-            >
-              {publicationDate} ({version})
-            </span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              <span
+                className="unesco-tag unesco-tag-date"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "6px 12px",
+                  backgroundColor: "#CEE9FF",
+                  color: "#212121",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                }}
+              >
+                {publicationDate}
+              </span>
             <span
               className="unesco-tag unesco-tag-type"
               style={{
@@ -230,25 +236,45 @@ const CustomRecordsResultsListItem = ({
               </span>
             )}
             {isOpenAccess === "true" && (
+                <span
+                  className="unesco-tag unesco-tag-open-access"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "6px 12px",
+                    backgroundColor: "#4FB293",
+                    color: "#FFFFFF",
+                    borderRadius: "4px",
+                    fontSize: "14px",
+                    fontWeight: "400",
+                    gap: "6px",
+                  }}
+                >
+                  <Icon
+                    name="unlock"
+                    style={{ margin: 0, display: "flex", alignItems: "center" }}
+                  />
+                  Open Access
+                </span>
+              )}
+            </div>
+            {viewsCount > 0 && (
               <span
-                className="unesco-tag unesco-tag-open-access"
+                className="unesco-views-count"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  padding: "6px 12px",
-                  backgroundColor: "#4FB293",
-                  color: "#FFFFFF",
-                  borderRadius: "4px",
-                  fontSize: "14px",
-                  fontWeight: "400",
                   gap: "6px",
+                  fontSize: "14px",
+                  color: "#4C5054",
+                  fontWeight: "500",
                 }}
               >
                 <Icon
-                  name="unlock"
+                  name="eye"
                   style={{ margin: 0, display: "flex", alignItems: "center" }}
                 />
-                Open Access
+                <span>{viewsCount.toLocaleString()} views</span>
               </span>
             )}
           </Item.Extra>
