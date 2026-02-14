@@ -1,0 +1,9 @@
+name: 'Open Science Survey'
+type: module
+description: 'The open science survey entities'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:rest
+  - drupal:serialization
+  - taxonomy

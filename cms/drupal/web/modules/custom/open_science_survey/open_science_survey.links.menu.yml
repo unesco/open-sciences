@@ -1,0 +1,11 @@
+entity.survey_response.settings:
+  title: 'Survey Response'
+  description: 'Configure a Survey Response entity type.'
+  route_name:  entity.survey_response.settings
+  parent: system.admin_structure
+
+entity.survey_response.collection:
+  title: 'Survey Responses'
+  description: 'List of survey responses.'
+  route_name: entity.survey_response.collection
+  parent: system.admin_content

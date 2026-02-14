@@ -1,0 +1,19 @@
+uuid: 7c4e9a2f-1b8d-4f3c-a5e7-3f2c9b6d8e1a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_iso_alpha3_code
+    - taxonomy.vocabulary.countries
+id: taxonomy_term.countries.field_iso_alpha3_code
+field_name: field_iso_alpha3_code
+entity_type: taxonomy_term
+bundle: countries
+label: 'ISO Alpha-3 Code'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

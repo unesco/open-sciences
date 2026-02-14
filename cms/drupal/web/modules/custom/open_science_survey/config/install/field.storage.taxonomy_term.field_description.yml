@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - taxonomy
+id: taxonomy_term.survey_predefined_answers.field_description
+field_name: field_description
+entity_type: taxonomy_term
+type: text_long
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
