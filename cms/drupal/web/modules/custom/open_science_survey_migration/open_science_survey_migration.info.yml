@@ -1,0 +1,10 @@
+name: 'Open Science Survey Migration'
+type: module
+description: 'Provides migration for survey question taxonomy terms'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - migrate
+  - migrate_plus
+  - migrate_source_csv
+  - open_science_survey

@@ -1,0 +1,20 @@
+id: countries
+label: 'Countries'
+migration_group: open_science_survey
+source:
+  plugin: csv
+  path: 'modules/custom/open_science_survey_migration/data/countries.csv'
+  header_row_count: 1
+  ids:
+    - ISO_Code
+
+destination:
+  plugin: entity:taxonomy_term
+  default_bundle: countries
+
+process:
+  name: Country
+  field_country_name: Country
+  field_region: Region
+  field_group: Group
+  field_iso_alpha3_code: ISO_Code
