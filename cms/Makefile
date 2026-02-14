@@ -8,12 +8,6 @@ help:
 	@echo " CMS Makefile Documentation"
 	@echo "=============================="
 	@echo ""
-	@echo "Database Commands:"
-	@echo "  make wait-db                    - Wait for PostgreSQL to be ready (checks readiness)"
-	@echo "  make setup-db                   - Start and initialize the database service"
-	@echo "  make setup-db-clean             - Clean and re-initialize the database service"
-	@echo "  make clean-db                   - Remove database containers and volumes"
-	@echo ""
 	@echo "CMS Commands:"
 	@echo "  make cms-setup                  - Setup CMS containers and permissions"
 	@echo "  make cms-setup-clean            - Clean and setup CMS containers and permissions"
@@ -22,47 +16,8 @@ help:
 	@echo "  make cms-import-survey-data     - Enable migration module and import survey data"
 	@echo "  make cms-index-survey-responses - Enable search module and index survey responses"
 	@echo ""
-	@echo "General Commands:"
-	@echo "  make setup                      - Setup the entire project (DB, CMS)"
-	@echo ""
 	@echo "=============================="
 	@echo " For more details, see comments in this Makefile."
-
-wait-db:
-	@echo "Waiting for PostgreSQL to be ready..."
-	@for i in $(shell seq 1 $(WAIT_TIMEOUT)); do \
-		if docker compose exec -T db pg_isready -U $(DB_USER) -d $(DB_NAME) > /dev/null 2>&1; then \
-			echo "Database is ready!"; \
-			exit 0; \
-		fi; \
-		if [ $$i -lt $(WAIT_TIMEOUT) ]; then \
-			echo "  Attempt $$i/$(WAIT_TIMEOUT) - retrying in 1s..."; \
-			sleep 1; \
-		fi; \
-	done; \
-	echo "âœ— Timeout waiting for database after $(WAIT_TIMEOUT) seconds"; \
-	exit 1
-
-setup: 
-ifdef CLEAN
-	@$(MAKE) clean-db
-	@docker compose down -v cms 
-endif
-	@$(MAKE) setup-db
-	@$(MAKE) setup-web
-	@echo "Project setup complete!"
-
-setup-db:
-	@docker compose up -d db
-	@$(MAKE) wait-db
-	@echo "Database setup complete!"
-
-setup-db-clean:
-	@$(MAKE) clean-db
-	@$(MAKE) setup-db
-
-clean-db:
-	@docker compose down -v db
 
 cms-setup:
 ifdef CLEAN

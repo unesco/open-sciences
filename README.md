@@ -20,6 +20,9 @@ This repository contains:
   - Insert, update, delete records via SDK
   - Batch import from Lens.org
   - Search and manage records
+- **Headless CMS (Drupal)**: Content management for Open Science surveys
+  - Survey response management with REST API
+  - OpenSearch-powered survey data indexing
 
 ## Prerequisites
 
@@ -56,6 +59,7 @@ Ensure these ports are available (not used by other applications):
 - **9200**: OpenSearch
 - **6379**: Redis cache
 - **5672**: RabbitMQ message queue
+- **8080**: Headless CMS (Drupal)
 
 ### Docker Configuration
 
@@ -127,11 +131,12 @@ make stop
 
 The system comes with three ready-to-use user accounts:
 
-| Email                  | Password    | Role          | Description                                     |
-| ---------------------- | ----------- | ------------- | ----------------------------------------------- |
-| `admin@unesco.org`     | `Passw0rd!` | Administrator | Full system access including admin panel        |
-| `scientist@unesco.org` | `Passw0rd!` | Scientist     | Standard user for creating and managing records |
-| `demo@unesco.org`      | `Passw0rd!` | Demo User     | Basic user for demonstration purposes           |
+| Email                  | Password    | Role              | Description                                     |
+| ---------------------- | ----------- | ----------------- | ----------------------------------------------- |
+| `admin@unesco.org`     | `Passw0rd!` | Administrator     | Full system access including admin panel        |
+| `scientist@unesco.org` | `Passw0rd!` | Scientist         | Standard user for creating and managing records |
+| `demo@unesco.org`      | `Passw0rd!` | Demo User         | Basic user for demonstration purposes           |
+| `admin@unesco.org`     | `Passw0rd!` | CMS Administrator | Drupal CMS admin access                         |
 
 **Note**: All users are pre-confirmed and active, so no email verification is required.
 
@@ -328,6 +333,62 @@ For complete documentation, see:
 
 - `openscience_tools/README.md` - Full package documentation with installation, usage, and troubleshooting
 
+## Headless CMS (Drupal)
+
+The project includes a headless Drupal 11 instance for managing Open Science survey data that integrates with InvenioRDM.
+
+### Features
+
+- **Open Science Survey Management** - Custom entities for storing and searching survey responses
+- **REST/JSON APIs** - Data endpoints for countries, questions, and survey responses
+
+### Quick Setup
+
+From the `cms/` directory:
+
+```bash
+# 1. Start CMS containers and install Drupal
+make cms-setup
+
+# 2. Import survey data and enable related endpoints
+make cms-import-survey-data
+
+# 3. Index survey responses for search and enable related endpoints
+make cms-index-survey-responses
+```
+
+### Access URLs
+
+| Method | URL |
+|--------|-----|
+| Via Nginx (integrated) | `https://127.0.0.1:5000/cms/` |
+| Direct (standalone) | `http://localhost:8080/cms` |
+| Admin login | `/cms/user/login` |
+
+### API Endpoints
+
+**Note**: These endpoints require the survey modules to be enabled. Run `make cms-import-survey-data` first.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/countries` | GET | List of countries with name, ISO3 code, region, and group |
+| `/api/survey-questions` | GET | Survey questions with number, text, type, and descriptions |
+| `/api/search/survey-responses` | GET | Paginated survey responses from search index |
+
+### Available CMS Commands
+
+Run these from the `cms/` directory:
+
+| Command | Description |
+|---------|-------------|
+| `make cms-setup` | Setup CMS containers and permissions |
+| `make cms-setup-clean` | Clean and setup CMS containers |
+| `make cms-fix-volumes-permissions` | Fix file permissions for CMS volumes |
+| `make cms-install-drupal` | Install Drupal if not already installed |
+| `make cms-import-survey-data` | Enable migration module and import survey data |
+| `make cms-index-survey-responses` | Enable search module and index survey responses |
+| `make help` | Show all available commands |
+
 ## Available Make Commands
 
 | Command         | Description                                         |
@@ -350,6 +411,7 @@ For complete documentation, see:
 | `Pipfile` / `Pipfile.lock` | Python dependencies managed by pipenv              |
 | `app_data/`                | Application data (vocabularies, pages)             |
 | `assets/`                  | Frontend assets (CSS, JavaScript, LESS, templates) |
+| `cms/`                     | Headless Drupal CMS for survey data management     |
 | `docker/`                  | Docker configuration files                         |
 | `invenio.cfg`              | Main InvenioRDM configuration                      |
 | `static/`                  | Static files served as-is                          |
@@ -361,6 +423,7 @@ For complete documentation, see:
 - **SSL Certificate**: The development server uses a self-signed SSL certificate. Your browser will show a security warning that you need to bypass.
 - **Virtual Environment**: All Invenio commands must be run within the activated virtual environment. The Makefile handles this automatically.
 - **First Run**: Initial setup and first server start may take several minutes as Docker images are downloaded.
+- **CMS Database**: The CMS uses a separate `cms` database on the shared PostgreSQL server, automatically initialized on first setup.
 
 ## Customizations
 
