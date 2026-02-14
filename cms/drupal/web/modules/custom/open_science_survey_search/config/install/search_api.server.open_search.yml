@@ -1,0 +1,21 @@
+uuid: 59a8390a-9593-457f-86f5-0fa3e0093787
+langcode: en
+status: true
+dependencies:
+  module:
+    - search_api_opensearch
+id: open_search
+name: 'Open Search'
+description: ''
+backend: opensearch
+backend_config:
+  connector: standard
+  connector_config:
+    url: 'http://search:9200'
+    ssl_verification: false
+  advanced:
+    fuzziness: auto
+    prefix: cms_
+    synonyms:
+      - ''
+    max_ngram_diff: 1
