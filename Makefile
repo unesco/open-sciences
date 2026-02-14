@@ -11,7 +11,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 USER_PASSWORD = Passw0rd!
 
 .PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures
-
+include cms/Makefile
 # Default target
 help:
 	@echo "UNESCO Science Portal - Available commands:"

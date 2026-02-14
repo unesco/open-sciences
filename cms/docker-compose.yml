@@ -1,0 +1,55 @@
+services:
+
+  db:
+    image: postgres:16
+    restart: "unless-stopped"
+    environment:
+      - "POSTGRES_USER=${DB_USER:-drupal}"
+      - "POSTGRES_PASSWORD=${DB_PASSWORD:-drupal}"
+      - "POSTGRES_DB=${DB_NAME:-drupal}"
+    ports:
+      - "5432:5432"
+
+  cms:
+    build:
+      context: .
+    environment:
+      ENV: dev
+      DB_NAME: "${DB_NAME:-cms}"
+      DB_HOST: "${DB_HOST:-db}"
+      DB_PORT: "${DB_PORT:-5432}"
+      DB_PASSWORD: "${DB_PASSWORD:-drupal}"
+      DB_USER: "${DB_USER:-drupal}"
+      DB_DRIVER: "${DB_DRIVER:-pgsql}"
+      OPENSEARCH_URL: "${OPENSEARCH_URL:-http://search:9200}"
+      DRUPAL_HASH_SALT: dummy
+      CACHE_BACKEND: database
+    ports:
+      - "8080:8080"
+  search:
+    image: opensearchproject/opensearch:2.17.1
+    restart: "unless-stopped"
+    environment:
+      # settings only for development. DO NOT use in production!
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=${OPENSEARCH_JAVA_OPTS:--Xms512m -Xmx512m}"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-guekxe3mvqieke1!%&ieIADE}"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - "discovery.type=single-node"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 2g
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+
+# volumes:
+#   db_data: {}
+#   drupal_sites_data: {}
+#   drupal_private_data: {}
