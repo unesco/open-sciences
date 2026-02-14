@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_question_description
+    - taxonomy.vocabulary.survey_question
+id: taxonomy_term.survey_question.field_question_description
+field_name: field_question_description
+entity_type: taxonomy_term
+bundle: survey_question
+label: 'Question description'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

@@ -1,0 +1,19 @@
+uuid: e3670dd5-bff1-4caa-abdd-d211665c8cf7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_question_number
+    - taxonomy.vocabulary.survey_question
+id: taxonomy_term.survey_question.field_question_number
+field_name: field_question_number
+entity_type: taxonomy_term
+bundle: survey_question
+label: 'Question number'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {}
+field_type: string

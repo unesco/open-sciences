@@ -1,0 +1,30 @@
+uuid: 8b93cbfc-f0a2-4721-8cb5-6debcc9a2367
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.survey_response.field_survey_response_country
+    - taxonomy.vocabulary.countries
+  module:
+    - open_science_survey
+id: survey_response.survey_response.field_survey_response_country
+field_name: field_survey_response_country
+entity_type: survey_response
+bundle: survey_response
+label: 'Survey Response Country'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      countries: countries
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

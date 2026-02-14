@@ -1,0 +1,17 @@
+administer survey_response:
+  title: 'Administer survey responses'
+  restrict access: true
+view survey_response:
+  title: 'View survey response'
+edit survey_response:
+  title: 'Edit survey response'
+delete survey_response:
+  title: 'Delete survey response'
+create survey_response:
+  title: 'Create survey response'
+view survey_response revision:
+  title: 'View survey response revision'
+revert survey_response revision:
+  title: 'Revert survey response revision'
+delete survey_response revision:
+  title: 'Delete survey response revision'

@@ -1,0 +1,15 @@
+uuid: 123e4567-e89b-12d3-a456-426614174007
+langcode: en
+status: true
+dependencies:
+  module:
+    - open_science_survey
+id: field.storage.survey_response.field_open_ans_translated
+field_name: field_open_ans_translated
+entity_type: survey_response
+type: boolean
+settings:
+  on_label: 'Yes'
+  off_label: 'No'
+module: boolean
+locked: false

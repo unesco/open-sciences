@@ -1,0 +1,53 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.survey_predefined_answers.field_description
+    - field.field.taxonomy_term.survey_predefined_answers.field_long_name
+    - field.field.taxonomy_term.survey_predefined_answers.field_short_name
+    - taxonomy.vocabulary.survey_predefined_answers
+  module:
+    - taxonomy
+id: core.entity_form_display.taxonomy_term.survey_predefined_answers.default
+targetEntityType: taxonomy_term
+bundle: survey_predefined_answers
+mode: default
+content:
+  description:
+    type: text_textarea
+    weight: 1
+    settings:
+      rows: 4
+      placeholder: ''
+    third_party_settings: {  }
+  field_description:
+    type: text_textarea
+    weight: 4
+    settings:
+      rows: 4
+      placeholder: ''
+    third_party_settings: {  }
+  field_long_name:
+    type: string_textfield
+    weight: 2
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_short_name:
+    type: string_textfield
+    weight: 3
+    settings:
+      size: 10
+      placeholder: ''
+    third_party_settings: {  }
+  name:
+    type: string_textfield
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  path: true
+  status: true
