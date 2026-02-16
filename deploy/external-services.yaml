@@ -287,14 +287,15 @@ spec:
           livenessProbe:
             exec:
               command: ["rabbitmq-diagnostics", "check_running"]
-            initialDelaySeconds: 30
+            initialDelaySeconds: 90
             periodSeconds: 30
-            timeoutSeconds: 10
+            timeoutSeconds: 15
           readinessProbe:
             exec:
               command: ["rabbitmq-diagnostics", "check_running"]
-            initialDelaySeconds: 15
-            periodSeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 10
       volumes:
         - name: rabbitmq-data
           persistentVolumeClaim:

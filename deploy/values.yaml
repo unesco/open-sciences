@@ -38,11 +38,12 @@ invenio:
 # Docker Image
 # ------------------------------------------------------------------------------
 image:
-  # Will be overridden by .env DOCKER_REGISTRY
-  registry: "${DOCKER_REGISTRY}"
-  repository: ""
-  tag: "${DOCKER_IMAGE_TAG}"
-  pullPolicy: Always
+  # For local k3d: use docker.io/library (Docker default for local images)
+  # For production: set to your actual registry (e.g. registry.unesco.org/sc)
+  registry: "docker.io/library"
+  repository: "sc-openscience"
+  tag: "latest"
+  pullPolicy: IfNotPresent
 
 # Optional: reference a pre-existing imagePullSecret
 # imagePullSecrets:
@@ -61,29 +62,26 @@ web:
       memory: "2Gi"
       cpu: "1000m"
 
-  # Startup probe: InvenioRDM can take 30-60s to start
+  # Probes: use chart default exec+uwsgi_curl (uWSGI protocol, not HTTP)
+  # Only override timing parameters
   startupProbe:
-    httpGet:
-      path: /ping
-      port: 5000
     initialDelaySeconds: 30
     periodSeconds: 10
-    failureThreshold: 12  # up to 2 further minutes
+    failureThreshold: 30  # up to 5 minutes total for slow starts
     timeoutSeconds: 5
 
   readinessProbe:
-    httpGet:
-      path: /ping
-      port: 5000
     initialDelaySeconds: 10
     periodSeconds: 15
     timeoutSeconds: 5
     failureThreshold: 3
 
   livenessProbe:
-    httpGet:
-      path: /ping
-      port: 5000
+    exec:
+      command:
+        - /bin/bash
+        - -c
+        - "uwsgi_curl -X HEAD -H 'Host: localhost' $(hostname):5000 /ping"
     initialDelaySeconds: 60
     periodSeconds: 30
     timeoutSeconds: 10
@@ -202,6 +200,5 @@ ingress:
 persistence:
   enabled: true
   size: 50Gi
-  storageClassName: local-path
-  accessModes:
-    - ReadWriteOnce
+  storage_class: local-path
+  access_mode: ReadWriteOnce

@@ -31,12 +31,25 @@ NAMESPACE         ?= unesco-rdm
 HELM_RELEASE      ?= unesco-rdm
 HELM_INVENIO_VER  ?= 0.8.1
 VALUES_FILE       ?= values.yaml
-KUBECONFIG        ?= /etc/rancher/k3s/k3s.yaml
 
-# Docker image (built from repo root)
-DOCKER_REGISTRY   ?= registry.example.org/sc/sc-openscience
+# On a k3s server: /etc/rancher/k3s/k3s.yaml
+# On k3d or Docker Desktop: uses default ~/.kube/config
+# Override with: make deploy KUBECONFIG=/path/to/kubeconfig
+ifdef KUBECONFIG
+export KUBECONFIG
+endif
+
+# Docker image
+# For local builds (k3d): uses DOCKER_IMAGE_NAME
+# For registry push: uses DOCKER_REGISTRY
+DOCKER_IMAGE_NAME ?= sc-openscience
 DOCKER_IMAGE_TAG  ?= latest
-IMAGE             := $(DOCKER_REGISTRY):$(DOCKER_IMAGE_TAG)
+DOCKER_REGISTRY   ?= registry.example.org/sc/sc-openscience
+IMAGE             := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
+REGISTRY_IMAGE    := $(DOCKER_REGISTRY):$(DOCKER_IMAGE_TAG)
+
+# k3d cluster name (for local testing on macOS/Linux desktop)
+K3D_CLUSTER_NAME  ?= unesco-rdm
 
 # Backup
 BACKUP_DIR        ?= /opt/backups/unesco-rdm
@@ -63,7 +76,9 @@ help: ## Show this help
 	@echo "Updates:"
 	@echo "  make upgrade           Upgrade InvenioRDM (rebuild image + helm)"
 	@echo "  make deploy-helm       Re-deploy Helm chart only"
-	@echo "  make build-image       Build Docker image on server"
+	@echo "  make build-image       Build Docker image (uses k8s/Dockerfile)"
+	@echo "  make load-image        Build + load image into k3d cluster"
+	@echo "  make push-image        Build + push to registry"
 	@echo ""
 	@echo "Backup & Restore:"
 	@echo "  make backup            Manual database backup"
@@ -157,15 +172,12 @@ deploy-services: check ## Deploy external services (DB, cache, search, queue)
 	@kubectl config set-context --current --namespace=$(NAMESPACE)
 	@echo ""
 	@echo "Creating service secrets..."
-	@kubectl create secret generic $(HELM_RELEASE)-db-secrets \
+	@kubectl create secret generic $(HELM_RELEASE)-secrets \
 		--from-literal=POSTGRES_USER=$(POSTGRES_USER) \
 		--from-literal=POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 		--from-literal=POSTGRES_DB=$(POSTGRES_DB) \
-		--namespace=$(NAMESPACE) \
-		--dry-run=client -o yaml | kubectl apply -f -
-	@kubectl create secret generic $(HELM_RELEASE)-mq-secrets \
-		--from-literal=RABBITMQ_DEFAULT_USER=$(RABBITMQ_USER) \
-		--from-literal=RABBITMQ_DEFAULT_PASS=$(RABBITMQ_PASSWORD) \
+		--from-literal=RABBITMQ_USER=$(RABBITMQ_USER) \
+		--from-literal=RABBITMQ_PASSWORD=$(RABBITMQ_PASSWORD) \
 		--namespace=$(NAMESPACE) \
 		--dry-run=client -o yaml | kubectl apply -f -
 	@echo ""
@@ -185,10 +197,15 @@ deploy-services: check ## Deploy external services (DB, cache, search, queue)
 # Secrets
 # --------------------------------------------------------------------------
 
-deploy-secrets: check env-check ## Create K8s secrets from .env
+deploy-secrets: check env-check ## Create K8s secrets from .env (adds InvenioRDM keys to existing secret)
 	@echo "Creating InvenioRDM secrets..."
 	@kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
 	@kubectl create secret generic $(HELM_RELEASE)-secrets \
+		--from-literal=POSTGRES_USER=$(POSTGRES_USER) \
+		--from-literal=POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+		--from-literal=POSTGRES_DB=$(POSTGRES_DB) \
+		--from-literal=RABBITMQ_USER=$(RABBITMQ_USER) \
+		--from-literal=RABBITMQ_PASSWORD=$(RABBITMQ_PASSWORD) \
 		--from-literal=SECRET_KEY=$(SECRET_KEY) \
 		--from-literal=SECURITY_LOGIN_SALT=$(SECURITY_LOGIN_SALT) \
 		--from-literal=SQLALCHEMY_DATABASE_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/$(POSTGRES_DB)" \
@@ -288,19 +305,32 @@ create-admin: check ## Create admin user
 # Build & Upgrade
 # --------------------------------------------------------------------------
 
-build-image: ## Build Docker image on the server
+build-image: ## Build Docker image (uses k8s/Dockerfile, context = repo root)
 	@echo "Building Docker image..."
 	@echo "  Image: $(IMAGE)"
-	@echo "  Dockerfile: ../Dockerfile"
-	@cd .. && docker build -t $(IMAGE) -f Dockerfile .
+	@echo "  Dockerfile: ../k8s/Dockerfile"
+	@echo "  Context: repo root (..)"
+	docker build -t $(IMAGE) -f ../k8s/Dockerfile ..
 	@echo ""
 	@echo "Image built: $(IMAGE)"
-	@echo "  To push: docker push $(IMAGE)"
+	@docker images $(IMAGE)
 
-push-image: build-image ## Build and push Docker image
-	@echo "Pushing image to registry..."
-	docker push $(IMAGE)
-	@echo "Image pushed: $(IMAGE)"
+load-image: build-image ## Build image and load into k3d cluster
+	@echo "Loading image into k3d cluster..."
+	@if command -v k3d >/dev/null 2>&1; then \
+		k3d image import $(IMAGE) --cluster $(K3D_CLUSTER_NAME); \
+		echo "Image loaded into k3d cluster: $(K3D_CLUSTER_NAME)"; \
+	else \
+		echo "k3d not found. On a k3s server, push to registry instead:"; \
+		echo "  docker tag $(IMAGE) $(REGISTRY_IMAGE)"; \
+		echo "  docker push $(REGISTRY_IMAGE)"; \
+	fi
+
+push-image: build-image ## Build and push Docker image to registry
+	@echo "Tagging and pushing to registry..."
+	docker tag $(IMAGE) $(REGISTRY_IMAGE)
+	docker push $(REGISTRY_IMAGE)
+	@echo "Image pushed: $(REGISTRY_IMAGE)"
 
 upgrade: check env-check ## Upgrade InvenioRDM (pull new image + helm upgrade)
 	@echo "Upgrading InvenioRDM..."
