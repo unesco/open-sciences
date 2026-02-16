@@ -1,0 +1,207 @@
+# ==============================================================================
+# UNESCO Open Science Portal - Helm Values (Production)
+# ==============================================================================
+# Helm values for deploying InvenioRDM on k3s with the official chart:
+#   https://github.com/inveniosoftware/helm-invenio
+#
+# Usage:
+#   helm upgrade --install unesco-rdm invenio/invenio \
+#     --namespace unesco-rdm --values values.yaml
+# ==============================================================================
+
+global:
+  timezone: Europe/Paris
+
+# ------------------------------------------------------------------------------
+# InvenioRDM Application Settings
+# ------------------------------------------------------------------------------
+invenio:
+  # Will be overridden by .env DOMAIN
+  hostname: "${DOMAIN}"
+  init: true
+  demo_data: false
+
+  # Extra environment variables injected into all InvenioRDM pods
+  extraConfig:
+    INVENIO_SITE_UI_URL: "https://${DOMAIN}"
+    INVENIO_SITE_API_URL: "https://${DOMAIN}/api"
+    INVENIO_REQUIRE_HTTPS: "True"
+    INVENIO_APP_ENABLE_SECURE_HEADERS: "True"
+    SESSION_COOKIE_SECURE: "True"
+    PERMANENT_SESSION_LIFETIME: "31536000"  # 1 year
+
+  # Secret key and login salt are injected via Kubernetes Secret
+  # (created by Makefile from .env values)
+  existingSecret: "unesco-rdm-secrets"
+
+# ------------------------------------------------------------------------------
+# Docker Image
+# ------------------------------------------------------------------------------
+image:
+  # Will be overridden by .env DOCKER_REGISTRY
+  registry: "${DOCKER_REGISTRY}"
+  repository: ""
+  tag: "${DOCKER_IMAGE_TAG}"
+  pullPolicy: Always
+
+# Optional: reference a pre-existing imagePullSecret
+# imagePullSecrets:
+#   - name: registry-credentials
+
+# ------------------------------------------------------------------------------
+# Web (UI + API served via Nginx + uWSGI)
+# ------------------------------------------------------------------------------
+web:
+  replicas: 2
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+  # Startup probe: InvenioRDM can take 30-60s to start
+  startupProbe:
+    httpGet:
+      path: /ping
+      port: 5000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 12  # up to 2 further minutes
+    timeoutSeconds: 5
+
+  readinessProbe:
+    httpGet:
+      path: /ping
+      port: 5000
+    initialDelaySeconds: 10
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  livenessProbe:
+    httpGet:
+      path: /ping
+      port: 5000
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+# ------------------------------------------------------------------------------
+# Workers (Celery)
+# ------------------------------------------------------------------------------
+worker:
+  enabled: true
+  replicas: 2
+  app: "invenio_app.celery"
+  concurrency: 2
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+  livenessProbe:
+    exec:
+      command:
+        - /bin/bash
+        - -c
+        - "celery -A invenio_app.celery inspect ping -d celery@$HOSTNAME"
+    initialDelaySeconds: 60
+    periodSeconds: 60
+    timeoutSeconds: 30
+    failureThreshold: 3
+
+# ------------------------------------------------------------------------------
+# Worker Beat (Celery Beat Scheduler)
+# ------------------------------------------------------------------------------
+workerBeat:
+  enabled: true
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "250m"
+
+# Flower monitoring - disabled by default
+flower:
+  enabled: false
+
+# ------------------------------------------------------------------------------
+# External Services (managed outside Helm chart)
+# ------------------------------------------------------------------------------
+
+# Redis - external (deployed in external-services.yaml)
+redis:
+  enabled: false
+redisExternal:
+  hostname: "redis"
+
+# RabbitMQ - external
+rabbitmq:
+  enabled: false
+rabbitmqExternal:
+  username: "${RABBITMQ_USER}"
+  password: "${RABBITMQ_PASSWORD}"
+  hostname: "rabbitmq"
+  amqpPort: 5672
+  managementPort: 15672
+  protocol: "amqp"
+  vhost: "/"
+
+# PostgreSQL - external
+postgresql:
+  enabled: false
+postgresqlExternal:
+  hostname: "postgresql"
+  port: 5432
+  username: "${POSTGRES_USER}"
+  password: "${POSTGRES_PASSWORD}"
+  database: "${POSTGRES_DB}"
+
+# OpenSearch - external
+opensearch:
+  enabled: false
+opensearchExternal:
+  hostname: "opensearch"
+
+# ------------------------------------------------------------------------------
+# Nginx (sidecar in web pod)
+# ------------------------------------------------------------------------------
+nginx:
+  image: "nginx:1.25-alpine"
+
+# ------------------------------------------------------------------------------
+# Ingress (k3s uses Traefik by default)
+# ------------------------------------------------------------------------------
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: "${DOMAIN}"
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: unesco-rdm-tls
+      hosts:
+        - "${DOMAIN}"
+
+# ------------------------------------------------------------------------------
+# Persistence (file storage for uploads)
+# ------------------------------------------------------------------------------
+persistence:
+  enabled: true
+  size: 50Gi
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce

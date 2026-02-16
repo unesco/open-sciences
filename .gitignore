@@ -107,6 +107,7 @@ docker-compose.override.yml
 # Local environment files (ignore all .env* except .env.example)
 .env*
 !.env.example
+deploy/.env
 
 # Generated configuration files (from templates)
 invenio.cfg
