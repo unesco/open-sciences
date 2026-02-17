@@ -17,7 +17,7 @@
 SHELL := /bin/bash
 
 .PHONY: help install check env-check deploy deploy-services deploy-secrets deploy-helm \
-        init create-admin upgrade status logs shell restart destroy \
+        init init-app create-admin status logs shell restart destroy \
         reset-lens render-config build-image load-image
 
 # --------------------------------------------------------------------------
@@ -67,20 +67,25 @@ help: ## Show this help
 	@echo "===================================================="
 	@echo "  Active environment: ENV=$(ENV)  (.env.$(ENV))"
 	@echo ""
-	@echo "First-time setup:"
-	@echo "  make install ENV=local       Check tools, create .env.local, setup k3d cluster"
-	@echo "  make load-image ENV=local    Build Docker image + load into k3d"
-	@echo "  make deploy ENV=local        Full deployment (services + InvenioRDM + init)"
+	@echo "First-time complete setup:"
+	@echo "  make install ENV=local       Complete setup: tools → config → k3d → build → deploy → init"
+	@echo ""
+	@echo "CI/CD deployment (code updates):"
+	@echo "  make deploy ENV=local        Rebuild image, upgrade Helm release, restart pods"
+	@echo ""
+	@echo "Initialization (manual):"
+	@echo "  make init-app ENV=local      Reinitialize database + search (when needed)"
+	@echo "  make create-admin ENV=local  Create admin user (standalone)"
 	@echo ""
 	@echo "Daily operations:"
 	@echo "  make status                  Cluster & pod health"
 	@echo "  make logs                    Tail web pod logs"
 	@echo "  make shell                   Shell into web pod"
-	@echo "  make restart                 Rolling restart of InvenioRDM"
+	@echo "  make restart                 Rolling restart of InvenioRDM pods"
 	@echo ""
-	@echo "Updates:"
-	@echo "  make upgrade                 Upgrade InvenioRDM (rebuild image + helm)"
+	@echo "Build (low-level):"
 	@echo "  make build-image             Build Docker image (renders invenio.cfg)"
+	@echo "  make load-image              Build + load image into k3d cluster"
 	@echo "  make render-config           Render invenio.cfg from template"
 	@echo ""
 	@echo "Data:"
@@ -128,21 +133,33 @@ env-check: ## Verify environment config files exist and have required values
 	@echo "Environment '$(ENV)' ready (domain=$(DOMAIN), protocol=$(SITE_PROTOCOL))."
 
 # --------------------------------------------------------------------------
-# Full Deployment
+# Deployment
 # --------------------------------------------------------------------------
 
-deploy: check env-check deploy-services deploy-secrets deploy-helm init create-admin ## Full first-time deployment
+# Private target: Install Helm chart (called by 'install' during first-time setup)
+install-helm: check env-check deploy-services deploy-secrets deploy-helm
+	@echo "Helm installation complete."
+
+# CI/CD deployment: Rebuild image + upgrade Helm + restart pods
+deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
+	@echo "Deploying InvenioRDM updates (CI/CD workflow)..."
+	@echo ""
+	@echo "Step 1/3: Rebuilding and loading image..."
+	@$(MAKE) load-image ENV=$(ENV)
+	@echo ""
+	@echo "Step 2/3: Upgrading Helm release..."
+	@$(MAKE) deploy-helm ENV=$(ENV)
+	@echo ""
+	@echo "Step 3/3: Restarting pods to pick up new image..."
+	@$(MAKE) restart ENV=$(ENV)
 	@echo ""
 	@echo "============================================"
 	@echo "  Deployment complete!  (ENV=$(ENV))"
 	@echo "============================================"
 	@echo ""
-	@echo "  Domain:   $(DOMAIN)"
-	@echo "  Protocol: $(SITE_PROTOCOL)"
-	@echo "  Admin:    $(ADMIN_USER_EMAIL)"
-	@echo ""
 	@echo "  Access: $(SITE_UI_URL)"
 	@echo ""
+	@echo "Check status: make status"
 
 # --------------------------------------------------------------------------
 # Services (PostgreSQL, Redis, RabbitMQ, OpenSearch)
@@ -227,7 +244,8 @@ deploy-helm: check ## Install/upgrade InvenioRDM Helm chart
 # Initialization
 # --------------------------------------------------------------------------
 
-init: check ## Initialize database, indices, vocabularies
+init-app: check ## Reinitialize database, indices, vocabularies (manual operation)
+	@echo "Reinitializing InvenioRDM application..."
 	@echo "Waiting for web pod..."
 	@kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=web \
 		-n $(NAMESPACE) --timeout=300s 2>/dev/null || \
@@ -276,7 +294,9 @@ init: check ## Initialize database, indices, vocabularies
 	echo "Step 7/7: Loading CMS fixtures (header, footer, static pages)..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio cms load-fixtures" ; \
 	echo ""; \
-	echo "Initialization complete."
+	echo "Reinitialization complete."
+
+init: init-app ## Alias for init-app (backward compatibility)
 
 create-admin: check ## Create admin user
 	@echo "Creating admin user..."
@@ -321,20 +341,6 @@ load-image: build-image ## Build image and load into k3d cluster
 	else \
 		echo "k3d not found. Skipping image load."; \
 	fi
-
-upgrade: check env-check ## Upgrade InvenioRDM (rebuild image + helm upgrade)
-	@echo "Upgrading InvenioRDM..."
-	@echo ""
-	@echo "Step 1/3: Rebuilding and loading image..."
-	@$(MAKE) load-image ENV=$(ENV)
-	@echo ""
-	@echo "Step 2/3: Upgrading Helm release..."
-	@$(MAKE) deploy-helm ENV=$(ENV)
-	@echo ""
-	@echo "Step 3/3: Restarting pods to pick up new image..."
-	@$(MAKE) restart ENV=$(ENV)
-	@echo ""
-	@echo "Upgrade complete. Check: make status"
 
 # --------------------------------------------------------------------------
 # Operations
@@ -458,12 +464,12 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 # Setup
 # --------------------------------------------------------------------------
 
-install: ## Complete setup: check tools, generate .env.$(ENV), create k3d cluster
-	@echo "UNESCO Open Science Portal - Installation"
-	@echo "=========================================="
+install: ## Complete first-time setup: tools → config → k3d → build → deploy → init
+	@echo "UNESCO Open Science Portal - Complete Installation"
+	@echo "===================================================="
 	@echo "Environment: $(ENV)"
 	@echo ""
-	@echo "[1/3] Checking required tools..."
+	@echo "[1/6] Checking required tools..."
 	@command -v docker   >/dev/null 2>&1 || { echo "  ERROR: docker not found. Install Docker Desktop or colima."; exit 1; }; echo "  ✓ docker"
 	@command -v kubectl  >/dev/null 2>&1 || { echo "  ERROR: kubectl not found. Run: brew install kubectl"; exit 1; }; echo "  ✓ kubectl"
 	@command -v helm     >/dev/null 2>&1 || { echo "  ERROR: helm not found. Run: brew install helm"; exit 1; }; echo "  ✓ helm"
@@ -474,7 +480,7 @@ install: ## Complete setup: check tools, generate .env.$(ENV), create k3d cluste
 		echo "  ✓ k3d"; \
 	fi
 	@echo ""
-	@echo "[2/3] Setting up .env.$(ENV)..."
+	@echo "[2/6] Setting up .env.$(ENV)..."
 	@if [ -f .env.$(ENV) ]; then \
 		echo "  .env.$(ENV) already exists."; \
 		if grep -q "CHANGE_ME" .env.$(ENV) 2>/dev/null; then \
@@ -506,7 +512,7 @@ install: ## Complete setup: check tools, generate .env.$(ENV), create k3d cluste
 	fi
 	@echo ""
 	@if [ "$(ENV)" = "local" ]; then \
-		echo "[3/3] Setting up k3d cluster..."; \
+		echo "[3/6] Setting up k3d cluster..."; \
 		if k3d cluster list | grep -q "$(K3D_CLUSTER_NAME)"; then \
 			echo "  k3d cluster '$(K3D_CLUSTER_NAME)' already exists."; \
 			echo "  ✓ Using existing cluster"; \
@@ -519,17 +525,31 @@ install: ## Complete setup: check tools, generate .env.$(ENV), create k3d cluste
 			echo "  ✓ k3d cluster created"; \
 		fi; \
 	else \
-		echo "[3/3] Skipping k3d setup (ENV=$(ENV))"; \
+		echo "[3/6] Skipping k3d setup (ENV=$(ENV))"; \
 	fi
 	@echo ""
-	@echo "=========================================="
-	@echo "Installation complete!"
+	@echo "[4/6] Building and loading Docker image..."
+	@$(MAKE) load-image ENV=$(ENV)
+	@echo ""
+	@echo "[5/6] Deploying services and Helm chart..."
+	@$(MAKE) install-helm ENV=$(ENV)
+	@echo ""
+	@echo "[6/6] Initializing application..."
+	@$(MAKE) init-app ENV=$(ENV)
+	@$(MAKE) create-admin ENV=$(ENV)
+	@echo ""
+	@echo "===================================================="
+	@echo "  Installation complete!  (ENV=$(ENV))"
+	@echo "===================================================="
+	@echo ""
+	@echo "  Domain:   $(DOMAIN)"
+	@echo "  Protocol: $(SITE_PROTOCOL)"
+	@echo "  Admin:    $(ADMIN_USER_EMAIL)"
+	@echo ""
+	@echo "  Access: $(SITE_UI_URL)"
 	@echo ""
 	@echo "Next steps:"
-	@echo "  1. Review/edit .env.$(ENV) if needed"
-	@echo "  2. make load-image ENV=$(ENV)"
-	@echo "  3. make deploy ENV=$(ENV)"
+	@echo "  - Load sample data: make reset-lens ENV=$(ENV)"
+	@echo "  - Check status: make status"
+	@echo "  - View logs: make logs"
 	@echo ""
-	@if [ "$(ENV)" = "local" ]; then \
-		echo "Access will be available at: http://localhost:8080"; \
-	fi

@@ -3,18 +3,40 @@
 Deploy InvenioRDM on Kubernetes (k3s for production, k3d for local testing)
 using a shared, environment-aware configuration.
 
-## 🚀 Quick Summary
+## �� Quick Summary
 
-**Critical ordering for first-time deployment:**
+**First-time complete setup:**
 
-1. **One-command setup** → `make install ENV=local`  
-   _(checks tools, creates .env.local with secrets, sets up k3d cluster)_
-2. **Build Docker image** → `make load-image ENV=local`
-3. **Deploy InvenioRDM** → `make deploy ENV=local`
-4. **Import test data** → `make reset-lens ENV=local`
+```bash
+make install ENV=local
+```
 
-**Why build before deploy?** The Docker image contains your customized InvenioRDM code.
-Helm cannot deploy pods without the image existing in the cluster.
+This single command performs the entire setup:
+1. Checks required tools (docker, kubectl, helm, k3d, etc.)
+2. Creates `.env.local` with auto-generated secrets
+3. Sets up k3d cluster
+4. Builds and loads Docker image
+5. Deploys external services + InvenioRDM (Helm)
+6. Initializes database, search indices, vocabularies
+7. Creates admin user
+
+**CI/CD deployment (code updates):**
+
+```bash
+make deploy ENV=local
+```
+
+This rebuilds the image, upgrades the Helm release, and restarts pods.
+
+**Optional: Import test data**
+
+```bash
+make reset-lens ENV=local
+```
+
+**Why this workflow?** The Docker image contains your customized InvenioRDM code.
+The first-time setup includes building the image because Helm cannot deploy pods
+without it existing in the cluster.
 
 ## Architecture
 
@@ -151,66 +173,74 @@ the simplified Makefile focused on local k3d development.
 
 ## Deployment Steps Explained
 
-The deployment follows this **chronological order**:
-
-### 1. **Setup** (ONE COMMAND)
+### First-Time Setup (Complete, Automated)
 
 ```bash
 make install ENV=local
-````
-
-This command does everything needed to prepare your environment:
-
-- **Checks tools**: Verifies docker, k3d, kubectl, helm, envsubst, openssl are installed
-- **Creates .env.local**: Copies from .env.example and generates random secrets
-- **Sets up k3d cluster**: Creates cluster with port mappings (ENV=local only)
-
-### 2. **Build Docker Image** (CRITICAL STEP)
-
-```bash
-make load-image ENV=local      # For k3d: build + load into cluster
 ```
 
-**Why build before deploy?** The Docker image contains your customized InvenioRDM code and configuration.
-Helm needs this image to exist before it can deploy pods.
+This **single command** performs the entire first-time setup in 6 steps:
 
-### 3. **Deploy Infrastructure**
+1. **[1/6] Check tools**: Verifies docker, k3d, kubectl, helm, envsubst, openssl
+2. **[2/6] Create .env.local**: Copies from .env.example with auto-generated secrets
+3. **[3/6] Setup k3d cluster**: Creates cluster with port mappings (ENV=local only)
+4. **[4/6] Build + load image**: Renders invenio.cfg → builds Docker image → loads into k3d
+5. **[5/6] Deploy Helm**: External services (PostgreSQL, Redis, RabbitMQ, OpenSearch) + InvenioRDM
+6. **[6/6] Initialize**: Database schema, search indices, vocabularies, CMS fixtures, admin user
+
+**Result**: Fully operational InvenioRDM at http://localhost:8080
+
+### CI/CD Deployment (Code Updates)
 
 ```bash
-make deploy ENV=local          # Runs all sub-steps automatically:
+make deploy ENV=local
 ```
 
-- `deploy-services` — PostgreSQL, Redis, RabbitMQ, OpenSearch
-- `deploy-secrets` — K8s secrets from `.env.local` file
-- `deploy-helm` — InvenioRDM Helm chart (uses the pre-built image)
-- `init` — Database schema, search indices, vocabularies, CMS fixtures
-- `create-admin` — Admin user account
+For updating code after the initial setup, this command:
 
-### 4. **Import Data** (Optional)
+1. **[1/3] Rebuild image**: Renders invenio.cfg → builds new Docker image → loads into k3d
+2. **[2/3] Upgrade Helm**: Updates release with new image and configuration
+3. **[3/3] Restart pods**: Rolling restart to pick up changes
+
+**Use this for**: Code changes, configuration updates, image rebuilds
+
+### Manual Operations
 
 ```bash
-make reset-lens ENV=local      # Delete all records + import Lens.org test data
+# Reinitialize database + search (when needed)
+make init-app ENV=local
+
+# Create admin user (standalone)
+make create-admin ENV=local
+
+# Import test data (Lens.org publications)
+make reset-lens ENV=local
 ```
 
 ## Makefile Targets Reference
 
-### Core Workflow (In Order)
+### Primary Workflow
 
-| Step | Target       | Description                                            |
-| ---- | ------------ | ------------------------------------------------------ |
-| 1    | `install`    | **Check tools + create .env.$ENV + setup k3d (local)** |
-| 2    | `load-image` | Build Docker image + load into k3d                     |
-| 3    | `deploy`     | Deploy all services + InvenioRDM + init                |
-| 4    | `reset-lens` | Import Lens.org test data (57 records)                 |
+| Target      | Description                                                                     |
+| ----------- | ------------------------------------------------------------------------------- |
+| `install`   | **First-time complete setup**: tools → config → k3d → build → deploy → init    |
+| `deploy`    | **CI/CD update**: Rebuild image, upgrade Helm release, restart pods             |
+| `reset-lens`| Import Lens.org test data (57 records)                                          |
 
-### Build & Update
+### Manual Initialization
+
+| Target        | Description                                 |
+| ------------- | ------------------------------------------- |
+| `init-app`    | Reinitialize database + search (manual)     |
+| `create-admin`| Create admin user (standalone)              |
+
+### Build & Configuration
 
 | Target          | Description                        |
 | --------------- | ---------------------------------- |
 | `render-config` | Render `invenio.cfg` from template |
 | `build-image`   | Render config + build Docker image |
 | `load-image`    | Build + load into k3d cluster      |
-| `upgrade`       | Rebuild image + helm upgrade       |
 
 ### Operations
 
