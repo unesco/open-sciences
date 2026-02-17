@@ -306,9 +306,9 @@ render-config: ## Render invenio.cfg from template using current environment
 build-image: render-config ## Build Docker image (renders invenio.cfg, then builds)
 	@echo "Building Docker image..."
 	@echo "  Image: $(IMAGE)"
-	@echo "  Dockerfile: ../k8s/Dockerfile"
+	@echo "  Dockerfile: Dockerfile"
 	@echo "  Context: repo root (..)"
-	docker build -t $(IMAGE) -f ../k8s/Dockerfile ..
+	docker build -t $(IMAGE) -f Dockerfile ..
 	@echo ""
 	@echo "Image built: $(IMAGE)"
 	@docker images $(IMAGE)

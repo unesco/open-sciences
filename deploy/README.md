@@ -8,7 +8,7 @@ using a shared, environment-aware configuration.
 **Critical ordering for first-time deployment:**
 
 1. **One-command setup** → `make install ENV=local`  
-   *(checks tools, creates .env.local with secrets, sets up k3d cluster)*
+   _(checks tools, creates .env.local with secrets, sets up k3d cluster)_
 2. **Build Docker image** → `make load-image ENV=local`
 3. **Deploy InvenioRDM** → `make deploy ENV=local`
 4. **Import test data** → `make reset-lens ENV=local`
@@ -60,11 +60,11 @@ deploy/
 └── README.md
 ```
 
-| File           | Committed | Contains secrets | Purpose                              |
-| -------------- | --------- | ---------------- | ------------------------------------ |
-| `.env.example` | Yes       | No (placeholders)| Template for all environments        |
-| `.env.<ENV>`   | No        | Yes              | Complete config including secrets    |
-| `values.yaml`  | Yes       | No               | Helm chart template (envsubst'd)     |
+| File           | Committed | Contains secrets  | Purpose                           |
+| -------------- | --------- | ----------------- | --------------------------------- |
+| `.env.example` | Yes       | No (placeholders) | Template for all environments     |
+| `.env.<ENV>`   | No        | Yes               | Complete config including secrets |
+| `values.yaml`  | Yes       | No                | Helm chart template (envsubst'd)  |
 
 The Makefile loads the environment file and exports all variables:
 
@@ -124,6 +124,7 @@ open http://localhost:8080
 ```
 
 **What `make install` does:**
+
 - Verifies required tools (docker, k3d, kubectl, helm, envsubst, openssl)
 - Creates `.env.local` from `.env.example` with auto-generated secrets
 - Creates k3d cluster with port mappings (8080:80, 8443:443)
@@ -132,7 +133,7 @@ open http://localhost:8080
 
 ## Quick Start — Production (k3s)
 
-```bash
+````bash
 cd deploy/
 
 # 1. Install k3s on your server
@@ -156,9 +157,10 @@ The deployment follows this **chronological order**:
 
 ```bash
 make install ENV=local
-```
+````
 
 This command does everything needed to prepare your environment:
+
 - **Checks tools**: Verifies docker, k3d, kubectl, helm, envsubst, openssl are installed
 - **Creates .env.local**: Copies from .env.example and generates random secrets
 - **Sets up k3d cluster**: Creates cluster with port mappings (ENV=local only)
@@ -194,12 +196,12 @@ make reset-lens ENV=local      # Delete all records + import Lens.org test data
 
 ### Core Workflow (In Order)
 
-| Step | Target             | Description                                           |
-| ---- | ------------------ | ----------------------------------------------------- |
-| 1    | `install`          | **Check tools + create .env.$ENV + setup k3d (local)**|
-| 2    | `load-image`       | Build Docker image + load into k3d                    |
-| 3    | `deploy`           | Deploy all services + InvenioRDM + init               |
-| 4    | `reset-lens`       | Import Lens.org test data (57 records)                |
+| Step | Target       | Description                                            |
+| ---- | ------------ | ------------------------------------------------------ |
+| 1    | `install`    | **Check tools + create .env.$ENV + setup k3d (local)** |
+| 2    | `load-image` | Build Docker image + load into k3d                     |
+| 3    | `deploy`     | Deploy all services + InvenioRDM + init                |
+| 4    | `reset-lens` | Import Lens.org test data (57 records)                 |
 
 ### Build & Update
 
