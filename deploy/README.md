@@ -12,6 +12,7 @@ make install ENV=local
 ```
 
 This single command performs the entire setup:
+
 1. Checks required tools (docker, kubectl, helm, k3d, etc.)
 2. Creates `.env.local` with auto-generated secrets
 3. Sets up k3d cluster
@@ -142,14 +143,14 @@ make deploy ENV=local
 make reset-lens ENV=local
 
 # 5. Access the application
-open http://localhost:8080
+open http://localhost
 ```
 
 **What `make install` does:**
 
 - Verifies required tools (docker, k3d, kubectl, helm, envsubst, openssl)
 - Creates `.env.local` from `.env.example` with auto-generated secrets
-- Creates k3d cluster with port mappings (8080:80, 8443:443)
+- Creates k3d cluster with port mappings (80:80, 8443:443)
 
 **Admin credentials**: `admin@invenio.org` / `admin123` (configured in `.env.local`)
 
@@ -188,7 +189,7 @@ This **single command** performs the entire first-time setup in 6 steps:
 5. **[5/6] Deploy Helm**: External services (PostgreSQL, Redis, RabbitMQ, OpenSearch) + InvenioRDM
 6. **[6/6] Initialize**: Database schema, search indices, vocabularies, CMS fixtures, admin user
 
-**Result**: Fully operational InvenioRDM at http://localhost:8080
+**Result**: Fully operational InvenioRDM at http://localhost
 
 ### CI/CD Deployment (Code Updates)
 
@@ -388,7 +389,7 @@ make load-image ENV=local
 make restart ENV=local
 
 # 4. Test changes
-curl http://localhost:8080/data/search?field=author
+curl http://localhost/data/search?field=author
 
 # 5. View logs if needed
 make logs ENV=local
@@ -422,3 +423,4 @@ make reset-lens ENV=local      # 4. Import test data
    ```
 
 No Makefile changes needed — all variables are auto-exported.
+````

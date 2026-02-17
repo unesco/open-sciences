@@ -267,6 +267,20 @@ init-app: check ## Reinitialize database, indices, vocabularies (manual operatio
 	echo "Step 4/7: Creating file storage location..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio files location create --default 'default-location' /opt/invenio/var/instance/data 2>/dev/null || true" ; \
 	echo ""; \
+	echo "Waiting for OpenSearch to be ready..."; \
+	for i in $$(seq 1 30); do \
+		if kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- curl -s -f http://opensearch:9200/_cluster/health >/dev/null 2>&1; then \
+			echo "  ✓ OpenSearch is ready"; \
+			break; \
+		fi; \
+		echo "  Waiting for OpenSearch... ($$i/30)"; \
+		sleep 2; \
+		if [ $$i -eq 30 ]; then \
+			echo "  ERROR: OpenSearch not ready after 60s"; \
+			exit 1; \
+		fi; \
+	done; \
+	echo ""; \
 	echo "Step 5/7: Loading vocabularies (synchronous, no Celery dependency)..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_rdm_records.fixtures.vocabularies import PrioritizedVocabulariesFixtures; from pathlib import Path; import flask; app_data = Path(flask.current_app.instance_path) / 'app_data'; pkg = Path('/usr/local/lib/python3.12/site-packages/invenio_rdm_records/fixtures/data'); pv = PrioritizedVocabulariesFixtures(system_identity, app_data_folder=app_data, pkg_data_folder=pkg, delay=False); pv.load(); print('Vocabularies created in database.')" 2>&1 | tail -5 ; \
 	echo ""; \
@@ -388,13 +402,13 @@ restart: check ## Rolling restart of InvenioRDM (keeps services running)
 reset-lens: check ## Delete all records and re-import Lens.org data
 	@echo "Resetting InvenioRDM records with Lens.org data..."
 	@echo ""
-	@echo "Checking connectivity on localhost:8080..."
-	@if ! curl -s --max-time 5 -o /dev/null http://localhost:8080/ping; then \
-		echo "ERROR: Cannot reach http://localhost:8080"; \
+	@echo "Checking connectivity on localhost..."
+	@if ! curl -s --max-time 5 -o /dev/null http://localhost/ping; then \
+		echo "ERROR: Cannot reach http://localhost"; \
 		echo "  For k3d, ensure port mapping is configured."; \
 		exit 1; \
 	fi
-	@echo "  localhost:8080 reachable."
+	@echo "  localhost reachable."
 	@echo ""
 	@echo "Generating temporary API token..."
 	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
@@ -410,12 +424,12 @@ reset-lens: check ## Delete all records and re-import Lens.org data
 	echo "  Token generated: $${TOKEN:0:20}..."; \
 	echo ""; \
 	echo "Step 1/3: Deleting all existing records..."; \
-	openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" cleanup --confirm; \
+	openscience-tools --base-url http://localhost --token "$$TOKEN" cleanup --confirm; \
 	echo ""; \
 	echo "Step 2/3: Importing Lens.org publications..."; \
 	FILE=$${FILE:-../openscience_tools/openscience_tools/sources/lens/data/publications.json}; \
 	OPTS=$${OPTS:-}; \
-	openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
+	openscience-tools --base-url http://localhost --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
 	echo ""; \
 	echo "Step 3/3: Reindexing records for facet aggregations..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio index reindex --pid-type recid 2>/dev/null || true" ; \
@@ -428,7 +442,7 @@ reset-lens: check ## Delete all records and re-import Lens.org data
 		invenio tokens delete "$$TOKEN" 2>/dev/null || true; \
 	echo ""; \
 	echo "Reset complete!"; \
-	echo "  Access at: http://localhost:8080"
+	echo "  Access at: http://localhost"
 
 # --------------------------------------------------------------------------
 # Destroy
@@ -519,7 +533,7 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 		else \
 			echo "  Creating k3d cluster '$(K3D_CLUSTER_NAME)'..."; \
 			k3d cluster create $(K3D_CLUSTER_NAME) \
-				--port "8080:80@loadbalancer" \
+				--port "80:80@loadbalancer" \
 				--port "8443:443@loadbalancer" \
 				--agents 0; \
 			echo "  ✓ k3d cluster created"; \
