@@ -300,25 +300,25 @@ init: check ## Initialize database, indices, vocabularies
 		{ echo "ERROR: Web pod not ready. Check: make status"; exit 1; }
 	@echo ""
 	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
-	echo "Step 1/6: Initializing database..."; \
+	echo "Step 1/7: Initializing database..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio db init 2>/dev/null || true" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio db create 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Step 2/6: Initializing search indices..."; \
+	echo "Step 2/7: Initializing search indices..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index destroy --force --yes-i-know 2>/dev/null || true" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index init 2>/dev/null || true" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index queue init purge 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Step 3/6: Initializing custom fields..."; \
+	echo "Step 3/7: Initializing custom fields..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio rdm-records custom-fields init 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Step 4/6: Creating file storage location..."; \
+	echo "Step 4/7: Creating file storage location..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio files location create --default 'default-location' /opt/invenio/var/instance/data 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Step 5/6: Loading vocabularies (synchronous, no Celery dependency)..."; \
+	echo "Step 5/7: Loading vocabularies (synchronous, no Celery dependency)..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_rdm_records.fixtures.vocabularies import PrioritizedVocabulariesFixtures; from pathlib import Path; import flask; app_data = Path(flask.current_app.instance_path) / 'app_data'; pkg = Path('/usr/local/lib/python3.12/site-packages/invenio_rdm_records/fixtures/data'); pv = PrioritizedVocabulariesFixtures(system_identity, app_data_folder=app_data, pkg_data_folder=pkg, delay=False); pv.load(); print('Vocabularies created in database.')" 2>&1 | tail -5 ; \
 	echo ""; \
-	echo "Step 6/6: Indexing vocabularies in OpenSearch..."; \
+	echo "Step 6/7: Indexing vocabularies in OpenSearch..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio index reindex --pid-type vcf 2>/dev/null || true" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index run 2>/dev/null || true" ; \
 	echo "  Waiting 10s for OpenSearch to settle..."; \
@@ -338,6 +338,9 @@ init: check ## Initialize database, indices, vocabularies
 		TOTAL2=$$(kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_vocabularies.proxies import current_service; r = current_service.search(system_identity, type='resourcetypes'); print(r.total)" 2>/dev/null | tail -1); \
 		echo "  resourcetypes (retry): $$TOTAL2"; \
 	fi; \
+	echo ""; \
+	echo "Step 7/7: Loading CMS fixtures (header, footer, static pages)..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio cms load-fixtures" ; \
 	echo ""; \
 	echo "Initialization complete."
 
@@ -585,13 +588,19 @@ reset-lens: check ## Delete all records and re-import Lens.org data
 	fi; \
 	echo "  Token generated: $${TOKEN:0:20}..."; \
 	echo ""; \
-	echo "Step 1/2: Deleting all existing records..."; \
+	echo "Step 1/3: Deleting all existing records..."; \
 	openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" cleanup --confirm; \
 	echo ""; \
-	echo "Step 2/2: Importing Lens.org publications..."; \
+	echo "Step 2/3: Importing Lens.org publications..."; \
 	FILE=$${FILE:-../openscience_tools/openscience_tools/sources/lens/data/publications.json}; \
 	OPTS=$${OPTS:-}; \
 	openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
+	echo ""; \
+	echo "Step 3/3: Reindexing records for facet aggregations..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio index reindex --pid-type recid 2>/dev/null || true" ; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index run 2>/dev/null || true" ; \
+	echo "  Waiting 10s for OpenSearch to process..."; \
+	sleep 10; \
 	echo ""; \
 	echo "Revoking temporary token..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- \
