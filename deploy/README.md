@@ -139,28 +139,26 @@ open http://localhost:8080
 ```bash
 cd deploy/
 
-# 1. Generate secrets
-make generate-secrets
+# 1. Install k3s on your server
+curl -sfL https://get.k3s.io | sh -
 
-# 2. Install k3s
-make install-k3s
+# 2. Generate secrets
+make generate-secrets
 
 # 3. Verify production domain
 cat .env.production
 
 # 4. Build Docker image
 make build-image ENV=production
-make push-image ENV=production    # Push to registry
+# Note: For production, manually push to your registry if needed
 
 # 5. Deploy InvenioRDM
 make deploy ENV=production
-
-# 6. Set up HTTPS
-make tls-setup ENV=production
-
-# 7. Set up automated backups
-make backup-schedule ENV=production
 ```
+
+**Note**: For production deployments, you'll need to manually configure TLS certificates
+and backup schedules using kubectl/helm directly, as these targets are removed from 
+the simplified Makefile focused on local k3d development.
 
 ## Deployment Steps Explained
 
@@ -176,8 +174,6 @@ make generate-secrets          # Generate random passwords/keys → .env.secrets
 
 ```bash
 make load-image ENV=local      # For k3d: build + load into cluster
-# OR
-make push-image ENV=production # For k3s: build + push to registry
 ```
 
 **Why first?** The Docker image contains your customized InvenioRDM code and configuration.
@@ -214,26 +210,23 @@ make reset-lens ENV=local      # Delete all records + import Lens.org test data
 
 ### Build & Update
 
-| Target          | Description                              |
-| --------------- | ---------------------------------------- |
-| `render-config` | Render `invenio.cfg` from template       |
-| `build-image`   | Render config + build Docker image       |
-| `load-image`    | Build + load into k3d cluster            |
-| `push-image`    | Build + push to registry (production)    |
-| `upgrade`       | Backup DB + rebuild image + helm upgrade |
+| Target          | Description                       |
+| --------------- | --------------------------------- |
+| `render-config` | Render `invenio.cfg` from template |
+| `build-image`   | Render config + build Docker image |
+| `load-image`    | Build + load into k3d cluster     |
+| `upgrade`       | Rebuild image + helm upgrade      |
 
 ### Operations
 
-| Target        | Description                              |
-| ------------- | ---------------------------------------- |
-| `status`      | Show cluster & pod health                |
-| `logs`        | Tail web pod logs                        |
-| `logs-worker` | Tail worker pod logs                     |
-| `shell`       | Open bash shell in web pod               |
-| `restart`     | Rolling restart (keeps data)             |
-| `destroy`     | Remove everything (DESTRUCTIVE)          |
-| `reset-lens`  | Delete records + re-import Lens.org data |
-| `import-lens` | Import Lens.org data (FILE=... OPTS=...) |
+| Target       | Description                              |
+| ------------ | ---------------------------------------- |
+| `status`     | Show cluster & pod health                |
+| `logs`       | Tail web pod logs                        |
+| `shell`      | Open bash shell in web pod               |
+| `restart`    | Rolling restart (keeps data)             |
+| `destroy`    | Remove everything (DESTRUCTIVE)          |
+| `reset-lens` | Delete records + re-import Lens.org data |
 
 All targets accept `ENV=local|staging|production` (default: `local`).
 
@@ -249,7 +242,6 @@ make status ENV=local          # Shows pods, services, ingress, PVCs
 
 ```bash
 make logs ENV=local            # Web pod logs
-make logs-worker ENV=local     # Worker pod logs
 ```
 
 ### Shell Access
@@ -268,16 +260,13 @@ make restart ENV=local         # Rolling restart (no downtime)
 ### Upgrade InvenioRDM
 
 ```bash
-make upgrade ENV=production    # Backup DB → rebuild image → helm upgrade → restart
+make upgrade ENV=local         # Rebuild image → helm upgrade → restart
 ```
 
-### Import/Export Data
+### Import Data
 
 ```bash
-make reset-lens ENV=local                           # Delete all + import Lens.org data
-make import-lens FILE=data.json OPTS="--limit 10"   # Import specific file
-make backup ENV=production                          # Manual DB backup
-make restore FILE=/path/to/backup.dump              # Restore from backup
+make reset-lens ENV=local      # Delete all + import Lens.org data
 ```
 
 ## Troubleshooting

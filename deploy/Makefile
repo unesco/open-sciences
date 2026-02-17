@@ -18,10 +18,8 @@
 SHELL := /bin/bash
 
 .PHONY: help check env-check deploy deploy-services deploy-secrets deploy-helm \
-        init reinit create-admin upgrade status logs shell restart backup restore \
-        tls-setup backup-schedule destroy port-forward helm-versions \
-        reset-lens import-lens \
-        generate-secrets render-config build-image load-image push-image
+        init create-admin upgrade status logs shell restart destroy \
+        reset-lens generate-secrets render-config build-image load-image
 
 # --------------------------------------------------------------------------
 # Configuration
@@ -57,13 +55,9 @@ endif
 DOCKER_IMAGE_NAME ?= sc-openscience
 DOCKER_IMAGE_TAG  ?= latest
 IMAGE             := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
-REGISTRY_IMAGE    := $(if $(DOCKER_REGISTRY),$(DOCKER_REGISTRY):$(DOCKER_IMAGE_TAG),)
 
 # k3d cluster name (for local testing on macOS/Linux desktop)
 K3D_CLUSTER_NAME  ?= unesco-rdm
-
-# Backup
-BACKUP_DIR        ?= /opt/backups/unesco-rdm
 
 # --------------------------------------------------------------------------
 # Help
@@ -77,39 +71,22 @@ help: ## Show this help
 	@echo ""
 	@echo "First-time setup:"
 	@echo "  make generate-secrets        Generate .env.secrets"
-	@echo "  make deploy ENV=local        Full deployment (services + helm + init)"
+	@echo "  make load-image ENV=local    Build Docker image + load into k3d"
+	@echo "  make deploy ENV=local        Full deployment (services + InvenioRDM + init)"
 	@echo ""
 	@echo "Daily operations:"
 	@echo "  make status                  Cluster & pod health"
 	@echo "  make logs                    Tail web pod logs"
-	@echo "  make logs-worker             Tail worker pod logs"
 	@echo "  make shell                   Shell into web pod"
 	@echo "  make restart                 Rolling restart of InvenioRDM"
 	@echo ""
 	@echo "Updates:"
 	@echo "  make upgrade                 Upgrade InvenioRDM (rebuild image + helm)"
-	@echo "  make deploy-helm             Re-deploy Helm chart only"
 	@echo "  make build-image             Build Docker image (renders invenio.cfg)"
 	@echo "  make render-config           Render invenio.cfg from template"
-	@echo "  make load-image              Build + load image into k3d cluster"
-	@echo "  make push-image              Build + push to registry"
 	@echo ""
-	@echo "Backup & Restore:"
-	@echo "  make backup                  Manual database backup"
-	@echo "  make restore FILE=...        Restore from backup file"
-	@echo "  make backup-schedule         Install automated daily backups"
-	@echo "  make backup-list             List available backups"
-	@echo ""
-	@echo "TLS & Security:"
-	@echo "  make tls-setup               Install cert-manager + Let's Encrypt"
-	@echo "  make tls-status              Check certificate status"
-	@echo ""
-	@echo "Data Import:"
+	@echo "Data:"
 	@echo "  make reset-lens              Delete all records + import Lens.org data"
-	@echo "  make import-lens             Import Lens.org data (FILE=... OPTS=...)"
-	@echo ""
-	@echo "Maintenance:"
-	@echo "  make reinit                  Re-initialize DB + indices from scratch"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make destroy                 Remove everything (DESTRUCTIVE)"
@@ -121,8 +98,8 @@ help: ## Show this help
 
 check: ## Verify k3s, kubectl, helm are installed
 	@echo "Checking required tools..."
-	@command -v kubectl >/dev/null 2>&1 || { echo "ERROR: kubectl not found. Install k3s first: make install-k3s"; exit 1; }
-	@command -v helm    >/dev/null 2>&1 || { echo "ERROR: helm not found. Run: make install-k3s"; exit 1; }
+	@command -v kubectl >/dev/null 2>&1 || { echo "ERROR: kubectl not found."; exit 1; }
+	@command -v helm    >/dev/null 2>&1 || { echo "ERROR: helm not found."; exit 1; }
 	@kubectl get nodes  >/dev/null 2>&1 || { echo "ERROR: Cannot reach k3s cluster. Is k3s running?"; exit 1; }
 	@echo "  kubectl: OK"
 	@echo "  helm:    OK"
@@ -158,15 +135,6 @@ env-check: ## Verify environment config files exist and have required values
 	@echo "Environment '$(ENV)' ready (domain=$(DOMAIN), protocol=$(SITE_PROTOCOL))."
 
 # --------------------------------------------------------------------------
-# Installation
-# --------------------------------------------------------------------------
-
-install-k3s: ## Install k3s on this server
-	@echo "Running k3s installation script..."
-	@chmod +x scripts/install-k3s.sh
-	@sudo scripts/install-k3s.sh
-
-# --------------------------------------------------------------------------
 # Full Deployment
 # --------------------------------------------------------------------------
 
@@ -179,13 +147,6 @@ deploy: check env-check deploy-services deploy-secrets deploy-helm init create-a
 	@echo "  Domain:   $(DOMAIN)"
 	@echo "  Protocol: $(SITE_PROTOCOL)"
 	@echo "  Admin:    $(ADMIN_USER_EMAIL)"
-	@echo ""
-	@echo "  Next steps:"
-	@echo "    1. Check status:    make status"
-	if [ "$(TLS_MODE)" != "none" ]; then \
-		echo "    2. Set up TLS:      make tls-setup"; \
-		echo "    3. Set up backups:  make backup-schedule"; \
-	fi
 	@echo ""
 	@echo "  Access: $(SITE_UI_URL)"
 	@echo ""
@@ -243,17 +204,6 @@ deploy-secrets: check env-check ## Create K8s secrets from environment config
 		--dry-run=client -o yaml | kubectl apply -f -
 	@echo "Secrets created."
 	@echo ""
-	@# Create registry pull secret if credentials are provided
-	@if [ -n "$(REGISTRY_USER)" ] && [ -n "$(REGISTRY_PASSWORD)" ]; then \
-		echo "Creating image pull secret..."; \
-		kubectl create secret docker-registry regcred \
-			--docker-server=$(DOCKER_REGISTRY) \
-			--docker-username=$(REGISTRY_USER) \
-			--docker-password=$(REGISTRY_PASSWORD) \
-			--namespace=$(NAMESPACE) \
-			--dry-run=client -o yaml | kubectl apply -f -; \
-		echo "Pull secret created."; \
-	fi
 
 # --------------------------------------------------------------------------
 # Helm
@@ -274,20 +224,11 @@ deploy-helm: check ## Install/upgrade InvenioRDM Helm chart
 		--namespace $(NAMESPACE) \
 		--create-namespace \
 		--values /tmp/values-rendered.yaml \
-		$(if $(filter true,$(INGRESS_TLS_ENABLED)),\
-			--set 'ingress.annotations.cert-manager\.io/cluster-issuer=letsencrypt-prod' \
-			--set 'ingress.tls[0].secretName=unesco-rdm-tls' \
-			--set 'ingress.tls[0].hosts[0]=$(DOMAIN)' \
-		) \
 		--wait \
 		--timeout 10m
 	@rm -f /tmp/values-rendered.yaml
 	@echo ""
 	@echo "Helm chart deployed."
-
-helm-versions: ## List available Helm chart versions
-	@helm repo add invenio https://inveniosoftware.github.io/helm-invenio/ 2>/dev/null || true
-	@helm search repo invenio/invenio --versions | head -15
 
 # --------------------------------------------------------------------------
 # Initialization
@@ -356,22 +297,6 @@ create-admin: check ## Create admin user
 	echo ""; \
 	echo "Admin user created: $(ADMIN_USER_EMAIL)"
 
-reinit: check ## Destroy DB + indices and re-initialize everything (DESTRUCTIVE!)
-	@echo "WARNING: This will destroy the database and search indices!"
-	@echo "         All records, users, and vocabularies will be lost."
-	@echo ""
-	@read -p "Continue? [y/N] " -n 1 -r; echo; \
-	if [[ ! $$REPLY =~ ^[Yy]$$ ]]; then echo "Cancelled."; exit 0; fi
-	@echo ""
-	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
-	echo "Destroying database..."; \
-	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio db destroy --yes-i-know 2>/dev/null || true" ; \
-	echo ""
-	@$(MAKE) init ENV=$(ENV)
-	@$(MAKE) create-admin ENV=$(ENV)
-	@echo ""
-	@echo "Re-initialization complete."
-
 # --------------------------------------------------------------------------
 # Build & Upgrade
 # --------------------------------------------------------------------------
@@ -401,28 +326,20 @@ load-image: build-image ## Build image and load into k3d cluster
 		k3d image import $(IMAGE) --cluster $(K3D_CLUSTER_NAME); \
 		echo "Image loaded into k3d cluster: $(K3D_CLUSTER_NAME)"; \
 	else \
-		echo "k3d not found. On a k3s server, push to registry instead:"; \
-		echo "  docker tag $(IMAGE) $(REGISTRY_IMAGE)"; \
-		echo "  docker push $(REGISTRY_IMAGE)"; \
+		echo "k3d not found. Skipping image load."; \
 	fi
 
-push-image: build-image ## Build and push Docker image to registry
-	@echo "Tagging and pushing to registry..."
-	docker tag $(IMAGE) $(REGISTRY_IMAGE)
-	docker push $(REGISTRY_IMAGE)
-	@echo "Image pushed: $(REGISTRY_IMAGE)"
-
-upgrade: check env-check ## Upgrade InvenioRDM (pull new image + helm upgrade)
+upgrade: check env-check ## Upgrade InvenioRDM (rebuild image + helm upgrade)
 	@echo "Upgrading InvenioRDM..."
 	@echo ""
-	@echo "Step 1/3: Backing up database..."
-	@$(MAKE) backup || echo "WARN: Backup failed - continuing with upgrade"
+	@echo "Step 1/3: Rebuilding and loading image..."
+	@$(MAKE) load-image ENV=$(ENV)
 	@echo ""
 	@echo "Step 2/3: Upgrading Helm release..."
-	@$(MAKE) deploy-helm
+	@$(MAKE) deploy-helm ENV=$(ENV)
 	@echo ""
 	@echo "Step 3/3: Restarting pods to pick up new image..."
-	@$(MAKE) restart
+	@$(MAKE) restart ENV=$(ENV)
 	@echo ""
 	@echo "Upgrade complete. Check: make status"
 
@@ -445,21 +362,10 @@ status: check ## Show cluster and pod status
 	@echo ""
 	@echo "=== PVCs ==="
 	@kubectl get pvc -n $(NAMESPACE)
-	@echo ""
-	@echo "=== Resource Usage ==="
-	@kubectl top pods -n $(NAMESPACE) 2>/dev/null || echo "(metrics-server not available)"
 
 logs: check ## Tail web pod logs
 	@echo "Tailing web pod logs (Ctrl+C to stop)..."
 	@kubectl logs -f -l app.kubernetes.io/component=web -n $(NAMESPACE) --all-containers=true --tail=100
-
-logs-worker: check ## Tail worker pod logs
-	@echo "Tailing worker pod logs (Ctrl+C to stop)..."
-	@kubectl logs -f -l app.kubernetes.io/component=worker -n $(NAMESPACE) --all-containers=true --tail=100
-
-logs-services: check ## Tail external service logs
-	@echo "Which service? [postgresql/redis/rabbitmq/opensearch]"
-	@read svc; kubectl logs -f -l app=$$svc -n $(NAMESPACE) --tail=100
 
 shell: check ## Open a shell in the web pod
 	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
@@ -476,89 +382,6 @@ restart: check ## Rolling restart of InvenioRDM (keeps services running)
 	@echo "Restart complete."
 	@kubectl get pods -n $(NAMESPACE)
 
-restart-all: check ## Restart EVERYTHING (including external services)
-	@echo "WARNING: This restarts all services including the database."
-	@read -p "Continue? [y/N] " -n 1 -r; echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		kubectl rollout restart deployment -n $(NAMESPACE); \
-		echo "All deployments restarting..."; \
-		kubectl wait --for=condition=available deployment --all -n $(NAMESPACE) --timeout=5m 2>/dev/null || true; \
-		kubectl get pods -n $(NAMESPACE); \
-	else \
-		echo "Cancelled."; \
-	fi
-
-port-forward: check ## Port-forward to localhost:8080 (for testing without ingress)
-	@echo "Port forwarding to http://localhost:8080 (Ctrl+C to stop)"
-	@kubectl port-forward -n $(NAMESPACE) svc/$(HELM_RELEASE)-invenio-web 8080:80
-
-# --------------------------------------------------------------------------
-# TLS
-# --------------------------------------------------------------------------
-
-tls-setup: check env-check ## Install cert-manager and configure Let's Encrypt
-	@echo "Setting up TLS..."
-	@chmod +x scripts/setup-tls.sh
-	@if [ "$(TLS_MODE)" = "selfsigned" ]; then \
-		echo "TLS_MODE=selfsigned - skipping cert-manager"; \
-		echo "Using k3s default self-signed cert."; \
-	else \
-		scripts/setup-tls.sh --domain $(DOMAIN) --email $(LETSENCRYPT_EMAIL) --namespace $(NAMESPACE); \
-	fi
-	@echo ""
-	@echo "TLS setup complete."
-
-tls-status: check ## Check TLS certificate status
-	@echo "=== Certificates ==="
-	@kubectl get certificates -n $(NAMESPACE) 2>/dev/null || echo "No certificates found"
-	@echo ""
-	@echo "=== Certificate Requests ==="
-	@kubectl get certificaterequests -n $(NAMESPACE) 2>/dev/null || echo "No requests"
-	@echo ""
-	@echo "=== ClusterIssuers ==="
-	@kubectl get clusterissuers 2>/dev/null || echo "No issuers"
-
-# --------------------------------------------------------------------------
-# Backup & Restore
-# --------------------------------------------------------------------------
-
-backup: check ## Manual database backup
-	@echo "Running database backup..."
-	@chmod +x scripts/backup.sh
-	@scripts/backup.sh
-	@echo ""
-	@echo "Done. List backups: make backup-list"
-
-restore: check ## Restore database from backup (FILE=path/to/dump)
-	@if [ -z "$(FILE)" ]; then \
-		echo "ERROR: Specify backup file: make restore FILE=/opt/backups/unesco-rdm/db/dump.sql"; \
-		echo ""; \
-		echo "Available backups:"; \
-		ls -lhrt $(BACKUP_DIR)/db/*.dump 2>/dev/null || echo "  (none found)"; \
-		exit 1; \
-	fi
-	@chmod +x scripts/restore.sh
-	@scripts/restore.sh --backup-file $(FILE)
-
-backup-schedule: check ## Install automated daily backup CronJob
-	@echo "Installing backup CronJob..."
-	@kubectl apply -f backup-cronjob.yaml -n $(NAMESPACE)
-	@echo ""
-	@echo "Backup CronJob installed."
-	@kubectl get cronjobs -n $(NAMESPACE)
-
-backup-list: ## List available backups
-	@echo "=== Available Backups ==="
-	@if [ -d "$(BACKUP_DIR)/db" ]; then \
-		ls -lhrt $(BACKUP_DIR)/db/*.dump 2>/dev/null || echo "No backups found"; \
-		echo ""; \
-		echo "Total: $$(ls $(BACKUP_DIR)/db/*.dump 2>/dev/null | wc -l) backup(s)"; \
-		echo "Space: $$(du -sh $(BACKUP_DIR) 2>/dev/null | cut -f1)"; \
-	else \
-		echo "Backup directory not found: $(BACKUP_DIR)"; \
-		echo "Run 'make backup' to create the first backup."; \
-	fi
-
 # --------------------------------------------------------------------------
 # Data Import (uses openscience_tools)
 # --------------------------------------------------------------------------
@@ -570,7 +393,6 @@ reset-lens: check ## Delete all records and re-import Lens.org data
 	@if ! curl -s --max-time 5 -o /dev/null http://localhost:8080/ping; then \
 		echo "ERROR: Cannot reach http://localhost:8080"; \
 		echo "  For k3d, ensure port mapping is configured."; \
-		echo "  Or start port-forward: make port-forward"; \
 		exit 1; \
 	fi
 	@echo "  localhost:8080 reachable."
@@ -609,24 +431,6 @@ reset-lens: check ## Delete all records and re-import Lens.org data
 	echo "Reset complete!"; \
 	echo "  Access at: http://localhost:8080"
 
-import-lens: check ## Import Lens.org data (FILE=path OPTS='--limit 10')
-	@echo "Importing Lens.org publications..."
-	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
-	echo "Generating API token..."; \
-	TOKEN=$$(kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- \
-		invenio tokens create -n 'Import Token' -u $(ADMIN_USER_EMAIL) 2>/dev/null | \
-		grep -v "WARNING\|UserWarning\|pkg_resources\|deprecated" | \
-		grep -E '^[A-Za-z0-9_-]{40,}$$' | head -1); \
-	if [ -z "$$TOKEN" ]; then \
-		echo "ERROR: Failed to generate token. Is admin user created?"; \
-		exit 1; \
-	fi; \
-	FILE=$${FILE:-../openscience_tools/openscience_tools/sources/lens/data/publications.json}; \
-	OPTS=$${OPTS:-}; \
-	echo "Importing from: $$FILE"; \
-	openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
-	echo "Import complete."
-
 # --------------------------------------------------------------------------
 # Destroy
 # --------------------------------------------------------------------------
@@ -637,7 +441,6 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 	@echo "    - All InvenioRDM data"
 	@echo "    - Database and search indices"
 	@echo "    - Uploaded files"
-	@echo "    - TLS certificates"
 	@echo ""
 	@read -p "Type 'DESTROY' to confirm: " confirm; \
 	if [ "$$confirm" = "DESTROY" ]; then \
@@ -646,8 +449,6 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 		helm uninstall $(HELM_RELEASE) -n $(NAMESPACE) 2>/dev/null || true; \
 		echo "Removing external services..."; \
 		kubectl delete -f external-services.yaml -n $(NAMESPACE) 2>/dev/null || true; \
-		echo "Removing backup CronJob..."; \
-		kubectl delete -f backup-cronjob.yaml -n $(NAMESPACE) 2>/dev/null || true; \
 		echo "Removing secrets..."; \
 		kubectl delete secret --all -n $(NAMESPACE) 2>/dev/null || true; \
 		echo "Removing PVCs..."; \
@@ -656,30 +457,13 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 		kubectl delete namespace $(NAMESPACE) 2>/dev/null || true; \
 		echo ""; \
 		echo "All resources removed."; \
-		echo "Backups in $(BACKUP_DIR) are preserved."; \
 	else \
 		echo "Cancelled."; \
 	fi
 
 # --------------------------------------------------------------------------
-# Utilities
+# Setup
 # --------------------------------------------------------------------------
-
-db-shell: check ## Open psql shell in PostgreSQL
-	@PG_POD=$$(kubectl get pods -n $(NAMESPACE) -l app=postgresql -o jsonpath='{.items[0].metadata.name}'); \
-	kubectl exec -it -n $(NAMESPACE) $$PG_POD -- psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
-
-search-shell: check ## Open shell in OpenSearch pod
-	@OS_POD=$$(kubectl get pods -n $(NAMESPACE) -l app=opensearch -o jsonpath='{.items[0].metadata.name}'); \
-	kubectl exec -it -n $(NAMESPACE) $$OS_POD -- bash
-
-rebuild-index: check ## Rebuild search indices
-	@echo "Rebuilding search indices..."
-	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
-	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index destroy --force --yes-i-know && invenio index init" ; \
-	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio rdm-records custom-fields init" ; \
-	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio rdm-records rebuild-index" ; \
-	echo "Index rebuild started. Workers will process in background."
 
 generate-secrets: ## Generate .env.secrets with random credentials
 	@echo "Generating .env.secrets..."
