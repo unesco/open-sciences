@@ -7,13 +7,13 @@ using a shared, environment-aware configuration.
 
 **Critical ordering for first-time deployment:**
 
-1. Generate secrets → `make generate-secrets`
-2. Create k3d cluster → `k3d cluster create ...`
-3. **Build Docker image FIRST** → `make load-image ENV=local`
-4. Deploy InvenioRDM → `make deploy ENV=local`
-5. Import test data → `make reset-lens ENV=local`
+1. **One-command setup** → `make install ENV=local`  
+   *(checks tools, creates .env.local with secrets, sets up k3d cluster)*
+2. **Build Docker image** → `make load-image ENV=local`
+3. **Deploy InvenioRDM** → `make deploy ENV=local`
+4. **Import test data** → `make reset-lens ENV=local`
 
-**Why build first?** The Docker image contains your customized InvenioRDM code.
+**Why build before deploy?** The Docker image contains your customized InvenioRDM code.
 Helm cannot deploy pods without the image existing in the cluster.
 
 ## Architecture
@@ -50,11 +50,11 @@ All configuration is driven by the `ENV` variable (`local`, `staging`, `producti
 
 ```
 deploy/
-├── .env.local          # k3d desktop testing   (committed, NO secrets)
-├── .env.staging        # Staging server         (committed, NO secrets)
-├── .env.production     # Production server      (committed, NO secrets)
-├── .env.secrets        # GENERATED credentials  (gitignored, mode 600)
-├── values.yaml         # Helm values template   (uses ${VAR} substitution)
+├── .env.example        # Template with all variables (committed)
+├── .env.local          # k3d testing (gitignored, has secrets)
+├── .env.staging        # Staging server (gitignored, has secrets)
+├── .env.production     # Production server (gitignored, has secrets)
+├── values.yaml         # Helm values template (uses ${VAR} substitution)
 ├── external-services.yaml
 ├── Makefile
 └── README.md
@@ -62,16 +62,15 @@ deploy/
 
 | File           | Committed | Contains secrets | Purpose                              |
 | -------------- | --------- | ---------------- | ------------------------------------ |
-| `.env.<ENV>`   | Yes       | No               | Domain, protocol, replicas, tunables |
-| `.env.secrets` | No        | Yes              | Passwords, keys, salts               |
+| `.env.example` | Yes       | No (placeholders)| Template for all environments        |
+| `.env.<ENV>`   | No        | Yes              | Complete config including secrets    |
 | `values.yaml`  | Yes       | No               | Helm chart template (envsubst'd)     |
 
-The Makefile loads both files and exports all variables:
+The Makefile loads the environment file and exports all variables:
 
 ```makefile
 ENV ?= local
 -include .env.$(ENV)
--include .env.secrets
 export
 ```
 
@@ -103,36 +102,33 @@ Two rendering steps use `envsubst`:
 
 ## Quick Start — Local (k3d)
 
-**IMPORTANT**: Build the Docker image **BEFORE** deploying InvenioRDM.
+**One-command setup + three steps to deploy:**
 
 ```bash
 cd deploy/
 
-# 1. Generate secrets
-make generate-secrets
+# 1. Complete setup (check tools, create .env.local, setup k3d cluster)
+make install ENV=local
 
-# 2. Create k3d cluster
-k3d cluster create unesco-rdm \
-  --port "8080:80@loadbalancer" \
-  --port "8443:443@loadbalancer" \
-  --agents 0
-
-# 3. Build and load Docker image (MUST be done before deploy)
+# 2. Build and load Docker image
 make load-image ENV=local
 
-# 4. Deploy InvenioRDM
+# 3. Deploy InvenioRDM
 make deploy ENV=local
 
-# 5. Import test data (optional)
+# 4. Import test data (optional)
 make reset-lens ENV=local
 
-# 6. Access the application
+# 5. Access the application
 open http://localhost:8080
 ```
 
-**Admin credentials**: `admin@invenio.org` / `admin123` (configured in `.env.local`)
+**What `make install` does:**
+- Verifies required tools (docker, k3d, kubectl, helm, envsubst, openssl)
+- Creates `.env.local` from `.env.example` with auto-generated secrets
+- Creates k3d cluster with port mappings (8080:80, 8443:443)
 
-**Note**: Step 3 (build image) is **critical** — `make deploy` alone will fail if the image doesn't exist in k3d.
+**Admin credentials**: `admin@invenio.org` / `admin123` (configured in `.env.local`)
 
 ## Quick Start — Production (k3s)
 
@@ -142,33 +138,30 @@ cd deploy/
 # 1. Install k3s on your server
 curl -sfL https://get.k3s.io | sh -
 
-# 2. Generate secrets
-make generate-secrets
+# 2. Setup environment (checks tools, creates .env.production)
+make install ENV=production
 
-# 3. Verify production domain
-cat .env.production
-
-# 4. Build Docker image
-make build-image ENV=production
-# Note: For production, manually push to your registry if needed
-
-# 5. Deploy InvenioRDM
-make deploy ENV=production
-```
+# 3. Edit .env.production for your domain and settings
+vim .env.production
 
 **Note**: For production deployments, you'll need to manually configure TLS certificates
-and backup schedules using kubectl/helm directly, as these targets are removed from 
+and backup schedules using kubectl/helm directly, as these targets are removed from
 the simplified Makefile focused on local k3d development.
 
 ## Deployment Steps Explained
 
 The deployment follows this **chronological order**:
 
-### 1. **Preparation**
+### 1. **Setup** (ONE COMMAND)
 
 ```bash
-make generate-secrets          # Generate random passwords/keys → .env.secrets
+make install ENV=local
 ```
+
+This command does everything needed to prepare your environment:
+- **Checks tools**: Verifies docker, k3d, kubectl, helm, envsubst, openssl are installed
+- **Creates .env.local**: Copies from .env.example and generates random secrets
+- **Sets up k3d cluster**: Creates cluster with port mappings (ENV=local only)
 
 ### 2. **Build Docker Image** (CRITICAL STEP)
 
@@ -176,7 +169,7 @@ make generate-secrets          # Generate random passwords/keys → .env.secrets
 make load-image ENV=local      # For k3d: build + load into cluster
 ```
 
-**Why first?** The Docker image contains your customized InvenioRDM code and configuration.
+**Why build before deploy?** The Docker image contains your customized InvenioRDM code and configuration.
 Helm needs this image to exist before it can deploy pods.
 
 ### 3. **Deploy Infrastructure**
@@ -186,7 +179,7 @@ make deploy ENV=local          # Runs all sub-steps automatically:
 ```
 
 - `deploy-services` — PostgreSQL, Redis, RabbitMQ, OpenSearch
-- `deploy-secrets` — K8s secrets from `.env.*` files
+- `deploy-secrets` — K8s secrets from `.env.local` file
 - `deploy-helm` — InvenioRDM Helm chart (uses the pre-built image)
 - `init` — Database schema, search indices, vocabularies, CMS fixtures
 - `create-admin` — Admin user account
@@ -201,21 +194,21 @@ make reset-lens ENV=local      # Delete all records + import Lens.org test data
 
 ### Core Workflow (In Order)
 
-| Step | Target             | Description                                   |
-| ---- | ------------------ | --------------------------------------------- |
-| 1    | `generate-secrets` | Create `.env.secrets` with random credentials |
-| 2    | `load-image`       | **Build Docker image + load into k3d**        |
-| 3    | `deploy`           | Deploy all services + InvenioRDM + init       |
-| 4    | `reset-lens`       | Import Lens.org test data (57 records)        |
+| Step | Target             | Description                                           |
+| ---- | ------------------ | ----------------------------------------------------- |
+| 1    | `install`          | **Check tools + create .env.$ENV + setup k3d (local)**|
+| 2    | `load-image`       | Build Docker image + load into k3d                    |
+| 3    | `deploy`           | Deploy all services + InvenioRDM + init               |
+| 4    | `reset-lens`       | Import Lens.org test data (57 records)                |
 
 ### Build & Update
 
-| Target          | Description                       |
-| --------------- | --------------------------------- |
+| Target          | Description                        |
+| --------------- | ---------------------------------- |
 | `render-config` | Render `invenio.cfg` from template |
 | `build-image`   | Render config + build Docker image |
-| `load-image`    | Build + load into k3d cluster     |
-| `upgrade`       | Rebuild image + helm upgrade      |
+| `load-image`    | Build + load into k3d cluster      |
+| `upgrade`       | Rebuild image + helm upgrade       |
 
 ### Operations
 

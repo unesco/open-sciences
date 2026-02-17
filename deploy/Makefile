@@ -9,17 +9,16 @@
 #   make deploy ENV=production  # Production server
 #
 # Configuration loaded from:
-#   .env.<ENV>     — per-environment settings (committed, no secrets)
-#   .env.secrets   — generated credentials (NOT committed)
+#   .env.<ENV>     — per-environment settings (includes generated secrets)
 #
 # See 'make help' for all available targets.
 # ============================================================================
 
 SHELL := /bin/bash
 
-.PHONY: help check env-check deploy deploy-services deploy-secrets deploy-helm \
+.PHONY: help install check env-check deploy deploy-services deploy-secrets deploy-helm \
         init create-admin upgrade status logs shell restart destroy \
-        reset-lens generate-secrets render-config build-image load-image
+        reset-lens render-config build-image load-image
 
 # --------------------------------------------------------------------------
 # Configuration
@@ -28,9 +27,8 @@ SHELL := /bin/bash
 # Environment selection: local | staging | production
 ENV ?= local
 
-# Load environment config, then secrets (both optional via -include)
+# Load environment config (optional via -include)
 -include .env.$(ENV)
--include .env.secrets
 export
 
 # Derived variables (computed from .env.<ENV> values)
@@ -70,7 +68,7 @@ help: ## Show this help
 	@echo "  Active environment: ENV=$(ENV)  (.env.$(ENV))"
 	@echo ""
 	@echo "First-time setup:"
-	@echo "  make generate-secrets        Generate .env.secrets"
+	@echo "  make install ENV=local       Check tools, create .env.local, setup k3d cluster"
 	@echo "  make load-image ENV=local    Build Docker image + load into k3d"
 	@echo "  make deploy ENV=local        Full deployment (services + InvenioRDM + init)"
 	@echo ""
@@ -109,27 +107,22 @@ check: ## Verify k3s, kubectl, helm are installed
 env-check: ## Verify environment config files exist and have required values
 	@if [ ! -f .env.$(ENV) ]; then \
 		echo "ERROR: .env.$(ENV) not found!"; \
-		echo "  Available environments: local, staging, production"; \
-		exit 1; \
-	fi
-	@if [ ! -f .env.secrets ]; then \
-		echo "ERROR: .env.secrets not found!"; \
-		echo "  Run: make generate-secrets"; \
+		echo "  Run: make install ENV=$(ENV)"; \
 		exit 1; \
 	fi
 	@echo "Checking required secrets..."
 	@missing=0; \
 	for var in SECRET_KEY SECURITY_LOGIN_SALT POSTGRES_PASSWORD RABBITMQ_PASSWORD; do \
-		val=$$(grep "^$$var=" .env.secrets 2>/dev/null | cut -d= -f2-); \
+		val=$$(grep "^$$var=" .env.$(ENV) 2>/dev/null | cut -d= -f2- | grep -v CHANGE_ME); \
 		if [ -z "$$val" ]; then \
-			echo "  MISSING in .env.secrets: $$var"; \
+			echo "  MISSING or not generated in .env.$(ENV): $$var"; \
 			missing=1; \
 		fi; \
 	done; \
 	if [ $$missing -eq 1 ]; then \
 		echo ""; \
-		echo "ERROR: Some required secrets are missing."; \
-		echo "  Regenerate with: make generate-secrets"; \
+		echo "ERROR: Some required secrets are missing or contain placeholder values."; \
+		echo "  Regenerate with: make install ENV=$(ENV)"; \
 		exit 1; \
 	fi
 	@echo "Environment '$(ENV)' ready (domain=$(DOMAIN), protocol=$(SITE_PROTOCOL))."
@@ -465,14 +458,78 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 # Setup
 # --------------------------------------------------------------------------
 
-generate-secrets: ## Generate .env.secrets with random credentials
-	@echo "Generating .env.secrets..."
-	@echo "# Auto-generated secrets — DO NOT commit to Git" > .env.secrets
-	@echo "# Generated on: $$(date -Iseconds)" >> .env.secrets
-	@echo "" >> .env.secrets
-	@echo "SECRET_KEY=$$(openssl rand -hex 32)" >> .env.secrets
-	@echo "SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)" >> .env.secrets
-	@echo "POSTGRES_PASSWORD=$$(openssl rand -hex 16)" >> .env.secrets
-	@echo "RABBITMQ_PASSWORD=$$(openssl rand -hex 16)" >> .env.secrets
-	@chmod 600 .env.secrets
-	@echo "Secrets written to .env.secrets (mode 600)."
+install: ## Complete setup: check tools, generate .env.$(ENV), create k3d cluster
+	@echo "UNESCO Open Science Portal - Installation"
+	@echo "=========================================="
+	@echo "Environment: $(ENV)"
+	@echo ""
+	@echo "[1/3] Checking required tools..."
+	@command -v docker   >/dev/null 2>&1 || { echo "  ERROR: docker not found. Install Docker Desktop or colima."; exit 1; }; echo "  ✓ docker"
+	@command -v kubectl  >/dev/null 2>&1 || { echo "  ERROR: kubectl not found. Run: brew install kubectl"; exit 1; }; echo "  ✓ kubectl"
+	@command -v helm     >/dev/null 2>&1 || { echo "  ERROR: helm not found. Run: brew install helm"; exit 1; }; echo "  ✓ helm"
+	@command -v envsubst >/dev/null 2>&1 || { echo "  ERROR: envsubst not found. Run: brew install gettext && brew link --force gettext"; exit 1; }; echo "  ✓ envsubst"
+	@command -v openssl  >/dev/null 2>&1 || { echo "  ERROR: openssl not found."; exit 1; }; echo "  ✓ openssl"
+	@if [ "$(ENV)" = "local" ]; then \
+		command -v k3d >/dev/null 2>&1 || { echo "  ERROR: k3d not found. Run: brew install k3d"; exit 1; }; \
+		echo "  ✓ k3d"; \
+	fi
+	@echo ""
+	@echo "[2/3] Setting up .env.$(ENV)..."
+	@if [ -f .env.$(ENV) ]; then \
+		echo "  .env.$(ENV) already exists."; \
+		if grep -q "CHANGE_ME" .env.$(ENV) 2>/dev/null; then \
+			echo "  Regenerating secrets (found CHANGE_ME placeholders)..."; \
+			cp .env.$(ENV) .env.$(ENV).bak; \
+			sed -i.tmp "s/SECRET_KEY=.*/SECRET_KEY=$$(openssl rand -hex 32)/" .env.$(ENV); \
+			sed -i.tmp "s/SECURITY_LOGIN_SALT=.*/SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)/" .env.$(ENV); \
+			sed -i.tmp "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
+			sed -i.tmp "s/RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
+			rm -f .env.$(ENV).tmp; \
+			echo "  ✓ Secrets regenerated (backup saved to .env.$(ENV).bak)"; \
+		else \
+			echo "  ✓ Using existing configuration"; \
+		fi; \
+	else \
+		if [ ! -f .env.example ]; then \
+			echo "  ERROR: .env.example not found!"; \
+			exit 1; \
+		fi; \
+		echo "  Creating .env.$(ENV) from .env.example..."; \
+		cp .env.example .env.$(ENV); \
+		sed -i.tmp "s/SECRET_KEY=.*/SECRET_KEY=$$(openssl rand -hex 32)/" .env.$(ENV); \
+		sed -i.tmp "s/SECURITY_LOGIN_SALT=.*/SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)/" .env.$(ENV); \
+		sed -i.tmp "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
+		sed -i.tmp "s/RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
+		rm -f .env.$(ENV).tmp; \
+		chmod 600 .env.$(ENV); \
+		echo "  ✓ .env.$(ENV) created with random secrets"; \
+	fi
+	@echo ""
+	@if [ "$(ENV)" = "local" ]; then \
+		echo "[3/3] Setting up k3d cluster..."; \
+		if k3d cluster list | grep -q "$(K3D_CLUSTER_NAME)"; then \
+			echo "  k3d cluster '$(K3D_CLUSTER_NAME)' already exists."; \
+			echo "  ✓ Using existing cluster"; \
+		else \
+			echo "  Creating k3d cluster '$(K3D_CLUSTER_NAME)'..."; \
+			k3d cluster create $(K3D_CLUSTER_NAME) \
+				--port "8080:80@loadbalancer" \
+				--port "8443:443@loadbalancer" \
+				--agents 0; \
+			echo "  ✓ k3d cluster created"; \
+		fi; \
+	else \
+		echo "[3/3] Skipping k3d setup (ENV=$(ENV))"; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "Installation complete!"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. Review/edit .env.$(ENV) if needed"
+	@echo "  2. make load-image ENV=$(ENV)"
+	@echo "  3. make deploy ENV=$(ENV)"
+	@echo ""
+	@if [ "$(ENV)" = "local" ]; then \
+		echo "Access will be available at: http://localhost:8080"; \
+	fi
