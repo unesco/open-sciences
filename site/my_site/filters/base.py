@@ -5,6 +5,7 @@ Inspired by Django REST Framework and django-filter patterns.
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
+from flask import current_app
 from invenio_search import current_search_client
 
 
@@ -23,7 +24,9 @@ class BaseFilterBackend(ABC):
 
     def get_index_name(self) -> str:
         """Return the OpenSearch index name. Override if needed."""
-        return "my-site-rdmrecords-records"
+        # Use the configured SEARCH_INDEX_PREFIX (e.g., 'local-', 'staging-', 'production-')
+        search_prefix = current_app.config.get("SEARCH_INDEX_PREFIX", "")
+        return f"{search_prefix}rdmrecords-records"
 
     def get_aggregation_size(self) -> int:
         """Return the maximum number of aggregation buckets. Override if needed."""
@@ -99,7 +102,9 @@ class BaseFilterBackend(ABC):
                                 )
                         # Handle funding_org with match_phrase for exact matching on text field
                         elif facet_name == "funding_org":
-                            must_queries.append({"match_phrase": {field_name: facet_value}})
+                            must_queries.append(
+                                {"match_phrase": {field_name: facet_value}}
+                            )
                         else:
                             must_queries.append({"term": {field_name: facet_value}})
 
