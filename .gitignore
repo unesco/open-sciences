@@ -104,10 +104,11 @@ docker-compose.override.yml
 *.swo
 *~
 
-# Local environment files (ignore all .env* except .env.example)
+# Local environment files
+# Committed: deploy/.env.local (no secrets, safe to track)
+# Ignored:   deploy/.env.secrets (generated, contains passwords)
 .env*
-!.env.example
-deploy/.env
+!deploy/.env.local
 
 # Generated configuration files (from templates)
 invenio.cfg

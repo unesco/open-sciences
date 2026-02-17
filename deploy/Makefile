@@ -1,14 +1,16 @@
 #
 # ============================================================================
-# UNESCO Open Science Portal - k3s Production Deployment
+# UNESCO Open Science Portal - Kubernetes Deployment
 # ============================================================================
 #
-# Usage:
-#   make deploy          # Full first-time deployment
-#   make upgrade         # Upgrade after code changes
-#   make status          # Check cluster health
-#   make backup          # Manual database backup
-#   make restore FILE=.. # Restore from backup
+# Supports multiple environments via ENV variable:
+#   make deploy ENV=local       # k3d on macOS/Linux desktop
+#   make deploy ENV=staging     # Staging server
+#   make deploy ENV=production  # Production server
+#
+# Configuration loaded from:
+#   .env.<ENV>     — per-environment settings (committed, no secrets)
+#   .env.secrets   — generated credentials (NOT committed)
 #
 # See 'make help' for all available targets.
 # ============================================================================
@@ -16,16 +18,28 @@
 SHELL := /bin/bash
 
 .PHONY: help check env-check deploy deploy-services deploy-secrets deploy-helm \
-        init create-admin upgrade status logs shell restart backup restore \
-        tls-setup backup-schedule destroy port-forward helm-versions
+        init reinit create-admin upgrade status logs shell restart backup restore \
+        tls-setup backup-schedule destroy port-forward helm-versions \
+        reset-lens import-lens \
+        generate-secrets render-config build-image load-image push-image
 
 # --------------------------------------------------------------------------
 # Configuration
 # --------------------------------------------------------------------------
 
-# Load .env if it exists
--include .env
+# Environment selection: local | staging | production
+ENV ?= local
+
+# Load environment config, then secrets (both optional via -include)
+-include .env.$(ENV)
+-include .env.secrets
 export
+
+# Derived variables (computed from .env.<ENV> values)
+SITE_UI_URL  := $(SITE_PROTOCOL)://$(DOMAIN)
+SITE_API_URL := $(SITE_PROTOCOL)://$(DOMAIN)/api
+APP_RDM_ADMIN_EMAIL_RECIPIENT ?= $(ADMIN_EMAIL)
+SQLALCHEMY_DATABASE_URI := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/$(POSTGRES_DB)
 
 NAMESPACE         ?= unesco-rdm
 HELM_RELEASE      ?= unesco-rdm
@@ -40,13 +54,10 @@ export KUBECONFIG
 endif
 
 # Docker image
-# For local builds (k3d): uses DOCKER_IMAGE_NAME
-# For registry push: uses DOCKER_REGISTRY
 DOCKER_IMAGE_NAME ?= sc-openscience
 DOCKER_IMAGE_TAG  ?= latest
-DOCKER_REGISTRY   ?= registry.example.org/sc/sc-openscience
 IMAGE             := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
-REGISTRY_IMAGE    := $(DOCKER_REGISTRY):$(DOCKER_IMAGE_TAG)
+REGISTRY_IMAGE    := $(if $(DOCKER_REGISTRY),$(DOCKER_REGISTRY):$(DOCKER_IMAGE_TAG),)
 
 # k3d cluster name (for local testing on macOS/Linux desktop)
 K3D_CLUSTER_NAME  ?= unesco-rdm
@@ -60,38 +71,48 @@ BACKUP_DIR        ?= /opt/backups/unesco-rdm
 
 help: ## Show this help
 	@echo ""
-	@echo "UNESCO Open Science Portal - k3s Deployment"
-	@echo "============================================"
+	@echo "UNESCO Open Science Portal - Kubernetes Deployment"
+	@echo "===================================================="
+	@echo "  Active environment: ENV=$(ENV)  (.env.$(ENV))"
 	@echo ""
 	@echo "First-time setup:"
-	@echo "  make deploy            Full deployment (services + helm + init)"
+	@echo "  make generate-secrets        Generate .env.secrets"
+	@echo "  make deploy ENV=local        Full deployment (services + helm + init)"
 	@echo ""
 	@echo "Daily operations:"
-	@echo "  make status            Cluster & pod health"
-	@echo "  make logs              Tail web pod logs"
-	@echo "  make logs-worker       Tail worker pod logs"
-	@echo "  make shell             Shell into web pod"
-	@echo "  make restart           Rolling restart of InvenioRDM"
+	@echo "  make status                  Cluster & pod health"
+	@echo "  make logs                    Tail web pod logs"
+	@echo "  make logs-worker             Tail worker pod logs"
+	@echo "  make shell                   Shell into web pod"
+	@echo "  make restart                 Rolling restart of InvenioRDM"
 	@echo ""
 	@echo "Updates:"
-	@echo "  make upgrade           Upgrade InvenioRDM (rebuild image + helm)"
-	@echo "  make deploy-helm       Re-deploy Helm chart only"
-	@echo "  make build-image       Build Docker image (uses k8s/Dockerfile)"
-	@echo "  make load-image        Build + load image into k3d cluster"
-	@echo "  make push-image        Build + push to registry"
+	@echo "  make upgrade                 Upgrade InvenioRDM (rebuild image + helm)"
+	@echo "  make deploy-helm             Re-deploy Helm chart only"
+	@echo "  make build-image             Build Docker image (renders invenio.cfg)"
+	@echo "  make render-config           Render invenio.cfg from template"
+	@echo "  make load-image              Build + load image into k3d cluster"
+	@echo "  make push-image              Build + push to registry"
 	@echo ""
 	@echo "Backup & Restore:"
-	@echo "  make backup            Manual database backup"
-	@echo "  make restore FILE=...  Restore from backup file"
-	@echo "  make backup-schedule   Install automated daily backups"
-	@echo "  make backup-list       List available backups"
+	@echo "  make backup                  Manual database backup"
+	@echo "  make restore FILE=...        Restore from backup file"
+	@echo "  make backup-schedule         Install automated daily backups"
+	@echo "  make backup-list             List available backups"
 	@echo ""
 	@echo "TLS & Security:"
-	@echo "  make tls-setup         Install cert-manager + Let's Encrypt"
-	@echo "  make tls-status        Check certificate status"
+	@echo "  make tls-setup               Install cert-manager + Let's Encrypt"
+	@echo "  make tls-status              Check certificate status"
+	@echo ""
+	@echo "Data Import:"
+	@echo "  make reset-lens              Delete all records + import Lens.org data"
+	@echo "  make import-lens             Import Lens.org data (FILE=... OPTS=...)"
+	@echo ""
+	@echo "Maintenance:"
+	@echo "  make reinit                  Re-initialize DB + indices from scratch"
 	@echo ""
 	@echo "Cleanup:"
-	@echo "  make destroy           Remove everything (DESTRUCTIVE)"
+	@echo "  make destroy                 Remove everything (DESTRUCTIVE)"
 	@echo ""
 
 # --------------------------------------------------------------------------
@@ -108,29 +129,33 @@ check: ## Verify k3s, kubectl, helm are installed
 	@echo "  k3s:     $$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')"
 	@echo "All checks passed."
 
-env-check: ## Verify .env file exists and has required values
-	@if [ ! -f .env ]; then \
-		echo "ERROR: .env file not found!"; \
-		echo "  cp .env.example .env"; \
-		echo "  Then edit .env with your values."; \
+env-check: ## Verify environment config files exist and have required values
+	@if [ ! -f .env.$(ENV) ]; then \
+		echo "ERROR: .env.$(ENV) not found!"; \
+		echo "  Available environments: local, staging, production"; \
 		exit 1; \
 	fi
-	@echo "Checking required .env variables..."
+	@if [ ! -f .env.secrets ]; then \
+		echo "ERROR: .env.secrets not found!"; \
+		echo "  Run: make generate-secrets"; \
+		exit 1; \
+	fi
+	@echo "Checking required secrets..."
 	@missing=0; \
-	for var in DOMAIN SECRET_KEY SECURITY_LOGIN_SALT POSTGRES_PASSWORD RABBITMQ_PASSWORD; do \
-		val=$$(grep "^$$var=" .env | cut -d= -f2-); \
-		if [ -z "$$val" ] || echo "$$val" | grep -q "CHANGE_ME"; then \
-			echo "  MISSING: $$var"; \
+	for var in SECRET_KEY SECURITY_LOGIN_SALT POSTGRES_PASSWORD RABBITMQ_PASSWORD; do \
+		val=$$(grep "^$$var=" .env.secrets 2>/dev/null | cut -d= -f2-); \
+		if [ -z "$$val" ]; then \
+			echo "  MISSING in .env.secrets: $$var"; \
 			missing=1; \
 		fi; \
 	done; \
 	if [ $$missing -eq 1 ]; then \
 		echo ""; \
-		echo "ERROR: Some required variables are not set in .env"; \
-		echo "  Generate secrets with: openssl rand -hex 32"; \
+		echo "ERROR: Some required secrets are missing."; \
+		echo "  Regenerate with: make generate-secrets"; \
 		exit 1; \
 	fi
-	@echo "All required variables are set."
+	@echo "Environment '$(ENV)' ready (domain=$(DOMAIN), protocol=$(SITE_PROTOCOL))."
 
 # --------------------------------------------------------------------------
 # Installation
@@ -148,18 +173,21 @@ install-k3s: ## Install k3s on this server
 deploy: check env-check deploy-services deploy-secrets deploy-helm init create-admin ## Full first-time deployment
 	@echo ""
 	@echo "============================================"
-	@echo "  Deployment complete!"
+	@echo "  Deployment complete!  (ENV=$(ENV))"
 	@echo "============================================"
 	@echo ""
-	@echo "  Domain:  $(DOMAIN)"
-	@echo "  Admin:   $(ADMIN_USER_EMAIL)"
+	@echo "  Domain:   $(DOMAIN)"
+	@echo "  Protocol: $(SITE_PROTOCOL)"
+	@echo "  Admin:    $(ADMIN_USER_EMAIL)"
 	@echo ""
 	@echo "  Next steps:"
-	@echo "    1. Set up TLS:  make tls-setup"
-	@echo "    2. Set up backups: make backup-schedule"
-	@echo "    3. Check status:   make status"
+	@echo "    1. Check status:    make status"
+	if [ "$(TLS_MODE)" != "none" ]; then \
+		echo "    2. Set up TLS:      make tls-setup"; \
+		echo "    3. Set up backups:  make backup-schedule"; \
+	fi
 	@echo ""
-	@echo "  Access (no TLS yet): http://$(DOMAIN)"
+	@echo "  Access: $(SITE_UI_URL)"
 	@echo ""
 
 # --------------------------------------------------------------------------
@@ -197,7 +225,7 @@ deploy-services: check ## Deploy external services (DB, cache, search, queue)
 # Secrets
 # --------------------------------------------------------------------------
 
-deploy-secrets: check env-check ## Create K8s secrets from .env (adds InvenioRDM keys to existing secret)
+deploy-secrets: check env-check ## Create K8s secrets from environment config
 	@echo "Creating InvenioRDM secrets..."
 	@kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
 	@kubectl create secret generic $(HELM_RELEASE)-secrets \
@@ -246,6 +274,11 @@ deploy-helm: check ## Install/upgrade InvenioRDM Helm chart
 		--namespace $(NAMESPACE) \
 		--create-namespace \
 		--values /tmp/values-rendered.yaml \
+		$(if $(filter true,$(INGRESS_TLS_ENABLED)),\
+			--set 'ingress.annotations.cert-manager\.io/cluster-issuer=letsencrypt-prod' \
+			--set 'ingress.tls[0].secretName=unesco-rdm-tls' \
+			--set 'ingress.tls[0].hosts[0]=$(DOMAIN)' \
+		) \
 		--wait \
 		--timeout 10m
 	@rm -f /tmp/values-rendered.yaml
@@ -267,25 +300,44 @@ init: check ## Initialize database, indices, vocabularies
 		{ echo "ERROR: Web pod not ready. Check: make status"; exit 1; }
 	@echo ""
 	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
-	echo "Initializing database..."; \
+	echo "Step 1/6: Initializing database..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio db init 2>/dev/null || true" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio db create 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Initializing search indices..."; \
+	echo "Step 2/6: Initializing search indices..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index destroy --force --yes-i-know 2>/dev/null || true" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index init 2>/dev/null || true" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index queue init purge 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Initializing custom fields..."; \
+	echo "Step 3/6: Initializing custom fields..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio rdm-records custom-fields init 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Creating file storage location..."; \
+	echo "Step 4/6: Creating file storage location..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio files location create --default 'default-location' /opt/invenio/var/instance/data 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Loading vocabularies and fixtures..."; \
-	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio rdm-records fixtures 2>/dev/null || true" ; \
-	echo "Waiting for vocabularies to be processed (30s)..."; \
-	sleep 30; \
+	echo "Step 5/6: Loading vocabularies (synchronous, no Celery dependency)..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_rdm_records.fixtures.vocabularies import PrioritizedVocabulariesFixtures; from pathlib import Path; import flask; app_data = Path(flask.current_app.instance_path) / 'app_data'; pkg = Path('/usr/local/lib/python3.12/site-packages/invenio_rdm_records/fixtures/data'); pv = PrioritizedVocabulariesFixtures(system_identity, app_data_folder=app_data, pkg_data_folder=pkg, delay=False); pv.load(); print('Vocabularies created in database.')" 2>&1 | tail -5 ; \
+	echo ""; \
+	echo "Step 6/6: Indexing vocabularies in OpenSearch..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio index reindex --pid-type vcf 2>/dev/null || true" ; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index run 2>/dev/null || true" ; \
+	echo "  Waiting 10s for OpenSearch to settle..."; \
+	sleep 10; \
+	echo ""; \
+	echo "Verifying vocabularies..."; \
+	TOTAL=$$(kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_vocabularies.proxies import current_service; r = current_service.search(system_identity, type='resourcetypes'); print(r.total)" 2>/dev/null | tail -1); \
+	echo "  resourcetypes: $$TOTAL"; \
+	if [ "$$TOTAL" -gt 0 ] 2>/dev/null; then \
+		echo "  Vocabularies OK."; \
+	else \
+		echo "  WARN: 0 resourcetypes indexed. Trying full reindex..."; \
+		kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c " \
+			echo y | invenio index reindex --pid-type vcf 2>/dev/null; \
+			invenio index run 2>/dev/null" ; \
+		sleep 15; \
+		TOTAL2=$$(kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_vocabularies.proxies import current_service; r = current_service.search(system_identity, type='resourcetypes'); print(r.total)" 2>/dev/null | tail -1); \
+		echo "  resourcetypes (retry): $$TOTAL2"; \
+	fi; \
 	echo ""; \
 	echo "Initialization complete."
 
@@ -301,11 +353,36 @@ create-admin: check ## Create admin user
 	echo ""; \
 	echo "Admin user created: $(ADMIN_USER_EMAIL)"
 
+reinit: check ## Destroy DB + indices and re-initialize everything (DESTRUCTIVE!)
+	@echo "WARNING: This will destroy the database and search indices!"
+	@echo "         All records, users, and vocabularies will be lost."
+	@echo ""
+	@read -p "Continue? [y/N] " -n 1 -r; echo; \
+	if [[ ! $$REPLY =~ ^[Yy]$$ ]]; then echo "Cancelled."; exit 0; fi
+	@echo ""
+	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
+	echo "Destroying database..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio db destroy --yes-i-know 2>/dev/null || true" ; \
+	echo ""
+	@$(MAKE) init ENV=$(ENV)
+	@$(MAKE) create-admin ENV=$(ENV)
+	@echo ""
+	@echo "Re-initialization complete."
+
 # --------------------------------------------------------------------------
 # Build & Upgrade
 # --------------------------------------------------------------------------
 
-build-image: ## Build Docker image (uses k8s/Dockerfile, context = repo root)
+render-config: ## Render invenio.cfg from template using current environment
+	@echo "Rendering invenio.cfg (ENV=$(ENV))..."
+	@if [ ! -f ../invenio.cfg.template ]; then \
+		echo "ERROR: ../invenio.cfg.template not found!"; \
+		exit 1; \
+	fi
+	@envsubst < ../invenio.cfg.template > ../invenio.cfg
+	@echo "  invenio.cfg written (domain=$(DOMAIN), protocol=$(SITE_PROTOCOL))."
+
+build-image: render-config ## Build Docker image (renders invenio.cfg, then builds)
 	@echo "Building Docker image..."
 	@echo "  Image: $(IMAGE)"
 	@echo "  Dockerfile: ../k8s/Dockerfile"
@@ -483,12 +560,53 @@ backup-list: ## List available backups
 # Data Import (uses openscience_tools)
 # --------------------------------------------------------------------------
 
-import-lens: check ## Import Lens.org data (FILE=path OPTS=--limit 10)
+reset-lens: check ## Delete all records and re-import Lens.org data
+	@echo "Resetting InvenioRDM records with Lens.org data..."
+	@echo ""
+	@echo "Checking connectivity on localhost:8080..."
+	@if ! curl -s --max-time 5 -o /dev/null http://localhost:8080/ping; then \
+		echo "ERROR: Cannot reach http://localhost:8080"; \
+		echo "  For k3d, ensure port mapping is configured."; \
+		echo "  Or start port-forward: make port-forward"; \
+		exit 1; \
+	fi
+	@echo "  localhost:8080 reachable."
+	@echo ""
+	@echo "Generating temporary API token..."
+	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
+	TOKEN=$$(kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- \
+		invenio tokens create -n 'Temp Import Token' -u $(ADMIN_USER_EMAIL) 2>/dev/null | \
+		grep -v "WARNING\|UserWarning\|pkg_resources\|deprecated" | \
+		grep -E '^[A-Za-z0-9_-]{40,}$$' | head -1); \
+	if [ -z "$$TOKEN" ]; then \
+		echo "ERROR: Failed to generate token. Is admin user created?"; \
+		echo "  Run: make create-admin ENV=$(ENV)"; \
+		exit 1; \
+	fi; \
+	echo "  Token generated: $${TOKEN:0:20}..."; \
+	echo ""; \
+	echo "Step 1/2: Deleting all existing records..."; \
+	openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" cleanup --confirm; \
+	echo ""; \
+	echo "Step 2/2: Importing Lens.org publications..."; \
+	FILE=$${FILE:-../openscience_tools/openscience_tools/sources/lens/data/publications.json}; \
+	OPTS=$${OPTS:-}; \
+	openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
+	echo ""; \
+	echo "Revoking temporary token..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- \
+		invenio tokens delete "$$TOKEN" 2>/dev/null || true; \
+	echo ""; \
+	echo "Reset complete!"; \
+	echo "  Access at: http://localhost:8080"
+
+import-lens: check ## Import Lens.org data (FILE=path OPTS='--limit 10')
 	@echo "Importing Lens.org publications..."
 	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
 	echo "Generating API token..."; \
 	TOKEN=$$(kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- \
 		invenio tokens create -n 'Import Token' -u $(ADMIN_USER_EMAIL) 2>/dev/null | \
+		grep -v "WARNING\|UserWarning\|pkg_resources\|deprecated" | \
 		grep -E '^[A-Za-z0-9_-]{40,}$$' | head -1); \
 	if [ -z "$$TOKEN" ]; then \
 		echo "ERROR: Failed to generate token. Is admin user created?"; \
@@ -497,8 +615,7 @@ import-lens: check ## Import Lens.org data (FILE=path OPTS=--limit 10)
 	FILE=$${FILE:-../openscience_tools/openscience_tools/sources/lens/data/publications.json}; \
 	OPTS=$${OPTS:-}; \
 	echo "Importing from: $$FILE"; \
-	source ../openscience_tools/.venv/bin/activate 2>/dev/null && \
-		openscience-tools --base-url https://$(DOMAIN) --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
+	openscience-tools --base-url http://localhost:8080 --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
 	echo "Import complete."
 
 # --------------------------------------------------------------------------
@@ -555,10 +672,14 @@ rebuild-index: check ## Rebuild search indices
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio rdm-records rebuild-index" ; \
 	echo "Index rebuild started. Workers will process in background."
 
-generate-secrets: ## Generate random secrets for .env
-	@echo "Generated secrets (copy to .env):"
-	@echo ""
-	@echo "  SECRET_KEY=$$(openssl rand -hex 32)"
-	@echo "  SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)"
-	@echo "  POSTGRES_PASSWORD=$$(openssl rand -hex 16)"
-	@echo "  RABBITMQ_PASSWORD=$$(openssl rand -hex 16)"
+generate-secrets: ## Generate .env.secrets with random credentials
+	@echo "Generating .env.secrets..."
+	@echo "# Auto-generated secrets — DO NOT commit to Git" > .env.secrets
+	@echo "# Generated on: $$(date -Iseconds)" >> .env.secrets
+	@echo "" >> .env.secrets
+	@echo "SECRET_KEY=$$(openssl rand -hex 32)" >> .env.secrets
+	@echo "SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)" >> .env.secrets
+	@echo "POSTGRES_PASSWORD=$$(openssl rand -hex 16)" >> .env.secrets
+	@echo "RABBITMQ_PASSWORD=$$(openssl rand -hex 16)" >> .env.secrets
+	@chmod 600 .env.secrets
+	@echo "Secrets written to .env.secrets (mode 600)."

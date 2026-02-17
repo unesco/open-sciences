@@ -1,12 +1,13 @@
 # ==============================================================================
-# UNESCO Open Science Portal - Helm Values (Production)
+# UNESCO Open Science Portal - Helm Values
 # ==============================================================================
-# Helm values for deploying InvenioRDM on k3s with the official chart:
+# Template values for deploying InvenioRDM via the official Helm chart:
 #   https://github.com/inveniosoftware/helm-invenio
 #
-# Usage:
-#   helm upgrade --install unesco-rdm invenio/invenio \
-#     --namespace unesco-rdm --values values.yaml
+# Variables like ${DOMAIN}, ${SITE_PROTOCOL} are substituted by envsubst
+# at deploy time (see: make deploy-helm).  Values come from:
+#   deploy/.env.<ENV>     (committed, per-environment)
+#   deploy/.env.secrets   (generated, gitignored)
 # ==============================================================================
 
 global:
@@ -23,12 +24,12 @@ invenio:
 
   # Extra environment variables injected into all InvenioRDM pods
   extraConfig:
-    INVENIO_SITE_UI_URL: "https://${DOMAIN}"
-    INVENIO_SITE_API_URL: "https://${DOMAIN}/api"
-    INVENIO_REQUIRE_HTTPS: "True"
-    INVENIO_APP_ENABLE_SECURE_HEADERS: "True"
-    SESSION_COOKIE_SECURE: "True"
-    PERMANENT_SESSION_LIFETIME: "31536000"  # 1 year
+    INVENIO_SITE_UI_URL: "${SITE_PROTOCOL}://${DOMAIN}"
+    INVENIO_SITE_API_URL: "${SITE_PROTOCOL}://${DOMAIN}/api"
+    INVENIO_REQUIRE_HTTPS: "${INVENIO_REQUIRE_HTTPS}"
+    INVENIO_APP_ENABLE_SECURE_HEADERS: "${APP_ENABLE_SECURE_HEADERS}"
+    SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE}"
+    PERMANENT_SESSION_LIFETIME: "31536000" # 1 year
 
   # Secret key and login salt are injected via Kubernetes Secret
   # (created by Makefile from .env values)
@@ -38,12 +39,12 @@ invenio:
 # Docker Image
 # ------------------------------------------------------------------------------
 image:
-  # For local k3d: use docker.io/library (Docker default for local images)
-  # For production: set to your actual registry (e.g. registry.unesco.org/sc)
-  registry: "docker.io/library"
+  # Registry is set per-environment:
+  #   local: docker.io/library    staging/prod: your actual registry
+  registry: "${IMAGE_REGISTRY}"
   repository: "sc-openscience"
   tag: "latest"
-  pullPolicy: IfNotPresent
+  pullPolicy: ${IMAGE_PULL_POLICY}
 
 # Optional: reference a pre-existing imagePullSecret
 # imagePullSecrets:
@@ -53,66 +54,44 @@ image:
 # Web (UI + API served via Nginx + uWSGI)
 # ------------------------------------------------------------------------------
 web:
-  replicas: 2
+  replicas: ${WEB_REPLICAS}
   resources:
     requests:
-      memory: "1Gi"
-      cpu: "500m"
+      memory: "${WEB_MEMORY_REQUEST}"
+      cpu: "${WEB_CPU_REQUEST}"
     limits:
-      memory: "2Gi"
-      cpu: "1000m"
+      memory: "${WEB_MEMORY_LIMIT}"
+      cpu: "${WEB_CPU_LIMIT}"
 
-  # Probes: use chart default exec+uwsgi_curl (uWSGI protocol, not HTTP)
-  # Only override timing parameters
-  startupProbe:
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    failureThreshold: 30  # up to 5 minutes total for slow starts
-    timeoutSeconds: 5
+  uwsgi:
+    processes: ${UWSGI_PROCESSES}
+    threads: ${UWSGI_THREADS}
 
-  readinessProbe:
-    initialDelaySeconds: 10
-    periodSeconds: 15
-    timeoutSeconds: 5
-    failureThreshold: 3
-
-  livenessProbe:
-    exec:
-      command:
-        - /bin/bash
-        - -c
-        - "uwsgi_curl -X HEAD -H 'Host: localhost' $(hostname):5000 /ping"
-    initialDelaySeconds: 60
-    periodSeconds: 30
-    timeoutSeconds: 10
-    failureThreshold: 5
+  # Probes: disabled for local (uWSGI too slow to respond under resource constraints).
+  # For production, re-enable with appropriate timeouts.
+  # See k8s/values.yaml for the same approach used with Kind.
+  startupProbe: null
+  readinessProbe: null
+  livenessProbe: null
 
 # ------------------------------------------------------------------------------
 # Workers (Celery)
 # ------------------------------------------------------------------------------
 worker:
   enabled: true
-  replicas: 2
+  replicas: ${WORKER_REPLICAS}
   app: "invenio_app.celery"
   concurrency: 2
   resources:
     requests:
-      memory: "512Mi"
-      cpu: "250m"
+      memory: "${WORKER_MEMORY_REQUEST}"
+      cpu: "${WORKER_CPU_REQUEST}"
     limits:
-      memory: "1Gi"
-      cpu: "500m"
+      memory: "${WORKER_MEMORY_LIMIT}"
+      cpu: "${WORKER_CPU_LIMIT}"
 
-  livenessProbe:
-    exec:
-      command:
-        - /bin/bash
-        - -c
-        - "celery -A invenio_app.celery inspect ping -d celery@$HOSTNAME"
-    initialDelaySeconds: 60
-    periodSeconds: 60
-    timeoutSeconds: 30
-    failureThreshold: 3
+  livenessProbe: null
+  readinessProbe: null
 
 # ------------------------------------------------------------------------------
 # Worker Beat (Celery Beat Scheduler)
@@ -126,6 +105,7 @@ workerBeat:
     limits:
       memory: "512Mi"
       cpu: "250m"
+  livenessProbe: null
 
 # Flower monitoring - disabled by default
 flower:
@@ -177,22 +157,19 @@ nginx:
 
 # ------------------------------------------------------------------------------
 # Ingress (k3s uses Traefik by default)
+# TLS annotations and tls: block are added via --set flags in Makefile
+# when INGRESS_TLS_ENABLED=true (staging/production).
 # ------------------------------------------------------------------------------
 ingress:
   enabled: true
   annotations:
     kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: ${INGRESS_ENTRYPOINT}
   hosts:
     - host: "${DOMAIN}"
       paths:
         - path: /
           pathType: Prefix
-  tls:
-    - secretName: unesco-rdm-tls
-      hosts:
-        - "${DOMAIN}"
 
 # ------------------------------------------------------------------------------
 # Persistence (file storage for uploads)
