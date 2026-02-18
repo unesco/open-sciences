@@ -138,7 +138,7 @@ env-check: ## Verify environment config files exist and have required values
 	fi
 	@echo "Checking required secrets..."
 	@missing=0; \
-	for var in SECRET_KEY SECURITY_LOGIN_SALT POSTGRES_PASSWORD RABBITMQ_PASSWORD; do \
+	for var in SECRET_KEY SECURITY_LOGIN_SALT POSTGRES_PASSWORD RABBITMQ_PASSWORD MINIO_ROOT_PASSWORD S3_SECRET_ACCESS_KEY; do \
 		val=$$(grep "^$$var=" .env.$(ENV) 2>/dev/null | cut -d= -f2- | grep -v CHANGE_ME); \
 		if [ -z "$$val" ]; then \
 			echo "  MISSING or not generated in .env.$(ENV): $$var"; \
@@ -201,6 +201,8 @@ deploy-services: check ## Deploy external services (DB, cache, search, queue)
 		--from-literal=POSTGRES_DB=$(POSTGRES_DB) \
 		--from-literal=RABBITMQ_USER=$(RABBITMQ_USER) \
 		--from-literal=RABBITMQ_PASSWORD=$(RABBITMQ_PASSWORD) \
+		--from-literal=MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
+		--from-literal=MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
 		--namespace=$(NAMESPACE) \
 		--dry-run=client -o yaml | kubectl apply -f -
 	@echo ""
@@ -229,6 +231,12 @@ deploy-secrets: check env-check ## Create K8s secrets from environment config
 		--from-literal=POSTGRES_DB=$(POSTGRES_DB) \
 		--from-literal=RABBITMQ_USER=$(RABBITMQ_USER) \
 		--from-literal=RABBITMQ_PASSWORD=$(RABBITMQ_PASSWORD) \
+		--from-literal=MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
+		--from-literal=MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
+		--from-literal=S3_ENDPOINT_URL=$(S3_ENDPOINT_URL) \
+		--from-literal=S3_ACCESS_KEY_ID=$(S3_ACCESS_KEY_ID) \
+		--from-literal=S3_SECRET_ACCESS_KEY=$(S3_SECRET_ACCESS_KEY) \
+		--from-literal=S3_REGION_NAME=$(S3_REGION_NAME) \
 		--from-literal=SECRET_KEY=$(SECRET_KEY) \
 		--from-literal=SECURITY_LOGIN_SALT=$(SECURITY_LOGIN_SALT) \
 		--from-literal=SQLALCHEMY_DATABASE_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/$(POSTGRES_DB)" \
@@ -692,6 +700,8 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 			sed -i.tmp "s/SECURITY_LOGIN_SALT=.*/SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)/" .env.$(ENV); \
 			sed -i.tmp "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
 			sed -i.tmp "s/RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
+			sed -i.tmp "s/MINIO_ROOT_PASSWORD=.*/MINIO_ROOT_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
+			sed -i.tmp "s/S3_SECRET_ACCESS_KEY=.*/S3_SECRET_ACCESS_KEY=$$(openssl rand -hex 16)/" .env.$(ENV); \
 			rm -f .env.$(ENV).tmp; \
 			echo "  ✓ Secrets regenerated (backup saved to .env.$(ENV).bak)"; \
 		else \
@@ -708,6 +718,8 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 		sed -i.tmp "s/SECURITY_LOGIN_SALT=.*/SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)/" .env.$(ENV); \
 		sed -i.tmp "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
 		sed -i.tmp "s/RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
+		sed -i.tmp "s/MINIO_ROOT_PASSWORD=.*/MINIO_ROOT_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
+		sed -i.tmp "s/S3_SECRET_ACCESS_KEY=.*/S3_SECRET_ACCESS_KEY=$$(openssl rand -hex 16)/" .env.$(ENV); \
 		rm -f .env.$(ENV).tmp; \
 		chmod 600 .env.$(ENV); \
 		echo "  ✓ .env.$(ENV) created with random secrets"; \

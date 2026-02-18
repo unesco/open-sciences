@@ -30,6 +30,10 @@ invenio:
     INVENIO_APP_ENABLE_SECURE_HEADERS: "${APP_ENABLE_SECURE_HEADERS}"
     SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE}"
     PERMANENT_SESSION_LIFETIME: "31536000" # 1 year
+    S3_ENDPOINT_URL: "${S3_ENDPOINT_URL}"
+    S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID}"
+    S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+    S3_REGION_NAME: "${S3_REGION_NAME}"
 
   # Secret key and login salt are injected via Kubernetes Secret
   # (created by Makefile from .env values)

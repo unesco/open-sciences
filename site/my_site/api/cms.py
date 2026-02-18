@@ -20,9 +20,11 @@ Resource-driven CMS API:
 - POST /data/cms/content/id/<id>/publish - Publish content
 - POST /data/cms/content/id/<id>/unpublish - Unpublish content
 - GET /data/cms/render/<type>[/<slug>] - Get rendered output
+- GET /uploads/<path:filepath> - Serve uploaded files
 """
 
-from flask import g, jsonify, request
+import os
+from flask import g, jsonify, request, send_from_directory, current_app
 from flask.views import MethodView
 from invenio_db import db
 
@@ -563,3 +565,38 @@ class CMSUploadAPIView(MethodView):
             ),
             200,
         )
+
+
+class CMSServeUploadedFileView(MethodView):
+    """Serve uploaded files from the uploads directory."""
+
+    def get(self, filepath):
+        """Serve a file from the uploads directory.
+
+        Args:
+            filepath: Relative path to the file (e.g., 'cms/image.png')
+
+        Returns:
+            The requested file or 404 if not found
+        """
+        # Get the static folder path
+        static_folder = current_app.static_folder
+        if not static_folder:
+            static_folder = os.path.join(current_app.instance_path, "static")
+
+        # Build the full uploads directory path
+        uploads_dir = os.path.join(static_folder, "uploads")
+
+        # Security: ensure the file path is within uploads directory
+        full_path = os.path.abspath(os.path.join(uploads_dir, filepath))
+        if not full_path.startswith(os.path.abspath(uploads_dir)):
+            return jsonify({"error": "Invalid file path"}), 403
+
+        # Check if file exists
+        if not os.path.isfile(full_path):
+            return jsonify({"error": "File not found"}), 404
+
+        # Serve the file
+        directory = os.path.dirname(full_path)
+        filename = os.path.basename(full_path)
+        return send_from_directory(directory, filename)
