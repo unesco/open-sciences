@@ -81,7 +81,7 @@ worker:
   enabled: true
   replicas: ${WORKER_REPLICAS}
   app: "invenio_app.celery"
-  concurrency: 2
+  concurrency: 1
   resources:
     requests:
       memory: "${WORKER_MEMORY_REQUEST}"

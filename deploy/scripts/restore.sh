@@ -105,10 +105,10 @@ fi
 
 # Drop and recreate database
 kubectl exec -n "$NAMESPACE" "$PG_POD" -- bash -c \
-    "PGPASSWORD=\$POSTGRES_PASSWORD psql -U \$POSTGRES_USER -d postgres -c 'DROP DATABASE IF EXISTS \$POSTGRES_DB;'"
+    "PGPASSWORD=\$POSTGRES_PASSWORD psql -U \$POSTGRES_USER -d postgres -c \"DROP DATABASE IF EXISTS \$POSTGRES_DB;\""
 
 kubectl exec -n "$NAMESPACE" "$PG_POD" -- bash -c \
-    "PGPASSWORD=\$POSTGRES_PASSWORD psql -U \$POSTGRES_USER -d postgres -c 'CREATE DATABASE \$POSTGRES_DB;'"
+    "PGPASSWORD=\$POSTGRES_PASSWORD psql -U \$POSTGRES_USER -d postgres -c \"CREATE DATABASE \$POSTGRES_DB;\""
 
 # Restore data
 gunzip < "$BACKUP_DIR/postgresql.sql.gz" | \
@@ -127,7 +127,7 @@ echo "[3/5] Restoring OpenSearch indices..."
 TEMP_DIR=$(mktemp -d)
 tar -xzf "$BACKUP_DIR/opensearch.tar.gz" -C "$TEMP_DIR"
 
-WEB_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}')
+WEB_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 
 # Note: Web pod is scaled to 0, so we need to use a temporary pod or wait for restart
 # For now, we'll restore indices after app restart in step 5
@@ -171,11 +171,13 @@ fi
 echo ""
 echo "Rebuilding search indices..."
 kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c \
-    "invenio index destroy --force --yes-i-know && invenio index init" 2>/dev/null || true
+    "echo y | invenio index destroy --force" 2>/dev/null || true
 kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c \
-    "echo y | invenio index reindex --all-records" 2>/dev/null || true
+    "invenio index init" 2>/dev/null || true
+kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c \
+    "echo y | invenio rdm-records rebuild-index" 2>/dev/null || true
 
-echo "  ✓ Application restarted"
+echo "  ✓ Application restarted and indices rebuilt"
 
 # --------------------------------------------------------------------------
 # Summary

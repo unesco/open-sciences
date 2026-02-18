@@ -19,7 +19,7 @@ SHELL := /bin/bash
 .PHONY: help install check env-check deploy deploy-services deploy-secrets deploy-helm \
         init init-app create-admin status logs shell up stop \
         backup restore list-backups deploy-backup-cronjob \
-        destroy reset-lens render-config build-image load-image
+        destroy reset-lens rebuild-index verify-data render-config build-image load-image
 
 # --------------------------------------------------------------------------
 # Configuration
@@ -46,12 +46,13 @@ VALUES_FILE       ?= values.yaml
 # Backup Configuration
 BACKUP_ENABLED ?= false
 BACKUP_SCHEDULE ?= 0 2 * * *
-BACKUP_RETENTION_DAYS ?= 10
+BACKUP_RETENTION_COUNT ?= 7
+BACKUP_RETENTION_DAYS ?=
 BACKUP_PATH ?= backups/$(ENV)
 BACKUP_STORAGE_SIZE ?= 100Gi
 
 # Export variables for envsubst in backup-cronjob.yaml
-export BACKUP_ENABLED BACKUP_SCHEDULE BACKUP_RETENTION_DAYS BACKUP_PATH BACKUP_STORAGE_SIZE
+export BACKUP_ENABLED BACKUP_SCHEDULE BACKUP_RETENTION_COUNT BACKUP_RETENTION_DAYS BACKUP_PATH BACKUP_STORAGE_SIZE
 
 # On a k3s server: /etc/rancher/k3s/k3s.yaml
 # On k3d or Docker Desktop: uses default ~/.kube/config
@@ -108,6 +109,8 @@ help: ## Show this help
 	@echo ""
 	@echo "Data:"
 	@echo "  make reset-lens              Delete all records + import Lens.org data"
+	@echo "  make rebuild-index           Rebuild OpenSearch indices (fix sync issues)"
+	@echo "  make verify-data             Check data consistency (DB vs OpenSearch)"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make destroy                 Remove everything (DESTRUCTIVE)"
@@ -434,10 +437,10 @@ backup: check env-check ## Create a backup of PostgreSQL, OpenSearch, and files
 		mkdir -p "$(BACKUP_PATH)"; \
 		echo "  Created backup directory: $(BACKUP_PATH)"; \
 	fi
-	@bash scripts/backup.sh $(NAMESPACE) $(BACKUP_PATH)
+	@NAMESPACE=$(NAMESPACE) BACKUP_PATH=$(BACKUP_PATH) bash scripts/backup.sh
 	@echo ""
-	@echo "Running retention cleanup (keeping last $(BACKUP_RETENTION_DAYS) days)..."
-	@bash scripts/backup-retention.sh $(BACKUP_PATH) $(BACKUP_RETENTION_DAYS)
+	@echo "Running retention cleanup (keeping last $(BACKUP_RETENTION_COUNT) backups)..."
+	@BACKUP_PATH=$(BACKUP_PATH) BACKUP_RETENTION_COUNT=$(BACKUP_RETENTION_COUNT) BACKUP_RETENTION_DAYS=$(BACKUP_RETENTION_DAYS) bash scripts/retention.sh
 
 restore: check env-check ## Restore from a backup (use BACKUP=<timestamp>)
 	@if [ -z "$(BACKUP)" ]; then \
@@ -489,10 +492,33 @@ list-backups: env-check ## List available backups
 
 deploy-backup-cronjob: check env-check ## Deploy automated backup CronJob (staging/production)
 	@echo "Deploying backup CronJob..."
-	@envsubst < backup-cronjob.yaml > /tmp/backup-cronjob-rendered.yaml
+	@echo ""
+	@echo "[1/3] Creating ConfigMap from bash scripts..."
+	@kubectl create configmap backup-scripts \
+		--from-file=backup.sh=scripts/backup.sh \
+		--from-file=retention.sh=scripts/retention.sh \
+		--namespace=$(NAMESPACE) \
+		--dry-run=client -o yaml | kubectl apply -f -
+	@echo ""
+	@echo "[2/3] Deploying CronJob, ServiceAccount, and storage..."
+	@if [ "$(ENV)" = "local" ]; then \
+		echo "  Using hostPath for backup storage (local environment)"; \
+		envsubst < backup-cronjob.yaml > /tmp/backup-cronjob-rendered.yaml; \
+	else \
+		echo "  Using PVC for backup storage ($(ENV) environment)"; \
+		envsubst < backup-cronjob.yaml | \
+			sed '/hostPath:/,/type: DirectoryOrCreate/d' | \
+			sed 's/# persistentVolumeClaim:/persistentVolumeClaim:/' | \
+			sed 's/#   claimName: backup-pvc/  claimName: backup-pvc/' \
+			> /tmp/backup-cronjob-rendered.yaml; \
+	fi
 	@kubectl apply -f /tmp/backup-cronjob-rendered.yaml
 	@rm -f /tmp/backup-cronjob-rendered.yaml
-	@echo "Backup CronJob deployed (schedule: $(BACKUP_SCHEDULE))."
+	@echo ""
+	@echo "[3/3] Backup CronJob deployed successfully!"
+	@echo ""
+	@echo "Schedule:  $(BACKUP_SCHEDULE)"
+	@echo "Retention: $(BACKUP_RETENTION_COUNT) backups (count-based)"
 	@echo ""
 	@kubectl get cronjob -n $(NAMESPACE)
 
@@ -532,18 +558,79 @@ reset-lens: check ## Delete all records and re-import Lens.org data
 	OPTS=$${OPTS:-}; \
 	openscience-tools --base-url http://localhost --token "$$TOKEN" import-lens --file "$$FILE" $$OPTS; \
 	echo ""; \
-	echo "Step 3/3: Reindexing records for facet aggregations..."; \
-	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio index reindex --pid-type recid 2>/dev/null || true" ; \
-	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index run 2>/dev/null || true" ; \
-	echo "  Waiting 10s for OpenSearch to process..."; \
-	sleep 10; \
-	echo ""; \
 	echo "Revoking temporary token..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- \
 		invenio tokens delete "$$TOKEN" 2>/dev/null || true; \
 	echo ""; \
+	echo "Step 3/3: Rebuilding search indices..."; \
+	$(MAKE) rebuild-index ENV=$(ENV); \
+	echo ""; \
 	echo "Reset complete!"; \
 	echo "  Access at: http://localhost"
+
+rebuild-index: check ## Rebuild OpenSearch indices (fix DB/search sync issues)
+	@echo "Rebuilding OpenSearch indices..."
+	@echo ""
+	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
+	if [ -z "$$WEB_POD" ]; then \
+		echo "ERROR: Web pod not found"; \
+		exit 1; \
+	fi; \
+	echo "Step 1/6: Destroying existing indices..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio index destroy --force" 2>/dev/null || true; \
+	echo ""; \
+	echo "Step 2/6: Creating fresh indices..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- invenio index init 2>/dev/null || true; \
+	echo ""; \
+	echo "Step 3/6: Initializing custom fields..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- invenio rdm-records custom-fields init 2>/dev/null || true; \
+	echo ""; \
+	echo "Step 4/6: Reindexing all records and vocabularies..."; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio rdm-records rebuild-index" 2>/dev/null || true; \
+	echo ""; \
+	echo "Step 5/6: Restarting pods (web and worker)..."; \
+	kubectl rollout restart deployment/$(RELEASE_NAME)-invenio-web -n $(NAMESPACE) 2>/dev/null || true; \
+	kubectl rollout restart deployment/$(RELEASE_NAME)-invenio-worker -n $(NAMESPACE) 2>/dev/null || true; \
+	echo "Waiting for pods to restart (15s)..."; \
+	sleep 15; \
+	echo ""; \
+	echo "Step 6/6: Waiting for indexing to complete (30s)..."; \
+	sleep 30; \
+	echo ""; \
+	echo "Verifying indexed data..."; \
+	$(MAKE) verify-data ENV=$(ENV); \
+	echo ""; \
+	echo "Index rebuild complete!"
+
+verify-data: check ## Check data consistency (PostgreSQL vs OpenSearch)
+	@echo "Verifying data consistency..."
+	@echo ""
+	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
+	PG_POD=$$(kubectl get pods -n $(NAMESPACE) -l app=postgresql -o jsonpath='{.items[0].metadata.name}'); \
+	if [ -z "$$WEB_POD" ] || [ -z "$$PG_POD" ]; then \
+		echo "ERROR: Pods not found"; \
+		exit 1; \
+	fi; \
+	echo "PostgreSQL (source of truth):"; \
+	DB_RECORDS=$$(kubectl exec -n $(NAMESPACE) $$PG_POD -- psql -U invenio -d invenio -t -c "SELECT COUNT(*) FROM rdm_records_metadata;" 2>/dev/null | tr -d ' '); \
+	DB_DRAFTS=$$(kubectl exec -n $(NAMESPACE) $$PG_POD -- psql -U invenio -d invenio -t -c "SELECT COUNT(*) FROM rdm_drafts_metadata;" 2>/dev/null | tr -d ' '); \
+	echo "  Published records: $$DB_RECORDS"; \
+	echo "  Draft records:     $$DB_DRAFTS"; \
+	echo ""; \
+	echo "OpenSearch (indexed for API/UI):"; \
+	API_TOTAL=$$(curl -s 'http://localhost/api/records?size=1' 2>/dev/null | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('hits',{}).get('total',0))" 2>/dev/null || echo "0"); \
+	echo "  API /api/records:  $$API_TOTAL"; \
+	echo ""; \
+	if [ "$$DB_RECORDS" = "$$API_TOTAL" ]; then \
+		echo "✓ Data is synchronized ($$DB_RECORDS records)"; \
+	elif [ "$$API_TOTAL" = "0" ] && [ "$$DB_RECORDS" != "0" ]; then \
+		echo "✗ Indices are empty but DB has $$DB_RECORDS records"; \
+		echo "  Run: make rebuild-index ENV=$(ENV)"; \
+	else \
+		echo "⚠ Mismatch: DB has $$DB_RECORDS, API shows $$API_TOTAL"; \
+		echo "  This may be normal if indexing is still in progress."; \
+		echo "  Wait 30-60s and run: make verify-data ENV=$(ENV)"; \
+	fi
 
 # --------------------------------------------------------------------------
 # Destroy
@@ -633,11 +720,13 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 			echo "  ✓ Using existing cluster"; \
 		else \
 			echo "  Creating k3d cluster '$(K3D_CLUSTER_NAME)'..."; \
+			mkdir -p backups/k3d; \
 			k3d cluster create $(K3D_CLUSTER_NAME) \
 				--port "80:80@loadbalancer" \
 				--port "8443:443@loadbalancer" \
+				--volume "$$(pwd)/backups/k3d:/backups@server:0" \
 				--agents 0; \
-			echo "  ✓ k3d cluster created"; \
+			echo "  ✓ k3d cluster created with backup volume mounted"; \
 		fi; \
 	else \
 		echo "[3/6] Skipping k3d setup (ENV=$(ENV))"; \
@@ -653,6 +742,11 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 	@$(MAKE) init-app ENV=$(ENV)
 	@$(MAKE) create-admin ENV=$(ENV)
 	@echo ""
+	@if [ "$(BACKUP_ENABLED)" = "true" ]; then \
+		echo "[7/7] Deploying backup CronJob..."; \
+		$(MAKE) deploy-backup-cronjob ENV=$(ENV); \
+		echo ""; \
+	fi
 	@echo "===================================================="
 	@echo "  Installation complete!  (ENV=$(ENV))"
 	@echo "===================================================="
@@ -665,6 +759,10 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 	@echo ""
 	@echo "Next steps:"
 	@echo "  - Load sample data: make reset-lens ENV=$(ENV)"
+	@if [ "$(BACKUP_ENABLED)" = "true" ]; then \
+		echo "  - Check backups: make list-backups ENV=$(ENV)"; \
+		echo "  - View cronjob: kubectl get cronjob -n $(NAMESPACE)"; \
+	fi
 	@echo "  - Check status: make status"
 	@echo "  - View logs: make logs"
 	@echo ""

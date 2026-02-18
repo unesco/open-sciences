@@ -5,17 +5,18 @@
 # Backs up PostgreSQL, OpenSearch indices, and uploaded files.
 # Can be run manually or via CronJob.
 #
-# Usage:
-#   ./scripts/backup.sh <namespace> <backup-path>
+# Environment variables:
+#   NAMESPACE     - Kubernetes namespace (default: unesco-rdm)
+#   BACKUP_PATH   - Path where backups are stored (default: /tmp/backups)
 #
-# Example:
-#   ./scripts/backup.sh unesco-rdm /path/to/backups/local
+# Manual usage:
+#   NAMESPACE=unesco-rdm BACKUP_PATH=/path/to/backups ./backup.sh
 # ==============================================================================
 
 set -e
 
-NAMESPACE="${1:-unesco-rdm}"
-BACKUP_PATH="${2:-/tmp/backups}"
+NAMESPACE="${NAMESPACE:-unesco-rdm}"
+BACKUP_PATH="${BACKUP_PATH:-/tmp/backups}"
 TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
 BACKUP_DIR="${BACKUP_PATH}/${TIMESTAMP}"
 
@@ -117,7 +118,7 @@ cat > "$BACKUP_DIR/metadata.json" <<EOF
   "timestamp": "$TIMESTAMP",
   "namespace": "$NAMESPACE",
   "kubernetes": {
-    "nodes": $(kubectl get nodes -o json | jq -c '.items[].metadata.name'),
+    "nodes": $(kubectl get nodes -o json | jq -c '[.items[].metadata.name]'),
     "version": "$(kubectl version --short 2>/dev/null | grep Server || echo 'unknown')"
   },
   "pods": $(kubectl get pods -n "$NAMESPACE" -o json | jq -c '[.items[] | {name: .metadata.name, status: .status.phase, image: .spec.containers[0].image}]'),

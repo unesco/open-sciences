@@ -10,67 +10,15 @@
 #   make deploy-backup-cronjob ENV=staging
 #
 # Variables from .env.<ENV>:
+#   - NAMESPACE
 #   - BACKUP_SCHEDULE
+#   - BACKUP_RETENTION_COUNT
 #   - BACKUP_RETENTION_DAYS
-#   - BACKUP_PATH (must be a mounted PVC or hostPath)
+#   - BACKUP_STORAGE_SIZE
+#
+# Note: ConfigMap 'backup-scripts' is created from scripts/*.sh files
+#       by the Makefile, not defined inline here.
 # ==============================================================================
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: backup-scripts
-  namespace: ${NAMESPACE}
-data:
-  backup.sh: |
-    #!/bin/bash
-    set -e
-    
-    NAMESPACE="${NAMESPACE}"
-    BACKUP_PATH="${BACKUP_PATH}"
-    TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
-    BACKUP_DIR="${BACKUP_PATH}/${TIMESTAMP}"
-    
-    echo "Starting backup: $TIMESTAMP"
-    mkdir -p "$BACKUP_DIR"
-    
-    # PostgreSQL
-    echo "Backing up PostgreSQL..."
-    PG_POD=$(kubectl get pods -n "$NAMESPACE" -l app=postgresql -o jsonpath='{.items[0].metadata.name}')
-    kubectl exec -n "$NAMESPACE" "$PG_POD" -- bash -c \
-        "PGPASSWORD=\$POSTGRES_PASSWORD pg_dump -U \$POSTGRES_USER -d \$POSTGRES_DB --no-owner --no-acl" \
-        | gzip > "$BACKUP_DIR/postgresql.sql.gz"
-    
-    # Files
-    echo "Backing up uploaded files..."
-    WEB_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}')
-    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c \
-        "cd /opt/invenio/var/instance && tar -czf - data/" \
-        > "$BACKUP_DIR/uploads.tar.gz" 2>/dev/null || touch "$BACKUP_DIR/uploads.tar.gz"
-    
-    # Metadata
-    cat > "$BACKUP_DIR/metadata.json" <<EOF
-    {
-      "timestamp": "$TIMESTAMP",
-      "namespace": "$NAMESPACE"
-    }
-    EOF
-    
-    echo "Backup complete: $BACKUP_DIR"
-    du -sh "$BACKUP_DIR"
-    
-  retention.sh: |
-    #!/bin/bash
-    set -e
-    
-    BACKUP_PATH="${BACKUP_PATH}"
-    RETENTION_DAYS="${BACKUP_RETENTION_DAYS}"
-    
-    echo "Cleaning backups older than $RETENTION_DAYS days..."
-    
-    find "$BACKUP_PATH" -maxdepth 1 -type d -name "20*" -mtime +$RETENTION_DAYS -exec rm -rf {} \;
-    
-    echo "Cleanup complete"
 
 ---
 apiVersion: batch/v1
@@ -97,20 +45,22 @@ spec:
                 - -c
                 - |
                   # Run backup
-                  /scripts/backup.sh
-                  
+                  /bin/bash /scripts/backup.sh
+
                   # Run retention cleanup
-                  /scripts/retention.sh
+                  /bin/bash /scripts/retention.sh
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
                 - name: backup-storage
-                  mountPath: ${BACKUP_PATH}
+                  mountPath: /backups
               env:
                 - name: NAMESPACE
                   value: "${NAMESPACE}"
                 - name: BACKUP_PATH
-                  value: "${BACKUP_PATH}"
+                  value: /backups
+                - name: BACKUP_RETENTION_COUNT
+                  value: "${BACKUP_RETENTION_COUNT}"
                 - name: BACKUP_RETENTION_DAYS
                   value: "${BACKUP_RETENTION_DAYS}"
           volumes:
@@ -118,11 +68,16 @@ spec:
               configMap:
                 name: backup-scripts
                 defaultMode: 0755
+            # BACKUP_STORAGE_START
             - name: backup-storage
-              # For local: use hostPath
-              # For staging/prod: use PVC or NFS
-              persistentVolumeClaim:
-                claimName: backup-pvc
+              # LOCAL: hostPath (comment out for staging/prod)
+              hostPath:
+                path: /backups
+                type: DirectoryOrCreate
+              # STAGING/PROD: PVC (uncomment and comment hostPath above)
+              # persistentVolumeClaim:
+              #   claimName: backup-pvc
+            # BACKUP_STORAGE_END
 
 ---
 apiVersion: v1
@@ -170,7 +125,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path  # Change for staging/prod (e.g., nfs-client)
+  storageClassName: local-path # Change for staging/prod (e.g., nfs-client)
   resources:
     requests:
       storage: ${BACKUP_STORAGE_SIZE}
