@@ -17,7 +17,7 @@
 SHELL := /bin/bash
 
 .PHONY: help install check env-check deploy deploy-services deploy-secrets deploy-helm \
-        init init-app create-admin status logs shell up stop \
+        init init-app init-minio create-admin status logs shell up stop \
         backup restore list-backups deploy-backup-cronjob \
         destroy reset-lens rebuild-index verify-data render-config build-image load-image
 
@@ -158,7 +158,7 @@ env-check: ## Verify environment config files exist and have required values
 # --------------------------------------------------------------------------
 
 # Private target: Install Helm chart (called by 'install' during first-time setup)
-install-helm: check env-check deploy-services deploy-secrets deploy-helm
+install-helm: check env-check deploy-services init-minio deploy-secrets deploy-helm
 	@echo "Helm installation complete."
 
 # CI/CD deployment: Rebuild image + upgrade Helm + restart pods
@@ -214,9 +214,17 @@ deploy-services: check ## Deploy external services (DB, cache, search, queue)
 	@kubectl wait --for=condition=ready pod -l app=postgresql    -n $(NAMESPACE) --timeout=180s 2>/dev/null || echo "  WARN: PostgreSQL not ready yet"
 	@kubectl wait --for=condition=ready pod -l app=rabbitmq      -n $(NAMESPACE) --timeout=180s 2>/dev/null || echo "  WARN: RabbitMQ not ready yet"
 	@kubectl wait --for=condition=ready pod -l app=opensearch    -n $(NAMESPACE) --timeout=180s 2>/dev/null || echo "  WARN: OpenSearch not ready yet"
+	@kubectl wait --for=condition=ready pod -l app=minio         -n $(NAMESPACE) --timeout=180s 2>/dev/null || echo "  WARN: MinIO not ready yet"
 	@echo ""
 	@echo "External services deployed."
 	@kubectl get pods -n $(NAMESPACE)
+
+init-minio: check ## Initialize MinIO bucket (create 'default' bucket)
+	@echo "Initializing MinIO bucket..."
+	@kubectl apply -f minio-init.yaml -n $(NAMESPACE)
+	@echo "Waiting for MinIO initialization job to complete..."
+	@kubectl wait --for=condition=complete --timeout=120s job/minio-create-bucket -n $(NAMESPACE) 2>/dev/null || echo "  WARN: MinIO init job not completed yet"
+	@echo "MinIO bucket initialized."
 
 # --------------------------------------------------------------------------
 # Secrets
