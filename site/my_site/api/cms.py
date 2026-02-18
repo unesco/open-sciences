@@ -495,21 +495,23 @@ class CMSSingletonUpsertAPIView(MethodView):
 
 
 class CMSUploadAPIView(MethodView):
-    """API endpoint for CMS file uploads."""
+    """API endpoint for CMS file uploads (saves to MinIO S3)."""
 
     def post(self):
-        """Upload a file to the CMS static directory.
+        """Upload a file to MinIO S3 bucket.
 
         Form data:
             - file: The file to upload
-            - path: Target subdirectory within static (default: uploads/cms)
+            - path: Target subdirectory within bucket (default: uploads/cms)
 
         Returns:
             JSON with the relative path to the uploaded file
         """
         import os
+        import boto3
         from werkzeug.utils import secure_filename
         from flask import current_app
+        from botocore.exceptions import ClientError
 
         # Check for file in request
         if "file" not in request.files:
@@ -527,76 +529,133 @@ class CMSUploadAPIView(MethodView):
         if not filename:
             return jsonify({"error": "Invalid filename"}), 400
 
-        # Build the full path
-        # Static folder is typically at instance/static or static/
-        static_folder = current_app.static_folder
-        if not static_folder:
-            # Fallback to instance static folder
-            static_folder = os.path.join(current_app.instance_path, "static")
+        # Get S3 configuration from Flask config
+        s3_endpoint = current_app.config.get("S3_ENDPOINT_URL", "http://minio:9000")
+        s3_access_key = current_app.config.get("S3_ACCESS_KEY_ID", "minioadmin")
+        s3_secret_key = current_app.config.get("S3_SECRET_ACCESS_KEY", "minioadmin")
+        s3_region = current_app.config.get("S3_REGION_NAME", "us-east-1")
+        bucket_name = current_app.config.get("S3_BUCKET_NAME", "default")
 
-        upload_dir = os.path.join(static_folder, target_path)
+        try:
+            # Initialize S3 client
+            s3_client = boto3.client(
+                "s3",
+                endpoint_url=s3_endpoint,
+                aws_access_key_id=s3_access_key,
+                aws_secret_access_key=s3_secret_key,
+                region_name=s3_region,
+            )
 
-        # Create directory if it doesn't exist
-        os.makedirs(upload_dir, exist_ok=True)
+            # Build S3 object key with path prefix
+            base, ext = os.path.splitext(filename)
+            object_key = f"{target_path}/{filename}"
 
-        # Save the file
-        file_path = os.path.join(upload_dir, filename)
+            # Check if file exists and add suffix if needed
+            counter = 1
+            while True:
+                try:
+                    s3_client.head_object(Bucket=bucket_name, Key=object_key)
+                    # File exists, try next suffix
+                    filename = f"{base}_{counter}{ext}"
+                    object_key = f"{target_path}/{filename}"
+                    counter += 1
+                except ClientError as e:
+                    if e.response["Error"]["Code"] == "404":
+                        # File doesn't exist, we can use this key
+                        break
+                    else:
+                        raise
 
-        # If file exists, add a suffix
-        base, ext = os.path.splitext(filename)
-        counter = 1
-        while os.path.exists(file_path):
-            filename = f"{base}_{counter}{ext}"
-            file_path = os.path.join(upload_dir, filename)
-            counter += 1
+            # Upload file to S3
+            file.seek(0)  # Reset file pointer
+            s3_client.upload_fileobj(
+                file,
+                bucket_name,
+                object_key,
+                ExtraArgs={
+                    "ContentType": file.content_type or "application/octet-stream",
+                    "ACL": "public-read",  # Make file publicly accessible
+                },
+            )
 
-        file.save(file_path)
+            # Return the relative path for storage in CMS
+            relative_path = f"{target_path}/{filename}"
 
-        # Return the relative path for storage in CMS
-        relative_path = f"{target_path}/{filename}"
+            return (
+                jsonify(
+                    {
+                        "success": True,
+                        "path": relative_path,
+                        "filename": filename,
+                        "storage": "s3",
+                        "bucket": bucket_name,
+                    }
+                ),
+                200,
+            )
 
-        return (
-            jsonify(
-                {
-                    "success": True,
-                    "path": relative_path,
-                    "filename": filename,
-                }
-            ),
-            200,
-        )
+        except Exception as e:
+            current_app.logger.error(f"S3 upload error: {str(e)}")
+            return jsonify({"error": f"Upload failed: {str(e)}"}), 500
 
 
 class CMSServeUploadedFileView(MethodView):
-    """Serve uploaded files from the uploads directory."""
+    """Serve uploaded files from MinIO S3 bucket."""
 
     def get(self, filepath):
-        """Serve a file from the uploads directory.
+        """Serve a file from MinIO S3 bucket.
 
         Args:
             filepath: Relative path to the file (e.g., 'cms/image.png')
 
         Returns:
-            The requested file or 404 if not found
+            Redirect to S3 presigned URL or proxy the file content
         """
-        # Get the static folder path
-        static_folder = current_app.static_folder
-        if not static_folder:
-            static_folder = os.path.join(current_app.instance_path, "static")
+        import boto3
+        from flask import redirect, Response
+        from botocore.exceptions import ClientError
 
-        # Build the full uploads directory path
-        uploads_dir = os.path.join(static_folder, "uploads")
+        # Get S3 configuration from Flask config
+        s3_endpoint = current_app.config.get("S3_ENDPOINT_URL", "http://minio:9000")
+        s3_access_key = current_app.config.get("S3_ACCESS_KEY_ID", "minioadmin")
+        s3_secret_key = current_app.config.get("S3_SECRET_ACCESS_KEY", "minioadmin")
+        s3_region = current_app.config.get("S3_REGION_NAME", "us-east-1")
+        bucket_name = current_app.config.get("S3_BUCKET_NAME", "default")
 
-        # Security: ensure the file path is within uploads directory
-        full_path = os.path.abspath(os.path.join(uploads_dir, filepath))
-        if not full_path.startswith(os.path.abspath(uploads_dir)):
-            return jsonify({"error": "Invalid file path"}), 403
+        # Build S3 object key
+        object_key = f"uploads/{filepath}"
 
-        # Check if file exists
-        if not os.path.isfile(full_path):
-            return jsonify({"error": "File not found"}), 404
+        try:
+            # Initialize S3 client
+            s3_client = boto3.client(
+                "s3",
+                endpoint_url=s3_endpoint,
+                aws_access_key_id=s3_access_key,
+                aws_secret_access_key=s3_secret_key,
+                region_name=s3_region,
+            )
 
-        # Serve the file
-        directory = os.path.dirname(full_path)
-        filename = os.path.basename(full_path)
-        return send_from_directory(directory, filename)
+            # Get file from S3
+            try:
+                response = s3_client.get_object(Bucket=bucket_name, Key=object_key)
+            except ClientError as e:
+                if e.response["Error"]["Code"] == "NoSuchKey":
+                    return jsonify({"error": "File not found"}), 404
+                raise
+
+            # Stream the file content
+            file_content = response["Body"].read()
+            content_type = response.get("ContentType", "application/octet-stream")
+
+            return Response(
+                file_content,
+                mimetype=content_type,
+                headers={
+                    "Content-Disposition": f'inline; filename="{os.path.basename(filepath)}"',
+                    "Cache-Control": "public, max-age=31536000",  # Cache for 1 year
+                },
+            )
+
+        except Exception as e:
+            current_app.logger.error(f"S3 file serve error: {str(e)}")
+            return jsonify({"error": "Failed to retrieve file"}), 500

@@ -91,21 +91,63 @@ OS_SIZE=$(du -h "$BACKUP_DIR/opensearch.tar.gz" | cut -f1)
 echo "  ✓ OpenSearch backup complete (${OS_SIZE})"
 
 # --------------------------------------------------------------------------
-# 3. Uploaded Files
+# 3. MinIO S3 Bucket Backup (using web pod with tar)
 # --------------------------------------------------------------------------
-echo "[3/4] Backing up uploaded files..."
+echo "[3/4] Backing up MinIO S3 buckets..."
 
-# Find the shared-volume PVC
-kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c \
-    "cd /opt/invenio/var/instance && tar -czf - data/" \
-    > "$BACKUP_DIR/uploads.tar.gz" 2>/dev/null || echo "  (no files or error)"
+# Get MinIO credentials from secrets
+MINIO_USER=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.MINIO_ROOT_USER}' | base64 -d)
+MINIO_PASS=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.MINIO_ROOT_PASSWORD}' | base64 -d)
 
-if [ -f "$BACKUP_DIR/uploads.tar.gz" ]; then
-    UPLOAD_SIZE=$(du -h "$BACKUP_DIR/uploads.tar.gz" | cut -f1)
-    echo "  ✓ Uploads backup complete (${UPLOAD_SIZE})"
+# Use web pod (which has tar) to backup MinIO
+if [ -z "$WEB_POD" ]; then
+    echo "  WARNING: Web pod not found, skipping MinIO backup"
+    touch "$BACKUP_DIR/minio-backup.tar.gz"
 else
-    echo "  ⚠ No uploaded files found"
-    touch "$BACKUP_DIR/uploads.tar.gz"  # Create empty file
+    # Download mc client in web pod and backup MinIO buckets
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c "
+        # Install mc client if not present (use amd64 for web pod)
+        if [ ! -f /tmp/mc ]; then
+            curl -sL https://dl.min.io/client/mc/release/linux-amd64/mc -o /tmp/mc 2>/dev/null
+            chmod +x /tmp/mc 2>/dev/null
+        fi
+        
+        # Configure mc client
+        /tmp/mc alias set minio-backup http://minio:9000 '$MINIO_USER' '$MINIO_PASS' 2>/dev/null || exit 1
+        
+        # Mirror all buckets to temp directory
+        cd /tmp
+        rm -rf minio-backup 2>/dev/null
+        mkdir -p minio-backup
+        
+        for BUCKET in \$(/tmp/mc ls minio-backup/ 2>/dev/null | awk '{print \$5}'); do
+            echo \"  Backing up bucket: \$BUCKET\"
+            mkdir -p minio-backup/\$BUCKET
+            /tmp/mc mirror --quiet minio-backup/\$BUCKET ./minio-backup/\$BUCKET/ 2>/dev/null || echo \"    (empty or error)\"
+        done
+        
+        # Create marker file
+        touch minio-backup/.backup-complete
+        
+        # Create tar archive
+        tar -czf /tmp/minio-backup.tar.gz minio-backup/ 2>/dev/null
+        rm -rf minio-backup
+    " 2>/dev/null
+    
+    # Copy backup from web pod
+    kubectl cp -n "$NAMESPACE" "$WEB_POD:/tmp/minio-backup.tar.gz" "$BACKUP_DIR/minio-backup.tar.gz" -c web 2>/dev/null || {
+        echo "  WARNING: Could not copy MinIO backup, creating empty archive"
+        touch "$BACKUP_DIR/minio-backup.tar.gz"
+    }
+    
+    # Cleanup web pod temp file
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- rm -f /tmp/minio-backup.tar.gz 2>/dev/null || true
+    if [ -f "$BACKUP_DIR/minio-backup.tar.gz" ] && [ -s "$BACKUP_DIR/minio-backup.tar.gz" ]; then
+        MINIO_SIZE=$(du -h "$BACKUP_DIR/minio-backup.tar.gz" | cut -f1)
+        echo "  ✓ MinIO backup complete (${MINIO_SIZE})"
+    else
+        echo "  ⚠ MinIO backup empty or failed"
+    fi
 fi
 
 # --------------------------------------------------------------------------
