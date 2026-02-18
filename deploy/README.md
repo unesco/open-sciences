@@ -250,7 +250,8 @@ make reset-lens ENV=local
 | `status`     | Show cluster & pod health                |
 | `logs`       | Tail web pod logs                        |
 | `shell`      | Open bash shell in web pod               |
-| `restart`    | Rolling restart (keeps data)             |
+| `up`         | Start InvenioRDM (scale up)              |
+| `stop`       | Stop InvenioRDM (keeps data)             |
 | `destroy`    | Remove everything (DESTRUCTIVE)          |
 | `reset-lens` | Delete records + re-import Lens.org data |
 
@@ -276,17 +277,17 @@ make logs ENV=local            # Web pod logs
 make shell ENV=local           # Bash in web pod
 ```
 
-### Restart After Code Changes
+### Start/Stop Operations
 
 ```bash
-make load-image ENV=local      # Rebuild and load new image
-make restart ENV=local         # Rolling restart (no downtime)
+make stop ENV=local            # Stop InvenioRDM (keeps data)
+make up ENV=local              # Start InvenioRDM
 ```
 
-### Upgrade InvenioRDM
+### Deploy Updates (CI/CD)
 
 ```bash
-make upgrade ENV=local         # Rebuild image → helm upgrade → restart
+make deploy ENV=local          # Rebuild image → upgrade → restart
 ```
 
 ### Import Data
@@ -294,6 +295,80 @@ make upgrade ENV=local         # Rebuild image → helm upgrade → restart
 ```bash
 make reset-lens ENV=local      # Delete all + import Lens.org data
 ```
+
+### Backup & Restore
+
+**Create Backup**
+
+```bash
+make backup ENV=local          # Create full backup (PostgreSQL + OpenSearch + files)
+```
+
+Backups are stored in `backups/<env>/YYYY-MM-DD_HH-MM-SS/` and include:
+- `postgresql.sql.gz` — Full database dump
+- `opensearch.tar.gz` — All search indices
+- `uploads.tar.gz` — User-uploaded files
+- `metadata.json` — Backup metadata
+
+**List Available Backups**
+
+```bash
+make list-backups ENV=local    # Show all backups with size and timestamp
+```
+
+**Restore from Backup**
+
+```bash
+make restore BACKUP=2026-02-18_08-44-51 ENV=local
+```
+
+⚠️ **Warning**: Restore will:
+1. Stop the application (scale deployments to 0)
+2. Drop and recreate the PostgreSQL database
+3. Restore all data from backup
+4. Restart the application and rebuild search indices
+
+You will be prompted to type `RESTORE` to confirm.
+
+**Automated Backups (Staging/Production)**
+
+For staging and production environments, enable automated backups via CronJob:
+
+1. Configure `.env.<env>`:
+   ```bash
+   BACKUP_ENABLED=true
+   BACKUP_SCHEDULE="0 2 * * *"  # Daily at 2 AM
+   BACKUP_RETENTION_DAYS=10
+   BACKUP_PATH=/mnt/backups     # Or PVC mount point
+   ```
+
+2. Deploy the CronJob:
+   ```bash
+   make deploy-backup-cronjob ENV=staging
+   ```
+
+Backups are automatically cleaned up after `BACKUP_RETENTION_DAYS`.
+
+**Data Persistence & Safety**
+
+All data is stored on Persistent Volumes:
+- **postgresql-data** (20Gi) — Database records
+- **opensearch-data** (20Gi) — Search indices
+- **rabbitmq-data** (2Gi) — Message queues
+- **redis-data** (1Gi) — Cache
+- **shared-volume** (50Gi) — File uploads
+
+⚠️ **Reclaim Policy**: All PVs use `Delete` policy. Data is **lost** if:
+- You run `make destroy` (deletes PVCs)
+- You delete the k3d cluster (`k3d cluster delete`)
+- The PVCs are manually deleted
+
+✅ **Safe Operations** (data preserved):
+- `make stop` / `make up`
+- `kubectl rollout restart deployment/<name>`
+- Pod crashes or restarts
+
+**Regular backups** are essential for production environments.
 
 ## Troubleshooting
 
@@ -310,7 +385,7 @@ kubectl describe pod <pod-name> -n unesco-rdm
 
 Common causes:
 
-- **Database not ready**: Wait 30s, then `make restart`
+- **Database not ready**: Wait 30s for services to initialize
 - **Wrong image**: Verify with `docker images sc-openscience`
 - **Missing secrets**: Re-run `make deploy-secrets ENV=local`
 
@@ -322,7 +397,7 @@ Common causes:
 
 ```bash
 make load-image ENV=local      # Build and load image into k3d
-make restart ENV=local         # Restart pods
+kubectl rollout restart deployment -l app.kubernetes.io/component=web -n unesco-rdm
 ```
 
 ### OpenSearch Out of Memory
@@ -385,8 +460,8 @@ vim ../site/my_site/filters/base.py
 cd deploy/
 make load-image ENV=local
 
-# 3. Restart to pick up new image
-make restart ENV=local
+# 3. Restart pods to pick up new image
+kubectl rollout restart deployment -l app.kubernetes.io/component=web -n unesco-rdm
 
 # 4. Test changes
 curl http://localhost/data/search?field=author

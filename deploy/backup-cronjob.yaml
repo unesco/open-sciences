@@ -1,0 +1,176 @@
+# ==============================================================================
+# UNESCO Open Science Portal - Backup CronJob
+# ==============================================================================
+# Automated backup CronJob for staging/production environments.
+# For local development, use: make backup ENV=local
+#
+# This template is processed by envsubst (see Makefile).
+#
+# Deploy:
+#   make deploy-backup-cronjob ENV=staging
+#
+# Variables from .env.<ENV>:
+#   - BACKUP_SCHEDULE
+#   - BACKUP_RETENTION_DAYS
+#   - BACKUP_PATH (must be a mounted PVC or hostPath)
+# ==============================================================================
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: ${NAMESPACE}
+data:
+  backup.sh: |
+    #!/bin/bash
+    set -e
+    
+    NAMESPACE="${NAMESPACE}"
+    BACKUP_PATH="${BACKUP_PATH}"
+    TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+    BACKUP_DIR="${BACKUP_PATH}/${TIMESTAMP}"
+    
+    echo "Starting backup: $TIMESTAMP"
+    mkdir -p "$BACKUP_DIR"
+    
+    # PostgreSQL
+    echo "Backing up PostgreSQL..."
+    PG_POD=$(kubectl get pods -n "$NAMESPACE" -l app=postgresql -o jsonpath='{.items[0].metadata.name}')
+    kubectl exec -n "$NAMESPACE" "$PG_POD" -- bash -c \
+        "PGPASSWORD=\$POSTGRES_PASSWORD pg_dump -U \$POSTGRES_USER -d \$POSTGRES_DB --no-owner --no-acl" \
+        | gzip > "$BACKUP_DIR/postgresql.sql.gz"
+    
+    # Files
+    echo "Backing up uploaded files..."
+    WEB_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}')
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c \
+        "cd /opt/invenio/var/instance && tar -czf - data/" \
+        > "$BACKUP_DIR/uploads.tar.gz" 2>/dev/null || touch "$BACKUP_DIR/uploads.tar.gz"
+    
+    # Metadata
+    cat > "$BACKUP_DIR/metadata.json" <<EOF
+    {
+      "timestamp": "$TIMESTAMP",
+      "namespace": "$NAMESPACE"
+    }
+    EOF
+    
+    echo "Backup complete: $BACKUP_DIR"
+    du -sh "$BACKUP_DIR"
+    
+  retention.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_PATH="${BACKUP_PATH}"
+    RETENTION_DAYS="${BACKUP_RETENTION_DAYS}"
+    
+    echo "Cleaning backups older than $RETENTION_DAYS days..."
+    
+    find "$BACKUP_PATH" -maxdepth 1 -type d -name "20*" -mtime +$RETENTION_DAYS -exec rm -rf {} \;
+    
+    echo "Cleanup complete"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-cronjob
+  namespace: ${NAMESPACE}
+spec:
+  schedule: "${BACKUP_SCHEDULE}"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-sa
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  # Run backup
+                  /scripts/backup.sh
+                  
+                  # Run retention cleanup
+                  /scripts/retention.sh
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: backup-storage
+                  mountPath: ${BACKUP_PATH}
+              env:
+                - name: NAMESPACE
+                  value: "${NAMESPACE}"
+                - name: BACKUP_PATH
+                  value: "${BACKUP_PATH}"
+                - name: BACKUP_RETENTION_DAYS
+                  value: "${BACKUP_RETENTION_DAYS}"
+          volumes:
+            - name: scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755
+            - name: backup-storage
+              # For local: use hostPath
+              # For staging/prod: use PVC or NFS
+              persistentVolumeClaim:
+                claimName: backup-pvc
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-sa
+  namespace: ${NAMESPACE}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-role
+  namespace: ${NAMESPACE}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/exec"]
+    verbs: ["get", "list", "create"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-rolebinding
+  namespace: ${NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: backup-sa
+    namespace: ${NAMESPACE}
+roleRef:
+  kind: Role
+  name: backup-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Backup storage PVC (adjust for your environment)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: ${NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path  # Change for staging/prod (e.g., nfs-client)
+  resources:
+    requests:
+      storage: ${BACKUP_STORAGE_SIZE}

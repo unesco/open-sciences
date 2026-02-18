@@ -17,8 +17,9 @@
 SHELL := /bin/bash
 
 .PHONY: help install check env-check deploy deploy-services deploy-secrets deploy-helm \
-        init init-app create-admin status logs shell restart destroy \
-        reset-lens render-config build-image load-image
+        init init-app create-admin status logs shell up stop \
+        backup restore list-backups deploy-backup-cronjob \
+        destroy reset-lens render-config build-image load-image
 
 # --------------------------------------------------------------------------
 # Configuration
@@ -41,6 +42,16 @@ NAMESPACE         ?= unesco-rdm
 HELM_RELEASE      ?= unesco-rdm
 HELM_INVENIO_VER  ?= 0.8.1
 VALUES_FILE       ?= values.yaml
+
+# Backup Configuration
+BACKUP_ENABLED ?= false
+BACKUP_SCHEDULE ?= 0 2 * * *
+BACKUP_RETENTION_DAYS ?= 10
+BACKUP_PATH ?= backups/$(ENV)
+BACKUP_STORAGE_SIZE ?= 100Gi
+
+# Export variables for envsubst in backup-cronjob.yaml
+export BACKUP_ENABLED BACKUP_SCHEDULE BACKUP_RETENTION_DAYS BACKUP_PATH BACKUP_STORAGE_SIZE
 
 # On a k3s server: /etc/rancher/k3s/k3s.yaml
 # On k3d or Docker Desktop: uses default ~/.kube/config
@@ -81,12 +92,19 @@ help: ## Show this help
 	@echo "  make status                  Cluster & pod health"
 	@echo "  make logs                    Tail web pod logs"
 	@echo "  make shell                   Shell into web pod"
-	@echo "  make restart                 Rolling restart of InvenioRDM pods"
+	@echo "  make up                      Start InvenioRDM"
+	@echo "  make stop                    Stop InvenioRDM (keeps data)"
 	@echo ""
 	@echo "Build (low-level):"
 	@echo "  make build-image             Build Docker image (renders invenio.cfg)"
 	@echo "  make load-image              Build + load image into k3d cluster"
 	@echo "  make render-config           Render invenio.cfg from template"
+	@echo ""
+	@echo "Backup & Restore:"
+	@echo "  make backup ENV=<env>            Create backup of all data"
+	@echo "  make restore BACKUP=<ts> ENV=<e> Restore from backup (timestamp)"
+	@echo "  make list-backups ENV=<env>      List available backups"
+	@echo "  make deploy-backup-cronjob       Deploy automated backup CronJob"
 	@echo ""
 	@echo "Data:"
 	@echo "  make reset-lens              Delete all records + import Lens.org data"
@@ -151,7 +169,10 @@ deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 	@$(MAKE) deploy-helm ENV=$(ENV)
 	@echo ""
 	@echo "Step 3/3: Restarting pods to pick up new image..."
-	@$(MAKE) restart ENV=$(ENV)
+	@kubectl rollout restart deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker-beat -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl rollout status deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) --timeout=3m 2>/dev/null || true
 	@echo ""
 	@echo "============================================"
 	@echo "  Deployment complete!  (ENV=$(ENV))"
@@ -385,15 +406,95 @@ shell: check ## Open a shell in the web pod
 	echo "Opening shell in $$WEB_POD..."; \
 	kubectl exec -it -n $(NAMESPACE) $$WEB_POD -c web -- bash
 
-restart: check ## Rolling restart of InvenioRDM (keeps services running)
-	@echo "Restarting InvenioRDM pods..."
-	@kubectl rollout restart deployment -l app.kubernetes.io/component=web          -n $(NAMESPACE) 2>/dev/null || true
-	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker       -n $(NAMESPACE) 2>/dev/null || true
-	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker-beat  -n $(NAMESPACE) 2>/dev/null || true
-	@echo "Waiting for rollout..."
-	@kubectl rollout status deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) --timeout=3m 2>/dev/null || true
-	@echo "Restart complete."
+up: check ## Start InvenioRDM (scale up deployments)
+	@echo "Starting InvenioRDM..."
+	@kubectl scale deployment -l app.kubernetes.io/component=web --replicas=1 -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl scale deployment -l app.kubernetes.io/component=worker --replicas=1 -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl scale deployment -l app.kubernetes.io/component=worker-beat --replicas=1 -n $(NAMESPACE) 2>/dev/null || true
+	@echo "Waiting for pods to be ready..."
+	@kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=web -n $(NAMESPACE) --timeout=3m 2>/dev/null || echo "  WARN: Web pod not ready yet"
+	@echo "InvenioRDM started."
 	@kubectl get pods -n $(NAMESPACE)
+
+stop: check ## Stop InvenioRDM (scale down deployments, keeps data)
+	@echo "Stopping InvenioRDM..."
+	@kubectl scale deployment -l app.kubernetes.io/component=web --replicas=0 -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl scale deployment -l app.kubernetes.io/component=worker --replicas=0 -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl scale deployment -l app.kubernetes.io/component=worker-beat --replicas=0 -n $(NAMESPACE) 2>/dev/null || true
+	@echo "InvenioRDM stopped (data preserved)."
+	@kubectl get pods -n $(NAMESPACE)
+
+# --------------------------------------------------------------------------
+# Backup & Restore
+# --------------------------------------------------------------------------
+
+backup: check env-check ## Create a backup of PostgreSQL, OpenSearch, and files
+	@echo "Creating backup..."
+	@if [ ! -d "$(BACKUP_PATH)" ]; then \
+		mkdir -p "$(BACKUP_PATH)"; \
+		echo "  Created backup directory: $(BACKUP_PATH)"; \
+	fi
+	@bash scripts/backup.sh $(NAMESPACE) $(BACKUP_PATH)
+	@echo ""
+	@echo "Running retention cleanup (keeping last $(BACKUP_RETENTION_DAYS) days)..."
+	@bash scripts/backup-retention.sh $(BACKUP_PATH) $(BACKUP_RETENTION_DAYS)
+
+restore: check env-check ## Restore from a backup (use BACKUP=<timestamp>)
+	@if [ -z "$(BACKUP)" ]; then \
+		echo "ERROR: BACKUP parameter required."; \
+		echo ""; \
+		echo "Usage: make restore BACKUP=<timestamp> ENV=$(ENV)"; \
+		echo ""; \
+		echo "Available backups:"; \
+		$(MAKE) list-backups ENV=$(ENV); \
+		exit 1; \
+	fi
+	@if [ ! -d "$(BACKUP_PATH)/$(BACKUP)" ]; then \
+		echo "ERROR: Backup not found: $(BACKUP_PATH)/$(BACKUP)"; \
+		echo ""; \
+		$(MAKE) list-backups ENV=$(ENV); \
+		exit 1; \
+	fi
+	@bash scripts/restore.sh $(NAMESPACE) $(BACKUP_PATH)/$(BACKUP)
+
+list-backups: env-check ## List available backups
+	@echo "Available backups in: $(BACKUP_PATH)"
+	@echo ""
+	@if [ ! -d "$(BACKUP_PATH)" ]; then \
+		echo "  No backups found (directory doesn't exist)"; \
+		echo ""; \
+		echo "  Create one with: make backup ENV=$(ENV)"; \
+	else \
+		BACKUPS=$$(ls -1t "$(BACKUP_PATH)" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}$$' || true); \
+		if [ -z "$$BACKUPS" ]; then \
+			echo "  No backups found"; \
+			echo ""; \
+			echo "  Create one with: make backup ENV=$(ENV)"; \
+		else \
+			echo "$$BACKUPS" | head -10 | while read backup; do \
+				if [ -d "$(BACKUP_PATH)/$$backup" ]; then \
+					SIZE=$$(du -sh "$(BACKUP_PATH)/$$backup" 2>/dev/null | cut -f1); \
+					echo "  $$backup  ($$SIZE)"; \
+				fi; \
+			done; \
+			COUNT=$$(echo "$$BACKUPS" | wc -l | tr -d ' '); \
+			if [ $$COUNT -gt 10 ]; then \
+				echo "  ... and $$(($$COUNT - 10)) more"; \
+			fi; \
+			echo ""; \
+			echo "To restore: make restore BACKUP=<timestamp> ENV=$(ENV)"; \
+		fi; \
+	fi
+	@echo ""
+
+deploy-backup-cronjob: check env-check ## Deploy automated backup CronJob (staging/production)
+	@echo "Deploying backup CronJob..."
+	@envsubst < backup-cronjob.yaml > /tmp/backup-cronjob-rendered.yaml
+	@kubectl apply -f /tmp/backup-cronjob-rendered.yaml
+	@rm -f /tmp/backup-cronjob-rendered.yaml
+	@echo "Backup CronJob deployed (schedule: $(BACKUP_SCHEDULE))."
+	@echo ""
+	@kubectl get cronjob -n $(NAMESPACE)
 
 # --------------------------------------------------------------------------
 # Data Import (uses openscience_tools)

@@ -119,3 +119,6 @@ k8s/values-production.local.yaml
 k8s/secrets/
 
 private/*
+
+# Backups (contain sensitive data)
+backups/
