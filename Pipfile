@@ -8,8 +8,10 @@ check-manifest = ">=0.25"
 
 [packages]
 invenio-app-rdm = {extras = ["opensearch2"], version = "~=13.0.0"}
+invenio-s3 = "~=2.0.0"
 my-site = {editable = true, path="./site"}
 openpyxl = ">=3.1.0"
+setuptools = "<82"
 
 uwsgi = ">=2.0"
 uwsgitop = ">=0.11"

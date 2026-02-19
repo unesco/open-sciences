@@ -16,10 +16,10 @@
 
 SHELL := /bin/bash
 
-.PHONY: help install check env-check deploy deploy-services deploy-secrets deploy-helm \
-        init init-app create-admin status logs shell up stop \
+.PHONY: help install check setup-k3d env-check deploy deploy-services deploy-secrets deploy-helm \
+        init-app init-minio create-admin up stop \
         backup restore list-backups deploy-backup-cronjob \
-        destroy reset-lens rebuild-index verify-data render-config build-image load-image
+        destroy reset-lens rebuild-index render-config build-image load-image
 
 # --------------------------------------------------------------------------
 # Configuration
@@ -44,7 +44,6 @@ HELM_INVENIO_VER  ?= 0.8.1
 VALUES_FILE       ?= values.yaml
 
 # Backup Configuration
-BACKUP_ENABLED ?= false
 BACKUP_SCHEDULE ?= 0 2 * * *
 BACKUP_RETENTION_COUNT ?= 7
 BACKUP_RETENTION_DAYS ?=
@@ -52,7 +51,7 @@ BACKUP_PATH ?= backups/$(ENV)
 BACKUP_STORAGE_SIZE ?= 100Gi
 
 # Export variables for envsubst in backup-cronjob.yaml
-export BACKUP_ENABLED BACKUP_SCHEDULE BACKUP_RETENTION_COUNT BACKUP_RETENTION_DAYS BACKUP_PATH BACKUP_STORAGE_SIZE
+export BACKUP_SCHEDULE BACKUP_RETENTION_COUNT BACKUP_RETENTION_DAYS BACKUP_PATH BACKUP_STORAGE_SIZE
 
 # On a k3s server: /etc/rancher/k3s/k3s.yaml
 # On k3d or Docker Desktop: uses default ~/.kube/config
@@ -69,56 +68,16 @@ IMAGE             := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 # k3d cluster name (for local testing on macOS/Linux desktop)
 K3D_CLUSTER_NAME  ?= unesco-rdm
 
-# --------------------------------------------------------------------------
-# Help
-# --------------------------------------------------------------------------
-
 help: ## Show this help
 	@echo ""
 	@echo "UNESCO Open Science Portal - Kubernetes Deployment"
 	@echo "===================================================="
 	@echo "  Active environment: ENV=$(ENV)  (.env.$(ENV))"
 	@echo ""
-	@echo "First-time complete setup:"
-	@echo "  make install ENV=local       Complete setup: tools → config → k3d → build → deploy → init"
+	@echo "Available targets:"
 	@echo ""
-	@echo "CI/CD deployment (code updates):"
-	@echo "  make deploy ENV=local        Rebuild image, upgrade Helm release, restart pods"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 	@echo ""
-	@echo "Initialization (manual):"
-	@echo "  make init-app ENV=local      Reinitialize database + search (when needed)"
-	@echo "  make create-admin ENV=local  Create admin user (standalone)"
-	@echo ""
-	@echo "Daily operations:"
-	@echo "  make status                  Cluster & pod health"
-	@echo "  make logs                    Tail web pod logs"
-	@echo "  make shell                   Shell into web pod"
-	@echo "  make up                      Start InvenioRDM"
-	@echo "  make stop                    Stop InvenioRDM (keeps data)"
-	@echo ""
-	@echo "Build (low-level):"
-	@echo "  make build-image             Build Docker image (renders invenio.cfg)"
-	@echo "  make load-image              Build + load image into k3d cluster"
-	@echo "  make render-config           Render invenio.cfg from template"
-	@echo ""
-	@echo "Backup & Restore:"
-	@echo "  make backup ENV=<env>            Create backup of all data"
-	@echo "  make restore BACKUP=<ts> ENV=<e> Restore from backup (timestamp)"
-	@echo "  make list-backups ENV=<env>      List available backups"
-	@echo "  make deploy-backup-cronjob       Deploy automated backup CronJob"
-	@echo ""
-	@echo "Data:"
-	@echo "  make reset-lens              Delete all records + import Lens.org data"
-	@echo "  make rebuild-index           Rebuild OpenSearch indices (fix sync issues)"
-	@echo "  make verify-data             Check data consistency (DB vs OpenSearch)"
-	@echo ""
-	@echo "Cleanup:"
-	@echo "  make destroy                 Remove everything (DESTRUCTIVE)"
-	@echo ""
-
-# --------------------------------------------------------------------------
-# Pre-flight checks
-# --------------------------------------------------------------------------
 
 check: ## Verify k3s, kubectl, helm are installed
 	@echo "Checking required tools..."
@@ -130,6 +89,26 @@ check: ## Verify k3s, kubectl, helm are installed
 	@echo "  k3s:     $$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')"
 	@echo "All checks passed."
 
+setup-k3d: ## Create k3d cluster for local development
+	@if [ "$(ENV)" != "local" ]; then \
+		echo "Skipping k3d setup (ENV=$(ENV))"; \
+		exit 0; \
+	fi
+	@echo "Setting up k3d cluster..."
+	@if k3d cluster list | grep -q "$(K3D_CLUSTER_NAME)"; then \
+		echo "  k3d cluster '$(K3D_CLUSTER_NAME)' already exists."; \
+		echo "  ✓ Using existing cluster"; \
+	else \
+		echo "  Creating k3d cluster '$(K3D_CLUSTER_NAME)'..."; \
+		mkdir -p backups/k3d; \
+		k3d cluster create $(K3D_CLUSTER_NAME) \
+			--port "80:80@loadbalancer" \
+			--port "8443:443@loadbalancer" \
+			--volume "$$(pwd)/backups/k3d:/backups@server:0" \
+			--agents 0; \
+		echo "  ✓ k3d cluster created with backup volume mounted"; \
+	fi
+
 env-check: ## Verify environment config files exist and have required values
 	@if [ ! -f .env.$(ENV) ]; then \
 		echo "ERROR: .env.$(ENV) not found!"; \
@@ -138,7 +117,7 @@ env-check: ## Verify environment config files exist and have required values
 	fi
 	@echo "Checking required secrets..."
 	@missing=0; \
-	for var in SECRET_KEY SECURITY_LOGIN_SALT POSTGRES_PASSWORD RABBITMQ_PASSWORD; do \
+	for var in SECRET_KEY SECURITY_LOGIN_SALT POSTGRES_PASSWORD RABBITMQ_PASSWORD MINIO_ROOT_PASSWORD S3_SECRET_ACCESS_KEY; do \
 		val=$$(grep "^$$var=" .env.$(ENV) 2>/dev/null | cut -d= -f2- | grep -v CHANGE_ME); \
 		if [ -z "$$val" ]; then \
 			echo "  MISSING or not generated in .env.$(ENV): $$var"; \
@@ -153,15 +132,9 @@ env-check: ## Verify environment config files exist and have required values
 	fi
 	@echo "Environment '$(ENV)' ready (domain=$(DOMAIN), protocol=$(SITE_PROTOCOL))."
 
-# --------------------------------------------------------------------------
-# Deployment
-# --------------------------------------------------------------------------
-
-# Private target: Install Helm chart (called by 'install' during first-time setup)
-install-helm: check env-check deploy-services deploy-secrets deploy-helm
+install-helm: check env-check deploy-secrets deploy-services init-minio deploy-helm
 	@echo "Helm installation complete."
 
-# CI/CD deployment: Rebuild image + upgrade Helm + restart pods
 deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 	@echo "Deploying InvenioRDM updates (CI/CD workflow)..."
 	@echo ""
@@ -182,29 +155,11 @@ deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 	@echo "============================================"
 	@echo ""
 	@echo "  Access: $(SITE_UI_URL)"
-	@echo ""
-	@echo "Check status: make status"
-
-# --------------------------------------------------------------------------
-# Services (PostgreSQL, Redis, RabbitMQ, OpenSearch)
-# --------------------------------------------------------------------------
 
 deploy-services: check ## Deploy external services (DB, cache, search, queue)
 	@echo "Deploying external services..."
 	@kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
 	@kubectl config set-context --current --namespace=$(NAMESPACE)
-	@echo ""
-	@echo "Creating service secrets..."
-	@kubectl create secret generic $(HELM_RELEASE)-secrets \
-		--from-literal=POSTGRES_USER=$(POSTGRES_USER) \
-		--from-literal=POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
-		--from-literal=POSTGRES_DB=$(POSTGRES_DB) \
-		--from-literal=RABBITMQ_USER=$(RABBITMQ_USER) \
-		--from-literal=RABBITMQ_PASSWORD=$(RABBITMQ_PASSWORD) \
-		--namespace=$(NAMESPACE) \
-		--dry-run=client -o yaml | kubectl apply -f -
-	@echo ""
-	@echo "Applying external-services.yaml..."
 	@kubectl apply -f external-services.yaml -n $(NAMESPACE)
 	@echo ""
 	@echo "Waiting for services to be ready (up to 3 minutes)..."
@@ -212,13 +167,17 @@ deploy-services: check ## Deploy external services (DB, cache, search, queue)
 	@kubectl wait --for=condition=ready pod -l app=postgresql    -n $(NAMESPACE) --timeout=180s 2>/dev/null || echo "  WARN: PostgreSQL not ready yet"
 	@kubectl wait --for=condition=ready pod -l app=rabbitmq      -n $(NAMESPACE) --timeout=180s 2>/dev/null || echo "  WARN: RabbitMQ not ready yet"
 	@kubectl wait --for=condition=ready pod -l app=opensearch    -n $(NAMESPACE) --timeout=180s 2>/dev/null || echo "  WARN: OpenSearch not ready yet"
+	@kubectl wait --for=condition=ready pod -l app=minio         -n $(NAMESPACE) --timeout=180s 2>/dev/null || echo "  WARN: MinIO not ready yet"
 	@echo ""
 	@echo "External services deployed."
 	@kubectl get pods -n $(NAMESPACE)
 
-# --------------------------------------------------------------------------
-# Secrets
-# --------------------------------------------------------------------------
+init-minio: check ## Initialize MinIO bucket (create 'default' bucket)
+	@echo "Initializing MinIO bucket..."
+	@kubectl apply -f minio-init.yaml -n $(NAMESPACE)
+	@echo "Waiting for MinIO initialization job to complete..."
+	@kubectl wait --for=condition=complete --timeout=120s job/minio-create-bucket -n $(NAMESPACE) 2>/dev/null || echo "  WARN: MinIO init job not completed yet"
+	@echo "MinIO bucket initialized."
 
 deploy-secrets: check env-check ## Create K8s secrets from environment config
 	@echo "Creating InvenioRDM secrets..."
@@ -229,6 +188,12 @@ deploy-secrets: check env-check ## Create K8s secrets from environment config
 		--from-literal=POSTGRES_DB=$(POSTGRES_DB) \
 		--from-literal=RABBITMQ_USER=$(RABBITMQ_USER) \
 		--from-literal=RABBITMQ_PASSWORD=$(RABBITMQ_PASSWORD) \
+		--from-literal=MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
+		--from-literal=MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
+		--from-literal=S3_ENDPOINT_URL=$(S3_ENDPOINT_URL) \
+		--from-literal=S3_ACCESS_KEY_ID=$(S3_ACCESS_KEY_ID) \
+		--from-literal=S3_SECRET_ACCESS_KEY=$(S3_SECRET_ACCESS_KEY) \
+		--from-literal=S3_REGION_NAME=$(S3_REGION_NAME) \
 		--from-literal=SECRET_KEY=$(SECRET_KEY) \
 		--from-literal=SECURITY_LOGIN_SALT=$(SECURITY_LOGIN_SALT) \
 		--from-literal=SQLALCHEMY_DATABASE_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/$(POSTGRES_DB)" \
@@ -238,10 +203,6 @@ deploy-secrets: check env-check ## Create K8s secrets from environment config
 		--dry-run=client -o yaml | kubectl apply -f -
 	@echo "Secrets created."
 	@echo ""
-
-# --------------------------------------------------------------------------
-# Helm
-# --------------------------------------------------------------------------
 
 deploy-helm: check ## Install/upgrade InvenioRDM Helm chart
 	@echo "Setting up Helm repositories..."
@@ -264,16 +225,12 @@ deploy-helm: check ## Install/upgrade InvenioRDM Helm chart
 	@echo ""
 	@echo "Helm chart deployed."
 
-# --------------------------------------------------------------------------
-# Initialization
-# --------------------------------------------------------------------------
-
 init-app: check ## Reinitialize database, indices, vocabularies (manual operation)
 	@echo "Reinitializing InvenioRDM application..."
 	@echo "Waiting for web pod..."
 	@kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=web \
 		-n $(NAMESPACE) --timeout=300s 2>/dev/null || \
-		{ echo "ERROR: Web pod not ready. Check: make status"; exit 1; }
+		{ echo "ERROR: Web pod not ready. Check with k9s or kubectl get pods -n $(NAMESPACE)"; exit 1; }
 	@echo ""
 	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
 	echo "Step 1/7: Initializing database..."; \
@@ -291,50 +248,17 @@ init-app: check ## Reinitialize database, indices, vocabularies (manual operatio
 	echo "Step 4/7: Creating file storage location..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio files location create --default 'default-location' /opt/invenio/var/instance/data 2>/dev/null || true" ; \
 	echo ""; \
-	echo "Waiting for OpenSearch to be ready..."; \
-	for i in $$(seq 1 30); do \
-		if kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- curl -s -f http://opensearch:9200/_cluster/health >/dev/null 2>&1; then \
-			echo "  ✓ OpenSearch is ready"; \
-			break; \
-		fi; \
-		echo "  Waiting for OpenSearch... ($$i/30)"; \
-		sleep 2; \
-		if [ $$i -eq 30 ]; then \
-			echo "  ERROR: OpenSearch not ready after 60s"; \
-			exit 1; \
-		fi; \
-	done; \
-	echo ""; \
 	echo "Step 5/7: Loading vocabularies (synchronous, no Celery dependency)..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_rdm_records.fixtures.vocabularies import PrioritizedVocabulariesFixtures; from pathlib import Path; import flask; app_data = Path(flask.current_app.instance_path) / 'app_data'; pkg = Path('/usr/local/lib/python3.12/site-packages/invenio_rdm_records/fixtures/data'); pv = PrioritizedVocabulariesFixtures(system_identity, app_data_folder=app_data, pkg_data_folder=pkg, delay=False); pv.load(); print('Vocabularies created in database.')" 2>&1 | tail -5 ; \
 	echo ""; \
 	echo "Step 6/7: Indexing vocabularies in OpenSearch..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio index reindex --pid-type vcf 2>/dev/null || true" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio index run 2>/dev/null || true" ; \
-	echo "  Waiting 10s for OpenSearch to settle..."; \
-	sleep 10; \
-	echo ""; \
-	echo "Verifying vocabularies..."; \
-	TOTAL=$$(kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_vocabularies.proxies import current_service; r = current_service.search(system_identity, type='resourcetypes'); print(r.total)" 2>/dev/null | tail -1); \
-	echo "  resourcetypes: $$TOTAL"; \
-	if [ "$$TOTAL" -gt 0 ] 2>/dev/null; then \
-		echo "  Vocabularies OK."; \
-	else \
-		echo "  WARN: 0 resourcetypes indexed. Trying full reindex..."; \
-		kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c " \
-			echo y | invenio index reindex --pid-type vcf 2>/dev/null; \
-			invenio index run 2>/dev/null" ; \
-		sleep 15; \
-		TOTAL2=$$(kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- python3 -c "from invenio_app.factory import create_app; app = create_app(); ctx = app.app_context(); ctx.push(); from invenio_access.permissions import system_identity; from invenio_vocabularies.proxies import current_service; r = current_service.search(system_identity, type='resourcetypes'); print(r.total)" 2>/dev/null | tail -1); \
-		echo "  resourcetypes (retry): $$TOTAL2"; \
-	fi; \
 	echo ""; \
 	echo "Step 7/7: Loading CMS fixtures (header, footer, static pages)..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "invenio cms load-fixtures" ; \
 	echo ""; \
 	echo "Reinitialization complete."
-
-init: init-app ## Alias for init-app (backward compatibility)
 
 create-admin: check ## Create admin user
 	@echo "Creating admin user..."
@@ -348,66 +272,19 @@ create-admin: check ## Create admin user
 	echo ""; \
 	echo "Admin user created: $(ADMIN_USER_EMAIL)"
 
-# --------------------------------------------------------------------------
-# Build & Upgrade
-# --------------------------------------------------------------------------
-
-render-config: ## Render invenio.cfg from template using current environment
+render-config: env-check ## Render invenio.cfg from template using current environment
 	@echo "Rendering invenio.cfg (ENV=$(ENV))..."
-	@if [ ! -f ../invenio.cfg.template ]; then \
-		echo "ERROR: ../invenio.cfg.template not found!"; \
-		exit 1; \
-	fi
 	@envsubst < ../invenio.cfg.template > ../invenio.cfg
-	@echo "  invenio.cfg written (domain=$(DOMAIN), protocol=$(SITE_PROTOCOL))."
+	@echo "  ✓ invenio.cfg generated from template"
 
-build-image: render-config ## Build Docker image (renders invenio.cfg, then builds)
-	@echo "Building Docker image..."
-	@echo "  Image: $(IMAGE)"
-	@echo "  Dockerfile: Dockerfile"
-	@echo "  Context: repo root (..)"
-	docker build -t $(IMAGE) -f Dockerfile ..
-	@echo ""
-	@echo "Image built: $(IMAGE)"
-	@docker images $(IMAGE)
+build-image: render-config ## Build Docker image (always renders fresh config)
+	@echo "Building Docker image: $(IMAGE)"
+	@docker build -t $(IMAGE) -f Dockerfile ..
 
 load-image: build-image ## Build image and load into k3d cluster
 	@echo "Loading image into k3d cluster..."
-	@if command -v k3d >/dev/null 2>&1; then \
-		k3d image import $(IMAGE) --cluster $(K3D_CLUSTER_NAME); \
-		echo "Image loaded into k3d cluster: $(K3D_CLUSTER_NAME)"; \
-	else \
-		echo "k3d not found. Skipping image load."; \
-	fi
-
-# --------------------------------------------------------------------------
-# Operations
-# --------------------------------------------------------------------------
-
-status: check ## Show cluster and pod status
-	@echo "=== Nodes ==="
-	@kubectl get nodes -o wide
-	@echo ""
-	@echo "=== Pods ($(NAMESPACE)) ==="
-	@kubectl get pods -n $(NAMESPACE) -o wide
-	@echo ""
-	@echo "=== Services ==="
-	@kubectl get svc -n $(NAMESPACE)
-	@echo ""
-	@echo "=== Ingress ==="
-	@kubectl get ingress -n $(NAMESPACE)
-	@echo ""
-	@echo "=== PVCs ==="
-	@kubectl get pvc -n $(NAMESPACE)
-
-logs: check ## Tail web pod logs
-	@echo "Tailing web pod logs (Ctrl+C to stop)..."
-	@kubectl logs -f -l app.kubernetes.io/component=web -n $(NAMESPACE) --all-containers=true --tail=100
-
-shell: check ## Open a shell in the web pod
-	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
-	echo "Opening shell in $$WEB_POD..."; \
-	kubectl exec -it -n $(NAMESPACE) $$WEB_POD -c web -- bash
+	@k3d image import $(IMAGE) --cluster $(K3D_CLUSTER_NAME)
+	@echo "Image loaded into k3d cluster: $(K3D_CLUSTER_NAME)"
 
 up: check ## Start InvenioRDM (scale up deployments)
 	@echo "Starting InvenioRDM..."
@@ -426,10 +303,6 @@ stop: check ## Stop InvenioRDM (scale down deployments, keeps data)
 	@kubectl scale deployment -l app.kubernetes.io/component=worker-beat --replicas=0 -n $(NAMESPACE) 2>/dev/null || true
 	@echo "InvenioRDM stopped (data preserved)."
 	@kubectl get pods -n $(NAMESPACE)
-
-# --------------------------------------------------------------------------
-# Backup & Restore
-# --------------------------------------------------------------------------
 
 backup: check env-check ## Create a backup of PostgreSQL, OpenSearch, and files
 	@echo "Creating backup..."
@@ -461,34 +334,8 @@ restore: check env-check ## Restore from a backup (use BACKUP=<timestamp>)
 	@bash scripts/restore.sh $(NAMESPACE) $(BACKUP_PATH)/$(BACKUP)
 
 list-backups: env-check ## List available backups
-	@echo "Available backups in: $(BACKUP_PATH)"
-	@echo ""
-	@if [ ! -d "$(BACKUP_PATH)" ]; then \
-		echo "  No backups found (directory doesn't exist)"; \
-		echo ""; \
-		echo "  Create one with: make backup ENV=$(ENV)"; \
-	else \
-		BACKUPS=$$(ls -1t "$(BACKUP_PATH)" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}$$' || true); \
-		if [ -z "$$BACKUPS" ]; then \
-			echo "  No backups found"; \
-			echo ""; \
-			echo "  Create one with: make backup ENV=$(ENV)"; \
-		else \
-			echo "$$BACKUPS" | head -10 | while read backup; do \
-				if [ -d "$(BACKUP_PATH)/$$backup" ]; then \
-					SIZE=$$(du -sh "$(BACKUP_PATH)/$$backup" 2>/dev/null | cut -f1); \
-					echo "  $$backup  ($$SIZE)"; \
-				fi; \
-			done; \
-			COUNT=$$(echo "$$BACKUPS" | wc -l | tr -d ' '); \
-			if [ $$COUNT -gt 10 ]; then \
-				echo "  ... and $$(($$COUNT - 10)) more"; \
-			fi; \
-			echo ""; \
-			echo "To restore: make restore BACKUP=<timestamp> ENV=$(ENV)"; \
-		fi; \
-	fi
-	@echo ""
+	@echo "Backups in $(BACKUP_PATH):"
+	@ls -1t "$(BACKUP_PATH)" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}$$' || echo "  (none)"
 
 deploy-backup-cronjob: check env-check ## Deploy automated backup CronJob (staging/production)
 	@echo "Deploying backup CronJob..."
@@ -521,10 +368,6 @@ deploy-backup-cronjob: check env-check ## Deploy automated backup CronJob (stagi
 	@echo "Retention: $(BACKUP_RETENTION_COUNT) backups (count-based)"
 	@echo ""
 	@kubectl get cronjob -n $(NAMESPACE)
-
-# --------------------------------------------------------------------------
-# Data Import (uses openscience_tools)
-# --------------------------------------------------------------------------
 
 reset-lens: check ## Delete all records and re-import Lens.org data
 	@echo "Resetting InvenioRDM records with Lens.org data..."
@@ -576,65 +419,22 @@ rebuild-index: check ## Rebuild OpenSearch indices (fix DB/search sync issues)
 		echo "ERROR: Web pod not found"; \
 		exit 1; \
 	fi; \
-	echo "Step 1/6: Destroying existing indices..."; \
+	echo "Step 1/5: Destroying existing indices..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio index destroy --force" 2>/dev/null || true; \
 	echo ""; \
-	echo "Step 2/6: Creating fresh indices..."; \
+	echo "Step 2/5: Creating fresh indices..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- invenio index init 2>/dev/null || true; \
 	echo ""; \
-	echo "Step 3/6: Initializing custom fields..."; \
+	echo "Step 3/5: Initializing custom fields..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- invenio rdm-records custom-fields init 2>/dev/null || true; \
 	echo ""; \
-	echo "Step 4/6: Reindexing all records and vocabularies..."; \
+	echo "Step 4/5: Reindexing all records and vocabularies..."; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c "echo y | invenio rdm-records rebuild-index" 2>/dev/null || true; \
 	echo ""; \
-	echo "Step 5/6: Restarting pods (web and worker)..."; \
-	kubectl rollout restart deployment/$(RELEASE_NAME)-invenio-web -n $(NAMESPACE) 2>/dev/null || true; \
-	kubectl rollout restart deployment/$(RELEASE_NAME)-invenio-worker -n $(NAMESPACE) 2>/dev/null || true; \
-	echo "Waiting for pods to restart (15s)..."; \
-	sleep 15; \
-	echo ""; \
-	echo "Step 6/6: Waiting for indexing to complete (30s)..."; \
-	sleep 30; \
-	echo ""; \
-	echo "Verifying indexed data..."; \
-	$(MAKE) verify-data ENV=$(ENV); \
+	echo "Step 5/5: Waiting for worker to process indexing queue (60s)..."; \
+	sleep 60; \
 	echo ""; \
 	echo "Index rebuild complete!"
-
-verify-data: check ## Check data consistency (PostgreSQL vs OpenSearch)
-	@echo "Verifying data consistency..."
-	@echo ""
-	@WEB_POD=$$(kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}'); \
-	PG_POD=$$(kubectl get pods -n $(NAMESPACE) -l app=postgresql -o jsonpath='{.items[0].metadata.name}'); \
-	if [ -z "$$WEB_POD" ] || [ -z "$$PG_POD" ]; then \
-		echo "ERROR: Pods not found"; \
-		exit 1; \
-	fi; \
-	echo "PostgreSQL (source of truth):"; \
-	DB_RECORDS=$$(kubectl exec -n $(NAMESPACE) $$PG_POD -- psql -U invenio -d invenio -t -c "SELECT COUNT(*) FROM rdm_records_metadata;" 2>/dev/null | tr -d ' '); \
-	DB_DRAFTS=$$(kubectl exec -n $(NAMESPACE) $$PG_POD -- psql -U invenio -d invenio -t -c "SELECT COUNT(*) FROM rdm_drafts_metadata;" 2>/dev/null | tr -d ' '); \
-	echo "  Published records: $$DB_RECORDS"; \
-	echo "  Draft records:     $$DB_DRAFTS"; \
-	echo ""; \
-	echo "OpenSearch (indexed for API/UI):"; \
-	API_TOTAL=$$(curl -s 'http://localhost/api/records?size=1' 2>/dev/null | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('hits',{}).get('total',0))" 2>/dev/null || echo "0"); \
-	echo "  API /api/records:  $$API_TOTAL"; \
-	echo ""; \
-	if [ "$$DB_RECORDS" = "$$API_TOTAL" ]; then \
-		echo "✓ Data is synchronized ($$DB_RECORDS records)"; \
-	elif [ "$$API_TOTAL" = "0" ] && [ "$$DB_RECORDS" != "0" ]; then \
-		echo "✗ Indices are empty but DB has $$DB_RECORDS records"; \
-		echo "  Run: make rebuild-index ENV=$(ENV)"; \
-	else \
-		echo "⚠ Mismatch: DB has $$DB_RECORDS, API shows $$API_TOTAL"; \
-		echo "  This may be normal if indexing is still in progress."; \
-		echo "  Wait 30-60s and run: make verify-data ENV=$(ENV)"; \
-	fi
-
-# --------------------------------------------------------------------------
-# Destroy
-# --------------------------------------------------------------------------
 
 destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 	@echo ""
@@ -642,6 +442,9 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 	@echo "    - All InvenioRDM data"
 	@echo "    - Database and search indices"
 	@echo "    - Uploaded files"
+	@if [ "$(ENV)" = "local" ]; then \
+		echo "    - k3d cluster '$(K3D_CLUSTER_NAME)'"; \
+	fi
 	@echo ""
 	@read -p "Type 'DESTROY' to confirm: " confirm; \
 	if [ "$$confirm" = "DESTROY" ]; then \
@@ -656,6 +459,11 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 		kubectl delete pvc --all -n $(NAMESPACE) 2>/dev/null || true; \
 		echo "Removing namespace..."; \
 		kubectl delete namespace $(NAMESPACE) 2>/dev/null || true; \
+		if [ "$(ENV)" = "local" ]; then \
+			echo "Destroying k3d cluster..."; \
+			k3d cluster delete $(K3D_CLUSTER_NAME) 2>/dev/null || true; \
+			echo "✓ k3d cluster removed"; \
+		fi; \
 		echo ""; \
 		echo "All resources removed."; \
 	else \
@@ -671,98 +479,27 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 	@echo "===================================================="
 	@echo "Environment: $(ENV)"
 	@echo ""
-	@echo "[1/6] Checking required tools..."
-	@command -v docker   >/dev/null 2>&1 || { echo "  ERROR: docker not found. Install Docker Desktop or colima."; exit 1; }; echo "  ✓ docker"
-	@command -v kubectl  >/dev/null 2>&1 || { echo "  ERROR: kubectl not found. Run: brew install kubectl"; exit 1; }; echo "  ✓ kubectl"
-	@command -v helm     >/dev/null 2>&1 || { echo "  ERROR: helm not found. Run: brew install helm"; exit 1; }; echo "  ✓ helm"
-	@command -v envsubst >/dev/null 2>&1 || { echo "  ERROR: envsubst not found. Run: brew install gettext && brew link --force gettext"; exit 1; }; echo "  ✓ envsubst"
-	@command -v openssl  >/dev/null 2>&1 || { echo "  ERROR: openssl not found."; exit 1; }; echo "  ✓ openssl"
-	@if [ "$(ENV)" = "local" ]; then \
-		command -v k3d >/dev/null 2>&1 || { echo "  ERROR: k3d not found. Run: brew install k3d"; exit 1; }; \
-		echo "  ✓ k3d"; \
-	fi
+	@echo "[1/5] Setting up k3d cluster (if ENV=local)..."
+	@$(MAKE) setup-k3d ENV=$(ENV)
 	@echo ""
-	@echo "[2/6] Setting up .env.$(ENV)..."
-	@if [ -f .env.$(ENV) ]; then \
-		echo "  .env.$(ENV) already exists."; \
-		if grep -q "CHANGE_ME" .env.$(ENV) 2>/dev/null; then \
-			echo "  Regenerating secrets (found CHANGE_ME placeholders)..."; \
-			cp .env.$(ENV) .env.$(ENV).bak; \
-			sed -i.tmp "s/SECRET_KEY=.*/SECRET_KEY=$$(openssl rand -hex 32)/" .env.$(ENV); \
-			sed -i.tmp "s/SECURITY_LOGIN_SALT=.*/SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)/" .env.$(ENV); \
-			sed -i.tmp "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
-			sed -i.tmp "s/RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
-			rm -f .env.$(ENV).tmp; \
-			echo "  ✓ Secrets regenerated (backup saved to .env.$(ENV).bak)"; \
-		else \
-			echo "  ✓ Using existing configuration"; \
-		fi; \
-	else \
-		if [ ! -f .env.example ]; then \
-			echo "  ERROR: .env.example not found!"; \
-			exit 1; \
-		fi; \
-		echo "  Creating .env.$(ENV) from .env.example..."; \
-		cp .env.example .env.$(ENV); \
-		sed -i.tmp "s/SECRET_KEY=.*/SECRET_KEY=$$(openssl rand -hex 32)/" .env.$(ENV); \
-		sed -i.tmp "s/SECURITY_LOGIN_SALT=.*/SECURITY_LOGIN_SALT=$$(openssl rand -hex 32)/" .env.$(ENV); \
-		sed -i.tmp "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
-		sed -i.tmp "s/RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$$(openssl rand -hex 16)/" .env.$(ENV); \
-		rm -f .env.$(ENV).tmp; \
-		chmod 600 .env.$(ENV); \
-		echo "  ✓ .env.$(ENV) created with random secrets"; \
-	fi
+	@echo "[2/5] Checking cluster and tools..."
+	@$(MAKE) check ENV=$(ENV)
 	@echo ""
-	@if [ "$(ENV)" = "local" ]; then \
-		echo "[3/6] Setting up k3d cluster..."; \
-		if k3d cluster list | grep -q "$(K3D_CLUSTER_NAME)"; then \
-			echo "  k3d cluster '$(K3D_CLUSTER_NAME)' already exists."; \
-			echo "  ✓ Using existing cluster"; \
-		else \
-			echo "  Creating k3d cluster '$(K3D_CLUSTER_NAME)'..."; \
-			mkdir -p backups/k3d; \
-			k3d cluster create $(K3D_CLUSTER_NAME) \
-				--port "80:80@loadbalancer" \
-				--port "8443:443@loadbalancer" \
-				--volume "$$(pwd)/backups/k3d:/backups@server:0" \
-				--agents 0; \
-			echo "  ✓ k3d cluster created with backup volume mounted"; \
-		fi; \
-	else \
-		echo "[3/6] Skipping k3d setup (ENV=$(ENV))"; \
-	fi
+	@echo "[3/5] Generating invenio.cfg from template..."
+	@$(MAKE) render-config ENV=$(ENV)
 	@echo ""
-	@echo "[4/6] Building and loading Docker image..."
+	@echo "[4/5] Building and loading Docker image..."
 	@$(MAKE) load-image ENV=$(ENV)
 	@echo ""
-	@echo "[5/6] Deploying services and Helm chart..."
+	@echo "[5/5] Deploying services and Helm chart..."
 	@$(MAKE) install-helm ENV=$(ENV)
 	@echo ""
-	@echo "[6/6] Initializing application..."
+	@echo "Initializing application..."
 	@$(MAKE) init-app ENV=$(ENV)
 	@$(MAKE) create-admin ENV=$(ENV)
 	@echo ""
-	@if [ "$(BACKUP_ENABLED)" = "true" ]; then \
-		echo "[7/7] Deploying backup CronJob..."; \
-		$(MAKE) deploy-backup-cronjob ENV=$(ENV); \
-		echo ""; \
-	fi
-	@echo "===================================================="
+	@echo "Deploying backup CronJob..."
+	@$(MAKE) deploy-backup-cronjob ENV=$(ENV)
+	@echo ""
 	@echo "  Installation complete!  (ENV=$(ENV))"
-	@echo "===================================================="
-	@echo ""
-	@echo "  Domain:   $(DOMAIN)"
-	@echo "  Protocol: $(SITE_PROTOCOL)"
-	@echo "  Admin:    $(ADMIN_USER_EMAIL)"
-	@echo ""
-	@echo "  Access: $(SITE_UI_URL)"
-	@echo ""
-	@echo "Next steps:"
-	@echo "  - Load sample data: make reset-lens ENV=$(ENV)"
-	@if [ "$(BACKUP_ENABLED)" = "true" ]; then \
-		echo "  - Check backups: make list-backups ENV=$(ENV)"; \
-		echo "  - View cronjob: kubectl get cronjob -n $(NAMESPACE)"; \
-	fi
-	@echo "  - Check status: make status"
-	@echo "  - View logs: make logs"
 	@echo ""

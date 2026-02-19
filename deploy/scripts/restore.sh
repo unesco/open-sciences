@@ -33,7 +33,7 @@ echo ""
 
 # Verify backup files exist
 echo "Verifying backup integrity..."
-REQUIRED_FILES=("postgresql.sql.gz" "opensearch.tar.gz" "uploads.tar.gz" "metadata.json")
+REQUIRED_FILES=("postgresql.sql.gz" "opensearch.tar.gz" "minio-backup.tar.gz" "metadata.json")
 MISSING=0
 
 for FILE in "${REQUIRED_FILES[@]}"; do
@@ -68,7 +68,7 @@ if [ "$NO_CONFIRM" != "--no-confirm" ]; then
     echo "The following will be replaced:"
     echo "  - PostgreSQL database (all records, users, settings)"
     echo "  - OpenSearch indices (search data)"
-    echo "  - Uploaded files"
+    echo "  - MinIO S3 buckets (uploaded files, CMS images)"
     echo ""
     read -p "Type 'RESTORE' to continue: " CONFIRM
     
@@ -135,13 +135,70 @@ echo "  (OpenSearch indices will be recreated during app initialization)"
 rm -rf "$TEMP_DIR"
 
 # --------------------------------------------------------------------------
-# Restore Uploaded Files
+# Restore MinIO S3 Buckets
 # --------------------------------------------------------------------------
 echo ""
-echo "[4/5] Restoring uploaded files..."
+echo "[4/5] Restoring MinIO S3 buckets..."
 
-# We need the web pod running to restore files, so we'll do it after restart
-echo "  (Files will be restored after app restart)"
+# Find MinIO pod
+MINIO_POD=$(kubectl get pods -n "$NAMESPACE" -l app=minio -o jsonpath='{.items[0].metadata.name}')
+
+if [ -z "$MINIO_POD" ]; then
+    echo "  WARNING: MinIO pod not found, skipping S3 restore"
+else
+    # Get MinIO credentials
+    MINIO_USER=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.MINIO_ROOT_USER}' | base64 -d)
+    MINIO_PASS=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.MINIO_ROOT_PASSWORD}' | base64 -d)
+    
+    # Copy backup to MinIO pod
+    echo "  Copying backup archive to MinIO pod..."
+    kubectl cp "$BACKUP_DIR/minio-backup.tar.gz" -n "$NAMESPACE" "$MINIO_POD:/tmp/minio-backup.tar.gz" 2>/dev/null || {
+        echo "  ERROR: Could not copy backup to MinIO pod"
+        exit 1
+    }
+    
+    # Extract and restore buckets
+    echo "  Restoring buckets..."
+    kubectl exec -n "$NAMESPACE" "$MINIO_POD" -- sh -c "
+        # Configure mc client
+        mc alias set local http://localhost:9000 $MINIO_USER $MINIO_PASS 2>/dev/null || exit 1
+        
+        # Extract backup
+        cd /tmp
+        rm -rf backup-restore 2>/dev/null
+        mkdir -p backup-restore
+        tar -xzf minio-backup.tar.gz -C backup-restore 2>/dev/null || exit 1
+        
+        # Remove existing buckets and restore
+        for BUCKET_DIR in backup-restore/backup-temp/*; do
+            if [ -d \"\$BUCKET_DIR\" ]; then
+                BUCKET=\$(basename \"\$BUCKET_DIR\")
+                echo \"  Restoring bucket: \$BUCKET\"
+                
+                # Remove existing bucket content
+                mc rm --recursive --force local/\$BUCKET/ 2>/dev/null || true
+                
+                # Recreate bucket if needed
+                mc mb local/\$BUCKET 2>/dev/null || true
+                
+                # Copy files back
+                mc cp --recursive \"\$BUCKET_DIR/\" local/\$BUCKET/ 2>/dev/null || echo \"    (empty or error)\"
+            fi
+        done
+        
+        # Cleanup
+        rm -rf backup-restore minio-backup.tar.gz
+        
+        echo \"  ✓ MinIO buckets restored\"
+    " || {
+        echo "  WARNING: MinIO restore encountered errors"
+    }
+    
+    # Cleanup backup file from pod
+    kubectl exec -n "$NAMESPACE" "$MINIO_POD" -- rm -f /tmp/minio-backup.tar.gz 2>/dev/null || true
+    
+    echo "  ✓ MinIO restore complete"
+fi
 
 # --------------------------------------------------------------------------
 # Restart Application
@@ -155,17 +212,9 @@ kubectl scale deployment -l app.kubernetes.io/component=worker-beat --replicas=1
 echo "  Waiting for web pod to be ready..."
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=web -n "$NAMESPACE" --timeout=3m 2>/dev/null || true
 
-# Now restore files
 WEB_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}')
 
-if [ -n "$WEB_POD" ]; then
-    echo "  Restoring uploaded files..."
-    kubectl exec -i -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c \
-        "cd /opt/invenio/var/instance && rm -rf data && tar -xzf -" \
-        < "$BACKUP_DIR/uploads.tar.gz" || echo "  (no files to restore)"
-    
-    echo "  ✓ Files restored"
-fi
+echo "  ✓ Application restarted"
 
 # Rebuild indices (optional - comment out if not needed)
 echo ""

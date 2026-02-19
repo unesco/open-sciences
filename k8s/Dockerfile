@@ -38,7 +38,7 @@ COPY ../Pipfile ../Pipfile.lock ./
 # Install Python dependencies (including ./site via Pipfile)
 RUN echo "🔍 Python version: $(python --version)" && \
     echo "📦 Installing dependencies with pipenv..." && \
-    pip install --upgrade pip setuptools wheel pipenv && \
+    pip install --upgrade pip "setuptools<82" wheel pipenv && \
     if [ "$PIPENV_INSTALL_DEV" = "true" ]; then \
         echo "📦 Installing all dependencies (including dev)..."; \
         pipenv install --deploy --system --dev; \

@@ -179,7 +179,9 @@ details. #}
       // Update logo
       var logo = document.getElementById('header-logo');
       if (logo && data.logo) {
-        logo.src = '/static/' + data.logo;
+        // If path starts with 'uploads/', use it directly without /static/ prefix
+        var logoPath = data.logo.startsWith('uploads/') ? '/' + data.logo : '/static/' + data.logo;
+        logo.src = logoPath;
         logo.onerror = function() {
           this.onerror = null;
           this.src = DEFAULT_LOGO;
@@ -189,7 +191,8 @@ details. #}
       // Update background image
       var bgElement = document.getElementById('header-background');
       if (bgElement && data.background_image) {
-        var bgUrl = '/static/' + data.background_image;
+        // If path starts with 'uploads/', use it directly without /static/ prefix
+        var bgUrl = data.background_image.startsWith('uploads/') ? '/' + data.background_image : '/static/' + data.background_image;
         bgElement.style.background = 'linear-gradient(135deg, rgba(0, 115, 183, 0.85) 0%, rgba(0, 0, 0, 0.75) 100%), url(\'' + bgUrl + '\')';
         bgElement.style.backgroundSize = 'cover';
         bgElement.style.backgroundPosition = 'center';

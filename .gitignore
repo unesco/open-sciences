@@ -122,3 +122,4 @@ private/*
 
 # Backups (contain sensitive data)
 backups/
+*.bak
