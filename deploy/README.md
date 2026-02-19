@@ -30,9 +30,6 @@ open http://localhost
 
 ### Operations
 
-- `make status` — Show cluster and pod status
-- `make logs` — Tail web pod logs
-- `make shell` — Open shell in web pod
 - `make up` — Start InvenioRDM (scale up)
 - `make stop` — Stop InvenioRDM (keeps data)
 
@@ -40,7 +37,6 @@ open http://localhost
 
 - `make reset-lens ENV=<env>` — Delete all records + import Lens.org data
 - `make rebuild-index ENV=<env>` — Rebuild OpenSearch indices (fix sync issues)
-- `make verify-data ENV=<env>` — Check PostgreSQL vs OpenSearch consistency
 
 ### Backup & Restore
 
@@ -51,7 +47,8 @@ open http://localhost
 
 ### Build
 
-- `make build-image ENV=<env>` — Build Docker image
+- `make render-config ENV=<env>` — Generate invenio.cfg from template + .env file
+- `make build-image ENV=<env>` — Render config + build Docker image
 - `make load-image ENV=<env>` — Build + load image into k3d cluster
 
 ### Cleanup
@@ -65,10 +62,8 @@ open http://localhost
 Set `ENV` to switch between environments:
 
 - `local` — k3d cluster on macOS/Linux (default)
-- `staging` — Staging server
+- `dev` — Staging server
 - `production` — Production server
-
-Configuration files: `.env.local`, `.env.staging`, `.env.production`
 
 ---
 
