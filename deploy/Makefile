@@ -442,6 +442,9 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 	@echo "    - All InvenioRDM data"
 	@echo "    - Database and search indices"
 	@echo "    - Uploaded files"
+	@if [ "$(ENV)" = "local" ]; then \
+		echo "    - k3d cluster '$(K3D_CLUSTER_NAME)'"; \
+	fi
 	@echo ""
 	@read -p "Type 'DESTROY' to confirm: " confirm; \
 	if [ "$$confirm" = "DESTROY" ]; then \
@@ -456,6 +459,11 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 		kubectl delete pvc --all -n $(NAMESPACE) 2>/dev/null || true; \
 		echo "Removing namespace..."; \
 		kubectl delete namespace $(NAMESPACE) 2>/dev/null || true; \
+		if [ "$(ENV)" = "local" ]; then \
+			echo "Destroying k3d cluster..."; \
+			k3d cluster delete $(K3D_CLUSTER_NAME) 2>/dev/null || true; \
+			echo "✓ k3d cluster removed"; \
+		fi; \
 		echo ""; \
 		echo "All resources removed."; \
 	else \
@@ -471,14 +479,14 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 	@echo "===================================================="
 	@echo "Environment: $(ENV)"
 	@echo ""
-	@echo "[1/5] Checking cluster and tools..."
+	@echo "[1/5] Setting up k3d cluster (if ENV=local)..."
+	@$(MAKE) setup-k3d ENV=$(ENV)
+	@echo ""
+	@echo "[2/5] Checking cluster and tools..."
 	@$(MAKE) check ENV=$(ENV)
 	@echo ""
-	@echo "[2/5] Generating invenio.cfg from template..."
+	@echo "[3/5] Generating invenio.cfg from template..."
 	@$(MAKE) render-config ENV=$(ENV)
-	@echo ""
-	@echo "[3/5] Setting up k3d cluster..."
-	@$(MAKE) setup-k3d ENV=$(ENV)
 	@echo ""
 	@echo "[4/5] Building and loading Docker image..."
 	@$(MAKE) load-image ENV=$(ENV)

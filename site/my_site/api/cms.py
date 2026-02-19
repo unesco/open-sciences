@@ -495,10 +495,10 @@ class CMSSingletonUpsertAPIView(MethodView):
 
 
 class CMSUploadAPIView(MethodView):
-    """API endpoint for CMS file uploads (saves to MinIO S3)."""
+    """API endpoint for CMS file uploads (saves to local storage or S3)."""
 
     def post(self):
-        """Upload a file to MinIO S3 bucket.
+        """Upload a file to local storage or S3 bucket.
 
         Form data:
             - file: The file to upload
@@ -508,10 +508,8 @@ class CMSUploadAPIView(MethodView):
             JSON with the relative path to the uploaded file
         """
         import os
-        import boto3
         from werkzeug.utils import secure_filename
         from flask import current_app
-        from botocore.exceptions import ClientError
 
         # Check for file in request
         if "file" not in request.files:
@@ -529,133 +527,219 @@ class CMSUploadAPIView(MethodView):
         if not filename:
             return jsonify({"error": "Invalid filename"}), 400
 
-        # Get S3 configuration from Flask config
-        s3_endpoint = current_app.config.get("S3_ENDPOINT_URL", "http://minio:9000")
-        s3_access_key = current_app.config.get("S3_ACCESS_KEY_ID", "minioadmin")
-        s3_secret_key = current_app.config.get("S3_SECRET_ACCESS_KEY", "minioadmin")
-        s3_region = current_app.config.get("S3_REGION_NAME", "us-east-1")
-        bucket_name = current_app.config.get("S3_BUCKET_NAME", "default")
+        # Check storage type
+        storage_class = current_app.config.get("FILES_REST_DEFAULT_STORAGE_CLASS", "L")
+        s3_endpoint = current_app.config.get("S3_ENDPOINT_URL", "")
 
-        try:
-            # Initialize S3 client
-            s3_client = boto3.client(
-                "s3",
-                endpoint_url=s3_endpoint,
-                aws_access_key_id=s3_access_key,
-                aws_secret_access_key=s3_secret_key,
-                region_name=s3_region,
-            )
+        # Use local storage if configured or if S3 endpoint is not set
+        use_local = storage_class == "L" or not s3_endpoint
 
-            # Build S3 object key with path prefix
-            base, ext = os.path.splitext(filename)
-            object_key = f"{target_path}/{filename}"
+        if use_local:
+            # Local storage
+            try:
+                # Create upload directory in instance path
+                upload_dir = os.path.join(
+                    current_app.instance_path, "static", target_path
+                )
+                os.makedirs(upload_dir, exist_ok=True)
 
-            # Check if file exists and add suffix if needed
-            counter = 1
-            while True:
-                try:
-                    s3_client.head_object(Bucket=bucket_name, Key=object_key)
-                    # File exists, try next suffix
+                # Build file path
+                base, ext = os.path.splitext(filename)
+                filepath = os.path.join(upload_dir, filename)
+
+                # Check if file exists and add suffix if needed
+                counter = 1
+                while os.path.exists(filepath):
                     filename = f"{base}_{counter}{ext}"
-                    object_key = f"{target_path}/{filename}"
+                    filepath = os.path.join(upload_dir, filename)
                     counter += 1
-                except ClientError as e:
-                    if e.response["Error"]["Code"] == "404":
-                        # File doesn't exist, we can use this key
-                        break
-                    else:
-                        raise
 
-            # Upload file to S3
-            file.seek(0)  # Reset file pointer
-            s3_client.upload_fileobj(
-                file,
-                bucket_name,
-                object_key,
-                ExtraArgs={
-                    "ContentType": file.content_type or "application/octet-stream",
-                    "ACL": "public-read",  # Make file publicly accessible
-                },
-            )
+                # Save file
+                file.save(filepath)
 
-            # Return the relative path for storage in CMS
-            relative_path = f"{target_path}/{filename}"
+                # Return the relative path for storage in CMS
+                relative_path = f"{target_path}/{filename}"
 
-            return (
-                jsonify(
-                    {
-                        "success": True,
-                        "path": relative_path,
-                        "filename": filename,
-                        "storage": "s3",
-                        "bucket": bucket_name,
-                    }
-                ),
-                200,
-            )
+                return (
+                    jsonify(
+                        {
+                            "success": True,
+                            "path": relative_path,
+                            "filename": filename,
+                            "storage": "local",
+                        }
+                    ),
+                    200,
+                )
 
-        except Exception as e:
-            current_app.logger.error(f"S3 upload error: {str(e)}")
-            return jsonify({"error": f"Upload failed: {str(e)}"}), 500
+            except Exception as e:
+                current_app.logger.error(f"Local file upload error: {str(e)}")
+                return jsonify({"error": f"Upload failed: {str(e)}"}), 500
+        else:
+            # S3 storage
+            import boto3
+            from botocore.exceptions import ClientError
+
+            s3_access_key = current_app.config.get("S3_ACCESS_KEY_ID", "minioadmin")
+            s3_secret_key = current_app.config.get("S3_SECRET_ACCESS_KEY", "minioadmin")
+            s3_region = current_app.config.get("S3_REGION_NAME", "us-east-1")
+            bucket_name = current_app.config.get("S3_BUCKET_NAME", "default")
+
+            try:
+                # Initialize S3 client
+                s3_client = boto3.client(
+                    "s3",
+                    endpoint_url=s3_endpoint,
+                    aws_access_key_id=s3_access_key,
+                    aws_secret_access_key=s3_secret_key,
+                    region_name=s3_region,
+                )
+
+                # Build S3 object key with path prefix
+                base, ext = os.path.splitext(filename)
+                object_key = f"{target_path}/{filename}"
+
+                # Check if file exists and add suffix if needed
+                counter = 1
+                while True:
+                    try:
+                        s3_client.head_object(Bucket=bucket_name, Key=object_key)
+                        # File exists, try next suffix
+                        filename = f"{base}_{counter}{ext}"
+                        object_key = f"{target_path}/{filename}"
+                        counter += 1
+                    except ClientError as e:
+                        if e.response["Error"]["Code"] == "404":
+                            # File doesn't exist, we can use this key
+                            break
+                        else:
+                            raise
+
+                # Upload file to S3
+                file.seek(0)  # Reset file pointer
+                s3_client.upload_fileobj(
+                    file,
+                    bucket_name,
+                    object_key,
+                    ExtraArgs={
+                        "ContentType": file.content_type or "application/octet-stream",
+                        "ACL": "public-read",  # Make file publicly accessible
+                    },
+                )
+
+                # Return the relative path for storage in CMS
+                relative_path = f"{target_path}/{filename}"
+
+                return (
+                    jsonify(
+                        {
+                            "success": True,
+                            "path": relative_path,
+                            "filename": filename,
+                            "storage": "s3",
+                            "bucket": bucket_name,
+                        }
+                    ),
+                    200,
+                )
+
+            except Exception as e:
+                current_app.logger.error(f"S3 upload error: {str(e)}")
+                return jsonify({"error": f"Upload failed: {str(e)}"}), 500
 
 
 class CMSServeUploadedFileView(MethodView):
-    """Serve uploaded files from MinIO S3 bucket."""
+    """Serve uploaded files from local storage or S3 bucket."""
 
     def get(self, filepath):
-        """Serve a file from MinIO S3 bucket.
+        """Serve a file from local storage or S3 bucket.
 
         Args:
             filepath: Relative path to the file (e.g., 'cms/image.png')
 
         Returns:
-            Redirect to S3 presigned URL or proxy the file content
+            File content from local storage or S3
         """
-        import boto3
-        from flask import redirect, Response
-        from botocore.exceptions import ClientError
+        import os
+        from flask import Response
 
-        # Get S3 configuration from Flask config
-        s3_endpoint = current_app.config.get("S3_ENDPOINT_URL", "http://minio:9000")
-        s3_access_key = current_app.config.get("S3_ACCESS_KEY_ID", "minioadmin")
-        s3_secret_key = current_app.config.get("S3_SECRET_ACCESS_KEY", "minioadmin")
-        s3_region = current_app.config.get("S3_REGION_NAME", "us-east-1")
-        bucket_name = current_app.config.get("S3_BUCKET_NAME", "default")
+        # Check storage type
+        storage_class = current_app.config.get("FILES_REST_DEFAULT_STORAGE_CLASS", "L")
+        s3_endpoint = current_app.config.get("S3_ENDPOINT_URL", "")
 
-        # Build S3 object key
-        object_key = f"uploads/{filepath}"
+        # Use local storage if configured or if S3 endpoint is not set
+        use_local = storage_class == "L" or not s3_endpoint
 
-        try:
-            # Initialize S3 client
-            s3_client = boto3.client(
-                "s3",
-                endpoint_url=s3_endpoint,
-                aws_access_key_id=s3_access_key,
-                aws_secret_access_key=s3_secret_key,
-                region_name=s3_region,
-            )
-
-            # Get file from S3
+        if use_local:
+            # Serve from local storage
             try:
-                response = s3_client.get_object(Bucket=bucket_name, Key=object_key)
-            except ClientError as e:
-                if e.response["Error"]["Code"] == "NoSuchKey":
+                # Build file path in instance static folder
+                file_path = os.path.join(
+                    current_app.instance_path, "static", "uploads", filepath
+                )
+
+                if not os.path.exists(file_path):
                     return jsonify({"error": "File not found"}), 404
-                raise
 
-            # Stream the file content
-            file_content = response["Body"].read()
-            content_type = response.get("ContentType", "application/octet-stream")
+                # Get directory and filename
+                directory = os.path.dirname(file_path)
+                filename = os.path.basename(file_path)
 
-            return Response(
-                file_content,
-                mimetype=content_type,
-                headers={
-                    "Content-Disposition": f'inline; filename="{os.path.basename(filepath)}"',
-                    "Cache-Control": "public, max-age=31536000",  # Cache for 1 year
-                },
-            )
+                return send_from_directory(
+                    directory,
+                    filename,
+                    mimetype=None,  # Auto-detect
+                    as_attachment=False,
+                    max_age=31536000,  # Cache for 1 year
+                )
 
-        except Exception as e:
-            current_app.logger.error(f"S3 file serve error: {str(e)}")
-            return jsonify({"error": "Failed to retrieve file"}), 500
+            except Exception as e:
+                current_app.logger.error(f"Local file serve error: {str(e)}")
+                return jsonify({"error": "Failed to retrieve file"}), 500
+        else:
+            # Serve from S3
+            import boto3
+            from botocore.exceptions import ClientError
+
+            s3_access_key = current_app.config.get("S3_ACCESS_KEY_ID", "minioadmin")
+            s3_secret_key = current_app.config.get("S3_SECRET_ACCESS_KEY", "minioadmin")
+            s3_region = current_app.config.get("S3_REGION_NAME", "us-east-1")
+            bucket_name = current_app.config.get("S3_BUCKET_NAME", "default")
+
+            # Build S3 object key
+            object_key = f"uploads/{filepath}"
+
+            try:
+                # Initialize S3 client
+                s3_client = boto3.client(
+                    "s3",
+                    endpoint_url=s3_endpoint,
+                    aws_access_key_id=s3_access_key,
+                    aws_secret_access_key=s3_secret_key,
+                    region_name=s3_region,
+                )
+
+                # Get file from S3
+                try:
+                    response = s3_client.get_object(Bucket=bucket_name, Key=object_key)
+                except ClientError as e:
+                    if e.response["Error"]["Code"] == "NoSuchKey":
+                        return jsonify({"error": "File not found"}), 404
+                    raise
+
+                # Stream the file content
+                file_content = response["Body"].read()
+                content_type = response.get("ContentType", "application/octet-stream")
+
+                return Response(
+                    file_content,
+                    mimetype=content_type,
+                    headers={
+                        "Content-Disposition": f'inline; filename="{os.path.basename(filepath)}"',
+                        "Cache-Control": "public, max-age=31536000",  # Cache for 1 year
+                    },
+                )
+
+            except Exception as e:
+                current_app.logger.error(f"S3 file serve error: {str(e)}")
+                return jsonify({"error": "Failed to retrieve file"}), 500
