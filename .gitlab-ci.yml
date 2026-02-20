@@ -8,7 +8,6 @@ stages:
   - ost_publish
   # !SECTION
   # SECTION: k3s deployment pipeline
-  - render
   - build
   # !SECTION
 
@@ -144,70 +143,9 @@ ost_publish:
   only:
     - ost
 
-# ==============================================================================
-# Render invenio.cfg from template using environment variables
-# ==============================================================================
-# Generates invenio.cfg by substituting environment variables in template
-# Computes derived variables like Makefile does
-# Output is saved as downloadable artifact
-# ==============================================================================
-
-render:invenio_config:
-  stage: render
-  image: alpine:latest
-  environment:
-    name: test
-  variables:
-    # UNESCO proxy configuration
-    HTTP_PROXY: "http://proxy.unesco.org:8080"
-    HTTPS_PROXY: "http://proxy.unesco.org:8080"
-    http_proxy: "http://proxy.unesco.org:8080"
-    https_proxy: "http://proxy.unesco.org:8080"
-    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
-    no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
-  before_script:
-    - apk add --no-cache gettext
-  script:
-    - echo "==================================================================="
-    - echo "Rendering invenio.cfg from template"
-    - echo "==================================================================="
-    - echo ""
-    - 'echo "Template: invenio.cfg.template"'
-    - 'echo "Output: invenio.cfg"'
-    - echo ""
-    - |
-      # Export derived variables (like in Makefile)
-      export SITE_UI_URL="${SITE_PROTOCOL:-https}://${DOMAIN}"
-      export SITE_API_URL="${SITE_PROTOCOL:-https}://${DOMAIN}/api"
-      export APP_RDM_ADMIN_EMAIL_RECIPIENT="${APP_RDM_ADMIN_EMAIL_RECIPIENT:-${ADMIN_EMAIL}}"
-      export SQLALCHEMY_DATABASE_URI="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgresql:5432/${POSTGRES_DB}"
-      echo "Derived variables:"
-      echo "  SITE_UI_URL = ${SITE_UI_URL}"
-      echo "  SITE_API_URL = ${SITE_API_URL}"
-      echo "  APP_RDM_ADMIN_EMAIL_RECIPIENT = ${APP_RDM_ADMIN_EMAIL_RECIPIENT}"
-      echo "  SQLALCHEMY_DATABASE_URI = postgresql://${POSTGRES_USER}:****@postgresql:5432/${POSTGRES_DB}"
-    - echo ""
-    - echo "Rendering configuration..."
-    - envsubst < invenio.cfg.template > invenio.cfg
-    - echo ""
-    - echo "==================================================================="
-    - echo "Configuration file generated successfully!"
-    - echo "==================================================================="
-    - echo ""
-    - 'echo "First 20 lines of generated invenio.cfg file:"'
-    - head -20 invenio.cfg
-    - echo ""
-    - 'echo "File size: $(wc -c < invenio.cfg) bytes"'
-    - 'echo "Lines: $(wc -l < invenio.cfg)"'
-  artifacts:
-    name: "invenio-config-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - invenio.cfg
-    expire_in: 1 week
-  only:
-    - test
-
 # SECTION: Build Docker image for InvenioRDM
+# Configuration (invenio.cfg) is generated at runtime by entrypoint script
+# All secrets are injected as environment variables by k8s/k3s deployment
 build:docker:
   stage: build
   image: docker:24.0.5
@@ -241,6 +179,7 @@ build:docker:
     - 'echo "Tags: test, ${CI_COMMIT_SHORT_SHA}"'
     - 'echo "Context: repository root"'
     - 'echo "Dockerfile: deploy/Dockerfile"'
+    - 'echo "Config strategy: Runtime generation from template"'
     - echo ""
     - echo "Building image..."
     - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile -t $DOCKER_IMAGE:test -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
@@ -255,10 +194,9 @@ build:docker:
     - 'echo "Available at:"'
     - 'echo "  - ${DOCKER_IMAGE}:test"'
     - 'echo "  - ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
-  dependencies:
-    - render:invenio_config
-  needs:
-    - render:invenio_config
+    - echo ""
+    - 'echo "NOTE: invenio.cfg will be generated at container startup from template"'
+    - 'echo "      Ensure all required env vars are set in k8s/k3s deployment"'
   only:
     - test
 # !SECTION
