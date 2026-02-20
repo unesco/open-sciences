@@ -9,6 +9,7 @@ stages:
   # !SECTION
   # SECTION: k3s deployment pipeline
   - render
+  - build
   # !SECTION
 
 variables:
@@ -205,3 +206,53 @@ render:invenio_config:
     expire_in: 1 week
   only:
     - test
+
+# SECTION: Build Docker image for InvenioRDM
+build:docker:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  environment:
+    name: test
+  variables:
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org,registry.gitlab.com"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_IMAGE: "${CI_REGISTRY_IMAGE}"
+  before_script:
+    # Wait for Docker daemon to be ready
+    - sleep 5
+    - echo "Logging in to GitLab Container Registry..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "==================================================================="
+    - echo "Building InvenioRDM Docker image"
+    - echo "==================================================================="
+    - 'echo "Image: ${DOCKER_IMAGE}"'
+    - 'echo "Tags: test, ${CI_COMMIT_SHORT_SHA}"'
+    - 'echo "Context: repository root"'
+    - 'echo "Dockerfile: deploy/Dockerfile"'
+    - echo ""
+    - echo "Building image..."
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile -t $DOCKER_IMAGE:test -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - echo ""
+    - echo "Pushing image tags to registry..."
+    - docker push $DOCKER_IMAGE:test
+    - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
+    - echo ""
+    - echo "==================================================================="
+    - echo "Docker image built and pushed successfully!"
+    - echo "==================================================================="
+    - 'echo "Available at:"'
+    - 'echo "  - ${DOCKER_IMAGE}:test"'
+    - 'echo "  - ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
+  dependencies:
+    - render:invenio_config
+  needs:
+    - render:invenio_config
+  only:
+    - test
+# !SECTION
