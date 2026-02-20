@@ -152,6 +152,8 @@ ost_publish:
 check:docker_variables:
   stage: check
   image: alpine:latest
+  environment:
+    name: test
   script:
     - echo "==================================================================="
     - echo "Docker Build Pipeline - Variables Check"
