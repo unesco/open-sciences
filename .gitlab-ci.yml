@@ -216,9 +216,15 @@ build:docker:
   environment:
     name: test
   variables:
+    # Proxy UNESCO (uppercase and lowercase for compatibility)
     HTTP_PROXY: "http://proxy.unesco.org:8080"
     HTTPS_PROXY: "http://proxy.unesco.org:8080"
-    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org,registry.gitlab.com"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    # No proxy for UNESCO domains and GitLab registry
+    NO_PROXY: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    # Docker-in-Docker configuration
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
     DOCKER_IMAGE: "${CI_REGISTRY_IMAGE}"
