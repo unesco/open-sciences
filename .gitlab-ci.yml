@@ -222,8 +222,8 @@ render:invenio_config:
     - echo "Rendering invenio.cfg from template"
     - echo "==================================================================="
     - echo ""
-    - echo "Template: invenio.cfg.template"
-    - echo "Output: invenio.cfg"
+    - 'echo "Template: invenio.cfg.template"'
+    - 'echo "Output: invenio.cfg"'
     - echo ""
     - |
       # Export derived variables (like in Makefile)
@@ -240,11 +240,11 @@ render:invenio_config:
     - echo "Configuration file generated successfully!"
     - echo "==================================================================="
     - echo ""
-    - echo "First 20 lines of generated invenio.cfg:"
+    - 'echo "First 20 lines of generated invenio.cfg:"'
     - head -20 invenio.cfg
     - echo ""
-    - echo "File size: $(wc -c < invenio.cfg) bytes"
-    - echo "Lines: $(wc -l < invenio.cfg)"
+    - 'echo "File size: $(wc -c < invenio.cfg) bytes"'
+    - 'echo "Lines: $(wc -l < invenio.cfg)"'
   artifacts:
     name: "invenio-config-${CI_COMMIT_SHORT_SHA}"
     paths:
