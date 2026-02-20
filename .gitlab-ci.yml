@@ -248,7 +248,7 @@ render:invenio_config:
     - echo "Configuration file generated successfully!"
     - echo "==================================================================="
     - echo ""
-    - 'echo "First 20 lines of generated invenio.cfg:"'
+    - 'echo "First 20 lines of generated invenio.cfg file:"'
     - head -20 invenio.cfg
     - echo ""
     - 'echo "File size: $(wc -c < invenio.cfg) bytes"'
