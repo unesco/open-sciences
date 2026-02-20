@@ -215,6 +215,14 @@ render:invenio_config:
   image: alpine:latest
   environment:
     name: test
+  variables:
+    # UNESCO proxy configuration
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+    no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
   before_script:
     - apk add --no-cache gettext
   script:
