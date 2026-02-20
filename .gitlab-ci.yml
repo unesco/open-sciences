@@ -8,7 +8,6 @@ stages:
   - ost_publish
   # !SECTION
   # SECTION: k3s deployment pipeline
-  - check
   - render
   # !SECTION
 
@@ -145,68 +144,10 @@ ost_publish:
     - ost
 
 # ==============================================================================
-# k3s Deployment Pipeline - Docker Build/Push Variables Check
-# ==============================================================================
-# Verifies GitLab Container Registry variables for Docker image build/push
-# ==============================================================================
-
-check:docker_variables:
-  stage: check
-  image: alpine:latest
-  environment:
-    name: test
-  script:
-    - echo "==================================================================="
-    - echo "Docker Build Pipeline - Variables Check"
-    - echo "==================================================================="
-    - echo ""
-    - echo "--- GitLab Container Registry (Built-in) ---"
-    - 'echo "CI_REGISTRY = ${CI_REGISTRY}"'
-    - 'echo "CI_REGISTRY_IMAGE = ${CI_REGISTRY_IMAGE}"'
-    - 'echo "CI_REGISTRY_USER = ${CI_REGISTRY_USER}"'
-    - |
-      if [ -n "$CI_REGISTRY_PASSWORD" ]; then
-        echo "CI_REGISTRY_PASSWORD = DEFINED"
-      elif [ -n "$CI_JOB_TOKEN" ]; then
-        echo "CI_JOB_TOKEN = DEFINED (for registry auth)"
-      else
-        echo "ERROR: No authentication token!"
-      fi
-    - 'echo "Commit SHA = ${CI_COMMIT_SHORT_SHA}"'
-    - 'echo "Branch = ${CI_COMMIT_REF_NAME}"'
-    - 'echo "Image = ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
-    - echo ""
-    - echo "==================================================================="
-    - echo "Variables for invenio.cfg rendering (alphabetical order)"
-    - echo "==================================================================="
-    - 'echo "APP_RDM_ADMIN_EMAIL_RECIPIENT = ${APP_RDM_ADMIN_EMAIL_RECIPIENT:-(not set)}"'
-    - 'echo "DOMAIN = ${DOMAIN:-(not set)}"'
-    - 'echo "FILES_REST_DEFAULT_STORAGE_CLASS = ${FILES_REST_DEFAULT_STORAGE_CLASS:-(not set)}"'
-    - 'echo "FILES_REST_STORAGE_FACTORY = ${FILES_REST_STORAGE_FACTORY:-(not set)}"'
-    - 'echo "FORCE_HTTPS = ${FORCE_HTTPS:-(not set)}"'
-    - 'echo "OAISERVER_ADMIN_EMAIL = ${OAISERVER_ADMIN_EMAIL:-(not set)}"'
-    - 'echo "OAISERVER_ID_PREFIX = ${OAISERVER_ID_PREFIX:-(not set)}"'
-    - 'echo "S3_ACCESS_KEY_ID = ${S3_ACCESS_KEY_ID:-(not set)}"'
-    - 'echo "S3_BUCKET_NAME = ${S3_BUCKET_NAME:-(not set)}"'
-    - 'echo "S3_ENDPOINT_URL = ${S3_ENDPOINT_URL:-(not set)}"'
-    - 'echo "S3_REGION_NAME = ${S3_REGION_NAME:-(not set)}"'
-    - 'echo "S3_SECRET_ACCESS_KEY = ${S3_SECRET_ACCESS_KEY:-(not set)}"'
-    - 'echo "SEARCH_INDEX_PREFIX = ${SEARCH_INDEX_PREFIX:-(not set)}"'
-    - 'echo "SECRET_KEY = ${SECRET_KEY:-(not set)}"'
-    - 'echo "SESSION_COOKIE_SECURE = ${SESSION_COOKIE_SECURE:-(not set)}"'
-    - 'echo "SITE_API_URL = ${SITE_API_URL:-(not set)}"'
-    - 'echo "SITE_UI_URL = ${SITE_UI_URL:-(not set)}"'
-    - 'echo "SQLALCHEMY_DATABASE_URI = ${SQLALCHEMY_DATABASE_URI:-(not set)}"'
-    - 'echo "STRICT_TRANSPORT_SECURITY = ${STRICT_TRANSPORT_SECURITY:-(not set)}"'
-    - echo ""
-    - echo "==================================================================="
-  only:
-    - test
-
-# ==============================================================================
 # Render invenio.cfg from template using environment variables
 # ==============================================================================
 # Generates invenio.cfg by substituting environment variables in template
+# Computes derived variables like Makefile does
 # Output is saved as downloadable artifact
 # ==============================================================================
 
@@ -237,9 +178,13 @@ render:invenio_config:
       # Export derived variables (like in Makefile)
       export SITE_UI_URL="${SITE_PROTOCOL:-https}://${DOMAIN}"
       export SITE_API_URL="${SITE_PROTOCOL:-https}://${DOMAIN}/api"
+      export APP_RDM_ADMIN_EMAIL_RECIPIENT="${APP_RDM_ADMIN_EMAIL_RECIPIENT:-${ADMIN_EMAIL}}"
+      export SQLALCHEMY_DATABASE_URI="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgresql:5432/${POSTGRES_DB}"
       echo "Derived variables:"
       echo "  SITE_UI_URL = ${SITE_UI_URL}"
       echo "  SITE_API_URL = ${SITE_API_URL}"
+      echo "  APP_RDM_ADMIN_EMAIL_RECIPIENT = ${APP_RDM_ADMIN_EMAIL_RECIPIENT}"
+      echo "  SQLALCHEMY_DATABASE_URI = postgresql://${POSTGRES_USER}:****@postgresql:5432/${POSTGRES_DB}"
     - echo ""
     - echo "Rendering configuration..."
     - envsubst < invenio.cfg.template > invenio.cfg
