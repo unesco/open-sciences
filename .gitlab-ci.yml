@@ -7,6 +7,9 @@ stages:
   - ost_build
   - ost_publish
   # !SECTION
+  # SECTION: k3s deployment pipeline
+  - check
+  # !SECTION
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -139,3 +142,58 @@ ost_publish:
       - openscience_tools/dist/
   only:
     - ost
+
+# ==============================================================================
+# k3s Deployment Pipeline - Environment Variables Check
+# ==============================================================================
+# Verifies that all required environment variables are correctly configured
+# in GitLab CI/CD settings for the 'test' environment
+# ==============================================================================
+
+check:variables:
+  stage: check
+  image: alpine:latest
+  environment:
+    name: test
+  script:
+    - echo "==================================================================="
+    - echo "k3s Deployment Variables Check - Environment test"
+    - echo "==================================================================="
+    - echo ""
+    - echo "--- GitLab CI/CD Built-in Variables ---"
+    - echo "CI_COMMIT_SHORT_SHA = ${CI_COMMIT_SHORT_SHA}"
+    - echo "CI_COMMIT_REF_NAME = ${CI_COMMIT_REF_NAME}"
+    - echo "CI_REGISTRY = ${CI_REGISTRY}"
+    - echo "CI_REGISTRY_IMAGE = ${CI_REGISTRY_IMAGE}"
+    - echo "CI_REGISTRY_USER = ${CI_REGISTRY_USER}"
+    - echo ""
+    - echo "--- Custom Environment Variables (scope: test) ---"
+    - echo "K3S_HOST = ${K3S_HOST:-NOT_SET}"
+    - echo "DOMAIN = ${DOMAIN:-NOT_SET}"
+    - echo ""
+    - echo "--- Sensitive Variables (checking if defined) ---"
+    - |
+      if [ -z "$SSH_PRIVATE_KEY" ]; then
+        echo "SSH_PRIVATE_KEY = NOT_SET ❌"
+      else
+        echo "SSH_PRIVATE_KEY = DEFINED ✓ ($(echo $SSH_PRIVATE_KEY | wc -c) characters)"
+      fi
+    - |
+      if [ -z "$KUBECONFIG_CONTENT" ]; then
+        echo "KUBECONFIG_CONTENT = NOT_SET ❌"
+      else
+        echo "KUBECONFIG_CONTENT = DEFINED ✓ ($(echo $KUBECONFIG_CONTENT | wc -c) characters)"
+      fi
+    - echo ""
+    - echo "--- Docker Image Configuration ---"
+    - echo "Docker Registry = ${CI_REGISTRY_IMAGE}"
+    - echo "Image Name = invenio-rdm"
+    - echo "Image Tag = ${CI_COMMIT_SHORT_SHA}"
+    - echo "Full Image Path = ${CI_REGISTRY_IMAGE}/invenio-rdm:${CI_COMMIT_SHORT_SHA}"
+    - echo ""
+    - echo "==================================================================="
+    - echo "Check completed!"
+    - echo "==================================================================="
+  only:
+    - test
+
