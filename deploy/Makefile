@@ -179,29 +179,44 @@ init-minio: check ## Initialize MinIO bucket (create 'default' bucket)
 	@kubectl wait --for=condition=complete --timeout=120s job/minio-create-bucket -n $(NAMESPACE) 2>/dev/null || echo "  WARN: MinIO init job not completed yet"
 	@echo "MinIO bucket initialized."
 
-deploy-secrets: check env-check ## Create K8s secrets from environment config
-	@echo "Creating InvenioRDM secrets..."
+deploy-secrets: check env-check render-config ## Create K8s Secrets (service env vars + invenio.cfg file)
+	@echo "Creating Kubernetes Secrets..."
 	@kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
+	@echo ""
+	@echo "[1/2] Creating service credentials Secret (env vars)..."
 	@kubectl create secret generic $(HELM_RELEASE)-secrets \
-		--from-literal=POSTGRES_USER=$(POSTGRES_USER) \
-		--from-literal=POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
-		--from-literal=POSTGRES_DB=$(POSTGRES_DB) \
-		--from-literal=RABBITMQ_USER=$(RABBITMQ_USER) \
-		--from-literal=RABBITMQ_PASSWORD=$(RABBITMQ_PASSWORD) \
-		--from-literal=MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
-		--from-literal=MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
-		--from-literal=S3_ENDPOINT_URL=$(S3_ENDPOINT_URL) \
-		--from-literal=S3_ACCESS_KEY_ID=$(S3_ACCESS_KEY_ID) \
-		--from-literal=S3_SECRET_ACCESS_KEY=$(S3_SECRET_ACCESS_KEY) \
-		--from-literal=S3_REGION_NAME=$(S3_REGION_NAME) \
-		--from-literal=SECRET_KEY=$(SECRET_KEY) \
-		--from-literal=SECURITY_LOGIN_SALT=$(SECURITY_LOGIN_SALT) \
+		--from-literal=POSTGRES_USER='$(POSTGRES_USER)' \
+		--from-literal=POSTGRES_PASSWORD='$(POSTGRES_PASSWORD)' \
+		--from-literal=POSTGRES_DB='$(POSTGRES_DB)' \
+		--from-literal=RABBITMQ_USER='$(RABBITMQ_USER)' \
+		--from-literal=RABBITMQ_PASSWORD='$(RABBITMQ_PASSWORD)' \
+		--from-literal=MINIO_ROOT_USER='$(MINIO_ROOT_USER)' \
+		--from-literal=MINIO_ROOT_PASSWORD='$(MINIO_ROOT_PASSWORD)' \
+		--from-literal=S3_ENDPOINT_URL='$(S3_ENDPOINT_URL)' \
+		--from-literal=S3_ACCESS_KEY_ID='$(S3_ACCESS_KEY_ID)' \
+		--from-literal=S3_SECRET_ACCESS_KEY='$(S3_SECRET_ACCESS_KEY)' \
+		--from-literal=S3_REGION_NAME='$(S3_REGION_NAME)' \
+		--from-literal=SECRET_KEY='$(SECRET_KEY)' \
+		--from-literal=SECURITY_LOGIN_SALT='$(SECURITY_LOGIN_SALT)' \
 		--from-literal=SQLALCHEMY_DATABASE_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/$(POSTGRES_DB)" \
 		--from-literal=CELERY_BROKER_URL="amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@rabbitmq:5672/" \
 		--from-literal=CACHE_REDIS_URL="redis://redis:6379/0" \
 		--namespace=$(NAMESPACE) \
 		--dry-run=client -o yaml | kubectl apply -f -
-	@echo "Secrets created."
+	@echo "  ✓ Secret created: $(HELM_RELEASE)-secrets (16 keys)"
+	@echo ""
+	@echo "[2/2] Creating InvenioRDM configuration Secret (invenio.cfg file)..."
+	@if [ ! -f ../invenio.cfg ]; then \
+		echo "ERROR: invenio.cfg not found. Run 'make render-config' first."; \
+		exit 1; \
+	fi
+	@kubectl create secret generic $(HELM_RELEASE)-config \
+		--from-file=invenio.cfg=../invenio.cfg \
+		--namespace=$(NAMESPACE) \
+		--dry-run=client -o yaml | kubectl apply -f -
+	@echo "  ✓ Secret created: $(HELM_RELEASE)-config ($(shell wc -c < ../invenio.cfg) bytes)"
+	@echo ""
+	@echo "All Secrets deployed."
 	@echo ""
 
 deploy-helm: check ## Install/upgrade InvenioRDM Helm chart
@@ -275,10 +290,11 @@ create-admin: check ## Create admin user
 render-config: env-check ## Render invenio.cfg from template using current environment
 	@echo "Rendering invenio.cfg (ENV=$(ENV))..."
 	@envsubst < ../invenio.cfg.template > ../invenio.cfg
-	@echo "  ✓ invenio.cfg generated from template"
+	@echo "  ✓ invenio.cfg generated ($(shell wc -c < ../invenio.cfg) bytes)"
 
-build-image: render-config ## Build Docker image (always renders fresh config)
+build-image: render-config ## Build Docker image (renders config first)
 	@echo "Building Docker image: $(IMAGE)"
+	@echo "  Note: invenio.cfg will be mounted as Secret at runtime"
 	@docker build -t $(IMAGE) -f Dockerfile ..
 
 load-image: build-image ## Build image and load into k3d cluster
@@ -485,7 +501,7 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 	@echo "[2/5] Checking cluster and tools..."
 	@$(MAKE) check ENV=$(ENV)
 	@echo ""
-	@echo "[3/5] Generating invenio.cfg from template..."
+	@echo "[3/5] Rendering invenio.cfg from template..."
 	@$(MAKE) render-config ENV=$(ENV)
 	@echo ""
 	@echo "[4/5] Building and loading Docker image..."

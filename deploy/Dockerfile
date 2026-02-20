@@ -51,12 +51,8 @@ RUN echo "🔍 Python version: $(python --version)" && \
 # Copy application code
 COPY ../ ./
 
-# Copy entrypoint script and make it executable
-COPY deploy/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
 # Copy configuration files to instance path
-# Note: invenio.cfg.template will be rendered at runtime by entrypoint
+# Note: invenio.cfg will be mounted as Secret from k8s at runtime
 COPY ../docker/uwsgi/ ${INVENIO_INSTANCE_PATH}/
 COPY ../templates/ ${INVENIO_INSTANCE_PATH}/templates/
 COPY ../app_data/ ${INVENIO_INSTANCE_PATH}/app_data/
@@ -89,8 +85,5 @@ RUN mkdir -p ${INVENIO_INSTANCE_PATH}/data \
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:5000/ping || exit 1
 
-# Use entrypoint script to generate config at runtime
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-
 # Default command (can be overridden by Kubernetes)
-CMD ["bash", "-c", "uwsgi /opt/invenio/var/instance/uwsgi_ui.ini"]
+ENTRYPOINT [ "bash", "-c"]

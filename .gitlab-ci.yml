@@ -8,7 +8,9 @@ stages:
   - ost_publish
   # !SECTION
   # SECTION: k3s deployment pipeline
+  - render
   - build
+  - deploy
   # !SECTION
 
 variables:
@@ -143,9 +145,97 @@ ost_publish:
   only:
     - ost
 
-# SECTION: Build Docker image for InvenioRDM
-# Configuration (invenio.cfg) is generated at runtime by entrypoint script
-# All secrets are injected as environment variables by k8s/k3s deployment
+# ==============================================================================
+# K3s Deployment Pipeline
+# ==============================================================================
+# Stage 1: Render invenio.cfg from template (NO downloadable artifact)
+# Stage 2: Upload config as Secret to k8s cluster (requires KUBECONFIG)
+# Stage 3: Build and push Docker image
+# ==============================================================================
+
+render:config:
+  stage: render
+  image: alpine:latest
+  environment:
+    name: test
+  variables:
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+    no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+  before_script:
+    - apk add --no-cache gettext
+  script:
+    - echo "==================================================================="
+    - echo "Rendering invenio.cfg from template"
+    - echo "==================================================================="
+    - echo ""
+    - |
+      # Export derived variables (same as Makefile)
+      export SITE_UI_URL="${SITE_PROTOCOL:-https}://${DOMAIN}"
+      export SITE_API_URL="${SITE_PROTOCOL:-https}://${DOMAIN}/api"
+      export APP_RDM_ADMIN_EMAIL_RECIPIENT="${APP_RDM_ADMIN_EMAIL_RECIPIENT:-${ADMIN_EMAIL}}"
+      export SQLALCHEMY_DATABASE_URI="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgresql:5432/${POSTGRES_DB}"
+      export CELERY_BROKER_URL="amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/"
+      export CACHE_REDIS_URL="redis://redis:6379/0"
+    - echo "Rendering configuration..."
+    - envsubst < invenio.cfg.template > invenio.cfg
+    - echo ""
+    - 'echo "Configuration rendered: $(wc -c < invenio.cfg) bytes, $(wc -l < invenio.cfg) lines"'
+    - echo ""
+    - echo "SECURITY NOTE: This file is NOT saved as artifact"
+    - echo "               It will be uploaded directly to k8s Secret in next stage"
+  artifacts:
+    paths:
+      - invenio.cfg
+    expire_in: 10 minutes
+    when: always
+  only:
+    - test
+
+deploy:config:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: test
+  needs:
+    - render:config
+  before_script:
+    - echo "Configuring kubectl for k3s cluster..."
+    - mkdir -p ~/.kube
+    - echo "$KUBECONFIG_CONTENT" | base64 -d > ~/.kube/config
+    - chmod 600 ~/.kube/config
+    - kubectl version --client
+  script:
+    - echo "==================================================================="
+    - echo "Uploading invenio.cfg as Secret to k8s"
+    - echo "==================================================================="
+    - echo ""
+    - kubectl create namespace unesco-rdm --dry-run=client -o yaml | kubectl apply -f -
+    - |
+      kubectl create secret generic unesco-rdm-config \
+        --from-file=invenio.cfg=invenio.cfg \
+        --namespace=unesco-rdm \
+        --dry-run=client -o yaml | kubectl apply -f -
+    - echo ""
+    - echo "Secret created/updated in k8s cluster"
+    - echo "  Secret: unesco-rdm-config"
+    - echo "  Mount path: /opt/invenio/var/instance/invenio.cfg"
+    - rm -f invenio.cfg
+    - echo ""
+    - echo "Local file deleted for security"
+  only:
+    - test
+  when: manual
+
+# ==============================================================================
+# Build Docker Image
+# ==============================================================================
+# NOTE: Image does NOT contain invenio.cfg with secrets
+# Configuration is mounted as Secret at: /opt/invenio/var/instance/invenio.cfg
+# ==============================================================================
 build:docker:
   stage: build
   image: docker:24.0.5
