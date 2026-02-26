@@ -92,21 +92,21 @@ check: ## Verify k3s, kubectl, helm are installed
 setup-k3d: ## Create k3d cluster for local development
 	@if [ "$(ENV)" != "local" ]; then \
 		echo "Skipping k3d setup (ENV=$(ENV))"; \
+		exit 0; \
+	fi
+	@echo "Setting up k3d cluster..."
+	@if k3d cluster list | grep -q "$(K3D_CLUSTER_NAME)"; then \
+		echo "  k3d cluster '$(K3D_CLUSTER_NAME)' already exists."; \
+		echo "  ✓ Using existing cluster"; \
 	else \
-		echo "Setting up k3d cluster..."; \
-		if k3d cluster list | grep -q "$(K3D_CLUSTER_NAME)"; then \
-			echo "  k3d cluster '$(K3D_CLUSTER_NAME)' already exists."; \
-			echo "  ✓ Using existing cluster"; \
-		else \
-			echo "  Creating k3d cluster '$(K3D_CLUSTER_NAME)'..."; \
-			mkdir -p backups/k3d; \
-			k3d cluster create $(K3D_CLUSTER_NAME) \
-				--port "80:80@loadbalancer" \
-				--port "8443:443@loadbalancer" \
-				--volume "$$(pwd)/backups/k3d:/backups@server:0" \
-				--agents 0; \
-			echo "  ✓ k3d cluster created with backup volume mounted"; \
-		fi; \
+		echo "  Creating k3d cluster '$(K3D_CLUSTER_NAME)'..."; \
+		mkdir -p backups/k3d; \
+		k3d cluster create $(K3D_CLUSTER_NAME) \
+			--port "80:80@loadbalancer" \
+			--port "8443:443@loadbalancer" \
+			--volume "$$(pwd)/backups/k3d:/backups@server:0" \
+			--agents 0; \
+		echo "  ✓ k3d cluster created with backup volume mounted"; \
 	fi
 
 env-check: ## Verify environment config files exist and have required values
@@ -164,6 +164,7 @@ deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 deploy-services: check ## Deploy external services (DB, cache, search, queue)
 	@echo "Deploying external services..."
 	@kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
+	@kubectl config set-context --current --namespace=$(NAMESPACE)
 	@kubectl apply -f external-services.yaml -n $(NAMESPACE)
 	@echo ""
 	@echo "Waiting for services to be ready (up to 3 minutes)..."
