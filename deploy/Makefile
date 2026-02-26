@@ -138,8 +138,13 @@ install-helm: check env-check deploy-secrets deploy-services init-minio deploy-h
 deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 	@echo "Deploying InvenioRDM updates (CI/CD workflow)..."
 	@echo ""
-	@echo "Step 1/3: Rebuilding and loading image..."
-	@$(MAKE) load-image ENV=$(ENV)
+	@if [ "$(ENV)" = "local" ]; then \
+		echo "Step 1/3: Rebuilding and loading image (local)..."; \
+		$(MAKE) load-image ENV=$(ENV); \
+	else \
+		echo "Step 1/3: Skipping local build (image pulled from registry)..."; \
+		echo "  Image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"; \
+	fi
 	@echo ""
 	@echo "Step 2/3: Upgrading Helm release..."
 	@$(MAKE) deploy-helm ENV=$(ENV)
@@ -523,8 +528,13 @@ install: ## Complete first-time setup: tools → config → k3d → build → de
 	@echo "[3/5] Rendering invenio.cfg from template..."
 	@$(MAKE) render-config ENV=$(ENV)
 	@echo ""
-	@echo "[4/5] Building and loading Docker image..."
-	@$(MAKE) load-image ENV=$(ENV)
+	@if [ "$(ENV)" = "local" ]; then \
+		echo "[4/5] Building and loading Docker image (local)..."; \
+		$(MAKE) load-image ENV=$(ENV); \
+	else \
+		echo "[4/5] Skipping local build (image pulled from registry)..."; \
+		echo "  Image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"; \
+	fi
 	@echo ""
 	@echo "[5/5] Deploying services and Helm chart..."
 	@$(MAKE) install-helm ENV=$(ENV)
