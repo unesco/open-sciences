@@ -47,13 +47,13 @@ image:
   # Registry is set per-environment:
   #   local: docker.io/library    staging/prod: your actual registry
   registry: "${IMAGE_REGISTRY}"
-  repository: "sc-openscience"
-  tag: "latest"
+  repository: "${DOCKER_IMAGE_NAME}"
+  tag: "${DOCKER_IMAGE_TAG}"
   pullPolicy: ${IMAGE_PULL_POLICY}
 
 # Optional: reference a pre-existing imagePullSecret
-# imagePullSecrets:
-#   - name: registry-credentials
+imagePullSecrets:
+  - name: registry-credentials
 
 # ------------------------------------------------------------------------------
 # Web (UI + API served via Nginx + uWSGI)

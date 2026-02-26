@@ -183,7 +183,7 @@ deploy-secrets: check env-check render-config ## Create K8s Secrets (service env
 	@echo "Creating Kubernetes Secrets..."
 	@kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
 	@echo ""
-	@echo "[1/2] Creating service credentials Secret (env vars)..."
+	@echo "[1/3] Creating service credentials Secret (env vars)..."
 	@kubectl create secret generic $(HELM_RELEASE)-secrets \
 		--from-literal=POSTGRES_USER='$(POSTGRES_USER)' \
 		--from-literal=POSTGRES_PASSWORD='$(POSTGRES_PASSWORD)' \
@@ -205,7 +205,7 @@ deploy-secrets: check env-check render-config ## Create K8s Secrets (service env
 		--dry-run=client -o yaml | kubectl apply -f -
 	@echo "  ✓ Secret created: $(HELM_RELEASE)-secrets (16 keys)"
 	@echo ""
-	@echo "[2/2] Creating InvenioRDM configuration Secret (invenio.cfg file)..."
+	@echo "[2/3] Creating InvenioRDM configuration Secret (invenio.cfg file)..."
 	@if [ ! -f ../invenio.cfg ]; then \
 		echo "ERROR: invenio.cfg not found. Run 'make render-config' first."; \
 		exit 1; \
@@ -215,6 +215,25 @@ deploy-secrets: check env-check render-config ## Create K8s Secrets (service env
 		--namespace=$(NAMESPACE) \
 		--dry-run=client -o yaml | kubectl apply -f -
 	@echo "  ✓ Secret created: $(HELM_RELEASE)-config ($(shell wc -c < ../invenio.cfg) bytes)"
+	@echo ""
+	@echo "[3/3] Creating registry credentials Secret (imagePullSecret)..."
+	@if [ -n "$(REGISTRY_USER)" ] && [ -n "$(REGISTRY_PASSWORD)" ]; then \
+		kubectl create secret docker-registry registry-credentials \
+			--docker-server=$(DOCKER_REGISTRY) \
+			--docker-username=$(REGISTRY_USER) \
+			--docker-password=$(REGISTRY_PASSWORD) \
+			--namespace=$(NAMESPACE) \
+			--dry-run=client -o yaml | kubectl apply -f -; \
+		echo "  ✓ Secret created: registry-credentials ($(DOCKER_REGISTRY))"; \
+	else \
+		kubectl create secret docker-registry registry-credentials \
+			--docker-server=docker.io \
+			--docker-username=unused \
+			--docker-password=unused \
+			--namespace=$(NAMESPACE) \
+			--dry-run=client -o yaml | kubectl apply -f -; \
+		echo "  ✓ Secret created: registry-credentials (placeholder — local build mode)"; \
+	fi
 	@echo ""
 	@echo "All Secrets deployed."
 	@echo ""
