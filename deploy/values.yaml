@@ -50,10 +50,9 @@ image:
   repository: "${DOCKER_IMAGE_NAME}"
   tag: "${DOCKER_IMAGE_TAG}"
   pullPolicy: ${IMAGE_PULL_POLICY}
-
-# Optional: reference a pre-existing imagePullSecret
-imagePullSecrets:
-  - name: registry-credentials
+  # pullSecrets is the field used by the Invenio Helm chart (image.pullSecrets)
+  pullSecrets:
+    - name: registry-credentials
 
 # ------------------------------------------------------------------------------
 # Web (UI + API served via Nginx + uWSGI)
