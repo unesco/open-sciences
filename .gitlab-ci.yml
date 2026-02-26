@@ -288,8 +288,7 @@ deploy:env:
   image: alpine:latest
   environment:
     name: test
-  needs:
-    - job: build:docker
+  needs: []   # No dependency — run independently (re-enable build:docker later)
   variables:
     # Proxy for apk install
     HTTP_PROXY: "http://proxy.unesco.org:8080"
@@ -300,12 +299,14 @@ deploy:env:
     no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
   before_script:
     - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     # SSH_PRIVATE_KEY is base64-encoded in CI/CD variable (masked)
     - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+    - ssh-add ~/.ssh/id_rsa
+    - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
   script:
     - echo "==================================================================="
     - echo "Writing .env.tmp to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
