@@ -208,8 +208,8 @@ build:docker:
     - test
 
 # DEPRECATED: render:config + deploy:config
-# These stages are replaced by deploy:env which writes .env.test via SSH.
-# The .env.tmp file is then used by `make deploy` on the server.
+# These stages are replaced by deploy:env which writes .env.test via SSH
+# and runs `make deploy` automatically.
 # Kept commented for reference until fully migrated.
 #
 # render:config:
@@ -287,7 +287,8 @@ deploy:env:
   image: alpine:latest
   environment:
     name: test
-  needs: [] # No dependency — run independently (re-enable build:docker later)
+  needs:
+    - job: build:docker
   variables:
     # Proxy for apk install
     HTTP_PROXY: "http://proxy.unesco.org:8080"
@@ -321,7 +322,7 @@ deploy:env:
       BACKUP_SCHEDULE=${BACKUP_SCHEDULE}
       BACKUP_STORAGE_SIZE=${BACKUP_STORAGE_SIZE}
       DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME}
-      DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}
+      DOCKER_IMAGE_TAG=__CI_COMMIT_SHORT_SHA__
       DOCKER_REGISTRY=${DOCKER_REGISTRY}
       DOMAIN=${DOMAIN}
       FILES_REST_DEFAULT_STORAGE_CLASS=${FILES_REST_DEFAULT_STORAGE_CLASS}
@@ -380,13 +381,19 @@ deploy:env:
       sed -i 's/^      //' /tmp/.env.test
       envsubst < /tmp/.env.test > /tmp/.env.test.out
       mv /tmp/.env.test.out /tmp/.env.test
+      # Set DOCKER_IMAGE_TAG to the commit SHA (not a CI/CD variable, injected separately)
+      sed -i "s/__CI_COMMIT_SHORT_SHA__/${CI_COMMIT_SHORT_SHA}/" /tmp/.env.test
     - echo ""
     - echo "Uploading .env.test to server..."
     - scp -o StrictHostKeyChecking=no /tmp/.env.test "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.test"
     - echo ""
+    - echo "Running make deploy on server..."
+    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
+    - echo ""
     - |
       echo "==================================================================="
-      echo ".env.test deployed to ${DEPLOY_PATH}/deploy/.env.test"
+      echo "Deployed commit ${CI_COMMIT_SHORT_SHA} to ${DEPLOY_PATH}"
+      echo "  Image tag: ${CI_COMMIT_SHORT_SHA}"
       echo "==================================================================="
     - rm -f /tmp/.env.test
   only:
