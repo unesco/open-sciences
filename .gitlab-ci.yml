@@ -314,4 +314,3 @@ deploy:env:
     - rm -f /tmp/.env.test
   only:
     - test
-  when: manual
