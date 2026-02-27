@@ -288,7 +288,7 @@ deploy:env:
   image: alpine:latest
   environment:
     name: test
-  needs: []   # No dependency — run independently (re-enable build:docker later)
+  needs: [] # No dependency — run independently (re-enable build:docker later)
   variables:
     # Proxy for apk install
     HTTP_PROXY: "http://proxy.unesco.org:8080"
@@ -300,13 +300,11 @@ deploy:env:
   before_script:
     - apk add --no-cache openssh-client
     - eval $(ssh-agent -s)
+    # Decode base64 encoded SSH key and add to agent (same pattern as deploy_staging/deploy_production)
+    - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    # SSH_PRIVATE_KEY is base64-encoded in CI/CD variable (masked)
-    - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-add ~/.ssh/id_rsa
-    - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts 2>&1 || echo "WARN - ssh-keyscan failed (host unreachable on port 22?), continuing with StrictHostKeyChecking=no"
+    - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
   script:
     - echo "==================================================================="
     - echo "Writing .env.tmp to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
