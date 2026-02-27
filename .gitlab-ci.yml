@@ -9,7 +9,6 @@ stages:
   # !SECTION
   # SECTION: k3s deployment pipeline
   - build
-  - render
   - deploy
   # !SECTION
 
@@ -148,9 +147,8 @@ ost_publish:
 # ==============================================================================
 # K3s Deployment Pipeline
 # ==============================================================================
-# Stage 1: Build and push Docker image
-# Stage 2: Render invenio.cfg from template (1-minute artifact)
-# Stage 3: Upload config as Secret to k8s cluster (requires KUBECONFIG)
+# Stage 1: Build and push Docker image (tagged with commit SHA)
+# Stage 2: Deploy .env.test and run make deploy on server via SSH
 # ==============================================================================
 
 build:docker:
@@ -183,105 +181,23 @@ build:docker:
     - echo "Building InvenioRDM Docker image"
     - echo "==================================================================="
     - 'echo "Image: ${DOCKER_IMAGE}"'
-    - 'echo "Tags: test, ${CI_COMMIT_SHORT_SHA}"'
+    - 'echo "Tag: ${CI_COMMIT_SHORT_SHA}"'
     - 'echo "Context: repository root"'
     - 'echo "Dockerfile: deploy/Dockerfile"'
-    - 'echo "Config strategy: Runtime generation from template"'
     - echo ""
     - echo "Building image..."
-    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile -t $DOCKER_IMAGE:test -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
     - echo ""
-    - echo "Pushing image tags to registry..."
-    - docker push $DOCKER_IMAGE:test
+    - echo "Pushing image to registry..."
     - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
     - echo ""
     - echo "==================================================================="
     - echo "Docker image built and pushed successfully!"
     - echo "==================================================================="
-    - 'echo "Available at:"'
-    - 'echo "  - ${DOCKER_IMAGE}:test"'
-    - 'echo "  - ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
-    - echo ""
-    - 'echo "NOTE: invenio.cfg will be generated at container startup from template"'
-    - 'echo "      Ensure all required env vars are set in k8s/k3s deployment"'
+    - 'echo "  ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
   only:
     - test
 
-# DEPRECATED: render:config + deploy:config
-# These stages are replaced by deploy:env which writes .env.test via SSH
-# and runs `make deploy` automatically.
-# Kept commented for reference until fully migrated.
-#
-# render:config:
-#   stage: render
-#   image: alpine:latest
-#   environment:
-#     name: test
-#   variables:
-#     HTTP_PROXY: "http://proxy.unesco.org:8080"
-#     HTTPS_PROXY: "http://proxy.unesco.org:8080"
-#     http_proxy: "http://proxy.unesco.org:8080"
-#     https_proxy: "http://proxy.unesco.org:8080"
-#     NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
-#     no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
-#   before_script:
-#     - apk add --no-cache gettext
-#   script:
-#     - envsubst < invenio.cfg.template > invenio.cfg
-#   artifacts:
-#     paths:
-#       - invenio.cfg
-#     expire_in: 1 minute
-#   only:
-#     - test
-#
-# deploy:config:
-#   stage: deploy
-#   image: bitnami/kubectl:latest
-#   environment:
-#     name: test
-#   needs:
-#     - render:config
-#   before_script:
-#     - echo "$KUBECONFIG_CONTENT" | base64 -d > ~/.kube/config
-#   script:
-#     - kubectl create secret generic unesco-rdm-config \
-#         --from-file=invenio.cfg=invenio.cfg \
-#         --namespace=unesco-rdm \
-#         --dry-run=client -o yaml | kubectl apply -f -
-#   only:
-#     - test
-#   when: manual
-
-# ------------------------------------------------------------------------------
-# Deploy: Write .env.test to server via SSH
-# ------------------------------------------------------------------------------
-# Writes the .env.test file directly on the deployment server using CI/CD
-# variables. Replaces the existing .env.test in place.
-#
-# Required CI/CD variables (Settings > CI/CD > Variables):
-#   SSH_PRIVATE_KEY        - Private key to SSH into the server (type: File)
-#   DEPLOY_HOST            - Server IP/hostname (e.g. 193.242.192.169)
-#   DEPLOY_USER            - SSH user (e.g. unicc)
-#   DEPLOY_PATH            - Repo path on server (e.g. /opt/sc-openscience)
-#   DOMAIN                 - Site domain
-#   SITE_PROTOCOL          - http or https
-#   ADMIN_EMAIL            - Admin email
-#   ADMIN_USER_EMAIL       - Admin login email
-#   ADMIN_USER_PASSWORD    - Admin login password (masked)
-#   SECRET_KEY             - Flask secret key (masked)
-#   SECURITY_LOGIN_SALT    - Flask login salt (masked)
-#   POSTGRES_USER          - PostgreSQL username
-#   POSTGRES_PASSWORD      - PostgreSQL password (masked)
-#   POSTGRES_DB            - PostgreSQL database name
-#   RABBITMQ_USER          - RabbitMQ username
-#   RABBITMQ_PASSWORD      - RabbitMQ password (masked)
-#   MINIO_ROOT_USER        - MinIO root user
-#   MINIO_ROOT_PASSWORD    - MinIO root password (masked)
-#   REGISTRY_USER          - Container registry user
-#   REGISTRY_PASSWORD      - Container registry token (masked)
-#   SEARCH_INDEX_PREFIX    - OpenSearch index prefix (e.g. test-)
-# ------------------------------------------------------------------------------
 deploy:env:
   stage: deploy
   image: alpine:latest
