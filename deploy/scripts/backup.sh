@@ -91,7 +91,7 @@ OS_SIZE=$(du -h "$BACKUP_DIR/opensearch.tar.gz" | cut -f1)
 echo "  ✓ OpenSearch backup complete (${OS_SIZE})"
 
 # --------------------------------------------------------------------------
-# 3. MinIO S3 Bucket Backup (using minio pod's built-in mc client)
+# 3. MinIO S3 Bucket Backup (using web pod with boto3 + tar)
 # --------------------------------------------------------------------------
 echo "[3/4] Backing up MinIO S3 buckets..."
 
@@ -99,39 +99,60 @@ echo "[3/4] Backing up MinIO S3 buckets..."
 MINIO_USER=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.MINIO_ROOT_USER}' | base64 -d)
 MINIO_PASS=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.MINIO_ROOT_PASSWORD}' | base64 -d)
 
-MINIO_POD=$(kubectl get pods -n "$NAMESPACE" -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
-
-if [ -z "$MINIO_POD" ]; then
-    echo "  WARNING: MinIO pod not found, skipping MinIO backup"
+if [ -z "$WEB_POD" ]; then
+    echo "  WARNING: Web pod not found, skipping MinIO backup"
     touch "$BACKUP_DIR/minio-backup.tar.gz"
 else
-    # Use mc already available inside the minio pod
-    kubectl exec -n "$NAMESPACE" "$MINIO_POD" -- bash -c "
-        mc alias set local http://localhost:9000 '$MINIO_USER' '$MINIO_PASS' --api S3v4 2>/dev/null
+    # Use boto3 (already installed in web pod) to download all S3 objects,
+    # then tar them up — avoids needing mc or external downloads
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- python3 -c "
+import boto3, os, json
+from botocore.client import Config
 
-        cd /tmp
-        rm -rf minio-backup 2>/dev/null
-        mkdir -p minio-backup
+s3 = boto3.client('s3',
+    endpoint_url='http://minio:9000',
+    aws_access_key_id='$MINIO_USER',
+    aws_secret_access_key='$MINIO_PASS',
+    config=Config(signature_version='s3v4'),
+    region_name='us-east-1')
 
-        for BUCKET in \$(mc ls local/ 2>/dev/null | awk '{print \$NF}' | tr -d '/'); do
-            echo \"  Backing up bucket: \$BUCKET\"
-            mkdir -p minio-backup/\$BUCKET
-            mc mirror --quiet local/\$BUCKET ./minio-backup/\$BUCKET/ 2>/dev/null || echo \"    (empty or error)\"
-        done
+base = '/tmp/minio-backup'
+os.makedirs(base, exist_ok=True)
 
-        touch minio-backup/.backup-complete
-        tar -czf /tmp/minio-backup.tar.gz minio-backup/ 2>/dev/null
-        rm -rf minio-backup
-    " 2>/dev/null || true
+buckets = [b['Name'] for b in s3.list_buckets().get('Buckets', [])]
+summary = {}
+for bucket in buckets:
+    bucket_dir = os.path.join(base, bucket)
+    os.makedirs(bucket_dir, exist_ok=True)
+    count = 0
+    try:
+        paginator = s3.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=bucket):
+            for obj in page.get('Contents', []):
+                key = obj['Key']
+                target = os.path.join(bucket_dir, key)
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                s3.download_file(bucket, key, target)
+                count += 1
+    except Exception as e:
+        print(f'  WARNING: {bucket}: {e}')
+    summary[bucket] = count
+    print(f'  Bucket {bucket}: {count} objects')
 
-    # Copy backup from minio pod
-    kubectl cp -n "$NAMESPACE" "$MINIO_POD:/tmp/minio-backup.tar.gz" "$BACKUP_DIR/minio-backup.tar.gz" 2>/dev/null || {
+print(json.dumps(summary))
+" 2>&1 || true
+
+    # Create tar from web pod (which has tar) and copy it out
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- \
+        tar -czf /tmp/minio-backup.tar.gz -C /tmp minio-backup 2>/dev/null || true
+
+    kubectl cp -n "$NAMESPACE" "$WEB_POD:/tmp/minio-backup.tar.gz" "$BACKUP_DIR/minio-backup.tar.gz" -c web 2>/dev/null || {
         echo "  WARNING: Could not copy MinIO backup, creating empty archive"
         touch "$BACKUP_DIR/minio-backup.tar.gz"
     }
 
-    # Cleanup temp file in minio pod
-    kubectl exec -n "$NAMESPACE" "$MINIO_POD" -- rm -f /tmp/minio-backup.tar.gz 2>/dev/null || true
+    # Cleanup web pod temp files
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- rm -rf /tmp/minio-backup /tmp/minio-backup.tar.gz 2>/dev/null || true
 
     if [ -f "$BACKUP_DIR/minio-backup.tar.gz" ] && [ -s "$BACKUP_DIR/minio-backup.tar.gz" ]; then
         MINIO_SIZE=$(du -h "$BACKUP_DIR/minio-backup.tar.gz" | cut -f1)
