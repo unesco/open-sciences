@@ -138,7 +138,10 @@ class ExportAPIView(MethodView):
             with current_app.test_client() as client:
                 response = client.get(
                     api_path,
-                    headers={'Accept': 'application/vnd.inveniordm.v1+json'}
+                    headers={
+                        'Accept': 'application/vnd.inveniordm.v1+json',
+                        'Host': request.host,
+                    }
                 )
                 
                 if response.status_code != 200:
