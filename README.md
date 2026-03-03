@@ -1,6 +1,6 @@
 # UNESCO Open Science Portal
 
-Welcome to the UNESCO Open Science Portal powered by InvenioRDM - a modern research data management platform.
+Welcome to UNESCO Open Science Portal powered by InvenioRDM - a modern research data management platform.
 
 ## Start the user guide
 
