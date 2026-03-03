@@ -1,4 +1,4 @@
-.PHONY: setup help wait-db setup-db setup-db-clean
+.PHONY: setup help wait-db setup-db setup-db-clean fix-volumes-permissions install-drupal
 
 # Configuration variables
 WAIT_TIMEOUT ?= 60
@@ -20,10 +20,12 @@ help:
 	@echo " For more details, see comments in this Makefile."
 
 cms-setup:
+
+
 ifdef CLEAN
-	@docker compose up -d --build --force-recreate cms
+	@docker compose up -d --build --force-recreate db search cms
 else
-	@docker compose up -d cms
+	@docker compose up -d db search cms
 endif
 	@$(MAKE) fix-volumes-permissions
 	@$(MAKE) install-drupal

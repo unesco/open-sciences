@@ -19,6 +19,7 @@ def create_blueprint(app):
         Configured Blueprint instance
     """
     from .views import StatisticsView, CMSPageView
+    from .views.dashboard import DashboardView
     from .api import (
         ExportAPIView,
         LensExportProxyAPIView,
@@ -65,6 +66,14 @@ def create_blueprint(app):
     blueprint.add_url_rule(
         "/pages/<path:slug>",
         view_func=CMSPageView.as_view("cms_page"),
+        methods=["GET"],
+    )
+
+
+    # Open Science dashboards page
+    blueprint.add_url_rule(
+        "/dashboard",
+        view_func=DashboardView.as_view("dashboard"),
         methods=["GET"],
     )
 
