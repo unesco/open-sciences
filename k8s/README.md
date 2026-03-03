@@ -515,18 +515,25 @@ This deletes the entire Kind cluster. All data is lost.
 
 ---
 
+## 🔧 Troubleshooting: Records Not Visible in API
 
-## Magic steps to visualiza records that have been ingested but are not visible:
+If records exist in PostgreSQL but don't appear in the API or UI, use the rebuild-index target from the main deployment directory (`../deploy/`):
 
-# Remove and recreate the indexes
-docker compose exec web-ui invenio index destroy --force --yes-i-know
-docker compose exec web-ui invenio index init
-# Initialize custom fields
-docker compose exec web-ui invenio rdm-records custom-fields init
-# Rebuild the index
-docker compose exec web-ui invenio rdm-records rebuild-index
-# Restart
-docker compose restart web-ui web-api worker
+```bash
+cd ../deploy
+make rebuild-index ENV=local
+```
 
+This automatically performs these steps:
+
+1. Destroys and recreates all OpenSearch indices
+2. Initializes custom fields (required for records to be searchable)
+3. Reindexes all records and vocabularies
+4. Restarts web and worker pods
+5. Verifies data consistency (PostgreSQL vs OpenSearch)
+
+**Time:** ~2-3 minutes
+
+---
 
 **Happy deploying! 🚀**

@@ -33,7 +33,7 @@ SECRET_KEY="${SECRET_KEY}"
 # provided, the trusted hosts variable is set to localhost. In production it
 # should be set to the correct host and it is strongly recommended to only
 # route correct hosts to the application.
-TRUSTED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1']
+TRUSTED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', '${DOMAIN}']
 
 
 # Flask-SQLAlchemy
@@ -42,6 +42,34 @@ TRUSTED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1']
 
 # TODO: Set
 SQLALCHEMY_DATABASE_URI="${SQLALCHEMY_DATABASE_URI}"
+
+
+# S3 Storage Configuration (MinIO)
+# =================================
+# See https://inveniordm.docs.cern.ch/operate/customize/file-uploads/s3/
+
+# Enable S3 storage backend
+FILES_REST_STORAGE_CLASS_LIST = {
+    'S': 'S3',  # Standard S3 storage
+    'L': 'L',   # Local storage (fallback)
+}
+FILES_REST_DEFAULT_STORAGE_CLASS = '${FILES_REST_DEFAULT_STORAGE_CLASS}'
+
+# S3 endpoint and credentials
+S3_ENDPOINT_URL = "${S3_ENDPOINT_URL}"
+S3_ACCESS_KEY_ID = "${S3_ACCESS_KEY_ID}"
+S3_SECRET_ACCESS_KEY = "${S3_SECRET_ACCESS_KEY}"
+
+# S3 bucket configuration
+S3_BUCKET_NAME = "${S3_BUCKET_NAME}"
+
+# Storage factory (use S3 when configured, otherwise default local storage)
+if "${FILES_REST_STORAGE_FACTORY}":
+    FILES_REST_STORAGE_FACTORY = '${FILES_REST_STORAGE_FACTORY}'
+
+# Additional S3 settings
+S3_REGION_NAME = "${S3_REGION_NAME}"
+S3_SIGNATURE_VERSION = 's3v4'
 
 
 # Invenio-App
@@ -86,13 +114,13 @@ APP_DEFAULT_SECURE_HEADERS = {
     'content_security_policy_report_only': False,
     'content_security_policy_report_uri': None,
     'force_file_save': False,
-    'force_https': True,
+    'force_https': ${FORCE_HTTPS},
     'force_https_permanent': False,
     'frame_options': 'sameorigin',
     'frame_options_allow_from': None,
     'session_cookie_http_only': True,
-    'session_cookie_secure': True,
-    'strict_transport_security': True,
+    'session_cookie_secure': ${SESSION_COOKIE_SECURE},
+    'strict_transport_security': ${STRICT_TRANSPORT_SECURITY},
     'strict_transport_security_include_subdomains': True,
     'strict_transport_security_max_age': 31556926,  # One year in seconds
     'strict_transport_security_preload': False,
@@ -214,16 +242,16 @@ USERPROFILES_READ_ONLY = False  # allow users to change profile info (name, emai
 # =======
 # See https://github.com/inveniosoftware/invenio-oaiserver/blob/master/invenio_oaiserver/config.py
 
-OAISERVER_ID_PREFIX = "my-site.com"
+OAISERVER_ID_PREFIX = "${OAISERVER_ID_PREFIX}"
 """The prefix that will be applied to the generated OAI-PMH ids."""
 OAISERVER_ADMIN_EMAILS = [
-    "info@my-site.com",
+    "${OAISERVER_ADMIN_EMAIL}",
 ]
 
 # Invenio-Search
 # --------------
 
-SEARCH_INDEX_PREFIX = "my-site-"
+SEARCH_INDEX_PREFIX = "${SEARCH_INDEX_PREFIX}"
 
 # Invenio-Administration
 # ----------------------

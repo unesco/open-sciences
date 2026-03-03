@@ -38,10 +38,12 @@ def create_blueprint(app):
         CMSPublicRenderAPIView,
         CMSSingletonUpsertAPIView,
         CMSUploadAPIView,
+        CMSServeUploadedFileView,
     )
-    
+
     # Register custom error handlers
     from .error_handlers import register_error_handlers, configure_timeout_settings
+
     register_error_handlers(app)
     configure_timeout_settings(app)
 
@@ -200,6 +202,17 @@ def create_blueprint(app):
     blueprint.add_url_rule(
         f"{API_PREFIX}/cms/public/<string:resource_type>",
         view_func=CMSPublicRenderAPIView.as_view("cms_public_render_api"),
+        methods=["GET"],
+    )
+
+    # ========================================
+    # Serve Uploaded Files
+    # ========================================
+
+    # Serve uploaded CMS files (images, etc.)
+    blueprint.add_url_rule(
+        "/uploads/<path:filepath>",
+        view_func=CMSServeUploadedFileView.as_view("cms_serve_uploaded_file"),
         methods=["GET"],
     )
 

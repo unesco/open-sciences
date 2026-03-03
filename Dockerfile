@@ -37,9 +37,9 @@ COPY Pipfile Pipfile.lock ./
 RUN pipenv install --deploy --system
 
 COPY ./docker/uwsgi/ ${INVENIO_INSTANCE_PATH}
-# Copy invenio.cfg.example as invenio.cfg (template with default values for build)
-# In production, this will be replaced by server-specific invenio.cfg via volume mount
-COPY ./invenio.cfg.example ${INVENIO_INSTANCE_PATH}/invenio.cfg
+# Copy environment-specific invenio.cfg (generated from invenio.cfg.template by 'make render-config')
+# This file contains all S3, database, and app configuration for the target environment
+COPY ./invenio.cfg ${INVENIO_INSTANCE_PATH}/invenio.cfg
 COPY ./templates/ ${INVENIO_INSTANCE_PATH}/templates/
 COPY ./app_data/ ${INVENIO_INSTANCE_PATH}/app_data/
 COPY ./translations/ ${INVENIO_INSTANCE_PATH}/translations/

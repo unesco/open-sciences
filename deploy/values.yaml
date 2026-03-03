@@ -1,0 +1,185 @@
+# ==============================================================================
+# UNESCO Open Science Portal - Helm Values
+# ==============================================================================
+# Template values for deploying InvenioRDM via the official Helm chart:
+#   https://github.com/inveniosoftware/helm-invenio
+#
+# Variables like ${DOMAIN}, ${SITE_PROTOCOL} are substituted by envsubst
+# at deploy time (see: make deploy-helm).  Values come from:
+#   deploy/.env.<ENV>     (committed, per-environment)
+#   deploy/.env.secrets   (generated, gitignored)
+# ==============================================================================
+
+global:
+  timezone: Europe/Paris
+
+# ------------------------------------------------------------------------------
+# InvenioRDM Application Settings
+# ------------------------------------------------------------------------------
+invenio:
+  # Will be overridden by .env DOMAIN
+  hostname: "${DOMAIN}"
+  init: true
+  demo_data: false
+
+  # Extra environment variables injected into all InvenioRDM pods
+  extraConfig:
+    INVENIO_SITE_UI_URL: "${SITE_PROTOCOL}://${DOMAIN}"
+    INVENIO_SITE_API_URL: "${SITE_PROTOCOL}://${DOMAIN}/api"
+    INVENIO_REQUIRE_HTTPS: "${INVENIO_REQUIRE_HTTPS}"
+    INVENIO_APP_ENABLE_SECURE_HEADERS: "${APP_ENABLE_SECURE_HEADERS}"
+    SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE}"
+    PERMANENT_SESSION_LIFETIME: "31536000" # 1 year
+    S3_ENDPOINT_URL: "${S3_ENDPOINT_URL}"
+    S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID}"
+    S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+    S3_REGION_NAME: "${S3_REGION_NAME}"
+
+  # Secret key and login salt are injected via Kubernetes Secret
+  # (created by Makefile from .env values)
+  existingSecret: "unesco-rdm-secrets"
+
+# ------------------------------------------------------------------------------
+# Docker Image
+# ------------------------------------------------------------------------------
+image:
+  # Registry is set per-environment:
+  #   local: docker.io/library    staging/prod: your actual registry
+  registry: "${IMAGE_REGISTRY}"
+  repository: "sc-openscience"
+  tag: "latest"
+  pullPolicy: ${IMAGE_PULL_POLICY}
+
+# Optional: reference a pre-existing imagePullSecret
+# imagePullSecrets:
+#   - name: registry-credentials
+
+# ------------------------------------------------------------------------------
+# Web (UI + API served via Nginx + uWSGI)
+# ------------------------------------------------------------------------------
+web:
+  replicas: ${WEB_REPLICAS}
+  resources:
+    requests:
+      memory: "${WEB_MEMORY_REQUEST}"
+      cpu: "${WEB_CPU_REQUEST}"
+    limits:
+      memory: "${WEB_MEMORY_LIMIT}"
+      cpu: "${WEB_CPU_LIMIT}"
+
+  uwsgi:
+    processes: ${UWSGI_PROCESSES}
+    threads: ${UWSGI_THREADS}
+
+  # Probes: disabled for local (uWSGI too slow to respond under resource constraints).
+  # For production, re-enable with appropriate timeouts.
+  # See k8s/values.yaml for the same approach used with Kind.
+  startupProbe: null
+  readinessProbe: null
+  livenessProbe: null
+
+# ------------------------------------------------------------------------------
+# Workers (Celery)
+# ------------------------------------------------------------------------------
+worker:
+  enabled: true
+  replicas: ${WORKER_REPLICAS}
+  app: "invenio_app.celery"
+  concurrency: 1
+  resources:
+    requests:
+      memory: "${WORKER_MEMORY_REQUEST}"
+      cpu: "${WORKER_CPU_REQUEST}"
+    limits:
+      memory: "${WORKER_MEMORY_LIMIT}"
+      cpu: "${WORKER_CPU_LIMIT}"
+
+  livenessProbe: null
+  readinessProbe: null
+
+# ------------------------------------------------------------------------------
+# Worker Beat (Celery Beat Scheduler)
+# ------------------------------------------------------------------------------
+workerBeat:
+  enabled: true
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "250m"
+  livenessProbe: null
+
+# Flower monitoring - disabled by default
+flower:
+  enabled: false
+
+# ------------------------------------------------------------------------------
+# External Services (managed outside Helm chart)
+# ------------------------------------------------------------------------------
+
+# Redis - external (deployed in external-services.yaml)
+redis:
+  enabled: false
+redisExternal:
+  hostname: "redis"
+
+# RabbitMQ - external
+rabbitmq:
+  enabled: false
+rabbitmqExternal:
+  username: "${RABBITMQ_USER}"
+  password: "${RABBITMQ_PASSWORD}"
+  hostname: "rabbitmq"
+  amqpPort: 5672
+  managementPort: 15672
+  protocol: "amqp"
+  vhost: "/"
+
+# PostgreSQL - external
+postgresql:
+  enabled: false
+postgresqlExternal:
+  hostname: "postgresql"
+  port: 5432
+  username: "${POSTGRES_USER}"
+  password: "${POSTGRES_PASSWORD}"
+  database: "${POSTGRES_DB}"
+
+# OpenSearch - external
+opensearch:
+  enabled: false
+opensearchExternal:
+  hostname: "opensearch"
+
+# ------------------------------------------------------------------------------
+# Nginx (sidecar in web pod)
+# ------------------------------------------------------------------------------
+nginx:
+  image: "nginx:1.25-alpine"
+
+# ------------------------------------------------------------------------------
+# Ingress (k3s uses Traefik by default)
+# TLS annotations and tls: block are added via --set flags in Makefile
+# when INGRESS_TLS_ENABLED=true (staging/production).
+# ------------------------------------------------------------------------------
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: ${INGRESS_ENTRYPOINT}
+  hosts:
+    - host: "${DOMAIN}"
+      paths:
+        - path: /
+          pathType: Prefix
+
+# ------------------------------------------------------------------------------
+# Persistence (file storage for uploads)
+# ------------------------------------------------------------------------------
+persistence:
+  enabled: true
+  size: 50Gi
+  storage_class: local-path
+  access_mode: ReadWriteOnce

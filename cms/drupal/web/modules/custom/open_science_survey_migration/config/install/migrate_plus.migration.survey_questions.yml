@@ -1,6 +1,9 @@
 id: survey_questions
 label: 'Survey Questions'
 migration_group: open_science_survey
+migration_dependencies:
+  required:
+    - survey_sections
 source:
   plugin: csv
   path: 'modules/custom/open_science_survey_migration/data/survey_questions.csv'
@@ -21,3 +24,11 @@ process:
   field_question_short_name: question_short_name
   field_question_description: question_description
   field_question_long_description: question_long_description
+  field_section:
+    plugin: entity_lookup
+    source: section_number
+    entity_type: taxonomy_term
+    value_key: field_section_id
+    bundle_key: vid
+    bundle: survey_section
+    ignore_case: true

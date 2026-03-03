@@ -12,6 +12,7 @@ from .cms import (
     CMSRenderAPIView,
     CMSResourceDefinitionAPIView,
     CMSResourcesAPIView,
+    CMSServeUploadedFileView,
     CMSSingletonUpsertAPIView,
     CMSUploadAPIView,
 )
@@ -42,4 +43,5 @@ __all__ = [
     "CMSPublicRenderAPIView",
     "CMSSingletonUpsertAPIView",
     "CMSUploadAPIView",
+    "CMSServeUploadedFileView",
 ]

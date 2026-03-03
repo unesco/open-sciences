@@ -1,0 +1,134 @@
+# ==============================================================================
+# UNESCO Open Science Portal - Backup CronJob
+# ==============================================================================
+# Automated backup CronJob for staging/production environments.
+# For local development, use: make backup ENV=local
+#
+# This template is processed by envsubst (see Makefile).
+#
+# Deploy:
+#   make deploy-backup-cronjob ENV=staging
+#
+# Variables from .env.<ENV>:
+#   - NAMESPACE
+#   - BACKUP_SCHEDULE
+#   - BACKUP_RETENTION_COUNT
+#   - BACKUP_RETENTION_DAYS
+#   - BACKUP_STORAGE_SIZE
+#
+# Note: ConfigMap 'backup-scripts' is created from scripts/*.sh files
+#       by the Makefile, not defined inline here.
+# ==============================================================================
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-cronjob
+  namespace: ${NAMESPACE}
+spec:
+  schedule: "${BACKUP_SCHEDULE}"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-sa
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  # Run backup
+                  /bin/bash /scripts/backup.sh
+
+                  # Run retention cleanup
+                  /bin/bash /scripts/retention.sh
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: backup-storage
+                  mountPath: /backups
+              env:
+                - name: NAMESPACE
+                  value: "${NAMESPACE}"
+                - name: BACKUP_PATH
+                  value: /backups
+                - name: BACKUP_RETENTION_COUNT
+                  value: "${BACKUP_RETENTION_COUNT}"
+                - name: BACKUP_RETENTION_DAYS
+                  value: "${BACKUP_RETENTION_DAYS}"
+          volumes:
+            - name: scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755
+            # BACKUP_STORAGE_START
+            - name: backup-storage
+              # LOCAL: hostPath (comment out for staging/prod)
+              hostPath:
+                path: /backups
+                type: DirectoryOrCreate
+              # STAGING/PROD: PVC (uncomment and comment hostPath above)
+              # persistentVolumeClaim:
+              #   claimName: backup-pvc
+            # BACKUP_STORAGE_END
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-sa
+  namespace: ${NAMESPACE}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-role
+  namespace: ${NAMESPACE}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/exec"]
+    verbs: ["get", "list", "create"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-rolebinding
+  namespace: ${NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: backup-sa
+    namespace: ${NAMESPACE}
+roleRef:
+  kind: Role
+  name: backup-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Backup storage PVC (adjust for your environment)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: ${NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path # Change for staging/prod (e.g., nfs-client)
+  resources:
+    requests:
+      storage: ${BACKUP_STORAGE_SIZE}
