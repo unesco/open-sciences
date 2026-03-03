@@ -74,7 +74,7 @@ def create_blueprint(app):
 
     # Open Science dashboards page
     blueprint.add_url_rule(
-        "/dashboard",
+        "/dashboards",
         view_func=DashboardView.as_view("dashboard"),
         methods=["GET"],
     )

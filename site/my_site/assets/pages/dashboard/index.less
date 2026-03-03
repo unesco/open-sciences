@@ -906,3 +906,137 @@
   color: #333;
   line-height: 1.5;
 }
+
+/* ── Info icon + hover tooltip (desktop) / modal (mobile) ──────────────── */
+.info-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.donut-info-icon {
+  font-style: normal;
+  color: #888;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+  line-height: 1;
+
+  &:hover {
+    color: #0073b7;
+  }
+}
+
+/* Desktop hover tooltip — appears above the icon on hover */
+.info-hover-tooltip {
+  display: none; /* shown via hover below */
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  background: #1a2a3a;
+  color: #fff;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+  white-space: normal;
+  z-index: 200;
+
+  /* Arrow pointing down */
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 10px;
+    border: 6px solid transparent;
+    border-top-color: #1a2a3a;
+  }
+}
+
+/* Show tooltip on hover — only on devices that support hover (desktop) */
+@media (hover: hover) {
+  .info-icon-wrap:hover .info-hover-tooltip,
+  .info-icon-wrap:focus-within .info-hover-tooltip {
+    display: block;
+  }
+}
+
+/* On touch/mobile devices hide the hover tooltip (modal is used instead) */
+@media (hover: none) {
+  .info-hover-tooltip {
+    display: none !important;
+  }
+}
+
+/* ── Info modal ─────────────────────────────────────────────────────────── */
+.donut-info-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.donut-info-modal {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  animation: donut-modal-in 0.18s ease;
+}
+
+@keyframes donut-modal-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);    }
+}
+
+.donut-info-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #e8edf2;
+  background: #f4f7fb;
+}
+
+.donut-info-modal-title {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1a2a3a;
+  line-height: 1.4;
+}
+
+.donut-info-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover { color: #111; }
+}
+
+.donut-info-modal-body {
+  padding: 16px;
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.6;
+  }
+}

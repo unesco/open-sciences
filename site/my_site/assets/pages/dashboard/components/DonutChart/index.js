@@ -3,13 +3,30 @@
  * Renders a Chart.js doughnut chart for survey response data
  */
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { loadScript } from "../utils";
 
-export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown }) => {
+export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, description }) => {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
+  const [showInfo, setShowInfo] = useState(false);
+
+  // Mobile modal: close on Escape
+  useEffect(() => {
+    if (!showInfo) return;
+    const onKey = (e) => e.key === "Escape" && setShowInfo(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showInfo]);
+
+  // Only open the portal modal on touch/no-hover devices (mobile)
+  const handleIconClick = () => {
+    if (window.matchMedia("(hover: none)").matches) {
+      setShowInfo((v) => !v);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -67,8 +84,57 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown }) => {
     <div className="donut-card">
       <div className="donut-card-title">
         {chartData.label}
-        <span className="donut-info-icon" title="Survey question">ⓘ</span>
+        {description && (
+          <span className="info-icon-wrap">
+            <span
+              className="donut-info-icon"
+              role="button"
+              tabIndex={0}
+              aria-label="Show question description"
+              onClick={handleIconClick}
+              onKeyDown={(e) => e.key === "Enter" && setShowInfo((v) => !v)}
+            >
+              ⓘ
+            </span>
+            {/* Desktop: pure-CSS hover tooltip, hidden on mobile via media query */}
+            <span className="info-hover-tooltip" role="tooltip">
+              {description}
+            </span>
+          </span>
+        )}
       </div>
+      {/* Mobile: portal modal (only rendered when showInfo is true on touch devices) */}
+      {showInfo && description && createPortal(
+        <div
+          className="donut-info-modal-backdrop"
+          role="presentation"
+          onClick={(e) => e.target === e.currentTarget && setShowInfo(false)}
+          onKeyDown={(e) => e.key === "Escape" && setShowInfo(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={chartData.label}
+            className="donut-info-modal"
+          >
+            <div className="donut-info-modal-header">
+              <span className="donut-info-modal-title">{chartData.label}</span>
+              <button
+                type="button"
+                className="donut-info-modal-close"
+                aria-label="Close"
+                onClick={() => setShowInfo(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="donut-info-modal-body">
+              <p>{description}</p>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
       <div className="donut-chart-area">
         <div className="donut-label donut-label-no">
           <span className="donut-label-dot donut-label-dot-grey" />
@@ -106,4 +172,5 @@ DonutChart.propTypes = {
   }).isRequired,
   showPerRegion: PropTypes.bool,
   onViewBreakdown: PropTypes.func,
+  description: PropTypes.string,
 };

@@ -3,47 +3,10 @@
  * Tab 2: Topic list + donut charts with country breakdown drawer
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { DonutChart } from "../DonutChart";
 import { CountryBreakdownModal } from "../CountryBreakdownModal";
-
-// ─── Constants ─────────────────────────────────────────────────────────────
-
-const COMPARISON_TOPICS = [
-  { id: "t1", label: "Promoting a common understanding of open science, associated benefits, and challenges, as well as diverse paths to open science" },
-  { id: "t2", label: "Developing an enabling policy environment for open science" },
-  { id: "t3", label: "Investing in open science infrastructures and services" },
-  { id: "t4", label: "Investing in human resources, training, education, digital literacy and capacity building for open science" },
-  { id: "t5", label: "Fostering a culture of open science and aligning incentives for open science" },
-  { id: "t6", label: "Promoting innovative approaches for open science at different stages" },
-];
-
-const TOPIC_CHART_DATA = {
-  t1: [
-    { label: "UNESCO Recommendation on Open Science formally promoted", yes: 55, no: 26, total: 81 },
-    { label: "Awareness-raising activities on open science",            yes: 55, no: 26, total: 81 },
-  ],
-  t2: [
-    { label: "National open science policy adopted",  yes: 42, no: 39, total: 81 },
-    { label: "Open science action plan in place",     yes: 38, no: 43, total: 81 },
-  ],
-  t3: [
-    { label: "National open access repository operational", yes: 50, no: 31, total: 81 },
-    { label: "Open data infrastructure investment",         yes: 45, no: 36, total: 81 },
-  ],
-  t4: [
-    { label: "Open science training programmes available", yes: 47, no: 34, total: 81 },
-    { label: "Digital literacy initiatives funded",        yes: 39, no: 42, total: 81 },
-  ],
-  t5: [
-    { label: "Incentives for open publishing",   yes: 33, no: 48, total: 81 },
-    { label: "Open science culture promoted",    yes: 52, no: 29, total: 81 },
-  ],
-  t6: [
-    { label: "Citizen science initiatives",   yes: 29, no: 52, total: 81 },
-    { label: "Open innovation frameworks",    yes: 36, no: 45, total: 81 },
-  ],
-};
+import { fetchSurveySections, fetchSurveyQuestions } from "../../api";
 
 // ─── MedalIcon sub-component ───────────────────────────────────────────────
 
@@ -67,10 +30,41 @@ const MedalIcon = () => (
 // ─── Comparison component ──────────────────────────────────────────────────
 
 export const Comparison = () => {
-  const [selectedTopic, setSelectedTopic] = useState("t1");
+  const [topics, setTopics] = useState([]);
+  const [topicsLoading, setTopicsLoading] = useState(true);
+  const [topicsError, setTopicsError] = useState(null);
+
+  const [allQuestions, setAllQuestions] = useState([]);
+  const [questionsLoading, setQuestionsLoading] = useState(true);
+  const [questionsError, setQuestionsError] = useState(null);
+
+  const [selectedTopic, setSelectedTopic] = useState(null);
   const [showPerRegion, setShowPerRegion] = useState(false);
   const [activeBreakdown, setActiveBreakdown] = useState(null);
-  const charts = TOPIC_CHART_DATA[selectedTopic] || [];
+
+  // Closed questions whose section matches the selected topic's numeric ID
+  const filteredQuestions = allQuestions.filter(
+    (q) => q.type === "Closed" && q.section === selectedTopic
+  );
+
+  useEffect(() => {
+    // Fetch sections and questions in parallel
+    Promise.all([fetchSurveySections(), fetchSurveyQuestions()])
+      .then(([sections, questions]) => {
+        setTopics(sections);
+        if (sections.length > 0) setSelectedTopic(sections[0].id);
+        setAllQuestions(questions);
+      })
+      .catch((err) => {
+        console.error("Failed to load comparison data:", err);
+        setTopicsError(err.message);
+        setQuestionsError(err.message);
+      })
+      .finally(() => {
+        setTopicsLoading(false);
+        setQuestionsLoading(false);
+      });
+  }, []);
 
   const openBreakdown = useCallback((key, label) => {
     setActiveBreakdown({ key, label });
@@ -90,7 +84,19 @@ export const Comparison = () => {
       <div className="comparison-main">
         {/* Topic list */}
         <div className="topic-list">
-          {COMPARISON_TOPICS.map((t) => (
+          {topicsLoading && (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="topic-card topic-card--skeleton">
+                <span className="topic-icon skeleton-icon" />
+                <span className="topic-label skeleton-text" />
+                <span className="topic-radio" />
+              </div>
+            ))
+          )}
+          {topicsError && (
+            <div className="topic-list-error">Failed to load topics: {topicsError}</div>
+          )}
+          {!topicsLoading && !topicsError && topics.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -100,7 +106,7 @@ export const Comparison = () => {
               <span className="topic-icon">
                 <MedalIcon />
               </span>
-              <span className="topic-label">{t.label}</span>
+              <span className="topic-label">{t.title}</span>
               <span className={`topic-radio ${selectedTopic === t.id ? "checked" : ""}`} />
             </button>
           ))}
@@ -125,19 +131,29 @@ export const Comparison = () => {
             <span className="toggle-label">Show per region</span>
           </div>
           <div className="donut-grid">
-            {charts.map((c, i) => {
+            {questionsLoading && (
+              Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="donut-chart-skeleton" />
+              ))
+            )}
+            {questionsError && (
+              <div className="questions-error">Failed to load questions: {questionsError}</div>
+            )}
+            {!questionsLoading && !questionsError && filteredQuestions.map((q, i) => {
               const breakdownKey = `${selectedTopic}-${i}`;
               return (
                 <DonutChart
-                  key={`${selectedTopic}-${i}`}
-                  chartData={c}
-                  showPerRegion={showPerRegion}
-                  onViewBreakdown={
-                    !showPerRegion ? () => openBreakdown(breakdownKey, c.label) : null
+                  key={`${selectedTopic}-${q.number}`}
+                  chartData={{ label: `${q.number}. ${q.short_name ?? q.text}`, yes: 0, no: 0, total: 0 }}
+                  showPerRegion={showPerRegion}                  description={q.long_description || q.description || undefined}                  onViewBreakdown={
+                    !showPerRegion ? () => openBreakdown(breakdownKey, q.short_name) : null
                   }
                 />
               );
             })}
+            {!questionsLoading && !questionsError && filteredQuestions.length === 0 && (
+              <p className="no-questions">No closed questions for this section.</p>
+            )}
           </div>
           <p className="donut-footnote">*One response = one Member State</p>
         </div>
