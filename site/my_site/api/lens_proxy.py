@@ -1,8 +1,20 @@
 """Lens.org Proxy API for downloading references and citations."""
 
+import os
 import requests
 from flask import Response, request
 from flask.views import MethodView
+
+# Outbound requests to Lens.org must go through the UNESCO proxy.
+# Read from env vars (HTTP_PROXY / HTTPS_PROXY) with fallback to the known proxy.
+_PROXY_URL = (
+    os.environ.get("HTTPS_PROXY")
+    or os.environ.get("https_proxy")
+    or os.environ.get("HTTP_PROXY")
+    or os.environ.get("http_proxy")
+    or "http://proxy.unesco.org:8080"
+)
+_PROXIES = {"http": _PROXY_URL, "https": _PROXY_URL}
 
 
 class LensExportProxyAPIView(MethodView):
@@ -140,7 +152,7 @@ class LensExportProxyAPIView(MethodView):
         }
 
         try:
-            # Make the request to Lens.org
+            # Make the request to Lens.org via proxy
             response = requests.post(
                 url,
                 json=payload,
@@ -149,6 +161,7 @@ class LensExportProxyAPIView(MethodView):
                     "Accept": "*/*",
                     "User-Agent": "Mozilla/5.0 (compatible; UNESCO-OpenScience/1.0)",
                 },
+                proxies=_PROXIES,
                 timeout=180,
                 stream=True,  # Stream large responses
             )
