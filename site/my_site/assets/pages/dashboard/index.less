@@ -508,6 +508,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+  align-items: stretch;
 
   @media (max-width: 700px) { grid-template-columns: 1fr; }
 }
@@ -520,6 +521,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 100%;
+  box-sizing: border-box;
   /* allow Yes/No labels to overflow the card edges slightly */
   overflow: visible;
 }
@@ -597,12 +600,12 @@
   gap: 6px;
   background: #fff;
   border: 1px solid #cde4f5;
-  border-radius: 20px;
+  border-radius: 12px;
   padding: 5px 11px;
-  white-space: nowrap;
+  white-space: normal;
   box-shadow: 0 2px 6px rgba(0, 50, 100, 0.13);
   pointer-events: auto;
-  max-width: 160px;
+  max-width: 150px;
   cursor: default;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 
@@ -618,15 +621,18 @@
   height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
+  margin-top: 0;
+  align-self: flex-start;
+  margin-top: 4px;
 }
 
 .donut-float-text {
   font-size: 0.82rem;
   font-weight: 600;
   color: #222;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
 }
 
 /* Legacy selectors — keep hidden */
@@ -698,6 +704,7 @@
   font-weight: 500;
   cursor: pointer;
   text-align: center;
+  margin-top: auto;
   transition: border-color 0.15s, color 0.15s;
 
   &:hover {

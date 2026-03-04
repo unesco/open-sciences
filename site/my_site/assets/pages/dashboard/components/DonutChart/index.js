@@ -28,6 +28,21 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
   const [showInfo, setShowInfo] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
+  // Dim non-hovered segments, pop the hovered one
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const dataset = chartRef.current.data.datasets[0];
+    const len = dataset.data.length;
+    dataset.backgroundColor = Array.from({ length: len }, (_, i) => {
+      if (hoveredIndex === null) return getAnswerColor(i);
+      return i === hoveredIndex ? getAnswerColor(i) : `${getAnswerColor(i)}4d`;
+    });
+    dataset.hoverOffset = Array.from({ length: len }, (_, i) =>
+      i === hoveredIndex ? 10 : 0
+    );
+    chartRef.current.update("none");
+  }, [hoveredIndex]);
+
   // Mobile modal: close on Escape
   useEffect(() => {
     if (!showInfo) return;
@@ -42,23 +57,6 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
       setShowInfo((v) => !v);
     }
   };
-
-  // Dim non-hovered segments, brighten hovered one
-  useEffect(() => {
-    if (!chartRef.current) return;
-    const dataset = chartRef.current.data.datasets[0];
-    const len = dataset.data.length;
-    dataset.backgroundColor = Array.from({ length: len }, (_, i) => {
-      if (hoveredIndex === null) return getAnswerColor(i);
-      // hovered segment: full color + slightly larger offset
-      // others: 30% opacity (append "4d" to hex)
-      return i === hoveredIndex ? getAnswerColor(i) : `${getAnswerColor(i)}4d`;
-    });
-    dataset.hoverOffset = Array.from({ length: len }, (_, i) =>
-      i === hoveredIndex ? 10 : 0
-    );
-    chartRef.current.update("none");
-  }, [hoveredIndex]);
 
   useEffect(() => {
     let mounted = true;
@@ -183,7 +181,7 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
             const CX = 190;
             const CY = 150;
             const R  = 82; // ring outer radius — labels anchor right at the ring edge
-            const LABEL_H = 30;  // approximate pill height in px
+            const LABEL_H = 46;  // approximate pill height when text wraps to 2 lines
             const MIN_GAP = 6;   // minimum vertical gap between pills
 
             // ── Step 1: compute ideal mid-angle position for each entry ──
