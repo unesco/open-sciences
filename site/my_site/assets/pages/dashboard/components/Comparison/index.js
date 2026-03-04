@@ -6,7 +6,33 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { DonutChart } from "../DonutChart";
 import { CountryBreakdownModal } from "../CountryBreakdownModal";
-import { fetchSurveySections, fetchSurveyQuestions } from "../../api";
+import { fetchSurveySections, fetchSurveyQuestions, fetchSurveyResponsesByQuestion } from "../../api";
+
+/**
+ * Build a lookup map: question_number → { answers: { [answerName]: count }, total }
+ * Only counts rows with question_type === "Closed".
+ * All distinct answer_closed_name values are tallied dynamically.
+ */
+function buildResponsesMap(responses) {
+  const map = {};
+  responses.forEach((r) => {
+    // Only closed questions are fetched, but guard defensively
+    if (r.question_type && r.question_type !== "Closed") return;
+    const num = r.question_number;
+    if (!map[num]) map[num] = { answers: {}, countries: {}, total: 0 };
+    const answer = (r.answer_closed_name && r.answer_closed_name.trim()) ? r.answer_closed_name.trim() : "No answer";
+    map[num].answers[answer] = (map[num].answers[answer] || 0) + 1;
+    if (r.country_name) {
+      if (!map[num].countries[answer]) map[num].countries[answer] = [];
+      // avoid duplicates if a country submitted multiple times
+      if (!map[num].countries[answer].includes(r.country_name)) {
+        map[num].countries[answer].push(r.country_name);
+      }
+    }
+    map[num].total += 1;
+  });
+  return map;
+}
 
 // ─── MedalIcon sub-component ───────────────────────────────────────────────
 
@@ -38,25 +64,30 @@ export const Comparison = () => {
   const [questionsLoading, setQuestionsLoading] = useState(true);
   const [questionsError, setQuestionsError] = useState(null);
 
+  const [responsesMap, setResponsesMap] = useState({});
+  const [responsesLoading, setResponsesLoading] = useState(false);
+
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [showPerRegion, setShowPerRegion] = useState(false);
   const [activeBreakdown, setActiveBreakdown] = useState(null);
 
-  // Closed questions whose section matches the selected topic's numeric ID
+  // Closed questions whose section matches the selected topic.
+  // Stringify both sides so numeric IDs from one API and string IDs from
+  // another still match (e.g. section.id === 1 vs question.section === "1").
   const filteredQuestions = allQuestions.filter(
-    (q) => q.type === "Closed" && q.section === selectedTopic
+    (q) => q.type === "Closed" && String(q.section) === String(selectedTopic)
   );
 
+  // On mount: load sections and questions (fast, small payloads)
   useEffect(() => {
-    // Fetch sections and questions in parallel
     Promise.all([fetchSurveySections(), fetchSurveyQuestions()])
       .then(([sections, questions]) => {
         setTopics(sections);
-        if (sections.length > 0) setSelectedTopic(sections[0].id);
         setAllQuestions(questions);
+        if (sections.length > 0) setSelectedTopic(sections[0].id);
       })
       .catch((err) => {
-        console.error("Failed to load comparison data:", err);
+        console.error("Failed to load sections/questions:", err);
         setTopicsError(err.message);
         setQuestionsError(err.message);
       })
@@ -66,8 +97,34 @@ export const Comparison = () => {
       });
   }, []);
 
-  const openBreakdown = useCallback((key, label) => {
-    setActiveBreakdown({ key, label });
+  // When selected section changes: fire one API call per question number in
+  // parallel, then merge all results into a single responses map.
+  useEffect(() => {
+    if (!selectedTopic || allQuestions.length === 0) return;
+
+    const questionNumbers = allQuestions
+      .filter((q) => q.type === "Closed" && String(q.section) === String(selectedTopic))
+      .map((q) => q.number)
+      .filter(Boolean);
+
+    if (questionNumbers.length === 0) return;
+
+    setResponsesLoading(true);
+    setResponsesMap({});
+
+    // One request per question number, all in parallel
+    Promise.all(questionNumbers.map((num) => fetchSurveyResponsesByQuestion(num)))
+      .then((results) => {
+        // Flatten all per-question arrays into one and build the map
+        const allResponses = results.flat();
+        setResponsesMap(buildResponsesMap(allResponses));
+      })
+      .catch((err) => console.error("Failed to load responses:", err))
+      .finally(() => setResponsesLoading(false));
+  }, [selectedTopic, allQuestions]);
+
+  const openBreakdown = useCallback((key, label, countries) => {
+    setActiveBreakdown({ key, label, countries });
   }, []);
 
   const closeBreakdown = useCallback(() => setActiveBreakdown(null), []);
@@ -131,7 +188,7 @@ export const Comparison = () => {
             <span className="toggle-label">Show per region</span>
           </div>
           <div className="donut-grid">
-            {questionsLoading && (
+            {(questionsLoading || responsesLoading) && (
               Array.from({ length: 2 }).map((_, i) => (
                 <div key={i} className="donut-chart-skeleton" />
               ))
@@ -139,19 +196,28 @@ export const Comparison = () => {
             {questionsError && (
               <div className="questions-error">Failed to load questions: {questionsError}</div>
             )}
-            {!questionsLoading && !questionsError && filteredQuestions.map((q, i) => {
+            {!questionsLoading && !responsesLoading && !questionsError && filteredQuestions.map((q, i) => {
+              const stats = responsesMap[q.number] || { answers: {}, countries: {}, total: 0 };
               const breakdownKey = `${selectedTopic}-${i}`;
               return (
                 <DonutChart
                   key={`${selectedTopic}-${q.number}`}
-                  chartData={{ label: `${q.number}. ${q.short_name ?? q.text}`, yes: 0, no: 0, total: 0 }}
-                  showPerRegion={showPerRegion}                  description={q.long_description || q.description || undefined}                  onViewBreakdown={
-                    !showPerRegion ? () => openBreakdown(breakdownKey, q.short_name) : null
+                  chartData={{
+                    label: `${q.number}. ${q.short_name || q.text}`,
+                    answers: stats.answers,
+                    total: stats.total,
+                  }}
+                  showPerRegion={showPerRegion}
+                  description={q.long_description || q.description || undefined}
+                  onViewBreakdown={
+                    !showPerRegion
+                      ? () => openBreakdown(breakdownKey, q.short_name || q.text, stats.countries)
+                      : null
                   }
                 />
               );
             })}
-            {!questionsLoading && !questionsError && filteredQuestions.length === 0 && (
+            {!questionsLoading && !responsesLoading && !questionsError && filteredQuestions.length === 0 && (
               <p className="no-questions">No closed questions for this section.</p>
             )}
           </div>
@@ -163,7 +229,7 @@ export const Comparison = () => {
       {activeBreakdown && (
         <CountryBreakdownModal
           chartLabel={activeBreakdown.label}
-          breakdownKey={activeBreakdown.key}
+          countriesByAnswer={activeBreakdown.countries || {}}
           onClose={closeBreakdown}
         />
       )}

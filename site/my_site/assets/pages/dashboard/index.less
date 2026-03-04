@@ -548,65 +548,32 @@
   gap: 14px;
 }
 
-/* New chart area: canvas centred, labels float as callouts */
+/* Chart area — centred, no flex side-by-side */
 .donut-chart-area {
-  position: relative;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 28px 0;
-  min-height: 226px;
+  padding: 16px 0 8px;
 }
 
-/* Floating label badge (No / Yes) — always visible */
-.donut-label {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #333;
-  background: #fff;
-  border: 1px solid #d8d8d8;
-  border-radius: 4px;
-  padding: 4px 10px;
-  white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  z-index: 2;
-  pointer-events: none;
-}
-
-/*
- * Position both labels relative to the canvas centre (50%).
- * The canvas is 170px wide → outer arc radius ≈ 85px from centre.
- * Setting left/right to calc(50% - 145px) places each label so its
- * inner edge sits ~60px past the arc edge — visually overlapping the arc.
- */
-.donut-label-no  { top: 28px;    left:  calc(50% - 155px); }
-.donut-label-yes { bottom: 28px; right: calc(50% - 155px); }
-
-/* Coloured dot inside each label */
-.donut-label-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-
-  &.donut-label-dot-grey { background: #555; }
-  &.donut-label-dot-blue { background: #0073b7; }
-}
-
-.donut-canvas-wrap {
+/* Floating-label wrapper — labels orbit inside this box */
+.donut-float-wrap {
   position: relative;
-  /* z-index: 0 keeps canvas below the absolutely positioned labels */
-  z-index: 0;
-  width: 170px;
-  height: 170px;
+  width: 380px;   /* matches JS CX=190 × 2 */
+  height: 300px;  /* matches JS CY=150 × 2 */
   flex-shrink: 0;
+  overflow: visible; /* allow pills to extend slightly outside */
+}
 
-  canvas { width: 170px !important; height: 170px !important; }
+/* Canvas centred inside the wrapper */
+.donut-canvas-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+
+  canvas { width: 160px !important; height: 160px !important; }
 }
 
 .donut-center {
@@ -618,14 +585,57 @@
   justify-content: center;
   pointer-events: none;
 
-  .donut-total { font-size: 1.6rem; font-weight: 700; color: #111; line-height: 1; }
-  .donut-label-text { font-size: 0.72rem; color: #888; }
+  .donut-total      { font-size: 1.5rem; font-weight: 700; color: #111; line-height: 1; }
+  .donut-label-text { font-size: 0.7rem; color: #888; margin-top: 2px; }
 }
 
-/* Legacy legend (kept for safety, hidden visually) */
-.donut-legend { display: none; }
-.donut-legend-item { display: none; }
-.donut-dot { display: none; }
+/* Floating callout label — positioned by JS around the ring */
+.donut-float-label {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #cde4f5;
+  border-radius: 20px;
+  padding: 5px 11px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 50, 100, 0.13);
+  pointer-events: auto;
+  max-width: 160px;
+  cursor: default;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+
+  &--active {
+    border-color: #1a6fa8;
+    background: #f0f7ff;
+    box-shadow: 0 3px 10px rgba(0, 80, 160, 0.22);
+  }
+}
+
+.donut-float-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.donut-float-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Legacy selectors — keep hidden */
+.donut-legend        { display: none; }
+.donut-legend-item   { display: none; }
+.donut-dot           { display: none; }
+.donut-label         { display: none; }
+.donut-callout-legend { display: none; }
+.donut-callout-item  { display: none; }
 
 /* ── Challenges / Word cloud tab ────────────────────────── */
 .word-cloud-container {
@@ -857,6 +867,21 @@
   text-align: left;
 
   &:hover { text-decoration: underline; }
+}
+
+/* Empty state + total footer */
+.breakdown-no-data {
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+  padding: 24px 0;
+}
+
+.breakdown-total-note {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: right;
 }
 
 /* Sub-details block (infrastructure types etc.) */

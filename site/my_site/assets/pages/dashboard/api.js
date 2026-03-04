@@ -73,3 +73,21 @@ export async function fetchSurveySections() {
 export async function fetchSurveyQuestions() {
   return get("/api/survey-questions");
 }
+
+/**
+ * Fetch all survey responses (no filter, no pagination limit).
+ * Endpoint: GET /cms/api/search/survey-responses
+ */
+export async function fetchSurveyResponses() {
+  return get("/api/search/survey-responses");
+}
+
+
+/**
+ * Fetch survey responses for a single question number.
+ * Endpoint: GET /cms/api/search/survey-responses?question_number=<num>
+ * @param {string} questionNumber  e.g. "1.1"
+ */
+export async function fetchSurveyResponsesByQuestion(questionNumber) {
+  return get(`/api/search/survey-responses?question_number=${encodeURIComponent(questionNumber)}`);
+}
