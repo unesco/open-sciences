@@ -3,8 +3,15 @@
  * Common HTTP helpers + resource-specific fetch functions.
  */
 
-// In development (localhost) the CMS is accessed directly on port 8081.
-// In production it is proxied by nginx under /cms (same origin, no CORS).
+// ─── API endpoint paths ─────────────────────────────────────────────────────
+
+export const API_PATHS = {
+  SURVEY_SECTIONS:  "/api/survey-sections",
+  SURVEY_QUESTIONS: "/api/survey-questions",
+  SURVEY_RESPONSES: "/api/search/survey-responses",
+  COUNTRIES:        "/api/countries",
+};
+
 const isDev =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1";
@@ -57,12 +64,11 @@ export async function post(path, body) {
 
 /**
  * Fetch survey sections (comparison topics) from the CMS.
- * Source: views.view.survey_sections – REST export display
  * Endpoint: GET /cms/api/survey-sections
  * Response shape (per row): { title: string, id: string }
  */
 export async function fetchSurveySections() {
-  return get("/api/survey-sections");
+  return get(API_PATHS.SURVEY_SECTIONS);
 }
 
 /**
@@ -71,7 +77,7 @@ export async function fetchSurveySections() {
  * Response shape (per row): { number, text, type, short_name, description, long_description, section }
  */
 export async function fetchSurveyQuestions() {
-  return get("/api/survey-questions");
+  return get(API_PATHS.SURVEY_QUESTIONS);
 }
 
 /**
@@ -79,7 +85,7 @@ export async function fetchSurveyQuestions() {
  * Endpoint: GET /cms/api/search/survey-responses
  */
 export async function fetchSurveyResponses() {
-  return get("/api/search/survey-responses");
+  return get(API_PATHS.SURVEY_RESPONSES);
 }
 
 
@@ -89,15 +95,14 @@ export async function fetchSurveyResponses() {
  * @param {string} questionNumber  e.g. "1.1"
  */
 export async function fetchSurveyResponsesByQuestion(questionNumber) {
-  return get(`/api/search/survey-responses?question_number=${encodeURIComponent(questionNumber)}`);
+  return get(`${API_PATHS.SURVEY_RESPONSES}?question_number=${encodeURIComponent(questionNumber)}`);
 }
 
 /**
  * Fetch country → region mapping from the CMS.
  * Endpoint: GET /cms/api/countries
- * Response shape (per item): { name, group, iso_3, region }
  * Note: region values may contain HTML entities (e.g. "Europe &amp; North America").
  */
 export async function fetchCountries() {
-  return get("/api/countries");
+  return get(API_PATHS.COUNTRIES);
 }

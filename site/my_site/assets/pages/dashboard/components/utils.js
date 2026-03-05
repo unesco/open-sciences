@@ -1,7 +1,23 @@
 /**
  * Dashboard Shared Utilities
- * Helpers for dynamically loading external scripts and stylesheets
+ * Script/stylesheet loaders and colour helper.
+ * Raw constants (palette, colors, CDN URL) live in ../constants.js.
  */
+
+import { BLUE_PALETTE, COLOR_YES, COLOR_NO } from "../constants";
+
+/**
+ * Returns the chart segment colour for a given answer name and palette index.
+ * "Yes" → brand blue, "No" → light grey, others → BLUE_PALETTE cycle.
+ */
+export function getAnswerColor(name, index) {
+  const lower = (name || "").toLowerCase().trim();
+  if (lower === "yes") return COLOR_YES;
+  if (lower === "no")  return COLOR_NO;
+  return BLUE_PALETTE[index % BLUE_PALETTE.length];
+}
+
+// ── Script / stylesheet loaders ──────────────────────────────────────────────
 
 // Shared promises so concurrent callers all wait on the same load
 const _scriptPromises = {};

@@ -6,21 +6,7 @@
 
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
-
-// ─── Blue-shade palette (mirrors DonutChart) ─────────────────────────────
-
-const BLUE_PALETTE = [
-  "#0d3b6e", // deep navy
-  "#1a6fa8", // primary blue
-  "#3a9bd5", // medium blue
-  "#6db8e8", // light blue
-  "#a3d4f5", // pale blue
-  "#c8e6f9", // very pale blue
-];
-
-function getAnswerColor(index) {
-  return BLUE_PALETTE[index % BLUE_PALETTE.length];
-}
+import { getAnswerColor } from "../utils";
 
 // ─── Component ─────────────────────────────────────────────────────────────
 
@@ -44,7 +30,7 @@ export const CountryBreakdownModal = ({ chartLabel, countriesByAnswer, onClose }
     .map(([answerName, countries], index) => ({
       key: answerName,
       label: answerName,
-      dot: getAnswerColor(index),
+      dot: getAnswerColor(answerName, index),
       count: countries.length,
       pct: total > 0 ? Math.round((countries.length / total) * 100) : 0,
       countries: [...countries].sort(),

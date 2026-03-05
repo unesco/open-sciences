@@ -8,28 +8,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
-import { loadScript } from "../utils";
-
-// Blue-shade palette for answers other than Yes/No, and for region segments
-const BLUE_PALETTE = [
-  "#0d3b6e", // deep navy
-  "#1a5c9e", // dark blue
-  "#3a9bd5", // medium blue
-  "#6db8e8", // light blue
-  "#a3d4f5", // pale blue
-  "#c8e6f9", // very pale blue
-];
-
-function getAnswerColor(name, index) {
-  const lower = (name || "").toLowerCase().trim();
-  if (lower === "yes") return "#0077D4";
-  if (lower === "no")  return "#d8d8d8";
-  return BLUE_PALETTE[index % BLUE_PALETTE.length];
-}
+import { loadScript, getAnswerColor } from "../utils";
+import { BLUE_PALETTE, CHARTJS_CDN_URL, CHARTJS_CDN_ID } from "../../constants";
 
 /**
  * Compute what the chart should display.
- * In region mode: regional distribution of the dominant answer.
+ * In region mode: regional distribution of the Yes answer.
  * In normal mode: answer distribution.
  */
 function computeDisplay(chartData, showPerRegion, countriesByAnswer, countryToRegion) {
@@ -37,26 +21,29 @@ function computeDisplay(chartData, showPerRegion, countriesByAnswer, countryToRe
   const total   = chartData.total   || 0;
 
   if (showPerRegion && countryToRegion && Object.keys(countryToRegion).length > 0) {
-    // Find dominant answer (highest count; prefer not "No answer")
-    const sorted = Object.entries(answers).sort((a, b) => b[1] - a[1]);
-    const dominantAnswer =
-      sorted.find(([n]) => n.toLowerCase().trim() !== "no answer")?.[0]
-      || sorted[0]?.[0]
-      || "";
-
-    // Count countries per region for that answer
-    const domCountries = (countriesByAnswer || {})[dominantAnswer] || [];
+    // Always show regional distribution of "Yes" answers (case-insensitive key lookup)
+    const yesKey = Object.keys(countriesByAnswer || {}).find(
+      (k) => k.toLowerCase().trim() === "yes"
+    );
+    const domCountries = yesKey ? (countriesByAnswer[yesKey] || []) : [];
+    const centerLabel  = yesKey || "Yes";
     const regionCounts = {};
     domCountries.forEach((c) => {
       const r = countryToRegion[c] || "Other";
       regionCounts[r] = (regionCounts[r] || 0) + 1;
     });
 
+    // If no Yes countries, seed all known regions with 0 so the chart still renders
+    if (domCountries.length === 0) {
+      const uniqueRegions = [...new Set(Object.values(countryToRegion))].sort();
+      uniqueRegions.forEach((r) => { regionCounts[r] = 0; });
+    }
+
     const displayEntries = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
     return {
       displayEntries,
       displayTotal:  domCountries.length,
-      centerLabel:   dominantAnswer,
+      centerLabel,
       isRegionMode:  true,
     };
   }
@@ -122,10 +109,7 @@ export const DonutChart = ({
   useEffect(() => {
     let mounted = true;
     (async () => {
-      await loadScript(
-        "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js",
-        "chartjs-cdn"
-      );
+      await loadScript(CHARTJS_CDN_URL, CHARTJS_CDN_ID);
       if (!mounted || !canvasRef.current || !window.Chart) return;
       if (chartRef.current) { chartRef.current.destroy(); }
 
