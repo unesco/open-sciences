@@ -91,3 +91,13 @@ export async function fetchSurveyResponses() {
 export async function fetchSurveyResponsesByQuestion(questionNumber) {
   return get(`/api/search/survey-responses?question_number=${encodeURIComponent(questionNumber)}`);
 }
+
+/**
+ * Fetch country → region mapping from the CMS.
+ * Endpoint: GET /cms/api/countries
+ * Response shape (per item): { name, group, iso_3, region }
+ * Note: region values may contain HTML entities (e.g. "Europe &amp; North America").
+ */
+export async function fetchCountries() {
+  return get("/api/countries");
+}

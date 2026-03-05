@@ -1,6 +1,8 @@
 /**
  * DonutChart Component
- * Renders a Chart.js doughnut chart for survey response data
+ * Renders a Chart.js doughnut chart for survey response data.
+ * When showPerRegion is ON and countryToRegion is provided, shows the
+ * regional distribution of the dominant answer (e.g. which regions said "Yes").
  */
 
 import React, { useEffect, useRef, useState } from "react";
@@ -8,34 +10,95 @@ import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { loadScript } from "../utils";
 
-// Blue-shade palette — darkest to lightest
+// Blue-shade palette for answers other than Yes/No, and for region segments
 const BLUE_PALETTE = [
   "#0d3b6e", // deep navy
-  "#1a6fa8", // primary blue
+  "#1a5c9e", // dark blue
   "#3a9bd5", // medium blue
   "#6db8e8", // light blue
   "#a3d4f5", // pale blue
   "#c8e6f9", // very pale blue
 ];
 
-function getAnswerColor(index) {
+function getAnswerColor(name, index) {
+  const lower = (name || "").toLowerCase().trim();
+  if (lower === "yes") return "#0077D4";
+  if (lower === "no")  return "#d8d8d8";
   return BLUE_PALETTE[index % BLUE_PALETTE.length];
 }
 
-export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, description }) => {
-  const canvasRef = useRef(null);
-  const chartRef = useRef(null);
-  const [showInfo, setShowInfo] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
+/**
+ * Compute what the chart should display.
+ * In region mode: regional distribution of the dominant answer.
+ * In normal mode: answer distribution.
+ */
+function computeDisplay(chartData, showPerRegion, countriesByAnswer, countryToRegion) {
+  const answers = chartData.answers || {};
+  const total   = chartData.total   || 0;
 
-  // Dim non-hovered segments, pop the hovered one
+  if (showPerRegion && countryToRegion && Object.keys(countryToRegion).length > 0) {
+    // Find dominant answer (highest count; prefer not "No answer")
+    const sorted = Object.entries(answers).sort((a, b) => b[1] - a[1]);
+    const dominantAnswer =
+      sorted.find(([n]) => n.toLowerCase().trim() !== "no answer")?.[0]
+      || sorted[0]?.[0]
+      || "";
+
+    // Count countries per region for that answer
+    const domCountries = (countriesByAnswer || {})[dominantAnswer] || [];
+    const regionCounts = {};
+    domCountries.forEach((c) => {
+      const r = countryToRegion[c] || "Other";
+      regionCounts[r] = (regionCounts[r] || 0) + 1;
+    });
+
+    const displayEntries = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
+    return {
+      displayEntries,
+      displayTotal:  domCountries.length,
+      centerLabel:   dominantAnswer,
+      isRegionMode:  true,
+    };
+  }
+
+  return {
+    displayEntries: Object.entries(answers),
+    displayTotal:   total,
+    centerLabel:    null,
+    isRegionMode:   false,
+  };
+}
+
+export const DonutChart = ({
+  chartData,
+  showPerRegion,
+  onViewBreakdown,
+  description,
+  countriesByAnswer,
+  countryToRegion,
+}) => {
+  const canvasRef      = useRef(null);
+  const chartRef       = useRef(null);
+  // Tracks current display state so the hover effect can use the right colors
+  const displayStateRef = useRef({ entries: [], isRegionMode: false });
+
+  const [showInfo,      setShowInfo]      = useState(false);
+  const [hoveredIndex,  setHoveredIndex]  = useState(null);
+
+  // ── Hover: dim non-hovered segments ─────────────────────────────────────
   useEffect(() => {
     if (!chartRef.current) return;
+    const { entries, isRegionMode } = displayStateRef.current;
     const dataset = chartRef.current.data.datasets[0];
-    const len = dataset.data.length;
+    const len     = dataset.data.length;
+
     dataset.backgroundColor = Array.from({ length: len }, (_, i) => {
-      if (hoveredIndex === null) return getAnswerColor(i);
-      return i === hoveredIndex ? getAnswerColor(i) : `${getAnswerColor(i)}4d`;
+      const [name] = entries[i] || [""];
+      const color  = isRegionMode
+        ? BLUE_PALETTE[i % BLUE_PALETTE.length]
+        : getAnswerColor(name, i);
+      if (hoveredIndex === null) return color;
+      return i === hoveredIndex ? color : `${color}4d`;
     });
     dataset.hoverOffset = Array.from({ length: len }, (_, i) =>
       i === hoveredIndex ? 10 : 0
@@ -43,7 +106,7 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
     chartRef.current.update("none");
   }, [hoveredIndex]);
 
-  // Mobile modal: close on Escape
+  // ── Mobile tooltip: close on Escape ────────────────────────────────────
   useEffect(() => {
     if (!showInfo) return;
     const onKey = (e) => e.key === "Escape" && setShowInfo(false);
@@ -51,13 +114,11 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
     return () => document.removeEventListener("keydown", onKey);
   }, [showInfo]);
 
-  // Only open the portal modal on touch/no-hover devices (mobile)
   const handleIconClick = () => {
-    if (window.matchMedia("(hover: none)").matches) {
-      setShowInfo((v) => !v);
-    }
+    if (window.matchMedia("(hover: none)").matches) setShowInfo((v) => !v);
   };
 
+  // ── Build / rebuild Chart.js instance ──────────────────────────────────
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -68,29 +129,32 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
       if (!mounted || !canvasRef.current || !window.Chart) return;
       if (chartRef.current) { chartRef.current.destroy(); }
 
-      const answers = chartData.answers || {};
-      const total   = chartData.total || 0;
-      const factor  = showPerRegion ? 0.65 : 1;
-      const entries = Object.entries(answers);
-      const scaled  = entries.map(([name, count]) => Math.round(count * factor));
+      const { displayEntries, isRegionMode } = computeDisplay(
+        chartData, showPerRegion, countriesByAnswer, countryToRegion
+      );
+
+      // Save to ref so hover effect can read it without closing over stale data
+      displayStateRef.current = { entries: displayEntries, isRegionMode };
 
       chartRef.current = new window.Chart(canvasRef.current.getContext("2d"), {
         type: "doughnut",
         data: {
-          labels: entries.map(([name]) => name),
+          labels: displayEntries.map(([name]) => name),
           datasets: [{
-            data: scaled,
-            backgroundColor: entries.map((_, i) => getAnswerColor(i)),
-            borderWidth: 2,
+            data:            displayEntries.map(([, count]) => count),
+            backgroundColor: displayEntries.map(([name], i) =>
+              isRegionMode ? BLUE_PALETTE[i % BLUE_PALETTE.length] : getAnswerColor(name, i)
+            ),
+            borderWidth:  2,
             borderColor: "#fff",
           }],
         },
         options: {
-          cutout: "65%",
+          cutout:   "65%",
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend:  { display: false },
             tooltip: { enabled: false },
           },
           hover: { mode: null },
@@ -101,12 +165,12 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
       mounted = false;
       if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
     };
-  }, [chartData, showPerRegion]);
+  }, [chartData, showPerRegion, countriesByAnswer, countryToRegion]);
 
-  const answers = chartData.answers || {};
-  const total   = chartData.total   || 0;
-  const factor  = showPerRegion ? 0.65 : 1;
-  const entries = Object.entries(answers);
+  // ── Render-phase display data ────────────────────────────────────────────
+  const { displayEntries, displayTotal, centerLabel, isRegionMode } = computeDisplay(
+    chartData, showPerRegion, countriesByAnswer, countryToRegion
+  );
 
   return (
     <div className="donut-card">
@@ -124,14 +188,14 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
             >
               ⓘ
             </span>
-            {/* Desktop: pure-CSS hover tooltip, hidden on mobile via media query */}
             <span className="info-hover-tooltip" role="tooltip">
               {description}
             </span>
           </span>
         )}
       </div>
-      {/* Mobile: portal modal (only rendered when showInfo is true on touch devices) */}
+
+      {/* Mobile: portal modal (only on touch devices) */}
       {showInfo && description && createPortal(
         <div
           className="donut-info-modal-backdrop"
@@ -163,91 +227,95 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
         </div>,
         document.body
       )}
+
       <div className="donut-chart-area">
-        {/* Floating-label donut — labels orbit the chart at each segment's midpoint */}
         <div className="donut-float-wrap">
-          {/* Canvas centred inside the wrap */}
+          {/* Canvas */}
           <div className="donut-canvas-wrap">
             <canvas ref={canvasRef} />
             <div className="donut-center">
-              <div className="donut-total">{total}</div>
+              {centerLabel
+                ? <div className="donut-total" style={{ fontSize: "1.1rem" }}>{centerLabel}</div>
+                : <div className="donut-total">{displayTotal}</div>
+              }
               <div className="donut-label-text">Responses</div>
             </div>
           </div>
 
-          {/* Floating callout labels — one per answer, orbiting the ring */}
+          {/* Floating callout labels orbiting the ring */}
           {(() => {
-            // Container 380×300; canvas 160×160 centred at (190, 150)
-            const CX = 190;
-            const CY = 150;
-            const R  = 82; // ring outer radius — labels anchor right at the ring edge
-            const LABEL_H = 46;  // approximate pill height when text wraps to 2 lines
-            const MIN_GAP = 6;   // minimum vertical gap between pills
+            const CX      = 190;
+            const CY      = 150;
+            const R       = 82;
+            const LABEL_H = 46;
+            const MIN_GAP = 6;
 
-            // ── Step 1: compute ideal mid-angle position for each entry ──
-            let cumDeg = -90; // Chart.js starts at the top
-            const items = entries.map(([name, count], i) => {
-              const scaled   = Math.round(count * factor);
-              const pct      = total ? Math.round((count / total) * 100) : 0;
-              const frac     = total > 0 ? count / total : 0;
-              const spanDeg  = frac * 360;
-              const midDeg   = cumDeg + spanDeg / 2;
-              cumDeg        += spanDeg;
-              const midRad   = (midDeg * Math.PI) / 180;
+            let cumDeg = -90;
+            const items = displayEntries.map(([name, count], i) => {
+              const pct     = displayTotal ? Math.round((count / displayTotal) * 100) : 0;
+              const frac    = displayTotal > 0 ? count / displayTotal : 0;
+              const spanDeg = frac * 360;
+              const midDeg  = cumDeg + spanDeg / 2;
+              cumDeg       += spanDeg;
+              const midRad  = (midDeg * Math.PI) / 180;
               return {
-                name, scaled, pct, i,
+                name, count, pct, i,
                 lx:      CX + R * Math.cos(midRad),
                 ly:      CY + R * Math.sin(midRad),
                 onRight: Math.cos(midRad) >= 0,
               };
             });
 
-            // ── Step 2: resolve vertical overlaps per side ──
+            const MIN_Y = 16;
+            const MAX_Y = CY * 2 - 16;
             [true, false].forEach((side) => {
-              const grp = items
-                .filter((d) => d.onRight === side)
-                .sort((a, b) => a.ly - b.ly);
-              for (let iter = 0; iter < 30; iter++) {
+              const grp = items.filter((d) => d.onRight === side).sort((a, b) => a.ly - b.ly);
+              for (let iter = 0; iter < 40; iter++) {
                 for (let j = 1; j < grp.length; j++) {
                   const a = grp[j - 1];
                   const b = grp[j];
                   const overlap = (a.ly + LABEL_H + MIN_GAP) - b.ly;
-                  if (overlap > 0) {
-                    a.ly -= overlap / 2;
-                    b.ly += overlap / 2;
-                  }
+                  if (overlap > 0) { a.ly -= overlap / 2; b.ly += overlap / 2; }
                 }
+                grp.forEach((d) => { d.ly = Math.max(MIN_Y, Math.min(MAX_Y, d.ly)); });
               }
             });
 
-            // ── Step 3: render ──
-            return items.map(({ name, scaled, pct, i, lx, ly, onRight }) => (
-              <div
-                key={name}
-                className={`donut-float-label${hoveredIndex === i ? " donut-float-label--active" : ""}`}
-                style={{
-                  left:      lx,
-                  top:       ly,
-                  transform: `translate(${onRight ? "0%" : "-100%"}, -50%)`,
-                }}
-                onMouseEnter={() => setHoveredIndex(i)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
-                <span
-                  className="donut-float-dot"
-                  style={{ background: getAnswerColor(i) }}
-                />
-                <span className="donut-float-text">
-                  {name}, {scaled} ({pct}%)
-                </span>
-              </div>
-            ));
+            return items.map(({ name, count, pct, i, lx, ly, onRight }) => {
+              const color = isRegionMode
+                ? BLUE_PALETTE[i % BLUE_PALETTE.length]
+                : getAnswerColor(name, i);
+              return (
+                <div
+                  key={name}
+                  className={`donut-float-label${hoveredIndex === i ? " donut-float-label--active" : ""}`}
+                  style={{
+                    left:      lx,
+                    top:       ly,
+                    transform: `translate(${onRight ? "0%" : "-100%"}, -50%)`,
+                  }}
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  <span className="donut-float-dot" style={{ background: color }} />
+                  <span className="donut-float-text">
+                    {isRegionMode ? `${name} (${pct}%)` : `${name}, ${count} (${pct}%)`}
+                  </span>
+                </div>
+              );
+            });
           })()}
         </div>
       </div>
+
       {!showPerRegion && onViewBreakdown && (
         <button type="button" className="breakdown-btn" onClick={onViewBreakdown}>
           View country breakdown
+        </button>
+      )}
+      {showPerRegion && onViewBreakdown && (
+        <button type="button" className="breakdown-btn" onClick={onViewBreakdown}>
+          View region breakdown
         </button>
       )}
     </div>
@@ -256,11 +324,21 @@ export const DonutChart = ({ chartData, showPerRegion, onViewBreakdown, descript
 
 DonutChart.propTypes = {
   chartData: PropTypes.shape({
-    label: PropTypes.string.isRequired,
+    label:   PropTypes.string.isRequired,
     answers: PropTypes.objectOf(PropTypes.number),
-    total: PropTypes.number.isRequired,
+    total:   PropTypes.number.isRequired,
   }).isRequired,
-  showPerRegion: PropTypes.bool,
-  onViewBreakdown: PropTypes.func,
-  description: PropTypes.string,
+  showPerRegion:     PropTypes.bool,
+  onViewBreakdown:   PropTypes.func,
+  description:       PropTypes.string,
+  countriesByAnswer: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
+  countryToRegion:   PropTypes.objectOf(PropTypes.string),
+};
+
+DonutChart.defaultProps = {
+  showPerRegion:     false,
+  onViewBreakdown:   undefined,
+  description:       undefined,
+  countriesByAnswer: {},
+  countryToRegion:   {},
 };

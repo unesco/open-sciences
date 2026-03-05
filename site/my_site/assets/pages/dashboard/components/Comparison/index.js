@@ -6,7 +6,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { DonutChart } from "../DonutChart";
 import { CountryBreakdownModal } from "../CountryBreakdownModal";
-import { fetchSurveySections, fetchSurveyQuestions, fetchSurveyResponsesByQuestion } from "../../api";
+import { RegionBreakdownModal } from "../RegionBreakdownModal";
+import { fetchSurveySections, fetchSurveyQuestions, fetchSurveyResponsesByQuestion, fetchCountries } from "../../api";
+
+function decodeHtmlEntities(str) {
+  if (!str) return "";
+  return str.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
+}
 
 /**
  * Build a lookup map: question_number → { answers: { [answerName]: count }, total }
@@ -70,6 +76,7 @@ export const Comparison = () => {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [showPerRegion, setShowPerRegion] = useState(false);
   const [activeBreakdown, setActiveBreakdown] = useState(null);
+  const [countryToRegion, setCountryToRegion] = useState({});
 
   // Closed questions whose section matches the selected topic.
   // Stringify both sides so numeric IDs from one API and string IDs from
@@ -78,7 +85,19 @@ export const Comparison = () => {
     (q) => q.type === "Closed" && String(q.section) === String(selectedTopic)
   );
 
-  // On mount: load sections and questions (fast, small payloads)
+  // On mount: load country→region map, sections, and questions in parallel
+  useEffect(() => {
+    fetchCountries()
+      .then((countries) => {
+        const map = {};
+        countries.forEach(({ name, region }) => {
+          if (name && region) map[name] = decodeHtmlEntities(region);
+        });
+        setCountryToRegion(map);
+      })
+      .catch((err) => console.error("Failed to load countries:", err));
+  }, []);
+
   useEffect(() => {
     Promise.all([fetchSurveySections(), fetchSurveyQuestions()])
       .then(([sections, questions]) => {
@@ -123,8 +142,8 @@ export const Comparison = () => {
       .finally(() => setResponsesLoading(false));
   }, [selectedTopic, allQuestions]);
 
-  const openBreakdown = useCallback((key, label, countries) => {
-    setActiveBreakdown({ key, label, countries });
+  const openBreakdown = useCallback((key, label, countries, description, mode) => {
+    setActiveBreakdown({ key, label, countries, description, mode: mode || "country" });
   }, []);
 
   const closeBreakdown = useCallback(() => setActiveBreakdown(null), []);
@@ -197,8 +216,9 @@ export const Comparison = () => {
               <div className="questions-error">Failed to load questions: {questionsError}</div>
             )}
             {!questionsLoading && !responsesLoading && !questionsError && filteredQuestions.map((q, i) => {
-              const stats = responsesMap[q.number] || { answers: {}, countries: {}, total: 0 };
+              const stats       = responsesMap[q.number] || { answers: {}, countries: {}, total: 0 };
               const breakdownKey = `${selectedTopic}-${i}`;
+              const desc         = q.long_description || q.description || undefined;
               return (
                 <DonutChart
                   key={`${selectedTopic}-${q.number}`}
@@ -208,11 +228,13 @@ export const Comparison = () => {
                     total: stats.total,
                   }}
                   showPerRegion={showPerRegion}
-                  description={q.long_description || q.description || undefined}
+                  description={desc}
+                  countriesByAnswer={stats.countries}
+                  countryToRegion={countryToRegion}
                   onViewBreakdown={
-                    !showPerRegion
-                      ? () => openBreakdown(breakdownKey, q.short_name || q.text, stats.countries)
-                      : null
+                    showPerRegion
+                      ? () => openBreakdown(breakdownKey, q.short_name || q.text, stats.countries, desc, "region")
+                      : () => openBreakdown(breakdownKey, q.short_name || q.text, stats.countries, desc, "country")
                   }
                 />
               );
@@ -225,11 +247,22 @@ export const Comparison = () => {
         </div>
       </div>
 
-      {/* Country breakdown modal/drawer */}
-      {activeBreakdown && (
+      {/* Country breakdown drawer (slide-in) */}
+      {activeBreakdown && activeBreakdown.mode !== "region" && (
         <CountryBreakdownModal
           chartLabel={activeBreakdown.label}
           countriesByAnswer={activeBreakdown.countries || {}}
+          onClose={closeBreakdown}
+        />
+      )}
+
+      {/* Region breakdown drawer */}
+      {activeBreakdown && activeBreakdown.mode === "region" && (
+        <RegionBreakdownModal
+          chartLabel={activeBreakdown.label}
+          description={activeBreakdown.description}
+          countriesByAnswer={activeBreakdown.countries || {}}
+          countryToRegion={countryToRegion}
           onClose={closeBreakdown}
         />
       )}
