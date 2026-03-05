@@ -21,29 +21,24 @@ function computeDisplay(chartData, showPerRegion, countriesByAnswer, countryToRe
   const total   = chartData.total   || 0;
 
   if (showPerRegion && countryToRegion && Object.keys(countryToRegion).length > 0) {
-    // Always show regional distribution of "Yes" answers (case-insensitive key lookup)
-    const yesKey = Object.keys(countriesByAnswer || {}).find(
-      (k) => k.toLowerCase().trim() === "yes"
-    );
-    const domCountries = yesKey ? (countriesByAnswer[yesKey] || []) : [];
-    const centerLabel  = yesKey || "Yes";
-    const regionCounts = {};
-    domCountries.forEach((c) => {
-      const r = countryToRegion[c] || "Other";
-      regionCounts[r] = (regionCounts[r] || 0) + 1;
+    // Collect all unique countries across all answers
+    const allCountriesSet = new Set();
+    Object.values(countriesByAnswer || {}).forEach((countries) => {
+      countries.forEach((c) => allCountriesSet.add(c));
     });
 
-    // If no Yes countries, seed all known regions with 0 so the chart still renders
-    if (domCountries.length === 0) {
-      const uniqueRegions = [...new Set(Object.values(countryToRegion))].sort();
-      uniqueRegions.forEach((r) => { regionCounts[r] = 0; });
-    }
+    // Count how many countries per region (only regions with > 0 countries)
+    const regionCounts = {};
+    allCountriesSet.forEach((c) => {
+      const r = countryToRegion[c];
+      if (r) regionCounts[r] = (regionCounts[r] || 0) + 1;
+    });
 
-    const displayEntries = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
+    const displayEntries = Object.entries(regionCounts).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
     return {
       displayEntries,
-      displayTotal:  domCountries.length,
-      centerLabel,
+      displayTotal:  allCountriesSet.size,
+      centerLabel:   null,
       isRegionMode:  true,
     };
   }

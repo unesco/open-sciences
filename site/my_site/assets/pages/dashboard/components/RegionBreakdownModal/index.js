@@ -73,10 +73,22 @@ RegionMiniDonut.propTypes = {
 
 // ─── Region card: mini donut + legend ────────────────────────────────────────
 
+const ANSWER_PRIORITY = ["yes", "partial", "ongoing", "no answer", "no"];
+
+function sortAnswerEntries(entries) {
+  return entries.slice().sort((a, b) => {
+    const ai = ANSWER_PRIORITY.indexOf(a.name.toLowerCase().trim());
+    const bi = ANSWER_PRIORITY.indexOf(b.name.toLowerCase().trim());
+    const aRank = ai === -1 ? ANSWER_PRIORITY.length : ai;
+    const bRank = bi === -1 ? ANSWER_PRIORITY.length : bi;
+    return aRank - bRank;
+  });
+}
+
 function RegionCard({ regionName, data }) {
-  const yesCount     = data.answers["Yes"] || 0;
-  const yesCountries = (data.countries["Yes"] || []).slice().sort();
-  const answerEntries = [{ name: "Yes", count: yesCount, colorIdx: 0 }];
+  const answerEntries = sortAnswerEntries(
+    Object.entries(data.answers).map(([name, count], i) => ({ name, count, colorIdx: i }))
+  );
 
   return (
     <div className="rbd-region-card">
@@ -86,21 +98,27 @@ function RegionCard({ regionName, data }) {
         total={data.total}
       />
       <div className="rbd-region-legend">
-        <div className="rbd-legend-section">
-          <div className="rbd-legend-heading">
-            <span className="rbd-legend-dot" style={{ background: getAnswerColor("Yes", 0) }} />
-            <span className="rbd-legend-label">Yes — {yesCount} countr{yesCount === 1 ? "y" : "ies"}</span>
-          </div>
-          {yesCountries.length > 0 && (
-            <div className="rbd-legend-countries">
-              {yesCountries.map((c, ci) => (
-                <span key={c} className="rbd-country-name">
-                  {c}{ci < yesCountries.length - 1 ? ", " : ""}
-                </span>
-              ))}
+        {answerEntries.map((entry) => {
+          const pct       = data.total ? Math.round((entry.count / data.total) * 100) : 0;
+          const countries = (data.countries[entry.name] || []).slice().sort();
+          return (
+            <div key={entry.name} className="rbd-legend-section">
+              <div className="rbd-legend-heading">
+                <span className="rbd-legend-dot" style={{ background: getAnswerColor(entry.name, entry.colorIdx) }} />
+                <span className="rbd-legend-label">{entry.name}, {pct}%</span>
+              </div>
+              {countries.length > 0 && (
+                <div className="rbd-legend-countries">
+                  {countries.map((c, ci) => (
+                    <span key={c} className="rbd-country-name">
+                      {c}{ci < countries.length - 1 ? ", " : ""}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -130,34 +148,25 @@ export const RegionBreakdownModal = ({
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Build per-region data — only "Yes" answers (case-insensitive key lookup)
-  const yesKey = Object.keys(countriesByAnswer || {}).find(
-    (k) => k.toLowerCase().trim() === "yes"
-  );
-  const yesCountries = yesKey ? (countriesByAnswer[yesKey] || []) : [];
+  // Build per-region data — all answers
   const regionData = {};
   if (countryToRegion && Object.keys(countryToRegion).length > 0) {
-    yesCountries.forEach((country) => {
-      const region = countryToRegion[country] || "Other";
-      if (!regionData[region]) regionData[region] = { answers: {}, countries: {}, total: 0 };
-      regionData[region].answers["Yes"]  = (regionData[region].answers["Yes"] || 0) + 1;
-      if (!regionData[region].countries["Yes"]) regionData[region].countries["Yes"] = [];
-      regionData[region].countries["Yes"].push(country);
-      regionData[region].total += 1;
+    Object.entries(countriesByAnswer || {}).forEach(([answer, countries]) => {
+      countries.forEach((country) => {
+        const region = countryToRegion[country] || "Other";
+        if (!regionData[region]) regionData[region] = { answers: {}, countries: {}, total: 0 };
+        regionData[region].answers[answer] = (regionData[region].answers[answer] || 0) + 1;
+        if (!regionData[region].countries[answer]) regionData[region].countries[answer] = [];
+        regionData[region].countries[answer].push(country);
+        regionData[region].total += 1;
+      });
     });
   }
 
-  const regions   = Object.entries(regionData).sort((a, b) => b[1].total - a[1].total);
-  const isLoading = !countryToRegion || Object.keys(countryToRegion).length === 0;
-
-  // When no Yes answers exist, still show all known regions with 0 count
-  const displayRegions = regions.length > 0
-    ? regions
-    : Object.keys(
-        Object.values(countryToRegion || {}).reduce((acc, region) => { acc[region] = true; return acc; }, {})
-      )
-        .sort()
-        .map((region) => [region, { answers: { Yes: 0 }, countries: { Yes: [] }, total: 0 }]);
+  // Only show regions that have at least 1 response
+  const regions       = Object.entries(regionData).filter(([, d]) => d.total > 0).sort((a, b) => b[1].total - a[1].total);
+  const isLoading     = !countryToRegion || Object.keys(countryToRegion).length === 0;
+  const displayRegions = regions;
 
   return (
     <>
@@ -188,6 +197,7 @@ export const RegionBreakdownModal = ({
 
         <div className="breakdown-body rbd-body">
           {isLoading && <p className="breakdown-no-data">Loading region data…</p>}
+          {!isLoading && displayRegions.length === 0 && <p className="breakdown-no-data">No region data available.</p>}
           {!isLoading && displayRegions.map(([regionName, data]) => (
             <RegionCard
               key={regionName}
