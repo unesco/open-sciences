@@ -1104,9 +1104,18 @@
   padding: 14px;
 }
 
-/* Mini donut wrapper — fixed size, canvas + center overlay */
+/* Mini donut wrapper — now uses rbd-mini-float-wrap for orbital labels */
 .rbd-mini-wrap {
   flex-shrink: 0;
+}
+
+/* Scaled-down float wrapper for the region drawer (CX=130, CY=120) */
+.rbd-mini-float-wrap {
+  position: relative;
+  width: 260px;   /* CX=130 × 2 */
+  height: 240px;  /* CY=120 × 2 */
+  flex-shrink: 0;
+  overflow: visible;
 }
 
 .rbd-mini-canvas-wrap {

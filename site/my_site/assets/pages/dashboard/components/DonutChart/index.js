@@ -21,13 +21,11 @@ function computeDisplay(chartData, showPerRegion, countriesByAnswer, countryToRe
   const total   = chartData.total   || 0;
 
   if (showPerRegion && countryToRegion && Object.keys(countryToRegion).length > 0) {
-    // Collect all unique countries across all answers
-    const allCountriesSet = new Set();
-    Object.values(countriesByAnswer || {}).forEach((countries) => {
-      countries.forEach((c) => allCountriesSet.add(c));
-    });
+    // Only use countries that answered "Yes"
+    const yesCountries = (countriesByAnswer || {})["Yes"] || [];
+    const allCountriesSet = new Set(yesCountries);
 
-    // Count how many countries per region (only regions with > 0 countries)
+    // Count how many "Yes" countries per region (only regions with > 0 countries)
     const regionCounts = {};
     allCountriesSet.forEach((c) => {
       const r = countryToRegion[c];
@@ -38,7 +36,7 @@ function computeDisplay(chartData, showPerRegion, countriesByAnswer, countryToRe
     return {
       displayEntries,
       displayTotal:  allCountriesSet.size,
-      centerLabel:   null,
+      centerLabel:   allCountriesSet.size > 0 ? "Yes" : null,
       isRegionMode:  true,
     };
   }
