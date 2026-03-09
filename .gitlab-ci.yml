@@ -303,6 +303,8 @@ deploy:env:
     - echo "Uploading .env.test to server..."
     - scp -o StrictHostKeyChecking=no /tmp/.env.test "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.test"
     - echo ""
+    - echo "Pulling latest code on server (branch ${CI_COMMIT_BRANCH})..."
+    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH} && git fetch origin && git checkout ${CI_COMMIT_BRANCH} && git pull origin ${CI_COMMIT_BRANCH}"
     - echo "Running make deploy on server..."
     - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
     - echo ""
