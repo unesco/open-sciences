@@ -88,13 +88,13 @@ class ExportAPIView(MethodView):
             if ":" in facet_filter:
                 # Split facet name and value
                 facet_name, facet_value = facet_filter.split(":", 1)
-                
+
                 # Handle hierarchical format (e.g., resource_type:publication+inner:publication-article)
                 if "+inner:" in facet_value:
                     # Convert parent+inner:child to parent::child format
                     parts = facet_value.split("+inner:")
                     facet_value = "::".join(parts)
-                
+
                 # Add to search params
                 # If facet already exists, make it a list
                 if facet_name in search_params:
@@ -105,7 +105,7 @@ class ExportAPIView(MethodView):
                         search_params[facet_name] = [existing, facet_value]
                 else:
                     search_params[facet_name] = facet_value
-        
+
         # Add other filter parameters (excluding known UI parameters)
         excluded_params = {"q", "p", "s", "sort", "l", "f", "page", "size"}
         for key in request.args.keys():
@@ -120,7 +120,7 @@ class ExportAPIView(MethodView):
             # This ensures facet filters are properly applied through the REST API's
             # post_filter mechanism, which the service doesn't support directly
             from urllib.parse import urlencode
-            
+
             # Build query params for API request
             api_params_list = []
             for key, value in search_params.items():
@@ -129,25 +129,27 @@ class ExportAPIView(MethodView):
                         api_params_list.append((key, v))
                 else:
                     api_params_list.append((key, value))
-            
+
             # Build URL with properly encoded parameters
             query_string = urlencode(api_params_list)
             api_path = f"/api/records?{query_string}"
-            
+
             # Make internal request using test client to preserve context
             with current_app.test_client() as client:
                 response = client.get(
                     api_path,
                     headers={
-                        'Accept': 'application/vnd.inveniordm.v1+json',
-                        'Host': request.host,
-                    }
+                        "Accept": "application/vnd.inveniordm.v1+json",
+                        "Host": request.host,
+                    },
                 )
-                
+
                 if response.status_code != 200:
-                    current_app.logger.error(f"Export - API error: {response.status_code} - {response.data}")
+                    current_app.logger.error(
+                        f"Export - API error: {response.status_code} - {response.data}"
+                    )
                     return {"error": f"Internal API error: {response.status_code}"}, 500
-                
+
                 results_dict = response.json
                 records = results_dict.get("hits", {}).get("hits", [])
 
