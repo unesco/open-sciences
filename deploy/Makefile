@@ -139,17 +139,20 @@ deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 	@echo "Deploying InvenioRDM updates (CI/CD workflow)..."
 	@echo ""
 	@if [ "$(ENV)" = "local" ]; then \
-		echo "Step 1/3: Rebuilding and loading image (local)..."; \
+		echo "Step 1/4: Rebuilding and loading image (local)..."; \
 		$(MAKE) load-image ENV=$(ENV); \
 	else \
-		echo "Step 1/3: Skipping local build (image pulled from registry)..."; \
+		echo "Step 1/4: Skipping local build (image pulled from registry)..."; \
 		echo "  Image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"; \
 	fi
 	@echo ""
-	@echo "Step 2/3: Upgrading Helm release..."
+	@echo "Step 2/4: Rendering invenio.cfg and updating Kubernetes Secrets..."
+	@$(MAKE) deploy-secrets ENV=$(ENV)
+	@echo ""
+	@echo "Step 3/4: Upgrading Helm release..."
 	@$(MAKE) deploy-helm ENV=$(ENV)
 	@echo ""
-	@echo "Step 3/3: Restarting pods to pick up new image..."
+	@echo "Step 4/4: Restarting pods to pick up new image..."
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker-beat -n $(NAMESPACE) 2>/dev/null || true
