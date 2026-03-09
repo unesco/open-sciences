@@ -557,3 +557,22 @@ button.copy.button {
   margin: 0;
   line-height: 1.2;
 }
+
+/* Jira trigger button styling */
+#atlwdg-trigger {
+  background-color: #0072bc !important;
+  color: #ffffff !important;
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 0 !important;
+  bottom: 5px;
+  right: 5px;
+  letter-spacing: 0.8px;
+}
+
+/* Jira modal primary button styling */
+.aui-button.aui-button-primary,
+.aui-button.aui-button-primary:visited {
+  background-color: #0072bc !important;
+  color: #ffffff !important;
+}
