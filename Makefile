@@ -63,7 +63,7 @@ init:
 	@echo "🔍 Checking Docker environment..."
 	$(MAKE) check
 	@echo "📦 Creating Python virtual environment..."
-	python3.12 -m venv $(VENV_PATH)
+	python3 -m venv $(VENV_PATH)
 	@echo "🔧 Activating virtual environment and installing dependencies..."
 	$(VENV_ACTIVATE) && pip install --upgrade pip
 	$(VENV_ACTIVATE) && pip install invenio-cli
