@@ -31,7 +31,6 @@
       {{ _('Persistent Identifiers') }}
     </h3>
     <div style="display: flex; align-items: center; gap: 12px;">
-      <span class="badge">{{ parsed_ids.list|length }}</span>
       <i class="chevron down icon chevron"></i>
     </div>
   </div>
@@ -48,7 +47,7 @@
            class="unesco-find-more-btn"
            title="{{ _('View') }} {{ id.type | upper }}: {{ id.value }}"
            target="_blank" rel="noopener noreferrer">
-          {{ _('Find more') }} <i class="external alternate icon"></i>
+          {{ _('Read more') }} <i class="external alternate icon"></i>
         </a>
         {%- endif -%}
       </div>

@@ -61,16 +61,9 @@ class ExportAPIView(MethodView):
         size = min(int(request.args.get("s", 10)), self.MAX_EXPORT_SIZE)
         sort = request.args.get("sort", "newest")
 
-        # Map sort options to service format
-        sort_mapping = {
-            "newest": "newest",
-            "oldest": "oldest",
-            "bestmatch": "bestmatch",
-            "mostviewed": "mostviewed",
-            "mostdownloaded": "mostdownloaded",
-            "version": "version",
-        }
-        sort_option = sort_mapping.get(sort, "newest")
+        # Pass sort directly to the API without remapping so it stays consistent
+        # with whatever the search page uses (e.g. published-asc, newest, oldest)
+        sort_option = sort
 
         # Build search parameters
         search_params = {

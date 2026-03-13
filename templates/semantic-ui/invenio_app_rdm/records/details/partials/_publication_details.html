@@ -17,9 +17,6 @@
       {{ _('Publication Details') }}
     </h3>
     <div style="display: flex; align-items: center; gap: 12px;">
-      {%- if metadata.resource_type and metadata.resource_type.title -%}
-      <span class="badge">{{ metadata.resource_type.title.en or metadata.resource_type.id }}</span>
-      {%- endif -%}
       <i class="chevron down icon chevron"></i>
     </div>
   </div>
