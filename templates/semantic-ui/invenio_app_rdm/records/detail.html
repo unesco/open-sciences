@@ -344,7 +344,7 @@
                   {% set views_count = record_ui["stats"]["all_versions"]["unique_views"]|default(0) %}
                   <span class="unesco-views-count">
                     <i class="eye icon" aria-hidden="true"></i>
-                    <span>{{ "{:,}".format(views_count) }} views</span>
+                    <span>{{ "{:,}".format(views_count) }} {{ "view" if views_count == 1 else "views" }}</span>
                   </span>
                 </div>
               </section>
