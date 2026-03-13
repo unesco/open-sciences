@@ -67,6 +67,7 @@ init:
 	python3 -m venv $(VENV_PATH)
 	@echo "🔧 Activating virtual environment and installing dependencies..."
 	$(VENV_ACTIVATE) && pip install --upgrade pip
+	$(VENV_ACTIVATE) && pip install invenio-cli
 	$(VENV_ACTIVATE) && pip install pipenv
 	$(VENV_ACTIVATE) && pipenv install --dev
 	@echo "🛠️ Installing Invenio packages..."
@@ -113,6 +114,12 @@ up:
 	@echo "🚀 Starting development server..."
 	@echo "📍 Server will be available at https://127.0.0.1:5000"
 	$(VENV_ACTIVATE) && invenio-cli run
+
+# Watch assets for hot reload (run in a separate terminal alongside 'make up')
+watch:
+	@echo "👀 Watching assets for changes (hot reload)..."
+	$(VENV_ACTIVATE) && invenio-cli assets watch
+
 
 # Stop all services
 stop:
