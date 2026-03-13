@@ -27,7 +27,7 @@
         <a href="{% if rel_id.scheme == 'doi' %}https://doi.org/{{ rel_id.identifier }}{% elif rel_id.scheme == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ rel_id.identifier }}{% elif rel_id.scheme == 'issn' %}https://portal.issn.org/resource/ISSN/{{ rel_id.identifier }}{% elif rel_id.scheme == 'url' %}{{ rel_id.identifier }}{% endif %}" 
            class="unesco-find-more-btn"
            target="_blank" rel="noopener noreferrer">
-          {{ _('Find more') }} <i class="external alternate icon"></i>
+          {{ _('Read more') }} <i class="external alternate icon"></i>
         </a>
         {%- endif -%}
       </div>

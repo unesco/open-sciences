@@ -49,7 +49,7 @@
   <div class="unesco-section-content">
     {%- if refs_items.list -%}
     <div class="unesco-list">
-      {%- for ref in refs_items.list[:10] -%}
+      {%- for ref in refs_items.list[:5] -%}
       <div class="unesco-list-item">
         <span class="unesco-list-text" title="{% if ref.text %}{{ ref.text }}{% else %}{{ ref.lens_id }}{% endif %}">
           {%- if ref.text -%}
@@ -58,25 +58,26 @@
             {{ ref.lens_id }}
           {%- endif -%}
         </span>
-        <a href="https://www.lens.org/lens/scholar/article/{{ ref.lens_id }}/main" 
+        <a href="https://www.lens.org/lens/scholar/article/{{ ref.lens_id }}/main"
            class="unesco-find-more-btn"
            title="{{ _('View on Lens.org') }}"
            target="_blank" rel="noopener noreferrer">
-          {{ _('Find more') }} <i class="external alternate icon"></i>
+          {{ _('Read more') }} <i class="external alternate icon"></i>
         </a>
       </div>
       {%- endfor -%}
     </div>
-    {# Always show info box #}
-    <div class="unesco-info-box" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <div class="unesco-info-box" style="margin-top: 12px; text-align: center;">
       <small>
         <i class="info circle icon"></i>
-        {{ _('Showing') }} <strong>{{ [refs_items.list|length, 10] | min }}</strong> {{ _('of') }} <strong>{{ refs_count }}</strong> {{ _('references') }}.
+        {{ _('Showing first') }} <strong>{{ [refs_items.list|length, 5] | min }}</strong> {{ _('of') }} <strong>{{ refs_count }}</strong> {{ _('references.') }}
       </small>
       {%- if lens_id -%}
-      <button type="button" class="unesco-download-btn" onclick="downloadLensExport(this, 'references', '{{ lens_id }}')" title="{{ _('Download all references as CSV') }}">
-        <i class="download icon"></i> {{ _('Download all') }}
-      </button>
+      <div style="margin-top: 8px;">
+        <button type="button" class="unesco-download-btn" onclick="downloadLensExport(this, 'references', '{{ lens_id }}')" title="{{ _('Download all references as CSV') }}">
+          <i class="download icon"></i> {{ _('Download all') }}
+        </button>
+      </div>
       {%- endif -%}
     </div>
     {%- else -%}

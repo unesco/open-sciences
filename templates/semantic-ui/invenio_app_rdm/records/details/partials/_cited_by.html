@@ -41,29 +41,35 @@
   </div>
   <div class="unesco-section-content">
     {%- if cit_items.list -%}
+    <div style="margin-bottom: 10px;">
+      <span style="color: #333; font-size: 0.82em; font-weight: 600; padding: 3px 10px; border-radius: 4px;">
+        {{ _('Cited by other scholarly works') }}
+      </span>
+    </div>
     <div class="unesco-list">
-      {%- for cit in cit_items.list[:10] -%}
+      {%- for cit in cit_items.list[:5] -%}
       <div class="unesco-list-item">
         <span class="unesco-list-text" title="{{ cit.lens_id }}">{{ cit.lens_id }}</span>
-        <a href="https://www.lens.org/lens/scholar/article/{{ cit.lens_id }}/main" 
+        <a href="https://www.lens.org/lens/scholar/article/{{ cit.lens_id }}/main"
            class="unesco-find-more-btn"
            title="{{ _('View on Lens.org') }}"
            target="_blank" rel="noopener noreferrer">
-          {{ _('Find more') }} <i class="external alternate icon"></i>
+          {{ _('Read more') }} <i class="external alternate icon"></i>
         </a>
       </div>
       {%- endfor -%}
     </div>
-    {# Always show info box #}
-    <div class="unesco-info-box" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <div class="unesco-info-box" style="margin-top: 12px; text-align: center;">
       <small>
         <i class="info circle icon"></i>
-        {{ _('Showing') }} <strong>{{ [cit_items.list|length, 10] | min }}</strong> {{ _('of') }} <strong>{{ cit_count }}</strong> {{ _('citing works') }}.
+        {{ _('Showing first') }} <strong>{{ [cit_items.list|length, 5] | min }}</strong> {{ _('of') }} <strong>{{ cit_count }}</strong> {{ _('scholarly citations.') }}
       </small>
       {%- if lens_id -%}
-      <button type="button" class="unesco-download-btn" onclick="downloadLensExport(this, 'citations', '{{ lens_id }}')" title="{{ _('Download all citations as CSV') }}">
-        <i class="download icon"></i> {{ _('Download all') }}
-      </button>
+      <div style="margin-top: 8px;">
+        <button type="button" class="unesco-download-btn" onclick="downloadLensExport(this, 'citations', '{{ lens_id }}')" title="{{ _('Download all citations as CSV') }}">
+          <i class="download icon"></i> {{ _('Download all') }}
+        </button>
+      </div>
       {%- endif -%}
     </div>
     {%- else -%}
