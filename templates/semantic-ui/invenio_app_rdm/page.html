@@ -32,8 +32,16 @@
 {%- include "invenio_app_rdm/_gtm_body.html" %}
 {{ super() }}
 
-<!-- Jira Issue Collector -->
-<script type="text/javascript" src="https://unicc.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/150dpd/b/9/c95134bc67d3a521bb3f4331beb9b804/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-GB&collectorId=bb75cf05"></script>
+<!-- Jira Issue Collector (only loaded on allowed hosts) -->
+<script type="text/javascript">
+  var JIRA_COLLECTOR_ALLOWED_HOSTS = ["open-science.dev.unesco.org", "127.0.0.1"];
+  if (JIRA_COLLECTOR_ALLOWED_HOSTS.indexOf(window.location.hostname) !== -1) {
+    var s = document.createElement("script");
+    s.type = "text/javascript";
+    s.src = "https://unicc.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/150dpd/b/9/c95134bc67d3a521bb3f4331beb9b804/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-GB&collectorId=bb75cf05";
+    document.body.appendChild(s);
+  }
+</script>
 <!-- End Jira Issue Collector -->
 
 {%- endblock body_inner %}
