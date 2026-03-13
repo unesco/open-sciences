@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures
+.PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
 
 # Default target
 help:
@@ -31,6 +31,7 @@ help:
 	@echo "  site-install - Reinstall site package (after model changes)"
 	@echo "  db-init-cms  - Initialize CMS tables (first-time setup)"
 	@echo "  cms-fixtures - Load CMS fixtures (footer, header, etc.)"
+	@echo "  page-update  - Update a single static page (default: about). Use SLUG=about"
 	@echo "  db-status    - Show migration status for all branches"
 	@echo "  db-current   - Show current database revision"
 	@echo "  db-history   - Show migration history"
@@ -593,3 +594,10 @@ cms-fixtures:
 	@echo "📦 Loading CMS fixtures (force overwrite)..."
 	$(VENV_ACTIVATE) && invenio cms load-fixtures --force
 	@echo "✅ CMS fixtures loaded!"
+
+# Update a single static page (default: about). Usage: make page-update SLUG=about
+page-update:
+	@SLUG=$${SLUG:-about}; \
+	echo "📄 Updating static page: $$SLUG"; \
+	$(VENV_ACTIVATE) && invenio cms load-fixtures --resource static_page --slug $$SLUG --force; \
+	echo "✅ Page '$$SLUG' updated!"

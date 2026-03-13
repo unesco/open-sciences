@@ -27,6 +27,12 @@ def cms():
     help="Load fixtures for a specific resource type only (e.g., footer)",
 )
 @click.option(
+    "--slug",
+    "-s",
+    default=None,
+    help="Load fixture for a specific slug only (e.g., about). Requires --resource.",
+)
+@click.option(
     "--lang",
     "-l",
     default=None,
@@ -40,12 +46,13 @@ def cms():
     help="Overwrite existing content (default: skip existing)",
 )
 @with_appcontext
-def load_fixtures(resource, lang, force):
+def load_fixtures(resource, slug, lang, force):
     """Load CMS fixtures into the database.
 
     Examples:
         invenio cms load-fixtures
         invenio cms load-fixtures --resource footer
+        invenio cms load-fixtures --resource static_page --slug about --force
         invenio cms load-fixtures --resource footer --lang en
         invenio cms load-fixtures --force
     """
@@ -87,13 +94,15 @@ def load_fixtures(resource, lang, force):
             else:
                 # Collection: data is {slug: content_data}
                 items_to_create = [
-                    (slug, content_data) for slug, content_data in data.items()
+                    (item_slug, content_data)
+                    for item_slug, content_data in data.items()
+                    if slug is None or item_slug == slug
                 ]
 
-            for slug, content_data in items_to_create:
+            for item_slug, content_data in items_to_create:
                 # Check if content already exists
                 existing = CMSContent.query.filter_by(
-                    resource_type=resource_type, slug=slug, lang=fixture_lang
+                    resource_type=resource_type, slug=item_slug, lang=fixture_lang
                 ).first()
 
                 if existing:
@@ -106,26 +115,26 @@ def load_fixtures(resource, lang, force):
                         existing.published_at = datetime.utcnow()
                         updated += 1
                         click.echo(
-                            f"✏️  Updated: {resource_type}/{slug} ({fixture_lang})"
+                            f"✏️  Updated: {resource_type}/{item_slug} ({fixture_lang})"
                         )
                     else:
                         skipped += 1
                         click.echo(
-                            f"⏭️  Skipped (exists): {resource_type}/{slug} ({fixture_lang})"
+                            f"⏭️  Skipped (exists): {resource_type}/{item_slug} ({fixture_lang})"
                         )
                 else:
                     # Create new
                     content = CMSContent.create(
                         {
                             "resource_type": resource_type,
-                            "slug": slug,
+                            "slug": item_slug,
                             "data": content_data,
                             "lang": fixture_lang,
                             "is_published": True,  # Fixtures are published by default
                         }
                     )
                     created += 1
-                    click.echo(f"✅ Created: {resource_type}/{slug} ({fixture_lang})")
+                    click.echo(f"✅ Created: {resource_type}/{item_slug} ({fixture_lang})")
 
     db.session.commit()
 
