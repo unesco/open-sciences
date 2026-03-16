@@ -296,6 +296,11 @@ deploy:env:
       mv /tmp/.env.${CI_COMMIT_BRANCH}.out /tmp/.env.${CI_COMMIT_BRANCH}
       # Set DOCKER_IMAGE_TAG to the commit SHA (not a CI/CD variable, injected separately)
       sed -i "s/__CI_COMMIT_SHORT_SHA__/${CI_COMMIT_SHORT_SHA}/" /tmp/.env.${CI_COMMIT_BRANCH}
+      # On main: inject proxy so Helm can reach GitHub through the UNESCO proxy
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        echo "HTTPS_PROXY=http://proxy.unesco.org:8080" >> /tmp/.env.${CI_COMMIT_BRANCH}
+        echo "NO_PROXY=localhost,127.0.0.1,*.unesco.org,unesco.org,192.168.0.0/16" >> /tmp/.env.${CI_COMMIT_BRANCH}
+      fi
     - echo ""
     - echo "Uploading .env.${CI_COMMIT_BRANCH} to server..."
     - scp -o StrictHostKeyChecking=no /tmp/.env.${CI_COMMIT_BRANCH} "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.${CI_COMMIT_BRANCH}"
