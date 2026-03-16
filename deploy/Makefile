@@ -249,7 +249,7 @@ deploy-secrets: check env-check render-config ## Create K8s Secrets (service env
 deploy-helm: check ## Install/upgrade InvenioRDM Helm chart
 	@echo "Setting up Helm repositories..."
 	@helm repo add invenio https://inveniosoftware.github.io/helm-invenio/ 2>/dev/null || true
-	@helm repo update
+	@helm repo update || (echo "WARN: helm repo update failed (network/proxy issue?) — continuing with cached index" && true)
 	@echo ""
 	@echo "Generating Helm values..."
 	@# Substitute .env variables into values.yaml
