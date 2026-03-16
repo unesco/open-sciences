@@ -193,7 +193,6 @@ build:docker:
     - echo "==================================================================="
   rules:
     - if: '$CI_COMMIT_BRANCH == "test"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
 
 deploy:env:
   stage: deploy
@@ -202,6 +201,7 @@ deploy:env:
     name: $CI_COMMIT_BRANCH
   needs:
     - job: build:docker
+      optional: true
   variables:
     HTTP_PROXY: "http://proxy.unesco.org:8080"
     HTTPS_PROXY: "http://proxy.unesco.org:8080"
@@ -305,6 +305,8 @@ deploy:env:
     - echo "Running make deploy on server..."
     - |
       if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "HTTPS_PROXY=http://proxy.unesco.org:8080 helm repo add invenio https://inveniosoftware.github.io/helm-invenio/ 2>/dev/null || true; HTTPS_PROXY=http://proxy.unesco.org:8080 helm repo update || true"
         ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
           "cd ${DEPLOY_PATH}/deploy && sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml make deploy ENV=${CI_COMMIT_BRANCH}"
       else
