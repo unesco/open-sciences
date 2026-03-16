@@ -145,10 +145,14 @@ ost_publish:
     - ost
 
 # ==============================================================================
-# K3s Deployment Pipeline
+# K3s Deployment Pipeline (test + main/production)
 # ==============================================================================
-# Stage 1: Build and push Docker image (tagged with commit SHA)
-# Stage 2: Deploy .env.test and run make deploy on server via SSH
+# A single pair of jobs covers both branches; the GitLab environment name
+# controls which set of CI/CD variables is injected.
+#
+# Branch → Environment mapping:
+#   test  → environment: test  (make deploy ENV=test)
+#   main  → environment: main  (make deploy ENV=main)
 # ==============================================================================
 
 build:docker:
@@ -157,22 +161,18 @@ build:docker:
   services:
     - docker:24.0.5-dind
   environment:
-    name: test
+    name: $CI_COMMIT_BRANCH
   variables:
-    # Proxy UNESCO (uppercase and lowercase for compatibility)
+    DOCKER_IMAGE: "${CI_REGISTRY_IMAGE}"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
     HTTP_PROXY: "http://proxy.unesco.org:8080"
     HTTPS_PROXY: "http://proxy.unesco.org:8080"
     http_proxy: "http://proxy.unesco.org:8080"
     https_proxy: "http://proxy.unesco.org:8080"
-    # No proxy for UNESCO domains and GitLab registry
     NO_PROXY: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
     no_proxy: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
-    # Docker-in-Docker configuration
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_IMAGE: "${CI_REGISTRY_IMAGE}"
   before_script:
-    # Wait for Docker daemon to be ready
     - sleep 5
     - echo "Logging in to GitLab Container Registry..."
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -180,12 +180,9 @@ build:docker:
     - echo "==================================================================="
     - echo "Building InvenioRDM Docker image"
     - echo "==================================================================="
-    - 'echo "Image: ${DOCKER_IMAGE}"'
-    - 'echo "Tag: ${CI_COMMIT_SHORT_SHA}"'
-    - 'echo "Context: repository root"'
-    - 'echo "Dockerfile: deploy/Dockerfile"'
+    - 'echo "Image: ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
+    - 'echo "Environment: ${CI_COMMIT_BRANCH}"'
     - echo ""
-    - echo "Building image..."
     - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
     - echo ""
     - echo "Pushing image to registry..."
@@ -194,19 +191,18 @@ build:docker:
     - echo "==================================================================="
     - echo "Docker image built and pushed successfully!"
     - echo "==================================================================="
-    - 'echo "  ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
-  only:
-    - test
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 deploy:env:
   stage: deploy
   image: alpine:latest
   environment:
-    name: test
+    name: $CI_COMMIT_BRANCH
   needs:
     - job: build:docker
   variables:
-    # Proxy for apk install
     HTTP_PROXY: "http://proxy.unesco.org:8080"
     HTTPS_PROXY: "http://proxy.unesco.org:8080"
     http_proxy: "http://proxy.unesco.org:8080"
@@ -223,11 +219,11 @@ deploy:env:
     - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts || echo "WARN ssh-keyscan failed - host unreachable on port 22 (firewall?)"
   script:
     - echo "==================================================================="
-    - echo "Deploying .env.test to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
+    - echo "Deploying .env.${CI_COMMIT_BRANCH} to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
     - echo "==================================================================="
     - |
-      # Build .env.test content from CI/CD variables
-      cat > /tmp/.env.test << 'ENVEOF'
+      # Build .env.${CI_COMMIT_BRANCH} content from CI/CD variables
+      cat > /tmp/.env.${CI_COMMIT_BRANCH} << 'ENVEOF'
       ADMIN_EMAIL=${ADMIN_EMAIL}
       ADMIN_USER_EMAIL=${ADMIN_USER_EMAIL}
       ADMIN_USER_PASSWORD=${ADMIN_USER_PASSWORD}
@@ -291,28 +287,30 @@ deploy:env:
       WORKER_MEMORY_LIMIT=${WORKER_MEMORY_LIMIT}
       WORKER_MEMORY_REQUEST=${WORKER_MEMORY_REQUEST}
       WORKER_REPLICAS=${WORKER_REPLICAS}
+      ZZZ=YYY
       ENVEOF
     - |
       # Remove leading whitespace (heredoc indentation) and substitute CI/CD variables
-      sed -i 's/^      //' /tmp/.env.test
-      envsubst < /tmp/.env.test > /tmp/.env.test.out
-      mv /tmp/.env.test.out /tmp/.env.test
+      sed -i 's/^      //' /tmp/.env.${CI_COMMIT_BRANCH}
+      envsubst < /tmp/.env.${CI_COMMIT_BRANCH} > /tmp/.env.${CI_COMMIT_BRANCH}.out
+      mv /tmp/.env.${CI_COMMIT_BRANCH}.out /tmp/.env.${CI_COMMIT_BRANCH}
       # Set DOCKER_IMAGE_TAG to the commit SHA (not a CI/CD variable, injected separately)
-      sed -i "s/__CI_COMMIT_SHORT_SHA__/${CI_COMMIT_SHORT_SHA}/" /tmp/.env.test
+      sed -i "s/__CI_COMMIT_SHORT_SHA__/${CI_COMMIT_SHORT_SHA}/" /tmp/.env.${CI_COMMIT_BRANCH}
     - echo ""
-    - echo "Uploading .env.test to server..."
-    - scp -o StrictHostKeyChecking=no /tmp/.env.test "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.test"
+    - echo "Uploading .env.${CI_COMMIT_BRANCH} to server..."
+    - scp -o StrictHostKeyChecking=no /tmp/.env.${CI_COMMIT_BRANCH} "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.${CI_COMMIT_BRANCH}"
     - echo ""
     - echo "Pulling latest code on server (branch ${CI_COMMIT_BRANCH})..."
     - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH} && git fetch origin && git checkout ${CI_COMMIT_BRANCH} && git pull origin ${CI_COMMIT_BRANCH}"
     - echo "Running make deploy on server..."
-    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
+    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=${CI_COMMIT_BRANCH}"
     - echo ""
     - |
       echo "==================================================================="
       echo "Deployed commit ${CI_COMMIT_SHORT_SHA} to ${DEPLOY_PATH}"
       echo "  Image tag: ${CI_COMMIT_SHORT_SHA}"
       echo "==================================================================="
-    - rm -f /tmp/.env.test
-  only:
-    - test
+    - rm -f /tmp/.env.${CI_COMMIT_BRANCH}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
