@@ -303,7 +303,14 @@ deploy:env:
     - echo "Pulling latest code on server (branch ${CI_COMMIT_BRANCH})..."
     - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH} && git fetch origin && git checkout ${CI_COMMIT_BRANCH} && git pull origin ${CI_COMMIT_BRANCH}"
     - echo "Running make deploy on server..."
-    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=${CI_COMMIT_BRANCH}"
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "cd ${DEPLOY_PATH}/deploy && sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml make deploy ENV=${CI_COMMIT_BRANCH}"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "cd ${DEPLOY_PATH}/deploy && make deploy ENV=${CI_COMMIT_BRANCH}"
+      fi
     - echo ""
     - |
       echo "==================================================================="
