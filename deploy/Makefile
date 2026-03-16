@@ -253,17 +253,17 @@ deploy-helm: check ## Install/upgrade InvenioRDM Helm chart
 	@echo ""
 	@echo "Generating Helm values..."
 	@# Substitute .env variables into values.yaml
-	@envsubst < $(VALUES_FILE) > /tmp/values-rendered.yaml
+	@envsubst < $(VALUES_FILE) > ./values-rendered.yaml
 	@echo ""
 	@echo "Deploying InvenioRDM (chart v$(HELM_INVENIO_VER))..."
 	helm upgrade --install $(HELM_RELEASE) invenio/invenio \
 		--version $(HELM_INVENIO_VER) \
 		--namespace $(NAMESPACE) \
 		--create-namespace \
-		--values /tmp/values-rendered.yaml \
+		--values ./values-rendered.yaml \
 		--wait \
 		--timeout 10m
-	@rm -f /tmp/values-rendered.yaml
+	@rm -f ./values-rendered.yaml
 	@echo ""
 	@echo "Helm chart deployed."
 
