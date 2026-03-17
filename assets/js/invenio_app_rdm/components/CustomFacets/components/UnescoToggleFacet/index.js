@@ -1,23 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { Card, Dropdown, Popup, Icon } from "semantic-ui-react";
 
+// Base field for all UNESCO relation filters
+const RELATION_FIELD = "custom_fields.publication\\:unesco_relation";
+
 // Filter patterns for URL parsing
 const FILTER_PATTERNS = {
-  funder: /custom_fields\.publication\\:funding_org:\*UNESCO\*/,
-  author: /metadata\.creators\.affiliations\.name:\*UNESCO\*/,
+  funded:     new RegExp(`${RELATION_FIELD.replace(/\\/g, "\\\\")}:"Funded by UNESCO"`),
+  published:  new RegExp(`${RELATION_FIELD.replace(/\\/g, "\\\\")}:"Published by UNESCO"`),
+  affiliated: new RegExp(`${RELATION_FIELD.replace(/\\/g, "\\\\")}:"UNESCO Affiliated Author"`),
+  collective: new RegExp(`${RELATION_FIELD.replace(/\\/g, "\\\\")}:"UNESCO Collective Author"`),
 };
 
 // Filter query strings
 const FILTER_QUERIES = {
-  funder: "custom_fields.publication\\:funding_org:*UNESCO*",
-  author: "metadata.creators.affiliations.name:*UNESCO*",
+  funded:     `${RELATION_FIELD}:"Funded by UNESCO"`,
+  published:  `${RELATION_FIELD}:"Published by UNESCO"`,
+  affiliated: `${RELATION_FIELD}:"UNESCO Affiliated Author"`,
+  collective: `${RELATION_FIELD}:"UNESCO Collective Author"`,
 };
 
 // Dropdown options
 const OPTIONS = [
-  { key: "none", value: "", text: "All records" },
-  { key: "funder", value: "funder", text: "UNESCO as funder" },
-  { key: "author", value: "author", text: "Author affiliated with UNESCO" },
+  { key: "none",       value: "",           text: "All records" },
+  { key: "funded",     value: "funded",     text: "Supported/funded by UNESCO" },
+  { key: "published",  value: "published",  text: "Published by UNESCO" },
+  { key: "affiliated", value: "affiliated", text: "Authored by individuals affiliated with UNESCO" },
+  { key: "collective", value: "collective", text: "Produced by UNESCO as collective author" },
 ];
 
 const UnescoToggleFacet = () => {
@@ -29,13 +38,10 @@ const UnescoToggleFacet = () => {
     const existingQuery = urlParams.get("q") || "";
 
     // Check which filter is present (if any)
-    if (FILTER_PATTERNS.funder.test(existingQuery)) {
-      setSelectedValue("funder");
-    } else if (FILTER_PATTERNS.author.test(existingQuery)) {
-      setSelectedValue("author");
-    } else {
-      setSelectedValue("");
-    }
+    const match = Object.keys(FILTER_PATTERNS).find((key) =>
+      FILTER_PATTERNS[key].test(existingQuery)
+    );
+    setSelectedValue(match || "");
   }, []);
 
   const handleChange = (e, { value }) => {
@@ -134,7 +140,7 @@ const UnescoToggleFacet = () => {
                 }}
               />
             }
-            content="Filter records by UNESCO involvement: as a funder or through author affiliation"
+            content="Filter records by type of UNESCO involvement: funded by, published by, affiliated author, or UNESCO as collective author"
             position="top center"
             size="small"
             inverted
