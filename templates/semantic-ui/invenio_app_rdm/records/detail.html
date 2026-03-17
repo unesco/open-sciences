@@ -173,6 +173,26 @@
 
               {%- block record_header_button -%}
 
+                {# Go back button #}
+                <nav class="rel-pb-2 pl-0" aria-label="{{ _('Back navigation') }}">
+                  <a href="javascript:history.back()"
+                     style="
+                       display: inline-flex;
+                       align-items: center;
+                       gap: 6px;
+                       color: #0077D4;
+                       font-weight: 600;
+                       font-size: 1rem;
+                       padding: 7px 16px;
+                       border-radius: 4px;
+                       text-decoration: none;
+                       margin-bottom: 1rem;
+                     ">
+                    <i class="ui icon arrow left" style="margin-top: -5px;"></i>
+                    {{ _('Go back') }}
+                  </a>
+                </nav>
+
                 {% if is_preview and not is_preview_submission_request and can_curate_record and is_draft %}
                   <nav class="back-navigation rel-pb-2 pl-0"
                        aria-label="{{ _('Back-navigation') }}">
