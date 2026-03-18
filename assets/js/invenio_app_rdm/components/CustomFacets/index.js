@@ -120,6 +120,28 @@ export const CustomFacets = ({ aggs, appName }) => {
         <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
         <ResourceTypeFacet key={`resource-type-${urlKey}`} />
         <DynamicFacet
+          key={`keyword-${urlKey}`}
+          label="Keywords"
+          apiField="keyword"
+          queryField="custom_fields.publication:keyword"
+          placeholder="Search keywords..."
+          icon="tag"
+          maxResults={100}
+          useFacetParameter={true}
+          facetName="keyword"
+        />
+        <DynamicFacet
+          key={`field-of-study-${urlKey}`}
+          label="Field of Study"
+          apiField="field_of_study"
+          queryField="custom_fields.publication:field_of_study"
+          placeholder="Search fields of study..."
+          icon="flask"
+          maxResults={100}
+          useFacetParameter={true}
+          facetName="field_of_study"
+        />
+        <DynamicFacet
           key={`author-${urlKey}`}
           label="Author"
           apiField="author"
@@ -158,15 +180,6 @@ export const CustomFacets = ({ aggs, appName }) => {
           maxResults={100}
           useFacetParameter={true}
           facetName="affiliation_region"
-        />
-        <DynamicFacet
-          key={`subject-${urlKey}`}
-          label="Subject / Keyword"
-          apiField="subject"
-          queryField="metadata.subjects.subject"
-          placeholder="Search subjects..."
-          icon="tags"
-          maxResults={100}
         />
         <DynamicFacet
           key={`funding-${urlKey}`}

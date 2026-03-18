@@ -367,6 +367,16 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="publication:funding_org",
         multiple=True,
     ),
+    # Keywords from Lens.org (author-supplied keywords)
+    KeywordCF(
+        name="publication:keyword",
+        multiple=True,
+    ),
+    # Fields of study from Lens.org
+    KeywordCF(
+        name="publication:field_of_study",
+        multiple=True,
+    ),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [
