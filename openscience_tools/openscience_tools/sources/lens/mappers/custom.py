@@ -227,6 +227,17 @@ class CustomFieldsMapper(BaseMapper):
             if journal_data:
                 custom_fields["journal:journal"] = journal_data
 
+            # Keywords (author-supplied, stored separately from fields of study)
+            keywords = self.safe_get(lens_record, "keywords", default=[])
+            kw_list = [kw.strip() for kw in keywords if isinstance(kw, str) and kw.strip()]
+            if kw_list:
+                custom_fields["publication:keyword"] = kw_list
+
+            # Fields of study (stored separately from keywords)
+            fields_of_study = self.safe_get(lens_record, "fields_of_study", default=[])
+            fos_list = [f.strip() for f in fields_of_study if isinstance(f, str) and f.strip()]
+            if fos_list:
+                custom_fields["publication:field_of_study"] = fos_list
             # UNESCO relation types (funded by / published by / affiliated / collective author)
             unesco_relations = self._detect_unesco_relations(lens_record)
             if unesco_relations:
