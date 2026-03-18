@@ -47,27 +47,25 @@
   {%- if has_related -%}
     {% include "invenio_app_rdm/records/details/partials/_related_works.html" %}
   {%- endif -%}
-  
-  {# === FUNDING === #}
-  {%- if has_funding -%}
-    {% include "invenio_app_rdm/records/details/partials/_funding.html" %}
-  {%- endif -%}
-  
-  {# ========== LENS.ORG CUSTOM FIELDS ========== #}
-  
+
   {# === OPEN ACCESS === #}
   {%- if lens_open_access -%}
     {% include "invenio_app_rdm/records/details/partials/_open_access.html" %}
   {%- endif -%}
-  
-  {# === EXTERNAL IDENTIFIERS === #}
+
+  {# === EXTERNAL IDENTIFIERS (Persistent Identifiers) === #}
   {%- if lens_external_ids -%}
     {% include "invenio_app_rdm/records/details/partials/_external_ids.html" %}
   {%- endif -%}
-  
+
   {# === REFERENCES === #}
   {%- if lens_references -%}
     {% include "invenio_app_rdm/records/details/partials/_references.html" %}
+  {%- endif -%}
+
+  {# === FUNDING === #}
+  {%- if has_funding -%}
+    {% include "invenio_app_rdm/records/details/partials/_funding.html" %}
   {%- endif -%}
   
   {# === CITED BY === #}

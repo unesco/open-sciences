@@ -377,6 +377,13 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="publication:field_of_study",
         multiple=True,
     ),
+    # UNESCO relation types for filtering
+    # Values: "Funded by UNESCO", "Published by UNESCO",
+    #         "UNESCO Affiliated Author", "UNESCO Collective Author"
+    KeywordCF(
+        name="publication:unesco_relation",
+        multiple=True,
+    ),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [
