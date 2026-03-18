@@ -13,10 +13,15 @@
 <div class="unesco-section collapsed" id="unesco-publisher-section">
   <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-publisher-section')">
     <h3>
-      <i class="book icon"></i>
+      {% include "invenio_app_rdm/records/details/partials/icon-publication-details.svg" ignore missing %}
       {{ _('Publication Details') }}
     </h3>
     <div style="display: flex; align-items: center; gap: 12px;">
+      {%- if record_ui.ui.resource_type -%}
+      <span style="background:#f1f4f6;color:#4C5054;font-size:0.78rem;font-weight:600;padding:3px 10px;border-radius:5px;">
+        {{ record_ui.ui.resource_type.title_l10n }}
+      </span>
+      {%- endif -%}
       <i class="chevron down icon chevron"></i>
     </div>
   </div>
@@ -71,14 +76,14 @@
       <div class="publisher-inline-row">
         {%- if journal.volume -%}
         <div class="publisher-inline-item">
-          <i class="book icon"></i>
+          <i class="hashtag icon"></i>
           <span class="publisher-label">{{ _('Volume') }}:</span>
           <span class="publisher-value">{{ journal.volume }}</span>
         </div>
         {%- endif -%}
         {%- if journal.pages -%}
         <div class="publisher-inline-item">
-          <i class="book icon"></i>
+          <i class="file alternate outline icon"></i>
           <span class="publisher-label">{{ _('Pages') }}:</span>
           <span class="publisher-value">{{ journal.pages }}</span>
         </div>
