@@ -317,42 +317,44 @@ header.theme.header,
   bottom: 20px !important;
   margin-bottom: 1rem !important;
   
-  /* Ant Design style: white background with black text */
   background-color: #ffffff !important;
-  color: rgba(0, 0, 0, 0.85) !important;
-  border: 1px solid #d9d9d9 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-  border-radius: 6px !important;
-  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+  color: #0077D4 !important;
+  border: 1.5px solid #0077D4 !important;
+  box-shadow: none !important;
+  border-radius: 20px !important;
+  transition: all 0.2s ease !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  padding: 10px 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
   
-  /* Icon color */
   i.icon {
-    color: rgba(0, 0, 0, 0.85) !important;
+    color: #0077D4 !important;
+    margin: 0 !important;
   }
   
-  /* Hover state - Ant Design primary blue tint */
   &:hover {
-    color: #1890ff !important;
-    border-color: #1890ff !important;
-    background-color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    background-color: #0077D4 !important;
+    color: #ffffff !important;
+    border-color: #0077D4 !important;
+    box-shadow: 0 2px 8px rgba(0, 119, 212, 0.25) !important;
     
     i.icon {
-      color: #1890ff !important;
+      color: #ffffff !important;
     }
   }
   
-  /* Active/pressed state */
   &:active {
-    color: #096dd9 !important;
-    border-color: #096dd9 !important;
+    background-color: #005fa3 !important;
+    border-color: #005fa3 !important;
+    color: #ffffff !important;
   }
   
-  /* Focus state */
   &:focus {
     outline: none !important;
-    border-color: #40a9ff !important;
-    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+    box-shadow: 0 0 0 2px rgba(0, 119, 212, 0.2) !important;
   }
 }
 
