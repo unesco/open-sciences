@@ -23,10 +23,10 @@ under the terms of the MIT License; see LICENSE file for more details. #}
 <footer id="unesco-footer">
   <!-- Footer Top Section -->
   <div style="background-color: #0077D4; padding: 40px 0; width: 100%; overflow-x: hidden;">
-    <div class="footer-content-wrapper" style="max-width: 1221px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 20px; flex-wrap: wrap; gap: 40px;">
+    <div class="ui container footer-content-wrapper" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 40px;">
 
       <!-- Left Column: Logo and Website Link -->
-      <div class="footer-left-column" style="display: flex; flex-direction: column; gap: 21px; width: 261.269px; min-width: 0; max-width: 100%;">
+      <div class="footer-left-column" style="display: flex; flex-direction: column; gap: 21px; flex: 1; min-width: 200px; max-width: 100%;">
         <div style="height: 56px; width: 100%;">
           <img id="footer-logo" src="{{ url_for('static', filename='images/unesco-logo1.svg') }}" alt="UNESCO" style="height: 56px; width: auto; max-width: 100%;" />
         </div>
@@ -38,7 +38,7 @@ under the terms of the MIT License; see LICENSE file for more details. #}
       </div>
 
       <!-- Right Column: Contact and Navigation -->
-      <div class="footer-right-column" style="display: flex; flex-direction: column; gap: 24px; width: 301px; min-width: 0; max-width: 100%;">
+      <div class="footer-right-column" style="display: flex; flex-direction: column; gap: 24px; align-items: flex-end; min-width: 0; max-width: 100%;">
         <!-- Email -->
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <a id="footer-email" href="mailto:open-science-platform@unesco.org" style="font-family: 'Inter', sans-serif; font-weight: 400; font-size: 16px; line-height: 24px; color: #FFFFFF; text-decoration: underline; word-wrap: break-word; overflow-wrap: break-word;">
@@ -47,7 +47,7 @@ under the terms of the MIT License; see LICENSE file for more details. #}
         </div>
 
         <!-- Navigation Links (managed by CMS) -->
-        <div id="footer-nav-links" style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 16px; line-height: 22px;">
+        <div id="footer-nav-links" style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 16px; line-height: 22px; align-items: flex-end;">
           <!-- Default links (will be replaced by CMS data) -->
           <a href="/pages/about" style="color: #FFFFFF; text-decoration: none; margin: 0;">About</a>
           <a href="https://www.unesco.org/en/natural-sciences" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; text-decoration: none; margin: 0;">UNESCO Natural Sciences Family</a>
@@ -66,7 +66,7 @@ under the terms of the MIT License; see LICENSE file for more details. #}
 
   <!-- Footer Bottom Section: Copyright -->
   <div style="background-color: #0077D4; padding: 40px 0; width: 100%; overflow-x: hidden;">
-    <div style="max-width: 1221px; margin: 0 auto; padding: 0 20px;">
+    <div class="ui container">
       <div style="display: flex; flex-direction: column; gap: 8px; font-family: 'Inter', sans-serif; font-weight: 400; color: #FFFFFF;">
         <p id="footer-copyright" style="margin: 0; font-size: 16px; line-height: 20px; word-wrap: break-word;">
           © 2025 UNESCO Open Science Portal - United Nations Educational, Scientific and Cultural Organization
@@ -85,13 +85,17 @@ under the terms of the MIT License; see LICENSE file for more details. #}
     #unesco-footer .footer-content-wrapper {
       flex-direction: column !important;
       gap: 32px !important;
-      padding: 0 16px !important;
     }
     
     #unesco-footer .footer-left-column,
     #unesco-footer .footer-right-column {
       width: 100% !important;
       max-width: 100% !important;
+      align-items: flex-start !important;
+    }
+    
+    #unesco-footer #footer-nav-links {
+      align-items: flex-start !important;
     }
     
     #unesco-footer #footer-email,
