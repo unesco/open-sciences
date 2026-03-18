@@ -100,22 +100,38 @@ export const CustomFacets = ({ aggs, appName }) => {
         }`}
         style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
       >
-        {/* Clear Filters Button */}
-        {hasActiveFiltersOrQuery() && (
-          <Button
-            fluid
-            basic
-            size="small"
-            onClick={handleClearFilters}
-            style={{
-              marginBottom: "0.5rem",
-              color: "#db2828",
-              borderColor: "#db2828",
-            }}
-          >
-            Clear All Filters
-          </Button>
-        )}
+        {/* Filters heading */}
+        <div style={{ marginBottom: "0.5rem", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(34, 36, 38, 0.15)" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#212121", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+            Filters
+          </div>
+          <div style={{ fontSize: "0.85rem", color: "#6C757D", marginTop: "0.2rem" }}>
+            Select criteria to filter survey responses
+          </div>
+
+          {/* Clear Filters Button */}
+          {hasActiveFiltersOrQuery() && (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleClearFilters}
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleClearFilters()}
+              style={{
+                marginTop: "0.75rem",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                color: "#1264A3",
+                fontSize: "0.92rem",
+                fontWeight: 600,
+              }}
+            >
+              <Icon name="times" style={{ marginTop: "-8px" }} />
+              Reset all filters
+            </div>
+          )}
+        </div>
 
         <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
         <ResourceTypeFacet key={`resource-type-${urlKey}`} />
