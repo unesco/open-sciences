@@ -305,6 +305,8 @@ create-admin: check ## Create admin user
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c \
 		"invenio users create $(ADMIN_USER_EMAIL) --password='$(ADMIN_USER_PASSWORD)' --active --confirm 2>/dev/null || echo 'User may already exist'" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c \
+		"invenio roles create admin 2>/dev/null || echo 'Role admin may already exist'" ; \
+	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c \
 		"invenio roles add $(ADMIN_USER_EMAIL) admin 2>/dev/null || echo 'Role may already be assigned'" ; \
 	kubectl exec -n $(NAMESPACE) $$WEB_POD -c web -- bash -c \
 		"invenio access allow superuser-access role admin 2>/dev/null || echo 'Permission may already exist'" ; \
