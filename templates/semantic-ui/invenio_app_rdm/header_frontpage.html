@@ -76,7 +76,7 @@ details. #}
   
   {%- block frontpage_search %}
   <div id="frontpage-search-bar" class="ui container fluid frontpage-header">
-    <div class="ui container fluid grid rel-mt-2" style="padding: 60px 16px 80px 0px;">
+    <div class="ui container fluid grid rel-mt-2" style="padding: 60px 16px 80px 16px;">
       <div class="row">
         <div class="sixteen wide column center aligned">
           {%- block frontpage_title %}
@@ -90,13 +90,14 @@ details. #}
         </div>
       </div>
       {%- block frontpage_form %}
-      <div class="row" style="margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important;">
-        <div class="sixteen wide column center aligned" style="padding-left: 1rem !important; padding-right: 1rem !important;">
+      <div class="row">
+        <div class="sixteen wide mobile two wide computer column"></div>
+        <div class="sixteen wide mobile twelve wide computer column center aligned">
           <form
             action="{{ url_for('invenio_search_ui.search') }}"
             class="ui form"
             role="search"
-            style="position: relative; max-width: 790px; margin: 0 auto;margin-left:-10px"
+            style="position: relative; max-width: 790px; margin: 0 auto; transform: translateX(-10px);"
           >
             <div style="position: relative; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #4C5054; border-radius: 100px; padding: 20px 30px; gap: 8px;">
               <input
