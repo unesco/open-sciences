@@ -195,6 +195,30 @@ select {
   border-bottom: 3px solid rgba(0, 115, 183, 0.1);
 }
 
+#rdm-burger-toggle {
+  right: 0 !important;
+}
+
+/* Frontpage only: extra top offset for burger button */
+#header-background #rdm-burger-toggle {
+  margin-top: 15px !important;
+}
+
+
+#rdm-burger-toggle #rdm-burger-menu-icon {
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: none !important;
+}
+
+#rdm-burger-toggle #rdm-burger-menu-icon .navicon,
+#rdm-burger-toggle #rdm-burger-menu-icon .navicon::before,
+#rdm-burger-toggle #rdm-burger-menu-icon .navicon::after {
+  background: #ffffff !important;
+}
+
+
 /* Responsive improvements */
 @media only screen and (max-width: 768px) {
   .section-title {
