@@ -196,6 +196,17 @@ select {
   border-bottom: 3px solid rgba(0, 115, 183, 0.1);
 }
 
+/* Ensure search auto-suggestions appear above all other content */
+.outer-navbar,
+.invenio-header-container,
+header.theme.header {
+  overflow: visible !important;
+}
+
+.ui.search > .results {
+  z-index: 1000 !important;
+}
+
 #rdm-burger-toggle {
   right: 0 !important;
 }
@@ -337,6 +348,7 @@ select {
     max-width: 100vw !important;
     width: 100% !important;
     overflow-x: hidden !important;
+    overflow-y: visible !important;
     box-sizing: border-box !important;
   }
   
@@ -347,6 +359,24 @@ select {
     overflow-x: hidden !important;
     word-wrap: break-word !important;
     box-sizing: border-box !important;
+  }
+
+  /* Allow search suggestions dropdown to overflow */
+  #invenio-menu .item.search-bar,
+  #invenio-menu .item.search-bar > *,
+  #invenio-menu .ui.search,
+  #invenio-menu .ui.search .results,
+  #invenio-menu .search-bar .ui.input,
+  #invenio-menu .invenio-search-bar {
+    overflow: visible !important;
+  }
+
+  /* Search suggestions dropdown z-index */
+  #invenio-menu .ui.search > .results,
+  .ui.search > .results,
+  .invenio-search-bar .results {
+    z-index: 1000 !important;
+    overflow: visible !important;
   }
   
   /* Ensure drawer content has proper padding */
