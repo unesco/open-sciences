@@ -567,3 +567,6 @@ PAGES_TEMPLATES = [
     ("invenio_pages/dynamic.html", "Default dynamic"),
     ("invenio_app_rdm/default_static_page.html", "Default static page"),
 ]
+
+# For Maintainance Mode
+WIP_MODE = False

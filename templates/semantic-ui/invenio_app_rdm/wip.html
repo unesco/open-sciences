@@ -1,0 +1,200 @@
+{#
+  Work In Progress Landing Page
+  
+  Shown when WIP_MODE=True in config.
+  No outbound links. Consistent with UNESCO platform styling.
+  Admin users can still access /login and /administration.
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNESCO Open Science Platform — Coming Soon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f8f9fa;
+      color: #212121;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Header */
+    .wip-header {
+      background: linear-gradient(135deg, #0073b7 0%, #005a93 100%);
+      padding: 16px 0;
+    }
+
+    .wip-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wip-logo {
+      height: 48px;
+      width: auto;
+    }
+
+    /* Hero */
+    .wip-hero {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(0, 115, 183, 0.9) 0%, rgba(0, 60, 120, 0.85) 100%),
+                  url("{{ url_for('static', filename='images/science-background1.jpg') }}") center/cover no-repeat;
+      padding: 80px 24px;
+      text-align: center;
+    }
+
+    .wip-content {
+      max-width: 680px;
+    }
+
+    .wip-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .wip-title {
+      font-size: 42px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .wip-subtitle {
+      font-size: 18px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.6;
+      margin-bottom: 48px;
+    }
+
+    .wip-divider {
+      width: 60px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 2px;
+      margin: 0 auto 32px;
+    }
+
+    .wip-message {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .wip-footer {
+      background: #0073b7;
+      padding: 20px 24px;
+      text-align: center;
+    }
+
+    .wip-footer-text {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .wip-title {
+        font-size: 28px;
+      }
+
+      .wip-subtitle {
+        font-size: 16px;
+      }
+
+      .wip-hero {
+        padding: 60px 20px;
+      }
+
+      .wip-logo {
+        height: 40px;
+      }
+    }
+    .wip-login-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 28px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 24px;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s ease;
+      cursor: pointer;
+    }
+
+    .wip-login-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  </style>
+</head>
+<body>
+  <header class="wip-header">
+    <div class="wip-header-inner">
+      <img 
+        class="wip-logo" 
+        src="{{ url_for('static', filename='images/unesco-logo.svg') }}" 
+        alt="UNESCO"
+      />
+      <a href="/login" class="wip-login-btn">Log in</a>
+    </div>
+  </header>
+
+  <main class="wip-hero">
+    <div class="wip-content">
+      <span class="wip-badge">Coming Soon</span>
+      <h1 class="wip-title">UNESCO Open Science Platform</h1>
+      <p class="wip-subtitle">
+        Your Gateway to Knowledge from the UNESCO Natural Sciences Family.
+        We are preparing an open access platform for original publications, 
+        policy briefs, reports, data, and related information.
+      </p>
+      <div class="wip-divider"></div>
+      <p class="wip-message">
+        The platform is currently under development.<br>
+        We look forward to sharing it with you soon.
+      </p>
+    </div>
+  </main>
+
+  <footer class="wip-footer">
+    <p class="wip-footer-text">&copy; UNESCO. All rights reserved.</p>
+  </footer>
+</body>
+</html>
