@@ -174,7 +174,7 @@
               {%- block record_header_button -%}
 
                 {# Go back button #}
-                <nav class="rel-pb-2 pl-0" aria-label="{{ _('Back navigation') }}">
+                <nav  class="pl-0" style = "margin-top:10px" aria-label="{{ _('Back navigation') }}">
                   <a href="javascript:history.back()"
                      style="
                        display: inline-flex;
@@ -186,7 +186,6 @@
                        padding: 7px 16px;
                        border-radius: 4px;
                        text-decoration: none;
-                       margin-bottom: 1rem;
                      ">
                     <i class="ui icon arrow left" style="margin-top: -5px;"></i>
                     {{ _('Go back') }}
@@ -330,13 +329,8 @@
                     </span>
                   </div>
 
-                  {# Right: views + resource type + access #}
+                  {# Right: resource type + access #}
                   <div style="display:inline-flex; flex-wrap:wrap; align-items:center; gap:8px;">
-                    {% set views_count = record_ui["stats"]["all_versions"]["unique_views"]|default(0) %}
-                    <span class="unesco-views-count">
-                      <i class="eye icon" aria-hidden="true"></i>
-                      <span>{{ "{:,}".format(views_count) }} {{ _('view') if views_count == 1 else _('views') }}</span>
-                    </span>
 
                     {% if record_ui["ui"]["resource_type"] %}
                       <span class="unesco-tag unesco-tag-type">
