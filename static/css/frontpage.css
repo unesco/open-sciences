@@ -720,6 +720,7 @@
   /* Partners Section Mobile Improvements */
   .partners-section {
     padding: 40px 16px !important;
+    margin-top:-17px !important;
   }
 
   .partners-wrapper {
