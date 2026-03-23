@@ -81,176 +81,162 @@ export const CustomResultOptions = ({
     downloadXLSX(setIsLoading);
   };
 
+  // Shared styles
+  const sharedStyles = `
+    .unesco-download-btn.ui.button,
+    .unesco-download-btn.ui.button:not(.basic):not(.transparent):not(.jump-to-top):not(.labeled):not(.search) {
+      border-radius: 20px !important;
+      background-color: transparent !important;
+      border: 1px solid #0077D4 !important;
+      color: #0077D4 !important;
+      box-shadow: none !important;
+    }
+    .unesco-download-btn.ui.button:hover {
+      background-color: rgba(0, 119, 212, 0.1) !important;
+    }
+    .unesco-download-btn.ui.button.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .unesco-sort-wrapper .ui.selection.dropdown {
+      border-radius: 20px !important;
+      min-height: 38px !important;
+      padding: 10px 16px !important;
+    }
+    .unesco-sort-wrapper .ui.selection.dropdown .menu {
+      border-radius: 12px !important;
+    }
+  `;
+
+  const downloadButton = (compact) => (
+    <Button
+      className={`unesco-download-btn ${isLoading ? "loading" : ""}`}
+      compact={compact}
+      onClick={handleDownload}
+      disabled={isLoading || totalResults === 0}
+      title="Download current page results as Excel (XLSX)"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        backgroundColor: "transparent",
+        border: "1px solid #0077D4",
+        color: "#0077D4",
+        padding: compact ? "8px 14px" : "10px 20px",
+        fontWeight: 500,
+        height: compact ? "36px" : "38px",
+        boxSizing: "border-box",
+        fontSize: compact ? "0.9rem" : undefined,
+      }}
+    >
+      {isLoading ? "Downloading..." : "Download"}
+      <Icon
+        name={isLoading ? "spinner" : "download"}
+        loading={isLoading}
+        style={{ margin: 0 }}
+      />
+    </Button>
+  );
+
+  const sortDropdown = (sortOptions) =>
+    sortOptions && (
+      <div
+        className="unesco-sort-wrapper"
+        style={{ display: "flex", alignItems: "center", gap: "8px" }}
+      >
+        <label
+          style={{
+            color: "#212121",
+            fontWeight: 400,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {i18next.t("Sort by:")}
+        </label>
+        <div>
+          <Sort
+            sortOrderDisabled={sortOrderDisabled || false}
+            values={sortOptions}
+            ariaLabel={i18next.t("Sort")}
+            label={(cmp) => cmp}
+          />
+        </div>
+      </div>
+    );
+
   return (
     <MediaContextProvider>
-      <Grid>
-        <Grid.Row verticalAlign="middle">
-          <Grid.Column
-            at="mobile"
-            as={Media}
-            textAlign="right"
-            width={16}
-            floated="right"
-            className="mb-10"
-          >
-            <Count
-              label={(cmp) => (
-                <>
-                  {cmp} {i18next.t("result(s) found")}
-                </>
-              )}
-            />
-          </Grid.Column>
-          <Grid.Column
-            as={Media}
-            greaterThanOrEqual="tablet"
-            textAlign="left"
-            width={multipleLayouts ? 5 : 8}
-            className="mb-10"
-          >
-            <Count
-              label={(cmp) => (
-                <>
-                  {cmp} {i18next.t("result(s) found")}
-                </>
-              )}
-            />
-          </Grid.Column>
+      <style>{sharedStyles}</style>
 
-          <Grid.Column computer={8} tablet={8} mobile={16} textAlign="right">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                gap: "16px",
-                flexWrap: "wrap",
-              }}
-              className="result-options-container"
+      {/* ===== MOBILE LAYOUT ===== */}
+      <Media at="mobile">
+        <div style={{ width: "100%" ,marginTop:"-6px"}}>
+          {/* Row 1: filter icon (absolute) + result count */}
+          <div style={{ marginBottom: "10px", paddingLeft: "36px" }}>
+            <Count
+              label={(cmp) => (
+                <>
+                  {cmp} {i18next.t("result(s) found")}
+                </>
+              )}
+            />
+          </div>
+          {/* Row 2: Download (left) + Sort (right) */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: "8px",
+              width: "100%",
+            }}
+          >
+            {downloadButton(true)}
+            {sortDropdown(sortOptions)}
+          </div>
+        </div>
+      </Media>
+
+      {/* ===== DESKTOP / TABLET LAYOUT ===== */}
+      <Media greaterThanOrEqual="tablet">
+        <Grid>
+          <Grid.Row verticalAlign="middle">
+            <Grid.Column
+              textAlign="left"
+              width={multipleLayouts ? 5 : 8}
+              className="mb-10"
             >
-              {/* Download XLSX Button */}
-              <style>
-                {`
-                  .unesco-download-btn.ui.button,
-                  .unesco-download-btn.ui.button:not(.basic):not(.transparent):not(.jump-to-top):not(.labeled):not(.search) {
-                    border-radius: 20px !important;
-                    background-color: transparent !important;
-                    border: 1px solid #0077D4 !important;
-                    color: #0077D4 !important;
-                    box-shadow: none !important;
-                  }
-                  .unesco-download-btn.ui.button:hover {
-                    background-color: rgba(0, 119, 212, 0.1) !important;
-                  }
-                  .unesco-download-btn.ui.button.loading {
-                    pointer-events: none;
-                    opacity: 0.7;
-                  }
-                  
-                  /* Mobile responsiveness */
-                  @media only screen and (max-width: 767px) {
-                    .result-options-container {
-                      gap: 8px !important;
-                      padding: 0 8px;
-                    }
-                    .unesco-download-btn.ui.button {
-                      padding: 8px 12px !important;
-                      font-size: 0.9rem !important;
-                      height: 36px !important;
-                      min-width: auto !important;
-                    }
-                    .unesco-sort-wrapper {
-                      flex: 1 1 auto;
-                      min-width: 0;
-                    }
-                    .unesco-sort-wrapper label {
-                      font-size: 0.9rem !important;
-                    }
-                    .unesco-sort-wrapper .ui.selection.dropdown {
-                      min-height: 36px !important;
-                      padding: 8px 12px !important;
-                      font-size: 0.9rem !important;
-                    }
-                  }
-                `}
-              </style>
-              <Button
-                className={`unesco-download-btn ${isLoading ? "loading" : ""}`}
-                compact
-                onClick={handleDownload}
-                disabled={isLoading || totalResults === 0}
-                title="Download current page results as Excel (XLSX)"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  backgroundColor: "transparent",
-                  border: "1px solid #0077D4",
-                  color: "#0077D4",
-                  padding: "10px 20px",
-                  fontWeight: 500,
-                  height: "38px",
-                  boxSizing: "border-box",
-                }}
-              >
-                {isLoading ? "Downloading..." : "Download"}
-                <Icon
-                  name={isLoading ? "spinner" : "download"}
-                  loading={isLoading}
-                  style={{ margin: 0 }}
-                />
-              </Button>
-
-              {/* Sort by */}
-              {sortOptions && (
-                <div
-                  className="unesco-sort-wrapper"
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <label
-                    style={{
-                      color: "#212121",
-                      fontWeight: 400,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {i18next.t("Sort by:")}
-                  </label>
-                  <div
-                    style={{
-                      "--dropdown-border-radius": "20px",
-                    }}
-                  >
-                    <style>
-                      {`
-                        .unesco-sort-wrapper .ui.selection.dropdown {
-                          border-radius: 20px !important;
-                          min-height: 38px !important;
-                          padding: 10px 16px !important;
-                        }
-                        .unesco-sort-wrapper .ui.selection.dropdown .menu {
-                          border-radius: 12px !important;
-                        }
-                      `}
-                    </style>
-                    <Sort
-                      sortOrderDisabled={sortOrderDisabled || false}
-                      values={sortOptions}
-                      ariaLabel={i18next.t("Sort")}
-                      label={(cmp) => cmp}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </Grid.Column>
-          {multipleLayouts ? (
-            <Grid.Column width={3} textAlign="right">
-              <LayoutSwitcher />
+              <Count
+                label={(cmp) => (
+                  <>
+                    {cmp} {i18next.t("result(s) found")}
+                  </>
+                )}
+              />
             </Grid.Column>
-          ) : null}
-        </Grid.Row>
-      </Grid>
+
+            <Grid.Column width={8} textAlign="right">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  gap: "16px",
+                }}
+                className="result-options-container"
+              >
+                {downloadButton(false)}
+                {sortDropdown(sortOptions)}
+              </div>
+            </Grid.Column>
+            {multipleLayouts ? (
+              <Grid.Column width={3} textAlign="right">
+                <LayoutSwitcher />
+              </Grid.Column>
+            ) : null}
+          </Grid.Row>
+        </Grid>
+      </Media>
     </MediaContextProvider>
   );
 };

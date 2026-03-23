@@ -295,9 +295,9 @@
   }
 
   .highlight-image {
-    height: 120px;
-    min-height: 120px;
-    max-height: 120px;
+    height: 160px;
+    min-height: 160px;
+    max-height: 160px;
   }
 
   .highlight-number {
@@ -545,7 +545,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
 }
 
 .dashboards-map img {
@@ -670,9 +669,9 @@
     font-size: 15px;
   }
 
-  .dashboards-section {
+  /* .dashboards-section {
     padding: 50px 0;
-  }
+  } */
 
   .section-title,
   .section-title-white {
@@ -683,7 +682,7 @@
   .section-subtitle,
   .section-subtitle-white {
     font-size: 14px;
-    margin-bottom: 32px;
+    margin-bottom: 15px;
   }
 
   .highlight-card {
@@ -705,11 +704,11 @@
 
   .dashboards-title {
     font-size: 24px;
-    text-align: center;
+    text-align: left;
   }
 
   .dashboards-description {
-    text-align: center;
+    text-align: left;
   }
 
   .ui.button.large {
@@ -721,6 +720,7 @@
   /* Partners Section Mobile Improvements */
   .partners-section {
     padding: 40px 16px !important;
+    margin-top:-17px !important;
   }
 
   .partners-wrapper {

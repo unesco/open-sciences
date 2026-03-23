@@ -76,7 +76,7 @@ details. #}
   
   {%- block frontpage_search %}
   <div id="frontpage-search-bar" class="ui container fluid frontpage-header">
-    <div class="ui container grid rel-mt-2" style="padding: 60px 0 80px 0;">
+    <div class="ui container fluid grid rel-mt-2" style="padding: 60px 16px 80px 16px;">
       <div class="row">
         <div class="sixteen wide column center aligned">
           {%- block frontpage_title %}
@@ -92,14 +92,12 @@ details. #}
       {%- block frontpage_form %}
       <div class="row">
         <div class="sixteen wide mobile two wide computer column"></div>
-        <div
-          class="sixteen wide mobile twelve wide computer column center aligned"
-        >
+        <div class="sixteen wide mobile twelve wide computer column center aligned">
           <form
             action="{{ url_for('invenio_search_ui.search') }}"
             class="ui form"
             role="search"
-            style="position: relative; max-width: 790px; margin: 0 auto;"
+            style="position: relative; max-width: 790px; margin: 0 auto; transform: translateX(-10px);"
           >
             <div style="position: relative; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #4C5054; border-radius: 100px; padding: 20px 30px; gap: 8px;">
               <input
@@ -123,6 +121,13 @@ details. #}
                   box-shadow: none !important;
                 "
               />
+              <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                  if (window.innerWidth < 768) {
+                    document.getElementById('header-search-input').placeholder = 'Search....';
+                  }
+                });
+              </script>
               <button class="ui button" type="submit" style="
                 background: transparent !important;
                 border: none !important;
@@ -141,7 +146,7 @@ details. #}
             </div>
             <div style="display: flex; justify-content: flex-end; padding: 0 24px; margin-top: 4px;">
               <a id="header-advanced-search" href="/search" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 26px; text-align: right; text-decoration: none;">
-                Advanced search
+                Browse
               </a>
             </div>
           </form>
@@ -266,7 +271,7 @@ details. #}
       if (data.advanced_search_label) {
         var advancedSearch = document.getElementById('header-advanced-search');
         if (advancedSearch) {
-          advancedSearch.textContent = data.advanced_search_label;
+          advancedSearch.textContent = "Browse" || data.advanced_search_label;
         }
       }
     })
