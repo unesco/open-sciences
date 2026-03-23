@@ -53,21 +53,16 @@ def create_blueprint(app):
         template_folder="./templates",
     )
 
-    # WIP mode: block all pages for unauthenticated users
+    # WIP mode: show WIP page only on the frontpage for unauthenticated users
     @blueprint.before_app_request
     def check_wip_mode():
         if not current_app.config.get("WIP_MODE", False):
             return None
         if not current_user.is_anonymous:
             return None
-        # Allow login, OAuth, static files, and API routes
-        allowed = (
-            "/login", "/oauth", "/static/", "/api/",
-            "/_debug_toolbar", "/administration",
-        )
-        if any(request.path.startswith(p) for p in allowed):
-            return None
-        return render_template("invenio_app_rdm/wip.html")
+        # Only show WIP page on the root/frontpage
+        if request.path == "/":
+            return render_template("invenio_app_rdm/wip.html")
 
     # ========================================
     # HTML Views (Page Rendering)

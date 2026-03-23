@@ -569,4 +569,4 @@ PAGES_TEMPLATES = [
 ]
 
 # For Maintainance Mode
-WIP_MODE = False
+WIP_MODE = "${WIP_MODE}"
