@@ -208,6 +208,7 @@ crictl:prune-test:
     - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
     - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts || true
+  needs: []  # run immediately, don't wait for build stage
   script:
     - echo "--- Images BEFORE pruning ---"
     - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "sudo k3s crictl images 2>&1; echo EXIT_CODE:\$?"
