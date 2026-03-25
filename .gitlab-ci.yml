@@ -321,10 +321,10 @@ deploy:env:
     - |
       if [ "$CI_COMMIT_BRANCH" = "main" ]; then
         ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>/dev/null"
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>&1"
       else
         ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "k3s crictl images 2>/dev/null"
+          "sudo k3s crictl images 2>&1"
       fi
     - echo "Pruning unused container images on server..."
     - |
@@ -333,16 +333,16 @@ deploy:env:
           "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl --timeout 60s rmi --prune 2>&1 || true"
       else
         ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "k3s crictl --timeout 60s rmi --prune 2>&1 || true"
+          "sudo k3s crictl --timeout 60s rmi --prune 2>&1 || true"
       fi
     - echo "--- Images AFTER pruning ---"
     - |
       if [ "$CI_COMMIT_BRANCH" = "main" ]; then
         ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>/dev/null"
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>&1"
       else
         ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "k3s crictl images 2>/dev/null"
+          "sudo k3s crictl images 2>&1"
       fi
     - echo ""
     - |
