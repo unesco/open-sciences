@@ -307,6 +307,16 @@ deploy:env:
     - echo "Running make deploy on server..."
     - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
     - echo ""
+    - echo "Pruning unused container images on server..."
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl rmi --prune 2>&1 | tail -5 || true"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "k3s crictl rmi --prune 2>&1 | tail -5 || true"
+      fi
+    - echo ""
     - |
       echo "==================================================================="
       echo "Deployed commit ${CI_COMMIT_SHORT_SHA} to ${DEPLOY_PATH}"
