@@ -91,7 +91,7 @@ OS_SIZE=$(du -h "$BACKUP_DIR/opensearch.tar.gz" | cut -f1)
 echo "  ✓ OpenSearch backup complete (${OS_SIZE})"
 
 # --------------------------------------------------------------------------
-# 3. MinIO S3 Bucket Backup (using web pod with tar)
+# 3. MinIO S3 Bucket Backup (using web pod with boto3 + tar)
 # --------------------------------------------------------------------------
 echo "[3/4] Backing up MinIO S3 buckets..."
 
@@ -99,49 +99,61 @@ echo "[3/4] Backing up MinIO S3 buckets..."
 MINIO_USER=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.MINIO_ROOT_USER}' | base64 -d)
 MINIO_PASS=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.MINIO_ROOT_PASSWORD}' | base64 -d)
 
-# Use web pod (which has tar) to backup MinIO
 if [ -z "$WEB_POD" ]; then
     echo "  WARNING: Web pod not found, skipping MinIO backup"
     touch "$BACKUP_DIR/minio-backup.tar.gz"
 else
-    # Download mc client in web pod and backup MinIO buckets
-    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- bash -c "
-        # Install mc client if not present (use amd64 for web pod)
-        if [ ! -f /tmp/mc ]; then
-            curl -sL https://dl.min.io/client/mc/release/linux-amd64/mc -o /tmp/mc 2>/dev/null
-            chmod +x /tmp/mc 2>/dev/null
-        fi
-        
-        # Configure mc client
-        /tmp/mc alias set minio-backup http://minio:9000 '$MINIO_USER' '$MINIO_PASS' 2>/dev/null || exit 1
-        
-        # Mirror all buckets to temp directory
-        cd /tmp
-        rm -rf minio-backup 2>/dev/null
-        mkdir -p minio-backup
-        
-        for BUCKET in \$(/tmp/mc ls minio-backup/ 2>/dev/null | awk '{print \$5}'); do
-            echo \"  Backing up bucket: \$BUCKET\"
-            mkdir -p minio-backup/\$BUCKET
-            /tmp/mc mirror --quiet minio-backup/\$BUCKET ./minio-backup/\$BUCKET/ 2>/dev/null || echo \"    (empty or error)\"
-        done
-        
-        # Create marker file
-        touch minio-backup/.backup-complete
-        
-        # Create tar archive
-        tar -czf /tmp/minio-backup.tar.gz minio-backup/ 2>/dev/null
-        rm -rf minio-backup
-    " 2>/dev/null
-    
-    # Copy backup from web pod
+    # Use boto3 (already installed in web pod) to download all S3 objects,
+    # then tar them up — avoids needing mc or external downloads
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- python3 -c "
+import boto3, os, json
+from botocore.client import Config
+
+s3 = boto3.client('s3',
+    endpoint_url='http://minio:9000',
+    aws_access_key_id='$MINIO_USER',
+    aws_secret_access_key='$MINIO_PASS',
+    config=Config(signature_version='s3v4'),
+    region_name='us-east-1')
+
+base = '/tmp/minio-backup'
+os.makedirs(base, exist_ok=True)
+
+buckets = [b['Name'] for b in s3.list_buckets().get('Buckets', [])]
+summary = {}
+for bucket in buckets:
+    bucket_dir = os.path.join(base, bucket)
+    os.makedirs(bucket_dir, exist_ok=True)
+    count = 0
+    try:
+        paginator = s3.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=bucket):
+            for obj in page.get('Contents', []):
+                key = obj['Key']
+                target = os.path.join(bucket_dir, key)
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                s3.download_file(bucket, key, target)
+                count += 1
+    except Exception as e:
+        print(f'  WARNING: {bucket}: {e}')
+    summary[bucket] = count
+    print(f'  Bucket {bucket}: {count} objects')
+
+print(json.dumps(summary))
+" 2>&1 || true
+
+    # Create tar from web pod (which has tar) and copy it out
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- \
+        tar -czf /tmp/minio-backup.tar.gz -C /tmp minio-backup 2>/dev/null || true
+
     kubectl cp -n "$NAMESPACE" "$WEB_POD:/tmp/minio-backup.tar.gz" "$BACKUP_DIR/minio-backup.tar.gz" -c web 2>/dev/null || {
         echo "  WARNING: Could not copy MinIO backup, creating empty archive"
         touch "$BACKUP_DIR/minio-backup.tar.gz"
     }
-    
-    # Cleanup web pod temp file
-    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- rm -f /tmp/minio-backup.tar.gz 2>/dev/null || true
+
+    # Cleanup web pod temp files
+    kubectl exec -n "$NAMESPACE" "$WEB_POD" -c web -- rm -rf /tmp/minio-backup /tmp/minio-backup.tar.gz 2>/dev/null || true
+
     if [ -f "$BACKUP_DIR/minio-backup.tar.gz" ] && [ -s "$BACKUP_DIR/minio-backup.tar.gz" ]; then
         MINIO_SIZE=$(du -h "$BACKUP_DIR/minio-backup.tar.gz" | cut -f1)
         echo "  ✓ MinIO backup complete (${MINIO_SIZE})"
@@ -151,20 +163,47 @@ else
 fi
 
 # --------------------------------------------------------------------------
-# 4. Metadata (config snapshot)
+# 4. Metadata (config snapshot — pure kubectl, no jq/python3)
 # --------------------------------------------------------------------------
 echo "[4/4] Saving metadata..."
+
+K8S_VERSION=$(kubectl version -o json 2>/dev/null | grep -o '"gitVersion": *"[^"]*"' | head -1 | cut -d'"' -f4 || echo "unknown")
+NODES=$(kubectl get nodes -o jsonpath='{range .items[*]}"{.metadata.name}",{end}' 2>/dev/null | sed 's/,$//')
+
+# Build pods JSON array using jsonpath
+PODS_JSON="["
+FIRST=true
+for POD_INFO in $(kubectl get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{.metadata.name}|{.status.phase}|{.spec.containers[0].image}{"\n"}{end}' 2>/dev/null); do
+    POD_NAME=$(echo "$POD_INFO" | cut -d'|' -f1)
+    POD_STATUS=$(echo "$POD_INFO" | cut -d'|' -f2)
+    POD_IMAGE=$(echo "$POD_INFO" | cut -d'|' -f3)
+    if [ "$FIRST" = true ]; then FIRST=false; else PODS_JSON+=","; fi
+    PODS_JSON+="{\"name\":\"$POD_NAME\",\"status\":\"$POD_STATUS\",\"image\":\"$POD_IMAGE\"}"
+done
+PODS_JSON+="]"
+
+# Build PVCs JSON array using jsonpath
+PVCS_JSON="["
+FIRST=true
+for PVC_INFO in $(kubectl get pvc -n "$NAMESPACE" -o jsonpath='{range .items[*]}{.metadata.name}|{.spec.resources.requests.storage}|{.status.phase}{"\n"}{end}' 2>/dev/null); do
+    PVC_NAME=$(echo "$PVC_INFO" | cut -d'|' -f1)
+    PVC_SIZE=$(echo "$PVC_INFO" | cut -d'|' -f2)
+    PVC_STATUS=$(echo "$PVC_INFO" | cut -d'|' -f3)
+    if [ "$FIRST" = true ]; then FIRST=false; else PVCS_JSON+=","; fi
+    PVCS_JSON+="{\"name\":\"$PVC_NAME\",\"size\":\"$PVC_SIZE\",\"status\":\"$PVC_STATUS\"}"
+done
+PVCS_JSON+="]"
 
 cat > "$BACKUP_DIR/metadata.json" <<EOF
 {
   "timestamp": "$TIMESTAMP",
   "namespace": "$NAMESPACE",
   "kubernetes": {
-    "nodes": $(kubectl get nodes -o json | jq -c '[.items[].metadata.name]'),
-    "version": "$(kubectl version --short 2>/dev/null | grep Server || echo 'unknown')"
+    "nodes": [$NODES],
+    "version": "$K8S_VERSION"
   },
-  "pods": $(kubectl get pods -n "$NAMESPACE" -o json | jq -c '[.items[] | {name: .metadata.name, status: .status.phase, image: .spec.containers[0].image}]'),
-  "pvcs": $(kubectl get pvc -n "$NAMESPACE" -o json | jq -c '[.items[] | {name: .metadata.name, size: .spec.resources.requests.storage, status: .status.phase}]')
+  "pods": $PODS_JSON,
+  "pvcs": $PVCS_JSON
 }
 EOF
 

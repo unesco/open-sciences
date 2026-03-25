@@ -52,8 +52,8 @@ RUN echo "🔍 Python version: $(python --version)" && \
 COPY ../ ./
 
 # Copy configuration files to instance path
+# Note: invenio.cfg will be mounted as Secret from k8s at runtime
 COPY ../docker/uwsgi/ ${INVENIO_INSTANCE_PATH}/
-COPY ../invenio.cfg ${INVENIO_INSTANCE_PATH}/
 COPY ../templates/ ${INVENIO_INSTANCE_PATH}/templates/
 COPY ../app_data/ ${INVENIO_INSTANCE_PATH}/app_data/
 COPY ../translations/ ${INVENIO_INSTANCE_PATH}/translations/

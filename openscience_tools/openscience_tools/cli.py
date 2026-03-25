@@ -5,6 +5,7 @@ Provides a unified command-line interface for all tools.
 """
 
 import click
+from . import __version__
 from .tools import search, view, cleanup, export
 from .sources.lens.main import main as lens_import
 
@@ -23,7 +24,7 @@ from .sources.lens.main import main as lens_import
     help="InvenioRDM API token",
 )
 @click.pass_context
-@click.version_option(version="0.1.0", prog_name="openscience_tools")
+@click.version_option(version=__version__, prog_name="openscience_tools")
 def main(ctx, base_url, token):
     """OpenScience Tools - InvenioRDM REST API Tools.
 

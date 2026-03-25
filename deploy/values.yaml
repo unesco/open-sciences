@@ -34,6 +34,7 @@ invenio:
     S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID}"
     S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
     S3_REGION_NAME: "${S3_REGION_NAME}"
+    INVENIO_SEARCH_INDEX_PREFIX: "${SEARCH_INDEX_PREFIX}"
 
   # Secret key and login salt are injected via Kubernetes Secret
   # (created by Makefile from .env values)
@@ -46,13 +47,12 @@ image:
   # Registry is set per-environment:
   #   local: docker.io/library    staging/prod: your actual registry
   registry: "${IMAGE_REGISTRY}"
-  repository: "sc-openscience"
-  tag: "latest"
+  repository: "${DOCKER_IMAGE_NAME}"
+  tag: "${DOCKER_IMAGE_TAG}"
   pullPolicy: ${IMAGE_PULL_POLICY}
-
-# Optional: reference a pre-existing imagePullSecret
-# imagePullSecrets:
-#   - name: registry-credentials
+  # pullSecrets is the field used by the Invenio Helm chart (image.pullSecrets)
+  pullSecrets:
+    - name: registry-credentials
 
 # ------------------------------------------------------------------------------
 # Web (UI + API served via Nginx + uWSGI)
@@ -78,6 +78,18 @@ web:
   readinessProbe: null
   livenessProbe: null
 
+  # Mount invenio.cfg from Secret (created by make deploy-secrets)
+  extraVolumes:
+    - name: invenio-config
+      secret:
+        secretName: unesco-rdm-config
+
+  extraVolumeMounts:
+    - name: invenio-config
+      mountPath: /opt/invenio/var/instance/invenio.cfg
+      subPath: invenio.cfg
+      readOnly: true
+
 # ------------------------------------------------------------------------------
 # Workers (Celery)
 # ------------------------------------------------------------------------------
@@ -97,6 +109,18 @@ worker:
   livenessProbe: null
   readinessProbe: null
 
+  # Mount invenio.cfg from Secret
+  extraVolumes:
+    - name: invenio-config
+      secret:
+        secretName: unesco-rdm-config
+
+  extraVolumeMounts:
+    - name: invenio-config
+      mountPath: /opt/invenio/var/instance/invenio.cfg
+      subPath: invenio.cfg
+      readOnly: true
+
 # ------------------------------------------------------------------------------
 # Worker Beat (Celery Beat Scheduler)
 # ------------------------------------------------------------------------------
@@ -111,6 +135,18 @@ workerBeat:
       cpu: "250m"
   livenessProbe: null
 
+  # Mount invenio.cfg from Secret
+  extraVolumes:
+    - name: invenio-config
+      secret:
+        secretName: unesco-rdm-config
+
+  extraVolumeMounts:
+    - name: invenio-config
+      mountPath: /opt/invenio/var/instance/invenio.cfg
+      subPath: invenio.cfg
+      readOnly: true
+
 # Flower monitoring - disabled by default
 flower:
   enabled: false
@@ -118,6 +154,8 @@ flower:
 # ------------------------------------------------------------------------------
 # External Services (managed outside Helm chart)
 # ------------------------------------------------------------------------------
+# Services are deployed via external-services.yaml
+# Credentials are substituted from .env files at deploy time via envsubst
 
 # Redis - external (deployed in external-services.yaml)
 redis:
@@ -129,13 +167,13 @@ redisExternal:
 rabbitmq:
   enabled: false
 rabbitmqExternal:
-  username: "${RABBITMQ_USER}"
-  password: "${RABBITMQ_PASSWORD}"
   hostname: "rabbitmq"
   amqpPort: 5672
   managementPort: 15672
   protocol: "amqp"
   vhost: "/"
+  username: "${RABBITMQ_USER}"
+  password: "${RABBITMQ_PASSWORD}"
 
 # PostgreSQL - external
 postgresql:
@@ -174,6 +212,7 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+  tls: [] # Disable TLS for local development
 
 # ------------------------------------------------------------------------------
 # Persistence (file storage for uploads)

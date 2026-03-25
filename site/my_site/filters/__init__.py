@@ -18,6 +18,8 @@ from .open_access import OpenAccessFilterBackend
 from .resource_type import ResourceTypeFilterBackend
 from .subject import SubjectFilterBackend
 from .year import PublicationYearFilterBackend
+from .keyword import KeywordFilterBackend
+from .field_of_study import FieldOfStudyFilterBackend
 
 # Registry of available filter backends
 FILTER_BACKENDS_REGISTRY = {
@@ -25,7 +27,9 @@ FILTER_BACKENDS_REGISTRY = {
     "affiliation_region": AffiliationRegionFilterBackend,
     "author": AuthorFilterBackend,
     "country": CountryFilterBackend,
+    "field_of_study": FieldOfStudyFilterBackend,
     "funding": FundingOrgFilterBackend,
+    "keyword": KeywordFilterBackend,
     "open_access": OpenAccessFilterBackend,
     "resource_type": ResourceTypeFilterBackend,
     "subject": SubjectFilterBackend,

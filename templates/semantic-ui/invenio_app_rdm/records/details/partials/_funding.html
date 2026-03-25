@@ -12,7 +12,6 @@
       {{ _('Funding') }}
     </h3>
     <div style="display: flex; align-items: center; gap: 12px;">
-      <span class="badge">{{ metadata.funding|length }}</span>
       <i class="chevron down icon chevron"></i>
     </div>
   </div>
@@ -28,8 +27,8 @@
         </span>
         <a href="/search?q=metadata.funding.funder.name:{{ funding_item.funder.name | urlencode }}" 
            class="unesco-find-more-btn"
-           title="{{ _('Find more records funded by') }} {{ funding_item.funder.name }}">
-          {{ _('Find more') }} <i class="external alternate icon"></i>
+           title="{{ _('Read more records funded by') }} {{ funding_item.funder.name }}">
+          {{ _('Read more') }} <i class="external alternate icon"></i>
         </a>
       </div>
       {%- endfor -%}
