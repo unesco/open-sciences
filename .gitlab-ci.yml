@@ -287,6 +287,7 @@ deploy:env:
       WORKER_MEMORY_LIMIT=${WORKER_MEMORY_LIMIT}
       WORKER_MEMORY_REQUEST=${WORKER_MEMORY_REQUEST}
       WORKER_REPLICAS=${WORKER_REPLICAS}
+      WIP_MODE=${WIP_MODE}
       ENVEOF
     - |
       # Remove leading whitespace (heredoc indentation) and substitute CI/CD variables
