@@ -124,6 +124,8 @@ class BaseFilterBackend(ABC):
             "publication_country": "custom_fields.publication:country",
             "affiliation_region": "custom_fields.publication:affiliation_region",
             "subject": "metadata.subjects.subject",
+            "keyword": "custom_fields.publication:keyword",
+            "field_of_study": "custom_fields.publication:field_of_study",
             "funding_org": "metadata.funding.funder.name",
             "publication_year": "custom_fields.publication:year",
             "is_open_access": "custom_fields.publication:is_open_access",

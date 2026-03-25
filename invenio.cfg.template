@@ -367,6 +367,23 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="publication:funding_org",
         multiple=True,
     ),
+    # Keywords from Lens.org (author-supplied keywords)
+    KeywordCF(
+        name="publication:keyword",
+        multiple=True,
+    ),
+    # Fields of study from Lens.org
+    KeywordCF(
+        name="publication:field_of_study",
+        multiple=True,
+    ),
+    # UNESCO relation types for filtering
+    # Values: "Funded by UNESCO", "Published by UNESCO",
+    #         "UNESCO Affiliated Author", "UNESCO Collective Author"
+    KeywordCF(
+        name="publication:unesco_relation",
+        multiple=True,
+    ),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [
@@ -550,3 +567,6 @@ PAGES_TEMPLATES = [
     ("invenio_pages/dynamic.html", "Default dynamic"),
     ("invenio_app_rdm/default_static_page.html", "Default static page"),
 ]
+
+# For Maintainance Mode
+WIP_MODE = "${WIP_MODE}"

@@ -173,6 +173,25 @@
 
               {%- block record_header_button -%}
 
+                {# Go back button #}
+                <nav  class="pl-0" style = "margin-top:10px" aria-label="{{ _('Back navigation') }}">
+                  <a href="javascript:history.back()"
+                     style="
+                       display: inline-flex;
+                       align-items: center;
+                       gap: 6px;
+                       color: #0077D4;
+                       font-weight: 600;
+                       font-size: 1rem;
+                       padding: 7px 16px;
+                       border-radius: 4px;
+                       text-decoration: none;
+                     ">
+                    <i class="ui icon arrow left" style="margin-top: -5px;"></i>
+                    {{ _('Go back') }}
+                  </a>
+                </nav>
+
                 {% if is_preview and not is_preview_submission_request and can_curate_record and is_draft %}
                   <nav class="back-navigation rel-pb-2 pl-0"
                        aria-label="{{ _('Back-navigation') }}">
@@ -250,7 +269,6 @@
                   font-size: 14px;
                 }
                 .unesco-tag-date {
-                  background-color: #CEE9FF;
                   color: #212121;
                   font-weight: 600;
                 }
@@ -301,22 +319,25 @@
                 }
               </style>
               <section id="record-info" aria-label="{{ _('Publication date and version number') }}">
-                {# Tags row - matching CustomRecordsResultsListItem styles #}
+                {# Tags row: date on left, views+type+access on right #}
                 <div class="unesco-record-tags-row">
-                  <div class="unesco-tags-left">
-                    {# Publication date + version tag #}
-                    <span class="unesco-tag unesco-tag-date">
-                      {{ record_ui["ui"]["publication_date_l10n_long"] }}
-                    </span>
 
-                    {# Resource type tag #}
+                  {# Left: publication date #}
+                  <div class="unesco-tags-left">
+                    <span class="unesco-tag unesco-tag-date">
+                      {{ _('Published') }} {{ record_ui["ui"]["publication_date_l10n_long"] }}
+                    </span>
+                  </div>
+
+                  {# Right: resource type + access #}
+                  <div style="display:inline-flex; flex-wrap:wrap; align-items:center; gap:8px;">
+
                     {% if record_ui["ui"]["resource_type"] %}
                       <span class="unesco-tag unesco-tag-type">
                         {{ record_ui["ui"]["resource_type"]["title_l10n"] }}
                       </span>
                     {% endif %}
 
-                    {# Access status tag - only show if not metadata-only #}
                     {% set access_status_id = record_ui["ui"]["access_status"]["id"] %}
                     {% if access_status_id != "metadata-only" %}
                       <span class="unesco-tag unesco-tag-access unesco-tag-access-{{ access_status_id }}"
@@ -329,23 +350,16 @@
                       </span>
                     {% endif %}
 
-                    {# Open Access tag from custom fields #}
                     {% set custom_fields = record_ui.custom_fields|default({}) %}
                     {% set is_open_access = custom_fields.get("publication:is_open_access", "") %}
                     {% if is_open_access == "true" %}
                       <span class="unesco-tag unesco-tag-open-access">
                         <i class="unlock icon" aria-hidden="true"></i>
-                        Open Access
+                        {{ _('Open Access') }}
                       </span>
                     {% endif %}
                   </div>
 
-                  {# Views count - aligned to the right #}
-                  {% set views_count = record_ui["stats"]["all_versions"]["unique_views"]|default(0) %}
-                  <span class="unesco-views-count">
-                    <i class="eye icon" aria-hidden="true"></i>
-                    <span>{{ "{:,}".format(views_count) }} {{ "view" if views_count == 1 else "views" }}</span>
-                  </span>
                 </div>
               </section>
               {# ========== END UNESCO CUSTOM RECORD INFO SECTION ========== #}
@@ -358,7 +372,8 @@
               <section id="record-title-section"
                        aria-label="{{ _('Record title and creators') }}">
                 <h1 id="record-title"
-                    class="wrap-overflowing-text">{{ metadata.title }}</h1>
+                    class="wrap-overflowing-text"
+                    style="color: #0077D4;">{{ metadata.title }}</h1>
 
                 {% if record_ui["ui"]["creators"] or record_ui["ui"]["contributors"] %}
                   <section id="creatibutors"
@@ -501,9 +516,8 @@
             {%- block jump -%}
               <div class="ui grid">
                 <div class="centered row rel-mt-1">
-                  <button id="jump-btn" class="jump-to-top ui button labeled icon"
+                  <button id="jump-btn" class="jump-to-top"
                           aria-label="{{ _('Jump to top of page') }}">
-                    <i class="arrow alternate circle up outline icon"></i>
                     {{ _("Jump up") }}
                   </button>
                 </div>

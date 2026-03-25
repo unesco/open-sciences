@@ -125,8 +125,6 @@ link #}
               </div>
             </div>
             {%- else %}
-            {# COMMENTED: Uncomment to show Communities link in main navigation #}
-            {# Displays link to browse and manage scientific communities #}
             <!--
             <div class="{{ 'item active' if item.active else 'item' }}">
               <a href="{{ item.url }}">{{ item.text|safe }}</a>
@@ -145,6 +143,38 @@ link #}
 
             {%- endif %}
             {%- endfor %}
+
+            {# CMS navigation links - dynamically loaded from CMS API, mobile only #}
+            <div id="header-cms-nav-links" class="mobile tablet only"></div>
+            <script>
+            (function() {
+              var lang = document.documentElement.lang || 'en';
+              fetch('/data/cms/public/header_frontpage?lang=' + lang)
+                .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+                .then(function(result) {
+                  var data = result.data || {};
+                  if (data.navigation_links && Array.isArray(data.navigation_links)) {
+                    var container = document.getElementById('header-cms-nav-links');
+                    if (container) {
+                      data.navigation_links.forEach(function(link) {
+                        var div = document.createElement('div');
+                        div.className = 'item';
+                        var a = document.createElement('a');
+                        a.href = link.url;
+                        a.textContent = link.label;
+                        if (link.external) {
+                          a.target = '_blank';
+                          a.rel = 'noopener noreferrer';
+                        }
+                        div.appendChild(a);
+                        container.appendChild(div);
+                      });
+                    }
+                  }
+                })
+                .catch(function() {});
+            })();
+            </script>
             
             {# COMMENTED: Uncomment to show My Dashboard and related action menu items #}
             {# Displays links to user's uploads, drafts, requests, and personal workspace #}

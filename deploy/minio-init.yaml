@@ -45,7 +45,7 @@ spec:
               echo "MinIO is ready!"
 
               # Create buckets if they don't exist
-              for BUCKET in default invenio-test; do
+              for BUCKET in default invenio-test invenio-main; do
                 if ! mc ls myminio/$BUCKET >/dev/null 2>&1; then
                   echo "Creating bucket '$BUCKET'..."
                   mc mb myminio/$BUCKET
