@@ -199,6 +199,8 @@ build:docker:
 crictl:prune-test:
   stage: deploy
   image: alpine:latest
+  environment:
+    name: $CI_COMMIT_BRANCH
   variables:
     HTTP_PROXY: "http://proxy.unesco.org:8080"
     HTTPS_PROXY: "http://proxy.unesco.org:8080"
