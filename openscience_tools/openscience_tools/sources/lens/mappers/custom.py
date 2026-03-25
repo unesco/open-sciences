@@ -227,12 +227,90 @@ class CustomFieldsMapper(BaseMapper):
             if journal_data:
                 custom_fields["journal:journal"] = journal_data
 
+            # Keywords (author-supplied, stored separately from fields of study)
+            keywords = self.safe_get(lens_record, "keywords", default=[])
+            kw_list = [kw.strip() for kw in keywords if isinstance(kw, str) and kw.strip()]
+            if kw_list:
+                custom_fields["publication:keyword"] = kw_list
+
+            # Fields of study (stored separately from keywords)
+            fields_of_study = self.safe_get(lens_record, "fields_of_study", default=[])
+            fos_list = [f.strip() for f in fields_of_study if isinstance(f, str) and f.strip()]
+            if fos_list:
+                custom_fields["publication:field_of_study"] = fos_list
+            # UNESCO relation types (funded by / published by / affiliated / collective author)
+            unesco_relations = self._detect_unesco_relations(lens_record)
+            if unesco_relations:
+                custom_fields["publication:unesco_relation"] = unesco_relations
+
             return custom_fields
 
         except Exception as e:
             self.logger.error(f"Error mapping custom fields: {e}")
             # Custom fields are optional, so we don't raise
             return {}
+
+    # UNESCO pattern strings (lowercase) used for relation detection
+    _UNESCO_PATTERNS = [
+        "unesco",
+        "united nations educational, scientific and cultural",
+        "ictp",
+        "international centre for theoretical physics",
+    ]
+
+    def _matches_unesco(self, text: str) -> bool:
+        """Return True if text matches any UNESCO-related pattern (case-insensitive)."""
+        if not text:
+            return False
+        text_lower = text.lower()
+        return any(pat in text_lower for pat in self._UNESCO_PATTERNS)
+
+    def _detect_unesco_relations(self, lens_record: Dict[str, Any]) -> Optional[List[str]]:
+        """
+        Detect UNESCO-related publication types.
+
+        Returns a list of applicable relation labels from:
+        - "Funded by UNESCO"        — funding[].org matches UNESCO patterns
+        - "Published by UNESCO"     — source.publisher matches UNESCO patterns
+        - "UNESCO Affiliated Author" — authors[].affiliations[].name matches UNESCO patterns
+        - "UNESCO Collective Author" — author first/last name matches UNESCO patterns
+        """
+        relations = set()
+
+        # 1. Funded by UNESCO
+        for funding in self.safe_get(lens_record, "funding", default=[]):
+            if isinstance(funding, dict):
+                org = self.safe_get(funding, "org", default="")
+                if self._matches_unesco(org):
+                    relations.add("Funded by UNESCO")
+                    break
+
+        # 2. Published by UNESCO
+        source = self.safe_get(lens_record, "source", default={})
+        publisher = self.safe_get(source, "publisher", default="") if isinstance(source, dict) else ""
+        if self._matches_unesco(publisher):
+            relations.add("Published by UNESCO")
+
+        # 3. UNESCO Affiliated Author / 4. UNESCO Collective Author
+        for author in self.safe_get(lens_record, "authors", default=[]):
+            if not isinstance(author, dict):
+                continue
+
+            # Collective author: UNESCO appears in the author's name itself
+            first = self.safe_get(author, "first_name", default="")
+            last = self.safe_get(author, "last_name", default="")
+            if self._matches_unesco(first) or self._matches_unesco(last):
+                relations.add("UNESCO Collective Author")
+
+            # Affiliated author: UNESCO appears in any affiliation name
+            for aff in self.safe_get(author, "affiliations", default=[]):
+                if isinstance(aff, dict):
+                    aff_name = self.safe_get(aff, "name", default="")
+                    if self._matches_unesco(aff_name):
+                        relations.add("UNESCO Affiliated Author")
+                        break
+
+        return sorted(relations) if relations else None
 
     def _map_lens_identifiers(self, lens_record: Dict[str, Any]) -> Optional[List[Dict[str, str]]]:
         """

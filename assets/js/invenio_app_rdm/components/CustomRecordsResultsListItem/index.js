@@ -266,7 +266,7 @@ const CustomRecordsResultsListItem = ({
                 </span>
               )}
             </div>
-            <span
+            {/* <span
               className="unesco-views-count"
               style={{
                 display: "inline-flex",
@@ -283,7 +283,7 @@ const CustomRecordsResultsListItem = ({
                 style={{ margin: 0, display: "flex", alignItems: "center" }}
               />
               <span>{viewsCount.toLocaleString()}</span>
-            </span>
+            </span> */}
           </Item.Extra>
           <Item.Header as="h2" className="theme-primary-text">
             <a href={viewLink}>{title}</a>

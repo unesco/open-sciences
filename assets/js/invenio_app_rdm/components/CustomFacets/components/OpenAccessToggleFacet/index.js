@@ -53,12 +53,15 @@ const OpenAccessToggleFacet = () => {
         <div
           style={{
             display: "flex",
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "flex-start",
             gap: "12px",
           }}
         >
-          <Checkbox toggle checked={isChecked} onChange={handleToggle} />
+          <span style={{ flexShrink: 0, lineHeight: 1 }}>
+            <Checkbox toggle checked={isChecked} onChange={handleToggle} />
+          </span>
           <span
             style={{
               color: "#212121",
@@ -69,7 +72,7 @@ const OpenAccessToggleFacet = () => {
               gap: "4px",
             }}
           >
-            Open Access
+            Open access
             <Popup
               trigger={
                 <Icon

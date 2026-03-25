@@ -100,25 +100,63 @@ export const CustomFacets = ({ aggs, appName }) => {
         }`}
         style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
       >
-        {/* Clear Filters Button */}
-        {hasActiveFiltersOrQuery() && (
-          <Button
-            fluid
-            basic
-            size="small"
-            onClick={handleClearFilters}
-            style={{
-              marginBottom: "0.5rem",
-              color: "#db2828",
-              borderColor: "#db2828",
-            }}
-          >
-            Clear All Filters
-          </Button>
-        )}
+        {/* Filters heading */}
+        <div style={{ marginBottom: "0.5rem", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(34, 36, 38, 0.15)" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#212121", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+            Filters
+          </div>
+          <div style={{ fontSize: "0.85rem", color: "#6C757D", marginTop: "0.2rem" }}>
+            Select criteria to filter survey responses
+          </div>
+
+          {/* Clear Filters Button */}
+          {hasActiveFiltersOrQuery() && (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleClearFilters}
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleClearFilters()}
+              style={{
+                marginTop: "0.75rem",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                color: "#1264A3",
+                fontSize: "0.92rem",
+                fontWeight: 600,
+              }}
+            >
+              <Icon name="times" style={{ marginTop: "-8px" }} />
+              Reset all filters
+            </div>
+          )}
+        </div>
 
         <OpenAccessToggleFacet key={`open-access-${urlKey}`} />
         <ResourceTypeFacet key={`resource-type-${urlKey}`} />
+        <DynamicFacet
+          key={`keyword-${urlKey}`}
+          label="Keywords"
+          apiField="keyword"
+          queryField="custom_fields.publication:keyword"
+          placeholder="Search keywords..."
+          icon="tag"
+          maxResults={100}
+          useFacetParameter={true}
+          facetName="keyword"
+        />
+        <DynamicFacet
+          key={`field-of-study-${urlKey}`}
+          label="Field of Study"
+          apiField="field_of_study"
+          queryField="custom_fields.publication:field_of_study"
+          placeholder="Search fields of study..."
+          icon="flask"
+          maxResults={100}
+          useFacetParameter={true}
+          facetName="field_of_study"
+        />
         <DynamicFacet
           key={`author-${urlKey}`}
           label="Author"
@@ -158,15 +196,6 @@ export const CustomFacets = ({ aggs, appName }) => {
           maxResults={100}
           useFacetParameter={true}
           facetName="affiliation_region"
-        />
-        <DynamicFacet
-          key={`subject-${urlKey}`}
-          label="Subject / Keyword"
-          apiField="subject"
-          queryField="metadata.subjects.subject"
-          placeholder="Search subjects..."
-          icon="tags"
-          maxResults={100}
         />
         <DynamicFacet
           key={`funding-${urlKey}`}
