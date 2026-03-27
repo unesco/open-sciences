@@ -243,6 +243,11 @@ class CustomFieldsMapper(BaseMapper):
             if unesco_relations:
                 custom_fields["publication:unesco_relation"] = unesco_relations
 
+            # Patent citations count (direct field for API visibility)
+            patent_cites = self.safe_get(lens_record, "patent_citations_count")
+            if patent_cites is not None:
+                custom_fields["publication:patent_citations_count"] = str(int(patent_cites))
+
             return custom_fields
 
         except Exception as e:
