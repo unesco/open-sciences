@@ -90,7 +90,11 @@ FOOTER_DEFAULT = {
         {
             "label": "UNESCO Natural Sciences Family",
             "url": "/pages/natural-sciences-family",
-            "external": False,
+        },
+        {
+            "label": "UNESCO Open Science Dashboards",
+            "url": "https://www.unesco.org/en/open-science/",
+            "external": True,
         },
         {
             "label": "Privacy",

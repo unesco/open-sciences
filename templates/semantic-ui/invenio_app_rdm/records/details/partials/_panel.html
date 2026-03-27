@@ -38,6 +38,11 @@
 {# ========== PANEL STRUCTURE ========== #}
 <div class="unesco-panel">
   
+  {# === OPEN ACCESS === #}
+  {%- if lens_open_access -%}
+    {% include "invenio_app_rdm/records/details/partials/_open_access.html" %}
+  {%- endif -%}
+
   {# === PUBLICATION DETAILS === #}
   {%- if has_publisher -%}
     {% include "invenio_app_rdm/records/details/partials/_publication_details.html" %}
@@ -48,24 +53,19 @@
     {% include "invenio_app_rdm/records/details/partials/_related_works.html" %}
   {%- endif -%}
 
-  {# === OPEN ACCESS === #}
-  {%- if lens_open_access -%}
-    {% include "invenio_app_rdm/records/details/partials/_open_access.html" %}
-  {%- endif -%}
-
   {# === EXTERNAL IDENTIFIERS (Persistent Identifiers) === #}
   {%- if lens_external_ids -%}
     {% include "invenio_app_rdm/records/details/partials/_external_ids.html" %}
   {%- endif -%}
 
-  {# === REFERENCES === #}
-  {%- if lens_references -%}
-    {% include "invenio_app_rdm/records/details/partials/_references.html" %}
-  {%- endif -%}
-
   {# === FUNDING === #}
   {%- if has_funding -%}
     {% include "invenio_app_rdm/records/details/partials/_funding.html" %}
+  {%- endif -%}
+
+  {# === REFERENCES === #}
+  {%- if lens_references -%}
+    {% include "invenio_app_rdm/records/details/partials/_references.html" %}
   {%- endif -%}
   
   {# === CITED BY === #}
