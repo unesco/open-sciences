@@ -291,6 +291,7 @@ deploy:env:
       WORKER_MEMORY_LIMIT=${WORKER_MEMORY_LIMIT}
       WORKER_MEMORY_REQUEST=${WORKER_MEMORY_REQUEST}
       WORKER_REPLICAS=${WORKER_REPLICAS}
+      WIP_MODE=${WIP_MODE}
       ENVEOF
     - |
       # Remove leading whitespace (heredoc indentation) and substitute CI/CD variables
@@ -305,6 +306,34 @@ deploy:env:
     - echo ""
     - echo "Running make deploy on server..."
     - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
+    - echo ""
+    - echo "--- Images BEFORE pruning ---"
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>&1"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo k3s crictl images 2>&1"
+      fi
+    - echo "Pruning unused container images on server..."
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl --timeout 60s rmi --prune 2>&1 || true"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo k3s crictl --timeout 60s rmi --prune 2>&1 || true"
+      fi
+    - echo "--- Images AFTER pruning ---"
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>&1"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo k3s crictl images 2>&1"
+      fi
     - echo ""
     - |
       echo "==================================================================="

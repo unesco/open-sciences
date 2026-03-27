@@ -1,6 +1,7 @@
 """Blueprint registration for custom routes."""
 
-from flask import Blueprint
+from flask import Blueprint, current_app, render_template, request
+from flask_login import current_user
 
 from .constants import API_PREFIX
 
@@ -52,6 +53,20 @@ def create_blueprint(app):
         __name__,
         template_folder="./templates",
     )
+
+    # WIP mode: show WIP page only on the frontpage for unauthenticated users
+    @blueprint.before_app_request
+    def check_wip_mode():
+        wip_mode = current_app.config.get("WIP_MODE", False)
+        if isinstance(wip_mode, str):
+            wip_mode = wip_mode.lower() in ("true", "1", "yes")
+        if not wip_mode:
+            return None
+        if not current_user.is_anonymous:
+            return None
+        # Only show WIP page on the root/frontpage
+        if request.path == "/":
+            return render_template("invenio_app_rdm/wip.html")
 
     # ========================================
     # HTML Views (Page Rendering)
