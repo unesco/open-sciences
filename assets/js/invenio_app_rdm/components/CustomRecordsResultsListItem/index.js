@@ -106,20 +106,11 @@ const CustomRecordsResultsListItem = ({
     console.error("Error parsing lens:scholarly_citations", e);
   }
 
-  try {
-    const patentData = _get(
-      result,
-      "custom_fields.lens:patent_citations",
-      null,
-    );
-    if (patentData) {
-      const parsed =
-        typeof patentData === "string" ? JSON.parse(patentData) : patentData;
-      patentCitationsCount = parsed.count || 0;
-    }
-  } catch (e) {
-    console.error("Error parsing lens:patent_citations", e);
-  }
+  patentCitationsCount =
+    parseInt(
+      _get(result, "custom_fields.publication:patent_citations_count", "0"),
+      10,
+    ) || 0;
 
   const filters =
     currentQueryState && Object.fromEntries(currentQueryState.filters);
@@ -365,7 +356,7 @@ const CustomRecordsResultsListItem = ({
                         }}
                       >
                         <Icon
-                          name="file alternate outline"
+                          name="linkify"
                           style={{
                             margin: 0,
                             display: "flex",
@@ -387,7 +378,7 @@ const CustomRecordsResultsListItem = ({
                         }}
                       >
                         <Icon
-                          name="quote right"
+                          name="quote left"
                           style={{
                             margin: 0,
                             display: "flex",
@@ -411,7 +402,7 @@ const CustomRecordsResultsListItem = ({
                         }}
                       >
                         <Icon
-                          name="linkify"
+                          name="list ul"
                           style={{
                             margin: 0,
                             display: "flex",
