@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields rebuild-index pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
+.PHONY: help destroy init init-custom-fields rebuild-index pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import tools-patch-regions db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
 
 # Default target
 help:
@@ -53,6 +53,7 @@ help:
 	@echo "  tools-test           - Run test suite (OPTS='-m integration' or '-m unit')"
 	@echo "  tools-test-cov       - Run tests with coverage report"
 	@echo "  tools-help           - Show tools help and examples"
+	@echo "  tools-patch-regions  - Patch affiliation regions on existing records"
 	@echo ""
 	@echo "Usage: make [command]"
 	@echo "Example: make tools-search QUERY='climate data'"
@@ -97,13 +98,15 @@ init-custom-fields:
 	$(VENV_ACTIVATE) && invenio rdm-records custom-fields init
 	@echo "✅ Custom fields initialized successfully!"
 
-# Rebuild search indices (custom-fields init + destroy + init + rebuild)
+# Rebuild search indices (destroy + init + custom-fields + rebuild)
 rebuild-index:
+	@echo "🔄 Destroying old indices..."
+	$(VENV_ACTIVATE) && invenio index destroy --force --yes-i-know
+	@echo "🔄 Creating fresh indices..."
+	$(VENV_ACTIVATE) && invenio index init
 	@echo "🔧 Initializing custom fields..."
 	$(VENV_ACTIVATE) && invenio rdm-records custom-fields init
-	@echo "🔄 Rebuilding search indices..."
-	$(VENV_ACTIVATE) && invenio index destroy --force --yes-i-know
-	$(VENV_ACTIVATE) && invenio index init
+	@echo "🔄 Rebuilding index..."
 	$(VENV_ACTIVATE) && invenio rdm-records rebuild-index
 	@echo "✅ Index rebuilt successfully!"
 
@@ -517,6 +520,21 @@ tools-test-cov:
 	@$(MAKE) tools-test OPTS="--cov=openscience_tools --cov-report=html --cov-report=term"
 	@echo ""
 	@echo "📊 Coverage report generated in openscience_tools/htmlcov/index.html"
+
+tools-patch-regions:
+	@echo "🌍 Patching affiliation regions on existing records..."
+	@if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		$(VENV_ACTIVATE) && python -m my_site.tools.patch_affiliation_region --url "$$BASE_URL" --token "$$TOKEN" $(OPTS); \
+	else \
+		echo "❌ .env file not found. Run 'make config' first."; \
+		exit 1; \
+	fi
 
 # ========================================
 # Database Migration Commands
