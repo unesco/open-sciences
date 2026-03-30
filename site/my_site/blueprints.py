@@ -27,6 +27,7 @@ def create_blueprint(app):
         ReindexAPIView,
         SearchAPIView,
         StatisticsAPIView,
+        UpdateFieldsAPIView,
         # Resource-Driven CMS API
         CMSResourcesAPIView,
         CMSResourceDefinitionAPIView,
@@ -130,6 +131,13 @@ def create_blueprint(app):
     blueprint.add_url_rule(
         f"{API_PREFIX}/patch-regions",
         view_func=PatchRegionsAPIView.as_view("patch_regions_api"),
+        methods=["GET", "POST"],
+    )
+
+    # Update custom fields from Lens source data (admin only)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/update-fields",
+        view_func=UpdateFieldsAPIView.as_view("update_fields_api"),
         methods=["GET", "POST"],
     )
 
