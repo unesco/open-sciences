@@ -1,0 +1,19 @@
+uuid: 1a26f304-c0af-46f3-92bd-0b75cc643663
+langcode: en
+status: true
+dependencies:
+  module:
+    - taxonomy
+    - text
+id: taxonomy_term.field_info_promote_cooperation
+field_name: field_info_promote_cooperation
+entity_type: taxonomy_term
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
