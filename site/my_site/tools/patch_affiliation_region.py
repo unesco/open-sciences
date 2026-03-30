@@ -5,7 +5,7 @@ Derives affiliation_region from publication:country (already stored in records)
 by reverse-mapping country names to ISO codes, then mapping codes to UNESCO regions.
 
 Usage:
-    python -m openscience_tools.tools.patch_affiliation_region \
+    python -m my_site.tools.patch_affiliation_region \
         --url https://localhost:5000 \
         --token <API_TOKEN> \
         [--dry-run]
@@ -24,10 +24,6 @@ import requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
 logger = logging.getLogger(__name__)
 
 # Region display names (must match site/my_site/constants.py and the mapper)
@@ -42,20 +38,12 @@ REGION_DISPLAY_NAMES = {
 
 def load_country_code_to_region() -> dict:
     """Load country_code -> region display name mapping from the JSON file."""
-    # Try relative path from this script first, then search upward
-    search_dirs = [
-        os.path.join(os.path.dirname(__file__), "..", "..", "..", "site", "my_site", "filters", "data"),
-        os.path.join(os.path.dirname(__file__), "..", "..", "site", "my_site", "filters", "data"),
-    ]
-    json_path = None
-    for d in search_dirs:
-        candidate = os.path.normpath(os.path.join(d, "country_code_region_mapping.json"))
-        if os.path.exists(candidate):
-            json_path = candidate
-            break
+    json_path = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "..", "filters", "data", "country_code_region_mapping.json")
+    )
 
-    if not json_path:
-        logger.warning("country_code_region_mapping.json not found, using empty mapping")
+    if not os.path.exists(json_path):
+        logger.warning("country_code_region_mapping.json not found at %s, using empty mapping", json_path)
         return {}
 
     with open(json_path, "r", encoding="utf-8") as f:
@@ -73,7 +61,7 @@ def build_country_name_to_codes() -> dict:
         import pycountry
     except ImportError:
         logger.error("pycountry not installed. Run: pip install pycountry")
-        sys.exit(1)
+        return {}
 
     mapping = {}
     for country in pycountry.countries:
@@ -160,8 +148,11 @@ class PatchClient:
             pass
 
 
-def patch_records(base_url: str, token: str, dry_run: bool = False):
-    """Iterate all records and patch missing affiliation_region."""
+def patch_records(base_url: str, token: str, dry_run: bool = False) -> str:
+    """Iterate all records and patch missing affiliation_region.
+
+    Returns a summary string of the results.
+    """
     code_to_region = load_country_code_to_region()
     name_to_code = build_country_name_to_codes()
     client = PatchClient(base_url, token)
@@ -240,10 +231,16 @@ def patch_records(base_url: str, token: str, dry_run: bool = False):
 
         page += 1
 
-    logger.info(f"Done. Updated: {updated}, Skipped: {skipped}, Errors: {errors}")
+    summary = f"Done. Updated: {updated}, Skipped: {skipped}, Errors: {errors}"
+    logger.info(summary)
+    return summary
 
 
 def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+    )
     parser = argparse.ArgumentParser(description="Patch affiliation_region on existing InvenioRDM records")
     parser.add_argument("--url", required=True, help="InvenioRDM base URL (e.g. https://localhost:5000)")
     parser.add_argument("--token", required=True, help="API Bearer token")

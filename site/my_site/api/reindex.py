@@ -34,29 +34,7 @@ def _run_reindex(app):
     """Run the reindex process in a background thread with app context."""
     with app.app_context():
         try:
-            app.logger.info("Reindex: Initializing custom fields...")
-
-            cf_result = subprocess.run(
-                ["invenio", "rdm-records", "custom-fields", "init"],
-                capture_output=True,
-                text=True,
-                timeout=120,
-            )
-
-            if cf_result.returncode != 0:
-                cf_failed = True
-                app.logger.warning(
-                    "Reindex: custom-fields init failed (rc=%d), continuing with rebuild. stderr: %s",
-                    cf_result.returncode,
-                    cf_result.stderr,
-                )
-            else:
-                cf_failed = False
-                app.logger.info("Reindex: custom-fields init completed successfully.")
-
-            app.logger.info("Reindex: Starting rebuild-index process...")
-
-            # Step 2: Destroy existing indices
+            # Step 1: Destroy existing indices
             app.logger.info("Reindex: Destroying existing indices...")
             destroy_result = subprocess.run(
                 ["invenio", "index", "destroy", "--force", "--yes-i-know"],
@@ -66,13 +44,13 @@ def _run_reindex(app):
             )
             if destroy_result.returncode != 0:
                 app.logger.warning(
-                    "Reindex: index destroy failed (rc=%d), continuing. stderr: %s",
+                    "Reindex: index destroy failed (rc=%d). stderr: %s",
                     destroy_result.returncode,
                     destroy_result.stderr,
                 )
 
-            # Step 3: Initialize fresh indices
-            app.logger.info("Reindex: Initializing fresh indices...")
+            # Step 2: Create fresh indices
+            app.logger.info("Reindex: Creating fresh indices...")
             init_result = subprocess.run(
                 ["invenio", "index", "init"],
                 capture_output=True,
@@ -81,10 +59,29 @@ def _run_reindex(app):
             )
             if init_result.returncode != 0:
                 app.logger.warning(
-                    "Reindex: index init failed (rc=%d), continuing. stderr: %s",
+                    "Reindex: index init failed (rc=%d). stderr: %s",
                     init_result.returncode,
                     init_result.stderr,
                 )
+
+            # Step 3: Initialize custom fields (must be AFTER index init)
+            app.logger.info("Reindex: Initializing custom fields...")
+            cf_result = subprocess.run(
+                ["invenio", "rdm-records", "custom-fields", "init"],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            if cf_result.returncode != 0:
+                cf_failed = True
+                app.logger.warning(
+                    "Reindex: custom-fields init failed (rc=%d). stderr: %s",
+                    cf_result.returncode,
+                    cf_result.stderr,
+                )
+            else:
+                cf_failed = False
+                app.logger.info("Reindex: custom-fields init completed successfully.")
 
             # Step 4: Rebuild index
             app.logger.info("Reindex: Rebuilding index...")
