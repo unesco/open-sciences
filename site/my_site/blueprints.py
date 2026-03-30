@@ -23,6 +23,8 @@ def create_blueprint(app):
     from .api import (
         ExportAPIView,
         LensExportProxyAPIView,
+        PatchRegionsAPIView,
+        ReindexAPIView,
         SearchAPIView,
         StatisticsAPIView,
         # Resource-Driven CMS API
@@ -115,6 +117,20 @@ def create_blueprint(app):
         f"{API_PREFIX}/lens/export",
         view_func=LensExportProxyAPIView.as_view("lens_export_proxy_api"),
         methods=["GET"],
+    )
+
+    # Trigger OpenSearch reindex (admin only)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/reindex",
+        view_func=ReindexAPIView.as_view("reindex_api"),
+        methods=["GET", "POST"],
+    )
+
+    # Patch affiliation regions on existing records (admin only)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/patch-regions",
+        view_func=PatchRegionsAPIView.as_view("patch_regions_api"),
+        methods=["GET", "POST"],
     )
 
     # ========================================
