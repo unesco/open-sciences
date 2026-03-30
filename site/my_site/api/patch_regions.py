@@ -1,13 +1,12 @@
 """Patch Affiliation Regions API endpoint.
 
-Runs the affiliation region patch script to populate publication:affiliation_region
+Runs the affiliation region patch to populate publication:affiliation_region
 on existing records by deriving regions from publication:country.
 
 - POST /data/patch-regions - Trigger the patch (optional ?dry_run=true)
 - GET  /data/patch-regions - Check patch status
 """
 
-import subprocess
 import threading
 from datetime import datetime, timezone
 
@@ -43,47 +42,14 @@ def _run_patch(app, dry_run=False):
 
             base_url = app.config.get("SITE_UI_URL", "https://127.0.0.1:5000")
 
-            cmd = [
-                "python", "-m", "openscience_tools.tools.patch_affiliation_region",
-                "--url", base_url,
-                "--token", token.access_token,
-            ]
-            if dry_run:
-                cmd.append("--dry-run")
-
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=1800,
-            )
+            from my_site.tools.patch_affiliation_region import patch_records
+            summary = patch_records(base_url, token.access_token, dry_run=dry_run)
 
             with _status_lock:
                 _patch_status["finished_at"] = datetime.now(timezone.utc).isoformat()
-                if result.returncode == 0:
-                    _patch_status["status"] = "completed"
-                    # Extract summary from output
-                    lines = (result.stdout or "").strip().split("\n")
-                    summary = lines[-1] if lines else "Patch completed."
-                    _patch_status["message"] = summary
-                    app.logger.info("PatchRegions: completed. %s", summary)
-                else:
-                    _patch_status["status"] = "failed"
-                    _patch_status["message"] = (
-                        f"Patch failed (exit code {result.returncode}). "
-                        f"{result.stderr[:500] if result.stderr else ''}"
-                    )
-                    app.logger.error(
-                        "PatchRegions: failed (rc=%d). stderr: %s",
-                        result.returncode,
-                        result.stderr,
-                    )
-        except subprocess.TimeoutExpired:
-            with _status_lock:
-                _patch_status["status"] = "failed"
-                _patch_status["finished_at"] = datetime.now(timezone.utc).isoformat()
-                _patch_status["message"] = "Patch timed out after 1800 seconds."
-            app.logger.error("PatchRegions: timed out after 1800s.")
+                _patch_status["status"] = "completed"
+                _patch_status["message"] = summary
+                app.logger.info("PatchRegions: completed. %s", summary)
         except Exception as exc:
             with _status_lock:
                 _patch_status["status"] = "failed"
