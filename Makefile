@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
+.PHONY: help destroy init init-custom-fields rebuild-index pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
 
 # Default target
 help:
@@ -18,6 +18,7 @@ help:
 	@echo "  init         - Initialize the project (config, virtualenv, services)"
 	@echo "  config       - Generate .env and invenio.cfg from templates"
 	@echo "  init-custom-fields - Initialize custom fields in InvenioRDM database"
+	@echo "  rebuild-index    - Rebuild search indices (init custom fields + reindex)"
 	@echo "  pages-init   - Load static pages from app_data/pages.yaml into database"
 	@echo "  ssl-certs    - Generate SSL certificates for development"
 	@echo "  users        - Create ready-to-use users with predefined passwords"
@@ -95,6 +96,16 @@ init-custom-fields:
 	@echo "🔧 Initializing custom fields in InvenioRDM..."
 	$(VENV_ACTIVATE) && invenio rdm-records custom-fields init
 	@echo "✅ Custom fields initialized successfully!"
+
+# Rebuild search indices (custom-fields init + destroy + init + rebuild)
+rebuild-index:
+	@echo "🔧 Initializing custom fields..."
+	$(VENV_ACTIVATE) && invenio rdm-records custom-fields init
+	@echo "🔄 Rebuilding search indices..."
+	$(VENV_ACTIVATE) && invenio index destroy --force --yes-i-know
+	$(VENV_ACTIVATE) && invenio index init
+	$(VENV_ACTIVATE) && invenio rdm-records rebuild-index
+	@echo "✅ Index rebuilt successfully!"
 
 # Load static pages from app_data/pages.yaml into database
 pages-init:
