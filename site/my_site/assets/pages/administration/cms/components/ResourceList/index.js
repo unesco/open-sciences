@@ -36,6 +36,12 @@ export const ResourceList = ({ onSelectResource }) => {
   const [patchConfirmOpen, setPatchConfirmOpen] = useState(false);
   const [patchStatus, setPatchStatus] = useState(null);
 
+  // Update Custom Fields state
+  const [updatingFields, setUpdatingFields] = useState(false);
+  const [updateFieldsMessage, setUpdateFieldsMessage] = useState(null);
+  const [updateFieldsConfirmOpen, setUpdateFieldsConfirmOpen] = useState(false);
+  const [updateFieldsStatus, setUpdateFieldsStatus] = useState(null);
+
   // Poll reindex status
   useEffect(() => {
     if (!reindexing) return;
@@ -145,6 +151,62 @@ export const ResourceList = ({ onSelectResource }) => {
     } catch (err) {
       setPatching(false);
       setPatchMessage({ type: "error", text: err.message });
+    }
+  };
+
+  // Poll update fields status
+  useEffect(() => {
+    if (!updatingFields) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/data/update-fields", {
+          headers: { "Content-Type": "application/json" },
+        });
+        const data = await res.json();
+        setUpdateFieldsStatus(data);
+
+        if (data.status === "completed") {
+          setUpdatingFields(false);
+          setUpdateFieldsMessage({ type: "success", text: data.message });
+        } else if (data.status === "failed") {
+          setUpdatingFields(false);
+          setUpdateFieldsMessage({ type: "error", text: data.message });
+        }
+      } catch (_) {
+        // ignore polling errors
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [updatingFields]);
+
+  // Trigger update custom fields
+  const handleUpdateFields = async () => {
+    setUpdateFieldsConfirmOpen(false);
+    setUpdatingFields(true);
+    setUpdateFieldsMessage(null);
+    setUpdateFieldsStatus(null);
+    try {
+      const response = await fetch("/data/update-fields", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setUpdateFieldsMessage({ type: "info", text: data.message });
+      } else if (response.status === 409) {
+        setUpdateFieldsMessage({ type: "info", text: data.message });
+      } else {
+        setUpdatingFields(false);
+        setUpdateFieldsMessage({
+          type: "error",
+          text: data.error || "Failed to trigger update",
+        });
+      }
+    } catch (err) {
+      setUpdatingFields(false);
+      setUpdateFieldsMessage({ type: "error", text: err.message });
     }
   };
 
@@ -461,6 +523,86 @@ export const ResourceList = ({ onSelectResource }) => {
             <Button onClick={() => setPatchConfirmOpen(false)}>Cancel</Button>
             <Button color="teal" onClick={handlePatchRegions}>
               <Icon name="play" /> Patch Regions
+            </Button>
+          </Modal.Actions>
+        </Modal>
+
+        {/* Update Custom Fields */}
+        {updateFieldsMessage && (
+          <Message
+            positive={updateFieldsMessage.type === "success"}
+            negative={updateFieldsMessage.type === "error"}
+            info={updateFieldsMessage.type === "info"}
+            onDismiss={() => setUpdateFieldsMessage(null)}
+            icon
+          >
+            <Icon name={updateFieldsMessage.type === "success" ? "check circle" : updateFieldsMessage.type === "error" ? "times circle" : "info circle"} />
+            <Message.Content>
+              <Message.Header>
+                {updateFieldsMessage.type === "success" ? "Success" : updateFieldsMessage.type === "error" ? "Error" : "In Progress"}
+              </Message.Header>
+              {updateFieldsMessage.text}
+              {updatingFields && updateFieldsStatus?.started_at && (
+                <span style={{ marginLeft: "1em", opacity: 0.7 }}>
+                  (Started: {new Date(updateFieldsStatus.started_at).toLocaleTimeString()})
+                </span>
+              )}
+            </Message.Content>
+          </Message>
+        )}
+
+        <Segment>
+          <Grid verticalAlign="middle">
+            <Grid.Column width={12}>
+              <Header as="h4">
+                <Icon name="edit" />
+                <Header.Content>
+                  Update Custom Fields
+                  <Header.Subheader>
+                    Re-process existing records using the Lens.org source data to
+                    update or add custom fields. Use this after modifying the
+                    field mapper without needing to re-import all data.
+                  </Header.Subheader>
+                </Header.Content>
+              </Header>
+            </Grid.Column>
+            <Grid.Column width={4} textAlign="right">
+              <Button
+                color="blue"
+                icon
+                labelPosition="left"
+                loading={updatingFields}
+                disabled={updatingFields}
+                onClick={() => setUpdateFieldsConfirmOpen(true)}
+              >
+                <Icon name="edit" />
+                {updatingFields ? "Updating..." : "Update Fields"}
+              </Button>
+            </Grid.Column>
+          </Grid>
+        </Segment>
+
+        {/* Update Fields Confirmation Modal */}
+        <Modal
+          size="small"
+          open={updateFieldsConfirmOpen}
+          onClose={() => setUpdateFieldsConfirmOpen(false)}
+        >
+          <Modal.Header>
+            <Icon name="edit" color="blue" /> Confirm Update Custom Fields
+          </Modal.Header>
+          <Modal.Content>
+            <p>
+              This will re-run the custom field mapper on the Lens.org source
+              data and update all existing records with any new or changed
+              fields. Only fields that have actually changed will be updated.
+            </p>
+            <p>The process runs in the background and may take several minutes.</p>
+          </Modal.Content>
+          <Modal.Actions>
+            <Button onClick={() => setUpdateFieldsConfirmOpen(false)}>Cancel</Button>
+            <Button color="blue" onClick={handleUpdateFields}>
+              <Icon name="edit" /> Update Fields
             </Button>
           </Modal.Actions>
         </Modal>

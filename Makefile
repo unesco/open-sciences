@@ -10,7 +10,7 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields rebuild-index pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import tools-patch-regions db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
+.PHONY: help destroy init init-custom-fields rebuild-index pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import tools-patch-regions tools-update-fields db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
 
 # Default target
 help:
@@ -54,6 +54,7 @@ help:
 	@echo "  tools-test-cov       - Run tests with coverage report"
 	@echo "  tools-help           - Show tools help and examples"
 	@echo "  tools-patch-regions  - Patch affiliation regions on existing records"
+	@echo "  tools-update-fields  - Update custom fields on existing records (use FIELDS='field1,field2')"
 	@echo ""
 	@echo "Usage: make [command]"
 	@echo "Example: make tools-search QUERY='climate data'"
@@ -531,6 +532,25 @@ tools-patch-regions:
 			exit 1; \
 		fi; \
 		$(VENV_ACTIVATE) && python -m my_site.tools.patch_affiliation_region --url "$$BASE_URL" --token "$$TOKEN" $(OPTS); \
+	else \
+		echo "❌ .env file not found. Run 'make config' first."; \
+		exit 1; \
+	fi
+
+tools-update-fields:
+	@echo "🔄 Updating custom fields on existing records..."
+	@if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		FIELDS_ARG=""; \
+		if [ -n "$(FIELDS)" ]; then \
+			FIELDS_ARG="--fields $(FIELDS)"; \
+		fi; \
+		$(VENV_ACTIVATE) && python -m my_site.tools.update_custom_fields --url "$$BASE_URL" --token "$$TOKEN" $$FIELDS_ARG $(OPTS); \
 	else \
 		echo "❌ .env file not found. Run 'make config' first."; \
 		exit 1; \
