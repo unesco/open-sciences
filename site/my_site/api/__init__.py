@@ -26,6 +26,7 @@ from .patch_regions import PatchRegionsAPIView
 from .reindex import ReindexAPIView
 from .search import SearchAPIView
 from .statistics import StatisticsAPIView
+from .update_fields import UpdateFieldsAPIView
 
 __all__ = [
     "ExportAPIView",
@@ -34,6 +35,7 @@ __all__ = [
     "ReindexAPIView",
     "SearchAPIView",
     "StatisticsAPIView",
+    "UpdateFieldsAPIView",
     # CMS Content API
     "CMSResourcesAPIView",
     "CMSResourceDefinitionAPIView",
