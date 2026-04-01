@@ -344,11 +344,11 @@ The project includes a headless Drupal 11 instance for managing Open Science sur
 
 ### Quick Setup
 
-From the `cms/` directory:
+From the root directory:
 
 ```bash
-# 1. Start CMS containers and install Drupal
-make cms-setup
+# 1. Install Drupal
+make cms-install-drupal
 
 # 2. Import survey data and enable related endpoints
 make cms-import-survey-data
@@ -359,35 +359,36 @@ make cms-index-survey-responses
 
 ### Access URLs
 
-| Method | URL |
-|--------|-----|
-| Via Nginx (integrated) | `https://127.0.0.1:5000/cms/` |
+| Method              | URL                         |
+| ------------------- | --------------------------- |
 | Direct (standalone) | `http://localhost:8080/cms` |
-| Admin login | `/cms/user/login` |
+| Admin login         | `/cms/user/login`           |
+
+Login via `admin@unesco.org`/`Passw0rd!`.
 
 ### API Endpoints
 
 **Note**: These endpoints require the survey modules to be enabled. Run `make cms-import-survey-data` first.
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/countries` | GET | List of countries with name, ISO3 code, region, and group |
-| `/api/survey-questions` | GET | Survey questions with number, text, type, and descriptions |
-| `/api/search/survey-responses` | GET | Paginated survey responses from search index |
+| Endpoint                       | Method | Description                                                |
+| ------------------------------ | ------ | ---------------------------------------------------------- |
+| `/api/countries`               | GET    | List of countries with name, ISO3 code, region, and group  |
+| `/api/survey-questions`        | GET    | Survey questions with number, text, type, and descriptions |
+| `/api/search/survey-responses` | GET    | Paginated survey responses from search index               |
 
 ### Available CMS Commands
 
 Run these from the `cms/` directory:
 
-| Command | Description |
-|---------|-------------|
-| `make cms-setup` | Setup CMS containers and permissions |
-| `make cms-setup-clean` | Clean and setup CMS containers |
-| `make cms-fix-volumes-permissions` | Fix file permissions for CMS volumes |
-| `make cms-install-drupal` | Install Drupal if not already installed |
-| `make cms-import-survey-data` | Enable migration module and import survey data |
-| `make cms-index-survey-responses` | Enable search module and index survey responses |
-| `make help` | Show all available commands |
+| Command                            | Description                                     |
+| ---------------------------------- | ----------------------------------------------- |
+| `make cms-setup`                   | Setup CMS containers and permissions            |
+| `make cms-setup-clean`             | Clean and setup CMS containers                  |
+| `make cms-fix-volumes-permissions` | Fix file permissions for CMS volumes            |
+| `make cms-install-drupal`          | Install Drupal if not already installed         |
+| `make cms-import-survey-data`      | Enable migration module and import survey data  |
+| `make cms-index-survey-responses`  | Enable search module and index survey responses |
+| `make help`                        | Show all available commands                     |
 
 ## Available Make Commands
 
