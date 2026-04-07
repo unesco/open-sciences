@@ -16,7 +16,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: help install check setup-k3d env-check deploy deploy-services deploy-secrets deploy-helm \
+.PHONY: help install check setup-k3d env-check deploy deploy-cms deploy-services deploy-secrets deploy-helm \
         init-app init-minio create-admin up stop \
         backup restore list-backups deploy-backup-cronjob \
         destroy reset-lens rebuild-index render-config build-image load-image
@@ -152,17 +152,26 @@ deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 	@echo "Step 3/4: Upgrading Helm release..."
 	@$(MAKE) deploy-helm ENV=$(ENV)
 	@echo ""
-	@echo "Step 4/4: Restarting pods to pick up new image..."
+	@echo "Step 3.5/4: Redeploying CMS..."
+	@$(MAKE) deploy-cms ENV=$(ENV)
+	@echo ""
+	@echo "Step 4/4: Restarting pods to pick up new images..."
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker-beat -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout status deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) --timeout=3m 2>/dev/null || true
+	@kubectl rollout status deployment cms -n $(NAMESPACE) --timeout=3m 2>/dev/null || true
 	@echo ""
 	@echo "============================================"
 	@echo "  Deployment complete!  (ENV=$(ENV))"
 	@echo "============================================"
 	@echo ""
 	@echo "  Access: $(SITE_UI_URL)"
+
+deploy-cms: check ## Re-apply CMS deployment with current image tag
+	@echo "Redeploying CMS (image: $(CMS_DOCKER_IMAGE_NAME):$(CMS_DOCKER_IMAGE_TAG))..."
+	@envsubst < cms-services.yaml | kubectl apply -f - -n $(NAMESPACE)
+	@kubectl rollout restart deployment cms -n $(NAMESPACE) 2>/dev/null || true
 
 deploy-services: check ## Deploy external services (DB, cache, search, queue)
 	@echo "Deploying external services..."
