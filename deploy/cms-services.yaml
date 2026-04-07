@@ -118,6 +118,8 @@ spec:
       labels:
         app: cms
     spec:
+      imagePullSecrets:
+        - name: registry-credentials
       initContainers:
         # Fix file permissions on the shared PVC
         - name: fix-permissions
