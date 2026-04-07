@@ -218,9 +218,14 @@ deploy-secrets: check env-check render-config ## Create K8s Secrets (service env
 		--from-literal=SQLALCHEMY_DATABASE_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/$(POSTGRES_DB)" \
 		--from-literal=CELERY_BROKER_URL="amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@rabbitmq:5672/" \
 		--from-literal=CACHE_REDIS_URL="redis://redis:6379/0" \
+		--from-literal=CMS_DB_NAME='$(CMS_DB_NAME)' \
+		--from-literal=CMS_DB_USER='$(CMS_DB_USER)' \
+		--from-literal=CMS_DB_PASSWORD='$(CMS_DB_PASSWORD)' \
+		--from-literal=CMS_DRUPAL_HASH_SALT='$(CMS_DRUPAL_HASH_SALT)' \
+		--from-literal=CMS_USER_PASSWORD='$(CMS_USER_PASSWORD)' \
 		--namespace=$(NAMESPACE) \
 		--dry-run=client -o yaml | kubectl apply -f -
-	@echo "  ✓ Secret created: $(HELM_RELEASE)-secrets (16 keys)"
+	@echo "  ✓ Secret created: $(HELM_RELEASE)-secrets (21 keys)"
 	@echo ""
 	@echo "[2/3] Creating InvenioRDM configuration Secret (invenio.cfg file)..."
 	@if [ ! -f ../invenio.cfg ]; then \
