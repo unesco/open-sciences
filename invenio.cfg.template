@@ -332,6 +332,11 @@ RDM_CUSTOM_FIELDS = JOURNAL_CUSTOM_FIELDS + [
         name="lens:chemicals",
         multiple=False,
     ),
+    # Raw Lens.org record (full JSON dump for future field derivation)
+    TextCF(
+        name="lens:raw_lens_data",
+        multiple=False,
+    ),
     # Open access colour for filtering (extracted from lens:open_access)
     # Values: gold, green, hybrid, bronze
     KeywordCF(

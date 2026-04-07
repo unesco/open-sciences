@@ -126,6 +126,10 @@ class CustomFieldsMapper(BaseMapper):
         custom_fields = {}
 
         try:
+            # Store raw Lens.org record for future field derivation
+            import json
+            custom_fields["lens:raw_lens_data"] = json.dumps(lens_record)
+
             # Lens.org unique identifier
             lens_id = lens_record.get("lens_id")
             if lens_id:
