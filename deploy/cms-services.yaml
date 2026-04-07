@@ -33,7 +33,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: cms-db-init
-          image: postgres:15
+          image: postgres:16
           env:
             - name: PGHOST
               value: "postgresql"

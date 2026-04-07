@@ -151,7 +151,7 @@ ost_publish:
 # Stage 2: Deploy .env.test and run make deploy on server via SSH
 # ==============================================================================
 
-build:docker:
+build:invenio:
   stage: build
   image: docker:24.0.5
   services:
@@ -196,150 +196,83 @@ build:docker:
     - echo "==================================================================="
     - 'echo "  ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
   only:
+    - UNESC-153
     - test
 
-deploy:env:
-  stage: deploy
-  image: alpine:latest
+build:cms:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
   environment:
     name: test
-  needs:
-    - job: build:docker
   variables:
-    # Proxy for apk install
     HTTP_PROXY: "http://proxy.unesco.org:8080"
     HTTPS_PROXY: "http://proxy.unesco.org:8080"
     http_proxy: "http://proxy.unesco.org:8080"
     https_proxy: "http://proxy.unesco.org:8080"
-    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
-    no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+    NO_PROXY: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_IMAGE: "${CI_REGISTRY_IMAGE}/cms"
   before_script:
-    - apk add --no-cache openssh-client gettext
-    - eval $(ssh-agent -s)
-    # Decode base64 encoded SSH key and add to agent (same pattern as deploy_staging/deploy_production)
-    - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts || echo "WARN ssh-keyscan failed - host unreachable on port 22 (firewall?)"
+    - sleep 5
+    - echo "Logging in to GitLab Container Registry..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - echo "==================================================================="
-    - echo "Deploying .env.test to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
+    - echo "Building CMS (Drupal) Docker image"
     - echo "==================================================================="
-    - |
-      # Build .env.test content from CI/CD variables
-      cat > /tmp/.env.test << 'ENVEOF'
-      ADMIN_EMAIL=${ADMIN_EMAIL}
-      ADMIN_USER_EMAIL=${ADMIN_USER_EMAIL}
-      ADMIN_USER_PASSWORD=${ADMIN_USER_PASSWORD}
-      APP_ENABLE_SECURE_HEADERS=${APP_ENABLE_SECURE_HEADERS}
-      BACKUP_PATH=${BACKUP_PATH}
-      BACKUP_RETENTION_COUNT=${BACKUP_RETENTION_COUNT}
-      BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS}
-      BACKUP_SCHEDULE=${BACKUP_SCHEDULE}
-      BACKUP_STORAGE_SIZE=${BACKUP_STORAGE_SIZE}
-      DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME}
-      DOCKER_IMAGE_TAG=__CI_COMMIT_SHORT_SHA__
-      DOCKER_REGISTRY=${DOCKER_REGISTRY}
-      DOMAIN=${DOMAIN}
-      FILES_REST_DEFAULT_STORAGE_CLASS=${FILES_REST_DEFAULT_STORAGE_CLASS}
-      FILES_REST_STORAGE_FACTORY=${FILES_REST_STORAGE_FACTORY}
-      FORCE_HTTPS=${FORCE_HTTPS}
-      IMAGE_PULL_POLICY=${IMAGE_PULL_POLICY}
-      IMAGE_REGISTRY=${IMAGE_REGISTRY}
-      INGRESS_ENTRYPOINT=${INGRESS_ENTRYPOINT}
-      INGRESS_TLS_ENABLED=${INGRESS_TLS_ENABLED}
-      INVENIO_REQUIRE_HTTPS=${INVENIO_REQUIRE_HTTPS}
-      LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
-      MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER}
-      MAIL_PASSWORD=${MAIL_PASSWORD}
-      MAIL_PORT=${MAIL_PORT}
-      MAIL_SERVER=${MAIL_SERVER}
-      MAIL_USERNAME=${MAIL_USERNAME}
-      MAIL_USE_TLS=${MAIL_USE_TLS}
-      MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-      MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      OAISERVER_ADMIN_EMAIL=${OAISERVER_ADMIN_EMAIL}
-      OAISERVER_ID_PREFIX=${OAISERVER_ID_PREFIX}
-      POSTGRES_DB=${POSTGRES_DB}
-      POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      POSTGRES_USER=${POSTGRES_USER}
-      RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-      RABBITMQ_USER=${RABBITMQ_USER}
-      REGISTRY_PASSWORD=${REGISTRY_PASSWORD}
-      REGISTRY_USER=${REGISTRY_USER}
-      S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      S3_BUCKET_NAME=${S3_BUCKET_NAME}
-      S3_ENDPOINT_URL=${S3_ENDPOINT_URL}
-      S3_REGION_NAME=${S3_REGION_NAME}
-      S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-      SEARCH_INDEX_PREFIX=${SEARCH_INDEX_PREFIX}
-      SECRET_KEY=${SECRET_KEY}
-      SECURITY_LOGIN_SALT=${SECURITY_LOGIN_SALT}
-      SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE}
-      SITE_PROTOCOL=${SITE_PROTOCOL}
-      STRICT_TRANSPORT_SECURITY=${STRICT_TRANSPORT_SECURITY}
-      TLS_MODE=${TLS_MODE}
-      UWSGI_PROCESSES=${UWSGI_PROCESSES}
-      UWSGI_THREADS=${UWSGI_THREADS}
-      WEB_CPU_LIMIT=${WEB_CPU_LIMIT}
-      WEB_CPU_REQUEST=${WEB_CPU_REQUEST}
-      WEB_MEMORY_LIMIT=${WEB_MEMORY_LIMIT}
-      WEB_MEMORY_REQUEST=${WEB_MEMORY_REQUEST}
-      WEB_REPLICAS=${WEB_REPLICAS}
-      WORKER_CPU_LIMIT=${WORKER_CPU_LIMIT}
-      WORKER_CPU_REQUEST=${WORKER_CPU_REQUEST}
-      WORKER_MEMORY_LIMIT=${WORKER_MEMORY_LIMIT}
-      WORKER_MEMORY_REQUEST=${WORKER_MEMORY_REQUEST}
-      WORKER_REPLICAS=${WORKER_REPLICAS}
-      WIP_MODE=${WIP_MODE}
-      ENVEOF
-    - |
-      # Remove leading whitespace (heredoc indentation) and substitute CI/CD variables
-      sed -i 's/^      //' /tmp/.env.test
-      envsubst < /tmp/.env.test > /tmp/.env.test.out
-      mv /tmp/.env.test.out /tmp/.env.test
-      # Set DOCKER_IMAGE_TAG to the commit SHA (not a CI/CD variable, injected separately)
-      sed -i "s/__CI_COMMIT_SHORT_SHA__/${CI_COMMIT_SHORT_SHA}/" /tmp/.env.test
+    - 'echo "Image: ${DOCKER_IMAGE}"'
+    - 'echo "Tag: ${CI_COMMIT_SHORT_SHA}"'
+    - 'echo "Dockerfile: deploy/Dockerfile.cms"'
     - echo ""
-    - echo "Uploading .env.test to server..."
-    - scp -o StrictHostKeyChecking=no /tmp/.env.test "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.test"
+    - echo "Building image..."
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile.cms -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
     - echo ""
-    - echo "Running make deploy on server..."
-    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
+    - echo "Pushing image to registry..."
+    - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
     - echo ""
-    - echo "--- Images BEFORE pruning ---"
-    - |
-      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
-        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>&1"
-      else
-        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "sudo k3s crictl images 2>&1"
-      fi
-    - echo "Pruning unused container images on server..."
-    - |
-      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
-        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl --timeout 60s rmi --prune 2>&1 || true"
-      else
-        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "sudo k3s crictl --timeout 60s rmi --prune 2>&1 || true"
-      fi
-    - echo "--- Images AFTER pruning ---"
-    - |
-      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
-        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>&1"
-      else
-        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-          "sudo k3s crictl images 2>&1"
-      fi
-    - echo ""
-    - |
-      echo "==================================================================="
-      echo "Deployed commit ${CI_COMMIT_SHORT_SHA} to ${DEPLOY_PATH}"
-      echo "  Image tag: ${CI_COMMIT_SHORT_SHA}"
-      echo "==================================================================="
-    - rm -f /tmp/.env.test
+    - echo "==================================================================="
+    - echo "CMS image built and pushed successfully!"
+    - echo "==================================================================="
+    - 'echo "  ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
   only:
+    - UNESC-153
     - test
+
+# ------------------------------------------------------------------------------
+# Deploy stage — DISABLED for manual deploy phase.
+# Will be re-enabled once the manual deploy on the test server is validated.
+# See: deploy:env (commented out below)
+# ------------------------------------------------------------------------------
+# deploy:env:
+#   stage: deploy
+#   image: alpine:latest
+#   environment:
+#     name: test
+#   needs:
+#     - job: build:invenio
+#     - job: build:cms
+#   variables:
+#     HTTP_PROXY: "http://proxy.unesco.org:8080"
+#     HTTPS_PROXY: "http://proxy.unesco.org:8080"
+#     http_proxy: "http://proxy.unesco.org:8080"
+#     https_proxy: "http://proxy.unesco.org:8080"
+#     NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+#     no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+#   before_script:
+#     - apk add --no-cache openssh-client gettext
+#     - eval $(ssh-agent -s)
+#     - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts || echo "WARN ssh-keyscan failed"
+#   script:
+#     - echo "Deploying to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
+#     - scp -o StrictHostKeyChecking=no /tmp/.env.test "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.test"
+#     - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
+#   only:
+#     - UNESC-153
+#     - test
