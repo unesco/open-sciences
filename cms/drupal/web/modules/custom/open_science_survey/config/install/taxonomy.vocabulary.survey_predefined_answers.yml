@@ -1,0 +1,6 @@
+langcode: en
+status: true
+dependencies: {  }
+name: survey_predefined_answers
+vid: survey_predefined_answers
+description: 'Predefined answers for survey questions'

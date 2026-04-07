@@ -1,0 +1,8 @@
+Dockerfile
+.env
+*.iml
+.idea
+.git
+.gitignore
+architecture_design
+.env

@@ -1,0 +1,34 @@
+id: survey_questions
+label: 'Survey Questions'
+migration_group: open_science_survey
+migration_dependencies:
+  required:
+    - survey_sections
+source:
+  plugin: csv
+  path: 'modules/custom/open_science_survey_migration/data/survey_questions.csv'
+  header_row_count: 1
+  ids:
+    - question_number
+
+destination:
+  plugin: entity:taxonomy_term
+  default_bundle: survey_question
+
+process:
+  name: question_number
+  description: question_description
+  field_question_number: question_number
+  field_question_text: question_text
+  field_question_type: type
+  field_question_short_name: question_short_name
+  field_question_description: question_description
+  field_question_long_description: question_long_description
+  field_section:
+    plugin: entity_lookup
+    source: section_number
+    entity_type: taxonomy_term
+    value_key: field_section_id
+    bundle_key: vid
+    bundle: survey_section
+    ignore_case: true

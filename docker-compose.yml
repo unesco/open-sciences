@@ -39,3 +39,15 @@ services:
     extends:
       file: docker-services.yml
       service: pgadmin
+  cms:
+    extends:
+      file: cms/docker-compose.yml
+      service: cms
+    environment:
+      - DB_NAME=cms
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DRIVER=pgsql
+

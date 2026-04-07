@@ -33,8 +33,10 @@ services:
     ports:
       - "6379:6379"
   db:
-    image: postgres:14.13
+    image: postgres:16
     restart: "unless-stopped"
+    volumes:
+      - ./docker/postgres/init-cms-database.sh:/docker-entrypoint-initdb.d/init-cms-db.sh
     environment:
       - "POSTGRES_USER=${POSTGRES_USER:-my-site}"
       - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-my-site}"

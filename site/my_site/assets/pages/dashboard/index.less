@@ -1,0 +1,1204 @@
+/* Open Science Dashboard - Main Styles */
+
+.dashboard-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  background: #f5f6f8;
+  min-height: 100vh;
+}
+
+/* Header */
+.dashboard-header {
+  margin-bottom: 28px;
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 10px;
+}
+
+.dashboard-description {
+  font-size: 1rem;
+  color: #333;
+  margin: 0;
+  a {
+    color: #111;
+    text-decoration: underline;
+  }
+}
+
+/* Tabs */
+.dashboard-tabs-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 24px;
+  background: #fff;
+  padding: 0 8px;
+  border-radius: 8px 8px 0 0;
+}
+
+.dashboard-tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 14px 24px;
+  font-size: 0.97rem;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    color: #0073b7;
+  }
+
+  &.active {
+    color: #111;
+    font-weight: 700;
+    border-bottom: 3px solid #0073b7;
+  }
+}
+
+/* Sub-header row */
+.dashboard-subheader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dashboard-subheader-text {
+  font-size: 1rem;
+  color: #111;
+}
+
+.dashboard-subheader-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dashboard-action-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600 !important;
+
+  .btn-icon {
+    font-size: 0.9rem;
+  }
+
+  &.primary {
+    background: #0073b7 !important;
+    color: #fff !important;
+    border-radius: 20px !important;
+  }
+
+  &.basic {
+    border: 1px solid #0073b7 !important;
+    color: #0073b7 !important;
+    border-radius: 20px !important;
+    background: #fff !important;
+  }
+}
+
+/* Main two-column layout */
+.dashboard-main {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
+}
+
+/* Filters Panel */
+.dashboard-filters-panel {
+  flex: 0 0 320px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8e8e8;
+
+  @media (max-width: 900px) {
+    flex: none;
+    width: 100%;
+  }
+}
+
+.dashboard-filters-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.dashboard-filters-subtitle {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 14px;
+}
+
+.dashboard-reset-btn {
+  background: none;
+  border: none;
+  color: #0073b7;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.dashboard-filters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-filter-group {
+  border: 1px solid #e0e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dashboard-filter-group-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #f7f9fb;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+  border: none;
+  text-align: left;
+
+  .filter-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .filter-label {
+    flex: 1;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #222;
+    line-height: 1.4;
+  }
+
+  .filter-chevron {
+    font-size: 0.7rem;
+    color: #888;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+.dashboard-filter-items {
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.dashboard-filter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  .filter-item-label {
+    font-size: 0.88rem;
+    color: #333;
+    flex: 1;
+  }
+}
+
+.filter-toggle-group {
+  display: flex;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.filter-toggle-btn {
+  background: #fff;
+  border: none;
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #444;
+  transition: background 0.15s, color 0.15s;
+
+  &:not(:last-child) {
+    border-right: 1px solid #d0d0d0;
+  }
+
+  &:hover {
+    background: #f0f6ff;
+  }
+
+  &.active {
+    background: #0073b7;
+    color: #fff;
+  }
+}
+
+/* Map Panel */
+.dashboard-map-panel {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8e8e8;
+  min-height: 480px;
+}
+
+.dashboard-map-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.dashboard-filter-selected {
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: #0073b7;
+}
+
+.dashboard-region-select {
+  border: 1px solid #d0d0d0;
+  border-radius: 20px;
+  padding: 6px 32px 6px 14px;
+  font-size: 0.9rem;
+  color: #333;
+  background: #fff;
+  appearance: auto;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #0073b7;
+  }
+}
+
+.dashboard-map-legend {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: #444;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+
+  &.no-data {
+    background: #ccc;
+  }
+
+  &.participated {
+    background: #444;
+  }
+
+  &.matches {
+    background: #90c8f0;
+  }
+}
+
+/* Leaflet map */
+.dashboard-leaflet-map {
+  width: 100%;
+  height: 420px;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Generic action buttons */
+.dash-btn {
+  border: none;
+  border-radius: 20px;
+  padding: 7px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.85; }
+
+  &.primary {
+    background: #0073b7;
+    color: #fff;
+  }
+  &.outline {
+    background: #fff;
+    border: 1px solid #0073b7;
+    color: #0073b7;
+  }
+}
+
+/* Tab content wrapper */
+.dashboard-tab-content {
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #e8e8e8;
+  border-top: none;
+}
+
+/* Per-tab root containers */
+.dash-global,
+.dash-comparison,
+.dash-challenges {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Comparison tab ─────────────────────────────────────── */
+.comparison-main {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  @media (max-width: 900px) { flex-direction: column; }
+}
+
+.topic-list {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @media (max-width: 900px) { flex: none; width: 100%; }
+}
+
+.topic-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font-size: 0.88rem;
+  color: #333;
+  line-height: 1.4;
+  transition: border-color 0.15s, background 0.15s;
+
+  .topic-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+  .topic-label { flex: 1; }
+  .topic-radio {
+    flex-shrink: 0;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid #aaa;
+    background: #fff;
+    transition: border-color 0.15s, background 0.15s;
+    &.checked { border-color: #0073b7; background: #0073b7; }
+  }
+
+  &.active {
+    border-color: #0073b7;
+    background: #f0f7ff;
+    color: #111;
+    font-weight: 600;
+  }
+  &:hover:not(.active) { border-color: #90c8f0; background: #f5faff; }
+}
+
+.comparison-charts {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.comparison-charts-header {
+  font-size: 1rem;
+  color: #111;
+}
+
+.per-region-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #444;
+}
+.toggle-label { font-size: 0.9rem; }
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  margin: 0;
+
+  input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #ccc;
+    border-radius: 22px;
+    transition: background 0.2s;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 3px; bottom: 3px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s;
+    }
+  }
+  input:checked + .toggle-slider {
+    background: #0073b7;
+    &::before { transform: translateX(18px); }
+  }
+}
+
+.donut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  align-items: stretch;
+
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+}
+
+.donut-card {
+  border: 1px solid #e0e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  box-sizing: border-box;
+  /* allow Yes/No labels to overflow the card edges slightly */
+  overflow: visible;
+}
+
+.donut-card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+
+  .donut-info-icon {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    color: #aaa;
+    cursor: pointer;
+  }
+}
+
+.donut-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Chart area — centred, no flex side-by-side */
+.donut-chart-area {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 8px;
+}
+
+/* Floating-label wrapper — labels orbit inside this box */
+.donut-float-wrap {
+  position: relative;
+  width: 380px;   /* matches JS CX=190 × 2 */
+  height: 300px;  /* matches JS CY=150 × 2 */
+  flex-shrink: 0;
+  overflow: visible; /* allow pills to extend slightly outside */
+}
+
+/* Canvas centred inside the wrapper */
+.donut-canvas-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+
+  canvas { width: 160px !important; height: 160px !important; }
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+
+  .donut-total      { font-size: 1.5rem; font-weight: 700; color: #111; line-height: 1; }
+  .donut-label-text { font-size: 0.7rem; color: #888; margin-top: 2px; }
+}
+
+/* Floating callout label — positioned by JS around the ring */
+.donut-float-label {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #cde4f5;
+  border-radius: 12px;
+  padding: 5px 11px;
+  white-space: normal;
+  box-shadow: 0 2px 6px rgba(0, 50, 100, 0.13);
+  pointer-events: auto;
+  max-width: 150px;
+  cursor: default;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+
+  &--active {
+    border-color: #1a6fa8;
+    background: #f0f7ff;
+    box-shadow: 0 3px 10px rgba(0, 80, 160, 0.22);
+  }
+}
+
+.donut-float-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 0;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.donut-float-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #222;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+/* Legacy selectors — keep hidden */
+.donut-legend        { display: none; }
+.donut-legend-item   { display: none; }
+.donut-dot           { display: none; }
+.donut-label         { display: none; }
+.donut-callout-legend { display: none; }
+.donut-callout-item  { display: none; }
+
+/* ── Challenges / Word cloud tab ────────────────────────── */
+.word-cloud-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px 22px;
+  padding: 40px 24px;
+  min-height: 300px;
+}
+
+.word-cloud-item {
+  color: #0073b7;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: default;
+  transition: color 0.15s;
+
+  &:hover { color: #005a8e; }
+}
+
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Medal SVG icon in topic sidebar ───────────────────── */
+.topic-medal-icon {
+  display: block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+
+  .topic-card.active & circle,
+  .topic-card.active & path {
+    stroke: #0073b7;
+    fill: #0073b7;
+  }
+}
+
+/* ── "View country breakdown" button on donut cards ────── */
+.breakdown-btn {
+  display: block;
+  width: 100%;
+  padding: 9px 0;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  background: #fff;
+  color: #333;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  margin-top: auto;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: #0073b7;
+    color: #0073b7;
+  }
+}
+
+/* ── Donut footnote ─────────────────────────────────────── */
+.donut-footnote {
+  font-size: 0.82rem;
+  color: #888;
+  margin: 0;
+}
+
+/* ── Country breakdown drawer (slides in from right) ────── */
+.breakdown-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+  animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.breakdown-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 580px;
+  max-width: 95vw;
+  background: #fff;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.22s ease;
+
+  @media (max-width: 600px) {
+    width: 100vw;
+  }
+}
+
+.breakdown-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+
+.breakdown-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+  line-height: 1.4;
+  flex: 1;
+
+  .breakdown-info-icon {
+    margin-left: 6px;
+    font-size: 0.85rem;
+    color: #aaa;
+    cursor: pointer;
+    font-weight: 400;
+  }
+}
+
+.breakdown-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #555;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: background 0.15s;
+
+  &:hover { background: #f0f0f0; color: #111; }
+}
+
+.breakdown-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Each Yes / Partial / No section */
+.breakdown-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.breakdown-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breakdown-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.breakdown-section-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #222;
+
+  .breakdown-section-count {
+    font-weight: 400;
+    color: #555;
+  }
+}
+
+/* 3-column country grid */
+.breakdown-country-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 12px;
+  padding: 12px 16px;
+  border: 1px solid #e0e8f0;
+  border-radius: 8px;
+  background: #fafcff;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.breakdown-country-link {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: #0073b7;
+  text-decoration: none;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover { text-decoration: underline; }
+}
+
+/* Empty state + total footer */
+.breakdown-no-data {
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+  padding: 24px 0;
+}
+
+.breakdown-total-note {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: right;
+}
+
+/* Sub-details block (infrastructure types etc.) */
+.breakdown-subdetails {
+  border: 1px solid #e0e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.breakdown-subdetails-intro {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.breakdown-subdetail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+  }
+}
+
+.breakdown-subdetail-badge {
+  flex-shrink: 0;
+  background: #f0f6ff;
+  border: 1px solid #c8dff5;
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0073b7;
+  white-space: nowrap;
+}
+
+.breakdown-subdetail-text {
+  font-size: 0.86rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* ── Info icon + hover tooltip (desktop) / modal (mobile) ──────────────── */
+.info-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.donut-info-icon {
+  font-style: normal;
+  color: #888;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+  line-height: 1;
+
+  &:hover {
+    color: #0073b7;
+  }
+}
+
+/* Desktop hover tooltip — appears above the icon on hover */
+.info-hover-tooltip {
+  display: none; /* shown via hover below */
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  background: #1a2a3a;
+  color: #fff;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+  white-space: normal;
+  z-index: 200;
+
+  /* Arrow pointing down */
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 10px;
+    border: 6px solid transparent;
+    border-top-color: #1a2a3a;
+  }
+}
+
+/* Show tooltip on hover — only on devices that support hover (desktop) */
+@media (hover: hover) {
+  .info-icon-wrap:hover .info-hover-tooltip,
+  .info-icon-wrap:focus-within .info-hover-tooltip {
+    display: block;
+  }
+}
+
+/* On touch/mobile devices hide the hover tooltip (modal is used instead) */
+@media (hover: none) {
+  .info-hover-tooltip {
+    display: none !important;
+  }
+}
+
+/* ── Info modal ─────────────────────────────────────────────────────────── */
+.donut-info-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.donut-info-modal {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  animation: donut-modal-in 0.18s ease;
+}
+
+@keyframes donut-modal-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);    }
+}
+
+.donut-info-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #e8edf2;
+  background: #f4f7fb;
+}
+
+.donut-info-modal-title {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1a2a3a;
+  line-height: 1.4;
+}
+
+.donut-info-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover { color: #111; }
+}
+
+.donut-info-modal-body {
+  padding: 16px;
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.6;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Region Breakdown Drawer  (rbd-*)
+   Side drawer using breakdown-backdrop + breakdown-drawer base CSS
+   ══════════════════════════════════════════════════════════════ */
+
+.rbd-subheader {
+  padding: 6px 24px 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #555;
+  flex-shrink: 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Override breakdown-body gap for region cards */
+.breakdown-body.rbd-body {
+  gap: 12px;
+}
+
+/* ── Region card: horizontal mini donut + legend ── */
+.rbd-region-card {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid #e0e8f0;
+  border-radius: 10px;
+  background: #fafcff;
+  padding: 14px;
+}
+
+/* Mini donut wrapper — now uses rbd-mini-float-wrap for orbital labels */
+.rbd-mini-wrap {
+  flex-shrink: 0;
+}
+
+/* Scaled-down float wrapper for the region drawer (CX=130, CY=120) */
+.rbd-mini-float-wrap {
+  position: relative;
+  width: 260px;   /* CX=130 × 2 */
+  height: 240px;  /* CY=120 × 2 */
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.rbd-mini-canvas-wrap {
+  position: relative;
+  width: 110px;
+  height: 110px;
+
+  canvas {
+    display: block;
+  }
+}
+
+.rbd-mini-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+}
+
+.rbd-mini-count {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1;
+}
+
+.rbd-mini-region {
+  font-size: 0.65rem;
+  color: #666;
+  margin-top: 2px;
+  max-width: 70px;
+  line-height: 1.2;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* Legend on the right */
+.rbd-region-legend {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rbd-legend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rbd-legend-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rbd-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rbd-legend-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.rbd-legend-countries {
+  padding-left: 17px;
+  font-size: 0.78rem;
+  color: #0073b7;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.rbd-country-name {
+  /* inline — commas are appended by JS */
+}
+

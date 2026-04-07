@@ -10,8 +10,12 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields rebuild-index pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import tools-patch-regions tools-update-fields db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
+.PHONY: help destroy init init-custom-fields pages-init up watch stop build users ssl-certs check config \
+tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import \
+tools-patch-regions tools-update-fields db-migrate db-upgrade db-downgrade db-status db-current db-history \
+db-init-cms site-install cms-fixtures fix-volumes-permissions install-drupal page-update rebuild-index
 
+include cms/Makefile
 # Default target
 help:
 	@echo "UNESCO Science Portal - Available commands:"
@@ -23,6 +27,7 @@ help:
 	@echo "  ssl-certs    - Generate SSL certificates for development"
 	@echo "  users        - Create ready-to-use users with predefined passwords"
 	@echo "  up           - Start the development server and services"
+	@echo "  watch        - Watch assets for JS/CSS hot reload (run in a separate terminal)"
 	@echo "  stop         - Stop all services and processes"
 	@echo "  build        - Build assets (CSS, JS, etc.)"
 	@echo "  check        - Check and fix Docker services if needed"
@@ -72,6 +77,7 @@ init:
 	$(VENV_ACTIVATE) && pip install --upgrade pip
 	$(VENV_ACTIVATE) && pip install invenio-cli
 	$(VENV_ACTIVATE) && pip install pipenv
+	$(VENV_ACTIVATE) && pipenv install invenio-cli
 	$(VENV_ACTIVATE) && pipenv install --dev
 	@echo "🛠️ Installing Invenio packages..."
 	$(VENV_ACTIVATE) && invenio-cli install
@@ -128,6 +134,7 @@ up:
 	$(VENV_ACTIVATE) && invenio-cli services start
 	@echo "🚀 Starting development server..."
 	@echo "📍 Server will be available at https://127.0.0.1:5000"
+	@echo "💡 Tip: run 'make watch' in a second terminal to enable JS hot reload"
 	$(VENV_ACTIVATE) && invenio-cli run
 
 # Watch assets for hot reload (run in a separate terminal alongside 'make up')

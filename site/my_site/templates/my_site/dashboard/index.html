@@ -1,0 +1,6 @@
+{%- extends config.BASE_TEMPLATE %}
+{%- block css %} {{ super() }} {{ webpack['dashboard-styles.css'] }} {%- endblock %}
+{%- block page_body %}
+<div id="dashboard-root"></div>
+{%- endblock %}
+{%- block javascript %} {{ super() }} {{ webpack['dashboard.js'] }} {%- endblock %}

@@ -1,0 +1,147 @@
+uuid: a0a79e3f-1032-43bb-b455-9f742175150e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.survey_response.field_open_ans_translated
+    - field.storage.survey_response.field_survey_response_closed_ans
+    - field.storage.survey_response.field_survey_response_country
+    - field.storage.survey_response.field_survey_response_open_ans
+    - field.storage.survey_response.field_survey_response_question
+    - field.storage.taxonomy_term.field_country_name
+    - field.storage.taxonomy_term.field_iso_alpha3_code
+    - field.storage.taxonomy_term.field_long_name
+    - field.storage.taxonomy_term.field_question_number
+    - field.storage.taxonomy_term.field_question_text
+    - field.storage.taxonomy_term.field_question_type
+    - field.storage.taxonomy_term.field_short_name
+    - search_api.server.open_search
+  module:
+    - open_science_survey
+    - search_api_opensearch
+    - taxonomy
+id: survey_responses
+name: 'Survey Responses'
+description: ''
+read_only: false
+field_settings:
+  answer_closed_name:
+    label: 'Survey Response Closed Answer » Taxonomy term » Long Name'
+    datasource_id: 'entity:survey_response'
+    property_path: 'field_survey_response_closed_ans:entity:field_long_name'
+    type: string
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_closed_ans
+        - field.storage.taxonomy_term.field_long_name
+      module:
+        - taxonomy
+  answer_closed_short_name:
+    label: 'Survey Response Closed Answer » Taxonomy term » Short Name'
+    datasource_id: 'entity:survey_response'
+    property_path: 'field_survey_response_closed_ans:entity:field_short_name'
+    type: string
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_closed_ans
+        - field.storage.taxonomy_term.field_short_name
+      module:
+        - taxonomy
+  answer_open_text:
+    label: 'Open Answer'
+    datasource_id: 'entity:survey_response'
+    property_path: field_survey_response_open_ans
+    type: text
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_open_ans
+  answer_open_text_raw:
+    label: 'Open Answer (Raw)'
+    datasource_id: 'entity:survey_response'
+    property_path: field_survey_response_open_ans
+    type: string
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_open_ans
+  answer_open_translated:
+    label: 'Open Answer Translated'
+    datasource_id: 'entity:survey_response'
+    property_path: field_open_ans_translated
+    type: boolean
+    dependencies:
+      config:
+        - field.storage.survey_response.field_open_ans_translated
+  country_iso3:
+    label: 'Survey Response Country » Taxonomy term » ISO Alpha-3 Code'
+    datasource_id: 'entity:survey_response'
+    property_path: 'field_survey_response_country:entity:field_iso_alpha3_code'
+    type: string
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_country
+        - field.storage.taxonomy_term.field_iso_alpha3_code
+      module:
+        - taxonomy
+  country_name:
+    label: 'Survey Response Country » Taxonomy term » Country Name'
+    datasource_id: 'entity:survey_response'
+    property_path: 'field_survey_response_country:entity:field_country_name'
+    type: string
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_country
+        - field.storage.taxonomy_term.field_country_name
+      module:
+        - taxonomy
+  question_number:
+    label: 'survey_response_question » Taxonomy term » Question number'
+    datasource_id: 'entity:survey_response'
+    property_path: 'field_survey_response_question:entity:field_question_number'
+    type: string
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_question
+        - field.storage.taxonomy_term.field_question_number
+      module:
+        - taxonomy
+  question_text:
+    label: 'survey_response_question » Taxonomy term » Question Text'
+    datasource_id: 'entity:survey_response'
+    property_path: 'field_survey_response_question:entity:field_question_text'
+    type: string
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_question
+        - field.storage.taxonomy_term.field_question_text
+      module:
+        - taxonomy
+  question_type:
+    label: 'survey_response_question » Taxonomy term » Question Type'
+    datasource_id: 'entity:survey_response'
+    property_path: 'field_survey_response_question:entity:field_question_type'
+    type: string
+    dependencies:
+      config:
+        - field.storage.survey_response.field_survey_response_question
+        - field.storage.taxonomy_term.field_question_type
+      module:
+        - taxonomy
+datasource_settings:
+  'entity:survey_response': {  }
+processor_settings:
+  add_url: {  }
+  aggregated_field: {  }
+  custom_value: {  }
+  entity_type: {  }
+  language_with_fallback: {  }
+  rendered_item: {  }
+  search_api_opensearch_date_range: {  }
+tracker_settings:
+  default:
+    indexing_order: fifo
+options:
+  cron_limit: 50
+  delete_on_fail: true
+  index_directly: true
+  track_changes_in_references: true
+server: open_search
