@@ -215,6 +215,15 @@ ingress:
   tls: [] # Disable TLS for local development
 
 # ------------------------------------------------------------------------------
+# CMS Ingress (Drupal under /cms/)
+# Separate Ingress resource because the CMS backend is not managed by
+# the Invenio Helm chart — it's our own Deployment+Service.
+# The envsubst step in deploy-helm renders this, but it is NOT part of
+# the Helm values.  See cms-ingress.yaml for the actual K8s resource.
+# (kept here for documentation only)
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # Persistence (file storage for uploads)
 # ------------------------------------------------------------------------------
 persistence:

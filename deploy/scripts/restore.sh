@@ -82,10 +82,11 @@ fi
 # Stop Application
 # --------------------------------------------------------------------------
 echo ""
-echo "[1/5] Stopping InvenioRDM application..."
+echo "[1/5] Stopping InvenioRDM + CMS..."
 kubectl scale deployment -l app.kubernetes.io/component=web --replicas=0 -n "$NAMESPACE" 2>/dev/null || true
 kubectl scale deployment -l app.kubernetes.io/component=worker --replicas=0 -n "$NAMESPACE" 2>/dev/null || true
 kubectl scale deployment -l app.kubernetes.io/component=worker-beat --replicas=0 -n "$NAMESPACE" 2>/dev/null || true
+kubectl scale deployment cms --replicas=0 -n "$NAMESPACE" 2>/dev/null || true
 
 echo "  Waiting for pods to terminate..."
 sleep 10
@@ -115,7 +116,30 @@ gunzip < "$BACKUP_DIR/postgresql.sql.gz" | \
     kubectl exec -i -n "$NAMESPACE" "$PG_POD" -- bash -c \
     "PGPASSWORD=\$POSTGRES_PASSWORD psql -U \$POSTGRES_USER -d \$POSTGRES_DB"
 
-echo "  ✓ PostgreSQL restored"
+echo "  ✓ PostgreSQL (InvenioRDM) restored"
+
+# Restore CMS database (if backup exists)
+if [ -f "$BACKUP_DIR/cms-postgresql.sql.gz" ] && [ -s "$BACKUP_DIR/cms-postgresql.sql.gz" ]; then
+    echo "  Restoring CMS database..."
+    CMS_DB=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.CMS_DB_NAME}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    CMS_DB_USER=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.CMS_DB_USER}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    CMS_DB_PASS=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.CMS_DB_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+
+    if [ -n "$CMS_DB" ] && [ -n "$CMS_DB_USER" ]; then
+        kubectl exec -n "$NAMESPACE" "$PG_POD" -- bash -c \
+            "PGPASSWORD=\$POSTGRES_PASSWORD psql -U \$POSTGRES_USER -d postgres -c \"DROP DATABASE IF EXISTS $CMS_DB;\""
+        kubectl exec -n "$NAMESPACE" "$PG_POD" -- bash -c \
+            "PGPASSWORD=\$POSTGRES_PASSWORD psql -U \$POSTGRES_USER -d postgres -c \"CREATE DATABASE $CMS_DB OWNER $CMS_DB_USER;\""
+        gunzip < "$BACKUP_DIR/cms-postgresql.sql.gz" | \
+            kubectl exec -i -n "$NAMESPACE" "$PG_POD" -- bash -c \
+            "PGPASSWORD='$CMS_DB_PASS' psql -U '$CMS_DB_USER' -d '$CMS_DB'"
+        echo "  ✓ PostgreSQL (CMS) restored"
+    else
+        echo "  ⚠ CMS secrets not found, skipping CMS database restore"
+    fi
+else
+    echo "  (No CMS database backup found, skipping)"
+fi
 
 # --------------------------------------------------------------------------
 # Restore OpenSearch
@@ -208,6 +232,7 @@ echo "[5/5] Restarting InvenioRDM application..."
 kubectl scale deployment -l app.kubernetes.io/component=web --replicas=1 -n "$NAMESPACE" 2>/dev/null || true
 kubectl scale deployment -l app.kubernetes.io/component=worker --replicas=1 -n "$NAMESPACE" 2>/dev/null || true
 kubectl scale deployment -l app.kubernetes.io/component=worker-beat --replicas=1 -n "$NAMESPACE" 2>/dev/null || true
+kubectl scale deployment cms --replicas=1 -n "$NAMESPACE" 2>/dev/null || true
 
 echo "  Waiting for web pod to be ready..."
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=web -n "$NAMESPACE" --timeout=3m 2>/dev/null || true

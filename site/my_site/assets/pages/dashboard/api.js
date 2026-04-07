@@ -6,15 +6,18 @@
 // ─── API endpoint paths ─────────────────────────────────────────────────────
 
 export const API_PATHS = {
-  SURVEY_SECTIONS:  "/api/survey-sections",
+  SURVEY_SECTIONS: "/api/survey-sections",
   SURVEY_QUESTIONS: "/api/survey-questions",
   SURVEY_RESPONSES: "/api/search/survey-responses",
-  COUNTRIES:        "/api/countries",
+  COUNTRIES: "/api/countries",
 };
 
 const isDev =
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1";
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1") &&
+  window.location.port !== "" &&
+  window.location.port !== "80" &&
+  window.location.port !== "443";
 const CMS_BASE = isDev ? "http://localhost:8080/cms" : "/cms";
 
 // ─── Common HTTP helpers ────────────────────────────────────────────────────
@@ -31,7 +34,9 @@ export async function get(path) {
   });
 
   if (!response.ok) {
-    throw new Error(`GET ${path} failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `GET ${path} failed: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response.json();
@@ -54,7 +59,9 @@ export async function post(path, body) {
   });
 
   if (!response.ok) {
-    throw new Error(`POST ${path} failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `POST ${path} failed: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response.json();
@@ -88,14 +95,15 @@ export async function fetchSurveyResponses() {
   return get(API_PATHS.SURVEY_RESPONSES);
 }
 
-
 /**
  * Fetch survey responses for a single question number.
  * Endpoint: GET /cms/api/search/survey-responses?question_number=<num>
  * @param {string} questionNumber  e.g. "1.1"
  */
 export async function fetchSurveyResponsesByQuestion(questionNumber) {
-  return get(`${API_PATHS.SURVEY_RESPONSES}?question_number=${encodeURIComponent(questionNumber)}`);
+  return get(
+    `${API_PATHS.SURVEY_RESPONSES}?question_number=${encodeURIComponent(questionNumber)}`,
+  );
 }
 
 /**

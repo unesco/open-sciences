@@ -1,0 +1,280 @@
+# ==============================================================================
+# UNESCO Open Science Portal - CMS (Drupal) Services for Kubernetes
+# ==============================================================================
+# Deploys the headless Drupal CMS:
+#   - Database initialization Job (creates 'cms' database in shared PostgreSQL)
+#   - CMS Deployment (Apache + PHP + Drupal)
+#   - CMS Service (ClusterIP on port 8080)
+#
+# Prerequisites:
+#   - PostgreSQL must be running (from external-services.yaml)
+#   - Secret 'unesco-rdm-secrets' must contain CMS_DB_* keys
+#
+# Usage:
+#   kubectl apply -f cms-services.yaml -n unesco-rdm
+# ==============================================================================
+
+# ==============================================================================
+# DATABASE INITIALIZATION JOB
+# ==============================================================================
+# Creates the CMS database in the shared PostgreSQL instance.
+# Safe to re-run: uses IF NOT EXISTS.
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cms-db-init
+  namespace: unesco-rdm
+spec:
+  backoffLimit: 5
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: cms-db-init
+          image: postgres:15
+          env:
+            - name: PGHOST
+              value: "postgresql"
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: POSTGRES_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: POSTGRES_PASSWORD
+            - name: CMS_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: CMS_DB_NAME
+            - name: CMS_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: CMS_DB_USER
+            - name: CMS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: CMS_DB_PASSWORD
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Waiting for PostgreSQL to be ready..."
+              until pg_isready -h postgresql -p 5432; do
+                echo "  PostgreSQL not ready, retrying in 3s..."
+                sleep 3
+              done
+              echo "✓ PostgreSQL is ready"
+
+              echo "Creating CMS database and user..."
+              psql -h postgresql -U "$PGUSER" -d postgres <<-EOSQL
+                DO \$\$
+                BEGIN
+                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$CMS_DB_USER') THEN
+                    CREATE ROLE "$CMS_DB_USER" WITH LOGIN PASSWORD '$CMS_DB_PASSWORD';
+                  END IF;
+                END
+                \$\$;
+
+                SELECT 'CREATE DATABASE "$CMS_DB_NAME" OWNER "$CMS_DB_USER"'
+                WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$CMS_DB_NAME')\gexec
+
+                GRANT ALL PRIVILEGES ON DATABASE "$CMS_DB_NAME" TO "$CMS_DB_USER";
+              EOSQL
+
+              echo "✓ CMS database '$CMS_DB_NAME' ready"
+
+
+# ==============================================================================
+# CMS DEPLOYMENT
+# ==============================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cms
+  namespace: unesco-rdm
+  labels:
+    app: cms
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: cms
+  template:
+    metadata:
+      labels:
+        app: cms
+    spec:
+      initContainers:
+        # Fix file permissions on the shared PVC
+        - name: fix-permissions
+          image: busybox
+          command:
+            ["sh", "-c", "chown -R 65534:65534 /var/www-files /var/www-private"]
+          volumeMounts:
+            - name: cms-files
+              mountPath: /var/www-files
+            - name: cms-private
+              mountPath: /var/www-private
+      containers:
+        - name: cms
+          image: "${CMS_IMAGE_REGISTRY}/${CMS_DOCKER_IMAGE_NAME}:${CMS_DOCKER_IMAGE_TAG}"
+          imagePullPolicy: ${IMAGE_PULL_POLICY}
+          env:
+            - name: ENV
+              value: "${ENV}"
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: CMS_DB_NAME
+            - name: DB_HOST
+              value: "postgresql"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: CMS_DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: CMS_DB_PASSWORD
+            - name: DB_DRIVER
+              value: "pgsql"
+            - name: OPENSEARCH_URL
+              value: "http://opensearch:9200"
+            - name: DRUPAL_HASH_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: CMS_DRUPAL_HASH_SALT
+            - name: CACHE_BACKEND
+              value: "database"
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              memory: "${CMS_MEMORY_REQUEST}"
+              cpu: "${CMS_CPU_REQUEST}"
+            limits:
+              memory: "${CMS_MEMORY_LIMIT}"
+              cpu: "${CMS_CPU_LIMIT}"
+          volumeMounts:
+            - name: cms-files
+              mountPath: /var/www/web/sites/default/files
+            - name: cms-private
+              mountPath: /var/www/private
+          livenessProbe:
+            httpGet:
+              path: /cms/
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /cms/
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: cms-files
+          persistentVolumeClaim:
+            claimName: cms-files
+        - name: cms-private
+          persistentVolumeClaim:
+            claimName: cms-private
+
+
+# ==============================================================================
+# CMS SERVICE
+# ==============================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cms
+  namespace: unesco-rdm
+spec:
+  selector:
+    app: cms
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+
+
+# ==============================================================================
+# CMS PERSISTENT VOLUME CLAIMS
+# ==============================================================================
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cms-files
+  namespace: unesco-rdm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cms-private
+  namespace: unesco-rdm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+
+
+# ==============================================================================
+# CMS INGRESS (Traefik route for /cms/)
+# ==============================================================================
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cms-ingress
+  namespace: unesco-rdm
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: ${INGRESS_ENTRYPOINT}
+spec:
+  rules:
+    - host: "${DOMAIN}"
+      http:
+        paths:
+          - path: /cms
+            pathType: Prefix
+            backend:
+              service:
+                name: cms
+                port:
+                  number: 8080

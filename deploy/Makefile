@@ -16,10 +16,11 @@
 
 SHELL := /bin/bash
 
-.PHONY: help install check setup-k3d env-check deploy deploy-services deploy-secrets deploy-helm \
+.PHONY: help install check generate-env setup-k3d env-check deploy deploy-services deploy-secrets deploy-helm \
         init-app init-minio create-admin up stop \
         backup restore list-backups deploy-backup-cronjob \
-        destroy reset-lens rebuild-index render-config build-image load-image
+        destroy reset-lens rebuild-index render-config build-image load-image \
+        build-cms-image load-cms-image deploy-cms init-cms
 
 # --------------------------------------------------------------------------
 # Configuration
@@ -65,6 +66,11 @@ DOCKER_IMAGE_NAME ?= sc-openscience
 DOCKER_IMAGE_TAG  ?= latest
 IMAGE             := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 
+# CMS Docker image
+CMS_DOCKER_IMAGE_NAME ?= sc-openscience-cms
+CMS_DOCKER_IMAGE_TAG  ?= latest
+CMS_IMAGE             := $(CMS_DOCKER_IMAGE_NAME):$(CMS_DOCKER_IMAGE_TAG)
+
 # k3d cluster name (for local testing on macOS/Linux desktop)
 K3D_CLUSTER_NAME  ?= unesco-rdm
 
@@ -89,6 +95,31 @@ check: ## Verify k3s, kubectl, helm are installed
 	@echo "  k3s:     $$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')"
 	@echo "All checks passed."
 
+generate-env: ## Generate .env.<ENV> from .env.example with random secrets
+	@if [ -f .env.$(ENV) ]; then \
+		echo ".env.$(ENV) already exists — skipping generation."; \
+		echo "  To regenerate, remove the file first: rm .env.$(ENV)"; \
+	else \
+		echo "Generating .env.$(ENV) from .env.example..."; \
+		cp .env.example .env.$(ENV); \
+		for placeholder in CHANGE_ME_64_CHAR_HEX; do \
+			while grep -q "$$placeholder" .env.$(ENV); do \
+				val=$$(openssl rand -hex 32); \
+				sed -i '' "s/$$placeholder/$$val/" .env.$(ENV) 2>/dev/null || \
+				sed -i "s/$$placeholder/$$val/" .env.$(ENV); \
+			done; \
+		done; \
+		for placeholder in CHANGE_ME_32_CHAR_HEX; do \
+			while grep -q "$$placeholder" .env.$(ENV); do \
+				val=$$(openssl rand -hex 16); \
+				sed -i '' "s/$$placeholder/$$val/" .env.$(ENV) 2>/dev/null || \
+				sed -i "s/$$placeholder/$$val/" .env.$(ENV); \
+			done; \
+		done; \
+		echo "  ✓ .env.$(ENV) created with generated secrets"; \
+		echo "  Review and adjust domain/email settings if needed."; \
+	fi
+
 setup-k3d: ## Create k3d cluster for local development
 	@if [ "$(ENV)" != "local" ]; then \
 		echo "Skipping k3d setup (ENV=$(ENV))"; \
@@ -108,6 +139,10 @@ setup-k3d: ## Create k3d cluster for local development
 			--agents 0; \
 		echo "  ✓ k3d cluster created with backup volume mounted"; \
 	fi
+	@echo "Pre-loading images into k3d cluster..."
+	@docker pull nginx:1.25-alpine 2>/dev/null || true
+	@k3d image import nginx:1.25-alpine --cluster $(K3D_CLUSTER_NAME) 2>/dev/null || true
+	@echo "  ✓ nginx:1.25-alpine loaded"
 
 env-check: ## Verify environment config files exist and have required values
 	@if [ ! -f .env.$(ENV) ]; then \
@@ -135,25 +170,32 @@ env-check: ## Verify environment config files exist and have required values
 install-helm: check env-check deploy-secrets deploy-services init-minio deploy-helm
 	@echo "Helm installation complete."
 
-deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
-	@echo "Deploying InvenioRDM updates (CI/CD workflow)..."
+deploy: check env-check ## CI/CD deployment (rebuild images + upgrade + restart)
+	@echo "Deploying InvenioRDM + CMS updates (CI/CD workflow)..."
 	@echo ""
 	@if [ "$(ENV)" = "local" ]; then \
-		echo "Step 1/3: Rebuilding and loading image (local)..."; \
+		echo "Step 1/4: Rebuilding and loading images (local)..."; \
 		$(MAKE) load-image ENV=$(ENV); \
+		$(MAKE) load-cms-image ENV=$(ENV); \
 	else \
-		echo "Step 1/3: Skipping local build (image pulled from registry)..."; \
-		echo "  Image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"; \
+		echo "Step 1/4: Skipping local build (images pulled from registry)..."; \
+		echo "  InvenioRDM: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"; \
+		echo "  CMS:        $(CMS_DOCKER_IMAGE_NAME):$(CMS_DOCKER_IMAGE_TAG)"; \
 	fi
 	@echo ""
-	@echo "Step 2/3: Upgrading Helm release..."
+	@echo "Step 2/4: Upgrading Helm release..."
 	@$(MAKE) deploy-helm ENV=$(ENV)
 	@echo ""
-	@echo "Step 3/3: Restarting pods to pick up new image..."
+	@echo "Step 3/4: Redeploying CMS..."
+	@$(MAKE) deploy-cms ENV=$(ENV)
+	@echo ""
+	@echo "Step 4/4: Restarting pods to pick up new images..."
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker-beat -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl rollout restart deployment cms -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout status deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) --timeout=3m 2>/dev/null || true
+	@kubectl rollout status deployment cms -n $(NAMESPACE) --timeout=3m 2>/dev/null || true
 	@echo ""
 	@echo "============================================"
 	@echo "  Deployment complete!  (ENV=$(ENV))"
@@ -206,9 +248,14 @@ deploy-secrets: check env-check render-config ## Create K8s Secrets (service env
 		--from-literal=SQLALCHEMY_DATABASE_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/$(POSTGRES_DB)" \
 		--from-literal=CELERY_BROKER_URL="amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@rabbitmq:5672/" \
 		--from-literal=CACHE_REDIS_URL="redis://redis:6379/0" \
+		--from-literal=CMS_DB_NAME='$(CMS_DB_NAME)' \
+		--from-literal=CMS_DB_USER='$(CMS_DB_USER)' \
+		--from-literal=CMS_DB_PASSWORD='$(CMS_DB_PASSWORD)' \
+		--from-literal=CMS_DRUPAL_HASH_SALT='$(CMS_DRUPAL_HASH_SALT)' \
+		--from-literal=CMS_USER_PASSWORD='$(CMS_USER_PASSWORD)' \
 		--namespace=$(NAMESPACE) \
 		--dry-run=client -o yaml | kubectl apply -f -
-	@echo "  ✓ Secret created: $(HELM_RELEASE)-secrets (16 keys)"
+	@echo "  ✓ Secret created: $(HELM_RELEASE)-secrets (21 keys)"
 	@echo ""
 	@echo "[2/3] Creating InvenioRDM configuration Secret (invenio.cfg file)..."
 	@if [ ! -f ../invenio.cfg ]; then \
@@ -328,22 +375,95 @@ load-image: build-image ## Build image and load into k3d cluster
 	@k3d image import $(IMAGE) --cluster $(K3D_CLUSTER_NAME)
 	@echo "Image loaded into k3d cluster: $(K3D_CLUSTER_NAME)"
 
-up: check ## Start InvenioRDM (scale up deployments)
-	@echo "Starting InvenioRDM..."
+# --------------------------------------------------------------------------
+# CMS (Drupal) Build & Deploy
+# --------------------------------------------------------------------------
+
+build-cms-image: env-check ## Build CMS Docker image
+	@echo "Building CMS Docker image: $(CMS_IMAGE)"
+	@docker build -t $(CMS_IMAGE) -f Dockerfile.cms ..
+
+load-cms-image: build-cms-image ## Build CMS image and load into k3d cluster
+	@echo "Loading CMS image into k3d cluster..."
+	@k3d image import $(CMS_IMAGE) --cluster $(K3D_CLUSTER_NAME)
+	@echo "CMS image loaded into k3d cluster: $(K3D_CLUSTER_NAME)"
+
+deploy-cms: check env-check ## Deploy CMS services (DB init + Deployment + Service + Ingress)
+	@echo "Deploying CMS (Drupal)..."
+	@echo ""
+	@echo "[1/3] Rendering CMS manifests..."
+	@envsubst < cms-services.yaml > /tmp/cms-services-rendered.yaml
+	@echo ""
+	@echo "[2/3] Applying CMS services..."
+	@kubectl apply -f /tmp/cms-services-rendered.yaml -n $(NAMESPACE)
+	@rm -f /tmp/cms-services-rendered.yaml
+	@echo ""
+	@echo "[3/3] Waiting for CMS DB init and pod..."
+	@kubectl wait --for=condition=complete --timeout=120s job/cms-db-init -n $(NAMESPACE) 2>/dev/null || echo "  WARN: CMS DB init job not completed yet"
+	@kubectl wait --for=condition=ready pod -l app=cms -n $(NAMESPACE) --timeout=300s 2>/dev/null || echo "  WARN: CMS pod not ready yet"
+	@echo ""
+	@echo "CMS deployed."
+	@kubectl get pods -l app=cms -n $(NAMESPACE)
+
+init-cms: check ## Initialize CMS: install Drupal, import survey data, index
+	@echo "Initializing CMS (Drupal)..."
+	@echo ""
+	@echo "Waiting for CMS pod to be ready..."
+	@kubectl wait --for=condition=ready pod -l app=cms \
+		-n $(NAMESPACE) --timeout=300s 2>/dev/null || \
+		{ echo "ERROR: CMS pod not ready. Check with: kubectl get pods -n $(NAMESPACE) -l app=cms"; exit 1; }
+	@echo ""
+	@CMS_POD=$$(kubectl get pods -n $(NAMESPACE) -l app=cms -o jsonpath='{.items[0].metadata.name}'); \
+	echo "CMS pod: $$CMS_POD"; \
+	echo ""; \
+	echo "Step 1/4: Installing Drupal..."; \
+	if kubectl exec -n $(NAMESPACE) $$CMS_POD -- \
+		drush status --fields=bootstrap 2>/dev/null | grep -q "Successful"; then \
+		echo "  ✓ Drupal is already installed"; \
+	else \
+		kubectl exec -n $(NAMESPACE) $$CMS_POD -- \
+			drush site:install --yes --existing-config \
+				--account-name=admin@unesco.org \
+				--account-pass=$(CMS_USER_PASSWORD); \
+		echo "  ✓ Drupal installation complete"; \
+	fi; \
+	echo ""; \
+	echo "Step 2/4: Fixing file permissions..."; \
+	kubectl exec -n $(NAMESPACE) $$CMS_POD -- \
+		sh -c "chown -R nobody:nobody /var/www/web/sites/default/files /var/www/private 2>/dev/null || true"; \
+	echo ""; \
+	echo "Step 3/4: Importing survey data..."; \
+	kubectl exec -n $(NAMESPACE) $$CMS_POD -- drush en open_science_survey_migration -y 2>/dev/null || true; \
+	kubectl exec -n $(NAMESPACE) $$CMS_POD -- drush migrate:import --all 2>/dev/null || true; \
+	echo "  ✓ Survey data imported"; \
+	echo ""; \
+	echo "Step 4/4: Indexing survey responses..."; \
+	kubectl exec -n $(NAMESPACE) $$CMS_POD -- drush en open_science_survey_search -y 2>/dev/null || true; \
+	kubectl exec -n $(NAMESPACE) $$CMS_POD -- drush search-api:reset-tracker survey_responses 2>/dev/null || true; \
+	kubectl exec -n $(NAMESPACE) $$CMS_POD -- drush search-api:index survey_responses 2>/dev/null || true; \
+	echo "  ✓ Survey responses indexed"; \
+	echo ""; \
+	echo "CMS initialization complete."
+
+up: check ## Start InvenioRDM + CMS (scale up deployments)
+	@echo "Starting InvenioRDM + CMS..."
 	@kubectl scale deployment -l app.kubernetes.io/component=web --replicas=1 -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl scale deployment -l app.kubernetes.io/component=worker --replicas=1 -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl scale deployment -l app.kubernetes.io/component=worker-beat --replicas=1 -n $(NAMESPACE) 2>/dev/null || true
+	@kubectl scale deployment cms --replicas=1 -n $(NAMESPACE) 2>/dev/null || true
 	@echo "Waiting for pods to be ready..."
 	@kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=web -n $(NAMESPACE) --timeout=3m 2>/dev/null || echo "  WARN: Web pod not ready yet"
-	@echo "InvenioRDM started."
+	@kubectl wait --for=condition=ready pod -l app=cms -n $(NAMESPACE) --timeout=3m 2>/dev/null || echo "  WARN: CMS pod not ready yet"
+	@echo "InvenioRDM + CMS started."
 	@kubectl get pods -n $(NAMESPACE)
 
-stop: check ## Stop InvenioRDM (scale down deployments, keeps data)
-	@echo "Stopping InvenioRDM..."
+stop: check ## Stop InvenioRDM + CMS (scale down deployments, keeps data)
+	@echo "Stopping InvenioRDM + CMS..."
 	@kubectl scale deployment -l app.kubernetes.io/component=web --replicas=0 -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl scale deployment -l app.kubernetes.io/component=worker --replicas=0 -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl scale deployment -l app.kubernetes.io/component=worker-beat --replicas=0 -n $(NAMESPACE) 2>/dev/null || true
-	@echo "InvenioRDM stopped (data preserved)."
+	@kubectl scale deployment cms --replicas=0 -n $(NAMESPACE) 2>/dev/null || true
+	@echo "InvenioRDM + CMS stopped (data preserved)."
 	@kubectl get pods -n $(NAMESPACE)
 
 backup: check env-check ## Create a backup of PostgreSQL, OpenSearch, and files
@@ -482,6 +602,7 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 	@echo ""
 	@echo "!!! WARNING: This will permanently delete:"
 	@echo "    - All InvenioRDM data"
+	@echo "    - All CMS (Drupal) data"
 	@echo "    - Database and search indices"
 	@echo "    - Uploaded files"
 	@if [ "$(ENV)" = "local" ]; then \
@@ -493,6 +614,9 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 		echo ""; \
 		echo "Removing Helm release..."; \
 		helm uninstall $(HELM_RELEASE) -n $(NAMESPACE) 2>/dev/null || true; \
+		echo "Removing CMS resources..."; \
+		kubectl delete -f cms-services.yaml -n $(NAMESPACE) 2>/dev/null || true; \
+		kubectl delete -f cms-init.yaml -n $(NAMESPACE) 2>/dev/null || true; \
 		echo "Removing external services..."; \
 		kubectl delete -f external-services.yaml -n $(NAMESPACE) 2>/dev/null || true; \
 		echo "Removing secrets..."; \
@@ -516,36 +640,45 @@ destroy: check ## Remove EVERYTHING from the cluster (DESTRUCTIVE!)
 # Setup
 # --------------------------------------------------------------------------
 
-install: ## Complete first-time setup: tools → config → k3d → build → deploy → init
+install: ## Complete first-time setup: env → k3d → build → deploy → init
 	@echo "UNESCO Open Science Portal - Complete Installation"
 	@echo "===================================================="
 	@echo "Environment: $(ENV)"
 	@echo ""
-	@echo "[1/5] Setting up k3d cluster (if ENV=local)..."
+	@echo "[1/9] Generating environment config (.env.$(ENV))..."
+	@$(MAKE) generate-env ENV=$(ENV)
+	@echo ""
+	@echo "[2/9] Setting up k3d cluster (if ENV=local)..."
 	@$(MAKE) setup-k3d ENV=$(ENV)
 	@echo ""
-	@echo "[2/5] Checking cluster and tools..."
+	@echo "[3/9] Checking cluster and tools..."
 	@$(MAKE) check ENV=$(ENV)
 	@echo ""
-	@echo "[3/5] Rendering invenio.cfg from template..."
+	@echo "[4/9] Rendering invenio.cfg from template..."
 	@$(MAKE) render-config ENV=$(ENV)
 	@echo ""
 	@if [ "$(ENV)" = "local" ]; then \
-		echo "[4/5] Building and loading Docker image (local)..."; \
+		echo "[5/9] Building and loading Docker images (local)..."; \
 		$(MAKE) load-image ENV=$(ENV); \
+		$(MAKE) load-cms-image ENV=$(ENV); \
 	else \
-		echo "[4/5] Skipping local build (image pulled from registry)..."; \
-		echo "  Image: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"; \
+		echo "[5/9] Skipping local build (images pulled from registry)..."; \
+		echo "  InvenioRDM: $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)"; \
+		echo "  CMS:        $(CMS_DOCKER_IMAGE_NAME):$(CMS_DOCKER_IMAGE_TAG)"; \
 	fi
 	@echo ""
-	@echo "[5/5] Deploying services and Helm chart..."
+	@echo "[6/9] Deploying services and Helm chart..."
 	@$(MAKE) install-helm ENV=$(ENV)
 	@echo ""
-	@echo "Initializing application..."
+	@echo "[7/9] Initializing InvenioRDM application..."
 	@$(MAKE) init-app ENV=$(ENV)
 	@$(MAKE) create-admin ENV=$(ENV)
 	@echo ""
-	@echo "Deploying backup CronJob..."
+	@echo "[8/9] Deploying and initializing CMS (Drupal)..."
+	@$(MAKE) deploy-cms ENV=$(ENV)
+	@$(MAKE) init-cms ENV=$(ENV)
+	@echo ""
+	@echo "[9/9] Deploying backup CronJob..."
 	@$(MAKE) deploy-backup-cronjob ENV=$(ENV)
 	@echo ""
 	@echo "  Installation complete!  (ENV=$(ENV))"
