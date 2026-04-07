@@ -71,7 +71,7 @@ class BaseFilterBackend(ABC):
         # Add user's search query if present
         if search_query:
             must_queries.append(
-                {"query_string": {"query": search_query, "default_operator": "AND"}}
+                {"query_string": {"query": search_query}}
             )
 
         # Add facet filters if present (excluding the current facet being queried)
