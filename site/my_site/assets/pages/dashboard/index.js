@@ -12,7 +12,7 @@ import { GlobalOverview, Comparison, Challenges } from "./components";
 // ─── Constants ─────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: "global",     label: "Global overview" },
+  { id: "global", label: "Global overview" },
   { id: "comparison", label: "Comparison across countries & regions" },
   { id: "challenges", label: "Open Science challenges" },
 ];
@@ -27,9 +27,10 @@ export const Dashboard = () => {
       <div className="dashboard-header">
         <h1 className="dashboard-title">Open Science dashboards</h1>
         <p className="dashboard-description">
-          Interactive dashboards tracking implementation of UNESCO Recommendation on Open Science
-          by Member States who reported their progress to UNESCO.{" "}
-          See more details on <a href="/about">About page</a>.
+          Interactive dashboards tracking implementation of UNESCO
+          Recommendation on Open Science by Member States who reported their
+          progress to UNESCO. See more details on{" "}
+          <a href="/about">About page</a>.
         </p>
       </div>
 
@@ -47,9 +48,9 @@ export const Dashboard = () => {
       </div>
 
       <div className="dashboard-tab-content">
-        {activeTab === "global"     && <>Global Overview Section</>}
+        {activeTab === "global" && <>Global Overview Section (WIP)</>}
         {activeTab === "comparison" && <Comparison />}
-        {activeTab === "challenges" && <>Challeges Section</>}
+        {activeTab === "challenges" && <>Challenges Section (WIP)</>}
       </div>
     </div>
   );
