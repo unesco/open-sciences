@@ -196,7 +196,6 @@ build:invenio:
     - echo "==================================================================="
     - 'echo "  ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
   only:
-    - UNESC-153
     - test
 
 build:cms:
@@ -239,40 +238,53 @@ build:cms:
     - echo "==================================================================="
     - 'echo "  ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
   only:
-    - UNESC-153
     - test
 
-# ------------------------------------------------------------------------------
-# Deploy stage — DISABLED for manual deploy phase.
-# Will be re-enabled once the manual deploy on the test server is validated.
-# See: deploy:env (commented out below)
-# ------------------------------------------------------------------------------
-# deploy:env:
-#   stage: deploy
-#   image: alpine:latest
-#   environment:
-#     name: test
-#   needs:
-#     - job: build:invenio
-#     - job: build:cms
-#   variables:
-#     HTTP_PROXY: "http://proxy.unesco.org:8080"
-#     HTTPS_PROXY: "http://proxy.unesco.org:8080"
-#     http_proxy: "http://proxy.unesco.org:8080"
-#     https_proxy: "http://proxy.unesco.org:8080"
-#     NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
-#     no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
-#   before_script:
-#     - apk add --no-cache openssh-client gettext
-#     - eval $(ssh-agent -s)
-#     - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
-#     - mkdir -p ~/.ssh
-#     - chmod 700 ~/.ssh
-#     - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts || echo "WARN ssh-keyscan failed"
-#   script:
-#     - echo "Deploying to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
-#     - scp -o StrictHostKeyChecking=no /tmp/.env.test "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.test"
-#     - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
-#   only:
-#     - UNESC-153
-#     - test
+deploy:env:
+  stage: deploy
+  image: alpine:latest
+  environment:
+    name: test
+  needs:
+    - job: build:invenio
+    - job: build:cms
+  variables:
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+    no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
+  script:
+    - echo "==================================================================="
+    - echo "Deploying to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
+    - echo "  InvenioRDM tag — ${CI_COMMIT_SHORT_SHA}"
+    - echo "  CMS tag        — ${CI_COMMIT_SHORT_SHA}"
+    - echo "==================================================================="
+    - echo ""
+    - echo "Step 1/4 — Building .env.test from CI/CD variables..."
+    - echo "$ENV_FILE" | base64 -d > /tmp/.env.test
+    - sed -i "s/^DOCKER_IMAGE_TAG=.*/DOCKER_IMAGE_TAG=${CI_COMMIT_SHORT_SHA}/" /tmp/.env.test
+    - sed -i "s/^CMS_DOCKER_IMAGE_TAG=.*/CMS_DOCKER_IMAGE_TAG=${CI_COMMIT_SHORT_SHA}/" /tmp/.env.test
+    - 'echo "  ✓ .env.test ready (image tags set to ${CI_COMMIT_SHORT_SHA})"'
+    - echo ""
+    - echo "Step 2/4 — Pulling latest code on server..."
+    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH} && git pull origin test"
+    - echo ""
+    - echo "Step 3/4 — Uploading .env.test to server..."
+    - scp -o StrictHostKeyChecking=no /tmp/.env.test "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.test"
+    - echo ""
+    - echo "Step 4/4 — Running deploy..."
+    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH}/deploy && make deploy ENV=test"
+    - echo ""
+    - echo "==================================================================="
+    - echo "Deployment complete!"
+    - echo "==================================================================="
+  only:
+    - test
