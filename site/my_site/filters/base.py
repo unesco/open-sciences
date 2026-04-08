@@ -100,11 +100,6 @@ class BaseFilterBackend(ABC):
                                 must_queries.append(
                                     {"prefix": {field_name: f"{facet_value}-"}}
                                 )
-                        # Handle funding_org with match_phrase for exact matching on text field
-                        elif facet_name == "funding_org":
-                            must_queries.append(
-                                {"match_phrase": {field_name: facet_value}}
-                            )
                         else:
                             must_queries.append({"term": {field_name: facet_value}})
 
@@ -126,7 +121,7 @@ class BaseFilterBackend(ABC):
             "subject": "metadata.subjects.subject",
             "keyword": "custom_fields.publication:keyword",
             "field_of_study": "custom_fields.publication:field_of_study",
-            "funding_org": "metadata.funding.funder.name",
+            "funding_org": "custom_fields.publication:funding_org",
             "publication_year": "custom_fields.publication:year",
             "is_open_access": "custom_fields.publication:is_open_access",
             "author": "metadata.creators.person_or_org.name.keyword",
