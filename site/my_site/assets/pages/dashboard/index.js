@@ -48,9 +48,9 @@ export const Dashboard = () => {
       </div>
 
       <div className="dashboard-tab-content">
-        {activeTab === "global" && <>Global Overview Section (WIP)</>}
+        {activeTab === "global" && <>Global Overview Section</>}
         {activeTab === "comparison" && <Comparison />}
-        {activeTab === "challenges" && <>Challenges Section (WIP)</>}
+        {activeTab === "challenges" && <>Challenges Section</>}
       </div>
     </div>
   );
