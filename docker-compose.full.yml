@@ -114,7 +114,25 @@ services:
         condition: service_started
       db:
         condition: service_started
+
+  cms:
+    extends:
+      file: cms/docker-compose.yml
+      service: cms
+    environment:
+      - DB_NAME=cms
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DRIVER=pgsql
+    volumes:
+      - drupal_public_data:/var/www/web/sites/default/files
+      - drupal_private_data:/var/www/private
 volumes:
   static_data:
   uploaded_data:
   archived_data:
+  drupal_public_data:
+  drupal_private_data:
+

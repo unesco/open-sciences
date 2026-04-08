@@ -1,0 +1,9 @@
+uuid: 8f3e5a7d-9c2b-4f1e-a8d6-3b4c7e9f2a1d
+langcode: en
+status: true
+dependencies: {  }
+name: 'Survey Section'
+vid: survey_section
+description: null
+weight: 0
+new_revision: false

@@ -1,0 +1,135 @@
+# ==============================================================================
+# UNESCO Open Science Portal - CMS Initialization Job
+# ==============================================================================
+# Bootstraps Drupal inside the CMS pod:
+#   1. drush site:install (with existing config)
+#   2. Enable survey migration module + import data
+#   3. Enable survey search module + index data
+#
+# This Job runs once after the CMS Deployment is ready.
+# It is designed to be idempotent — safe to re-run.
+#
+# Usage:
+#   kubectl apply -f cms-init.yaml -n unesco-rdm
+# ==============================================================================
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cms-init
+  namespace: unesco-rdm
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: cms-init
+          image: bitnami/kubectl:latest
+          env:
+            - name: NAMESPACE
+              value: "unesco-rdm"
+            - name: ADMIN_USER_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: ADMIN_USER_EMAIL
+            - name: ADMIN_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: ADMIN_USER_PASSWORD
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+
+              echo "=========================================="
+              echo "  CMS (Drupal) Initialization"
+              echo "=========================================="
+
+              echo "[1/5] Waiting for CMS pod to be ready..."
+              kubectl wait --for=condition=ready pod -l app=cms \
+                -n "$NAMESPACE" --timeout=300s
+
+              CMS_POD=$(kubectl get pods -n "$NAMESPACE" -l app=cms \
+                -o jsonpath='{.items[0].metadata.name}')
+              echo "  CMS pod: $CMS_POD"
+
+              echo ""
+              echo "[2/5] Installing Drupal..."
+              # Check if already installed
+              if kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
+                drush status --fields=bootstrap 2>/dev/null | grep -q "Successful"; then
+                echo "  ✓ Drupal is already installed"
+              else
+                kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
+                  drush site:install --yes --existing-config \
+                    --account-name="$ADMIN_USER_EMAIL" \
+                    --account-pass="$ADMIN_USER_PASSWORD"
+                echo "  ✓ Drupal installation complete"
+              fi
+
+              echo ""
+              echo "[3/5] Fixing file permissions..."
+              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
+                sh -c "chown -R nobody:nobody /var/www/web/sites/default/files /var/www/private 2>/dev/null || true"
+
+              echo ""
+              echo "[4/5] Importing survey data..."
+              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
+                drush en open_science_survey_migration -y 2>/dev/null || echo "  (module may already be enabled)"
+              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
+                drush migrate:import --all 2>/dev/null || echo "  (migrations may already have run)"
+              echo "  ✓ Survey data imported"
+
+              echo ""
+              echo "[5/5] Indexing survey responses..."
+              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
+                drush en open_science_survey_search -y 2>/dev/null || echo "  (module may already be enabled)"
+              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
+                drush search-api:reset-tracker survey_responses 2>/dev/null || true
+              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
+                drush search-api:index survey_responses 2>/dev/null || true
+              echo "  ✓ Survey responses indexed"
+
+              echo ""
+              echo "=========================================="
+              echo "  CMS initialization complete!"
+              echo "=========================================="
+      serviceAccountName: cms-init-sa
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cms-init-sa
+  namespace: unesco-rdm
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cms-init-role
+  namespace: unesco-rdm
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/exec"]
+    verbs: ["get", "list", "create"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cms-init-rolebinding
+  namespace: unesco-rdm
+subjects:
+  - kind: ServiceAccount
+    name: cms-init-sa
+    namespace: unesco-rdm
+roleRef:
+  kind: Role
+  name: cms-init-role
+  apiGroup: rbac.authorization.k8s.io

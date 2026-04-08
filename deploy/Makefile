@@ -16,7 +16,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: help install check setup-k3d env-check deploy deploy-services deploy-secrets deploy-helm \
+.PHONY: help install check setup-k3d env-check deploy deploy-cms deploy-services deploy-secrets deploy-helm \
         init-app init-minio create-admin up stop \
         backup restore list-backups deploy-backup-cronjob \
         destroy reset-lens rebuild-index render-config build-image load-image
@@ -152,17 +152,26 @@ deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 	@echo "Step 3/4: Upgrading Helm release..."
 	@$(MAKE) deploy-helm ENV=$(ENV)
 	@echo ""
-	@echo "Step 4/4: Restarting pods to pick up new image..."
+	@echo "Step 3.5/4: Redeploying CMS..."
+	@$(MAKE) deploy-cms ENV=$(ENV)
+	@echo ""
+	@echo "Step 4/4: Restarting pods to pick up new images..."
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout restart deployment -l app.kubernetes.io/component=worker-beat -n $(NAMESPACE) 2>/dev/null || true
 	@kubectl rollout status deployment -l app.kubernetes.io/component=web -n $(NAMESPACE) --timeout=3m 2>/dev/null || true
+	@kubectl rollout status deployment cms -n $(NAMESPACE) --timeout=3m 2>/dev/null || true
 	@echo ""
 	@echo "============================================"
 	@echo "  Deployment complete!  (ENV=$(ENV))"
 	@echo "============================================"
 	@echo ""
 	@echo "  Access: $(SITE_UI_URL)"
+
+deploy-cms: check ## Re-apply CMS deployment with current image tag
+	@echo "Redeploying CMS (image: $(CMS_DOCKER_IMAGE_NAME):$(CMS_DOCKER_IMAGE_TAG))..."
+	@envsubst < cms-services.yaml | kubectl apply -f - -n $(NAMESPACE)
+	@kubectl rollout restart deployment cms -n $(NAMESPACE) 2>/dev/null || true
 
 deploy-services: check ## Deploy external services (DB, cache, search, queue)
 	@echo "Deploying external services..."
@@ -209,9 +218,15 @@ deploy-secrets: check env-check render-config ## Create K8s Secrets (service env
 		--from-literal=SQLALCHEMY_DATABASE_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/$(POSTGRES_DB)" \
 		--from-literal=CELERY_BROKER_URL="amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@rabbitmq:5672/" \
 		--from-literal=CACHE_REDIS_URL="redis://redis:6379/0" \
+		--from-literal=ADMIN_USER_EMAIL='$(ADMIN_USER_EMAIL)' \
+		--from-literal=ADMIN_USER_PASSWORD='$(ADMIN_USER_PASSWORD)' \
+		--from-literal=CMS_DB_NAME='$(CMS_DB_NAME)' \
+		--from-literal=CMS_DB_USER='$(CMS_DB_USER)' \
+		--from-literal=CMS_DB_PASSWORD='$(CMS_DB_PASSWORD)' \
+		--from-literal=CMS_DRUPAL_HASH_SALT='$(CMS_DRUPAL_HASH_SALT)' \
 		--namespace=$(NAMESPACE) \
 		--dry-run=client -o yaml | kubectl apply -f -
-	@echo "  ✓ Secret created: $(HELM_RELEASE)-secrets (16 keys)"
+	@echo "  ✓ Secret created: $(HELM_RELEASE)-secrets (22 keys)"
 	@echo ""
 	@echo "[2/3] Creating InvenioRDM configuration Secret (invenio.cfg file)..."
 	@if [ ! -f ../invenio.cfg ]; then \

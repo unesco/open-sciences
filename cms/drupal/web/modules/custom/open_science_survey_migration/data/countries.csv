@@ -1,0 +1,78 @@
+Country,Region,Group,ISO_Code
+Albania,Europe & North America,Group II,ALB
+Algeria,Arab States,Group V(b),DZA
+Angola,Africa,Group V(a),AGO
+Argentina,Latin America & the Caribbean,Group III,ARG
+Armenia,Europe & North America,Group II,ARM
+Australia,Asia & the Pacific,Group IV,AUS
+Azerbaijan,Asia & the Pacific,Group II,AZE
+Bahrain,Arab States,Group V(b),BHR
+Belarus,Europe & North America,Group II,BLR
+Belgium,Europe & North America,Group I,BEL
+Benin,Africa,Group V(a),BEN
+Canada,Europe & North America,Group I,CAN
+China,Asia & the Pacific,Group IV,CHN
+Congo,Africa,Group V(a),COG
+Costa Rica,Latin America & the Caribbean,Group III,CRI
+Côte d'Ivoire,Africa,Group V(a),CIV
+Cuba,Latin America & the Caribbean,Group III,CUB
+Cyprus,Europe & North America,Group I,CYP
+Czechia,Europe & North America,Group II,CZE
+Denmark,Europe & North America,Group I,DNK
+Dominican Republic,Latin America & the Caribbean,Group III,DOM
+Ecuador,Latin America & the Caribbean,Group III,ECU
+Egypt,Arab States,Group V(b),EGY
+Finland,Europe & North America,Group I,FIN
+France,Europe & North America,Group I,FRA
+Gambia,Africa,Group V(a),GMB
+Georgia,Europe & North America,Group II,GEO
+Germany,Europe & North America,Group I,DEU
+Greece,Europe & North America,Group I,GRC
+Guinea-Bissau,Africa,Group V(a),GNB
+Hungary,Europe & North America,Group II,HUN
+India,Asia & the Pacific,Group IV,IND
+Indonesia,Asia & the Pacific,Group IV,IDN
+Iran (Islamic Republic of),Asia & the Pacific,Group IV,IRN
+Ireland,Europe & North America,Group I,IRL
+Italy,Europe & North America,Group I,ITA
+Japan,Asia & the Pacific,Group IV,JPN
+Latvia,Europe & North America,Group II,LVA
+Libya,Arab States,Group V(b),LBY
+Lithuania,Europe & North America,Group II,LTU
+Luxembourg,Europe & North America,Group I,LUX
+Malaysia,Asia & the Pacific,Group IV,MYS
+Mali,Africa,Group V(a),MLI
+Mauritania,Arab States,Group V(b),MRT
+Mauritius,Africa,Group V(a),MUS
+Mexico,Latin America & the Caribbean,Group III,MEX
+Mongolia,Asia & the Pacific,Group IV,MNG
+Morocco,Arab States,Group V(b),MAR
+Netherlands (Kingdom of the),Europe & North America,Group I,NLD
+Niger,Africa,Group V(a),NER
+Nigeria,Africa,Group V(a),NGA
+North Macedonia,Europe & North America,Group II,MKD
+Norway,Europe & North America,Group I,NOR
+Peru,Latin America & the Caribbean,Group III,PER
+Philippines,Asia & the Pacific,Group IV,PHL
+Portugal,Europe & North America,Group I,PRT
+Qatar,Arab States,Group V(b),QAT
+Republic of Korea,Asia & the Pacific,Group IV,KOR
+Romania,Europe & North America,Group II,ROU
+Russian Federation,Asia & the Pacific,Group II,RUS
+Saudi Arabia,Arab States,Group V(b),SAU
+Senegal,Africa,Group V(a),SEN
+Sierra Leone,Africa,Group V(a),SLE
+Slovakia,Europe & North America,Group II,SVK
+Slovenia,Europe & North America,Group II,SVN
+South Africa,Africa,Group V(a),ZAF
+State of Palestine,Arab States,Group V(b),PSE
+Sweden,Europe & North America,Group I,SWE
+Switzerland,Europe & North America,Group I,CHE
+Thailand,Asia & the Pacific,Group IV,THA
+Timor-Leste,Asia & the Pacific,Group IV,TLS
+Togo,Africa,Group V(a),TGO
+Türkiye,Europe & North America,Group I,TUR
+Uganda,Africa,Group V(a),UGA
+Ukraine,Europe & North America,Group II,UKR
+United Republic of Tanzania,Africa,Group V(a),TZA
+Uzbekistan,Asia & the Pacific,Group II,UZB

@@ -1,0 +1,39 @@
+id: survey_predefined_answers
+label: 'Survey Predefined Answers'
+migration_group: open_science_survey
+source:
+  plugin: embedded_data
+  data_rows:
+    - id: 1
+      short_name: Y
+      long_name: 'Yes'
+      description: 'A policy or framework exists, but it only partially addresses elements of open science as defined in the Recommendation. This may refer to limited provisions or incomplete integration.'
+    - id: 2
+      short_name: P
+      long_name: 'Partly'
+      description: 'The development of a relevant policy, strategy, or mechanism is ongoing, but it has not yet been finalized or officially adopted.'
+    - id: 3
+      short_name: U
+      long_name: 'Under Development'
+      description: 'No such policy, framework, or mechanism currently exists, and no development is reported at this time.'
+    - id: 4
+      short_name: N
+      long_name: 'No'
+      description: 'No policy exists'
+    - id: 5
+      short_name: X
+      long_name: 'Non applicable'
+      description: 'Not applicable'
+  ids:
+    id:
+      type: integer
+
+destination:
+  plugin: entity:taxonomy_term
+  default_bundle: survey_predefined_answers
+
+process:
+  name: long_name
+  field_short_name: short_name
+  field_long_name: long_name
+  field_description: description

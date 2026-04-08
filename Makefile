@@ -10,18 +10,24 @@ VENV_ACTIVATE = source $(VENV_PATH)/bin/activate
 
 USER_PASSWORD = Passw0rd!
 
-.PHONY: help destroy init init-custom-fields pages-init up stop build users ssl-certs check config tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import db-migrate db-upgrade db-downgrade db-status db-current db-history db-init-cms site-install cms-fixtures page-update
+.PHONY: help destroy init init-custom-fields pages-init up watch stop build users ssl-certs check config \
+tools-build tools-up tools-stop tools-run tools-shell tools-help tools-setup-env tools-status tools-import \
+tools-patch-regions tools-update-fields db-migrate db-upgrade db-downgrade db-status db-current db-history \
+db-init-cms site-install cms-fixtures fix-volumes-permissions install-drupal page-update rebuild-index
 
+include cms/Makefile
 # Default target
 help:
 	@echo "UNESCO Science Portal - Available commands:"
 	@echo "  init         - Initialize the project (config, virtualenv, services)"
 	@echo "  config       - Generate .env and invenio.cfg from templates"
 	@echo "  init-custom-fields - Initialize custom fields in InvenioRDM database"
+	@echo "  rebuild-index    - Rebuild search indices (init custom fields + reindex)"
 	@echo "  pages-init   - Load static pages from app_data/pages.yaml into database"
 	@echo "  ssl-certs    - Generate SSL certificates for development"
 	@echo "  users        - Create ready-to-use users with predefined passwords"
 	@echo "  up           - Start the development server and services"
+	@echo "  watch        - Watch assets for JS/CSS hot reload (run in a separate terminal)"
 	@echo "  stop         - Stop all services and processes"
 	@echo "  build        - Build assets (CSS, JS, etc.)"
 	@echo "  check        - Check and fix Docker services if needed"
@@ -52,6 +58,8 @@ help:
 	@echo "  tools-test           - Run test suite (OPTS='-m integration' or '-m unit')"
 	@echo "  tools-test-cov       - Run tests with coverage report"
 	@echo "  tools-help           - Show tools help and examples"
+	@echo "  tools-patch-regions  - Patch affiliation regions on existing records"
+	@echo "  tools-update-fields  - Update custom fields on existing records (use FIELDS='field1,field2')"
 	@echo ""
 	@echo "Usage: make [command]"
 	@echo "Example: make tools-search QUERY='climate data'"
@@ -69,6 +77,7 @@ init:
 	$(VENV_ACTIVATE) && pip install --upgrade pip
 	$(VENV_ACTIVATE) && pip install invenio-cli
 	$(VENV_ACTIVATE) && pip install pipenv
+	$(VENV_ACTIVATE) && pipenv install invenio-cli
 	$(VENV_ACTIVATE) && pipenv install --dev
 	@echo "🛠️ Installing Invenio packages..."
 	$(VENV_ACTIVATE) && invenio-cli install
@@ -96,6 +105,18 @@ init-custom-fields:
 	$(VENV_ACTIVATE) && invenio rdm-records custom-fields init
 	@echo "✅ Custom fields initialized successfully!"
 
+# Rebuild search indices (destroy + init + custom-fields + rebuild)
+rebuild-index:
+	@echo "🔄 Destroying old indices..."
+	$(VENV_ACTIVATE) && invenio index destroy --force --yes-i-know
+	@echo "🔄 Creating fresh indices..."
+	$(VENV_ACTIVATE) && invenio index init
+	@echo "🔧 Initializing custom fields..."
+	$(VENV_ACTIVATE) && invenio rdm-records custom-fields init
+	@echo "🔄 Rebuilding index..."
+	$(VENV_ACTIVATE) && invenio rdm-records rebuild-index
+	@echo "✅ Index rebuilt successfully!"
+
 # Load static pages from app_data/pages.yaml into database
 pages-init:
 	@echo "📄 Loading static pages into InvenioRDM..."
@@ -113,6 +134,7 @@ up:
 	$(VENV_ACTIVATE) && invenio-cli services start
 	@echo "🚀 Starting development server..."
 	@echo "📍 Server will be available at https://127.0.0.1:5000"
+	@echo "💡 Tip: run 'make watch' in a second terminal to enable JS hot reload"
 	$(VENV_ACTIVATE) && invenio-cli run
 
 # Watch assets for hot reload (run in a separate terminal alongside 'make up')
@@ -506,6 +528,40 @@ tools-test-cov:
 	@$(MAKE) tools-test OPTS="--cov=openscience_tools --cov-report=html --cov-report=term"
 	@echo ""
 	@echo "📊 Coverage report generated in openscience_tools/htmlcov/index.html"
+
+tools-patch-regions:
+	@echo "🌍 Patching affiliation regions on existing records..."
+	@if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		$(VENV_ACTIVATE) && python -m my_site.tools.patch_affiliation_region --url "$$BASE_URL" --token "$$TOKEN" $(OPTS); \
+	else \
+		echo "❌ .env file not found. Run 'make config' first."; \
+		exit 1; \
+	fi
+
+tools-update-fields:
+	@echo "🔄 Updating custom fields on existing records..."
+	@if [ -f .env ]; then \
+		BASE_URL=$${BASE_URL:-$$(grep OPENSCIENCE_TOOLS_BASE_URL .env | cut -d= -f2)}; \
+		TOKEN=$${TOKEN:-$$(grep OPENSCIENCE_TOOLS_TOKEN .env | cut -d= -f2)}; \
+		if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "your_generated_token_here" ]; then \
+			echo "❌ Token not configured. Run 'make tools-setup-env' first."; \
+			exit 1; \
+		fi; \
+		FIELDS_ARG=""; \
+		if [ -n "$(FIELDS)" ]; then \
+			FIELDS_ARG="--fields $(FIELDS)"; \
+		fi; \
+		$(VENV_ACTIVATE) && python -m my_site.tools.update_custom_fields --url "$$BASE_URL" --token "$$TOKEN" $$FIELDS_ARG $(OPTS); \
+	else \
+		echo "❌ .env file not found. Run 'make config' first."; \
+		exit 1; \
+	fi
 
 # ========================================
 # Database Migration Commands

@@ -1,0 +1,17 @@
+id: survey_sections
+label: 'Survey Sections'
+migration_group: open_science_survey
+source:
+  plugin: csv
+  path: 'modules/custom/open_science_survey_migration/data/survey_sections.csv'
+  header_row_count: 1
+  ids:
+    - id
+
+destination:
+  plugin: entity:taxonomy_term
+  default_bundle: survey_section
+
+process:
+  name: title
+  field_section_id: id

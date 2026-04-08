@@ -351,3 +351,15 @@ For detailed InvenioRDM documentation, visit:
 
 - [InvenioRDM Documentation](https://inveniordm.docs.cern.ch/)
 - [InvenioRDM CLI Reference](https://inveniordm.docs.cern.ch/reference/cli/)
+
+## Magic steps to visualiza records that have been ingested but are not visible:
+
+# Remove and recreate the indexes
+docker compose exec web-ui invenio index destroy --force --yes-i-know
+docker compose exec web-ui invenio index init
+# Initialize custom fields
+docker compose exec web-ui invenio rdm-records custom-fields init
+# Rebuild the index
+docker compose exec web-ui invenio rdm-records rebuild-index
+# Restart
+docker compose restart web-ui web-api worker

@@ -1,0 +1,14 @@
+uuid: 123e4567-e89b-12d3-a456-426614174000
+langcode: en
+status: true
+dependencies:
+  module:
+    - open_science_survey
+id: field.storage.survey_response.field_survey_response_open_ans
+field_name: field_survey_response_open_ans
+entity_type: survey_response
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false

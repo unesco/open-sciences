@@ -1,0 +1,46 @@
+id: survey_responses
+label: 'Survey Responses'
+migration_group: open_science_survey
+migration_dependencies:
+  required:
+    - survey_predefined_answers
+    - countries
+    - survey_questions
+source:
+  plugin: csv
+  path: 'modules/custom/open_science_survey_migration/data/survey_responses.csv'
+  header_row_count: 1
+  ids:
+    - country_iso_code
+    - question_number
+
+destination:
+  plugin: entity:survey_response
+  default_bundle: survey_response
+
+process:
+  field_survey_response_question:
+    plugin: entity_lookup
+    source: question_number
+    entity_type: taxonomy_term
+    value_key: field_question_number
+    bundle_key: vid
+    bundle: survey_question
+    ignore_case: true
+  field_survey_response_country:
+    plugin: entity_lookup
+    source: country_iso_code
+    entity_type: taxonomy_term
+    value_key: field_iso_alpha3_code
+    bundle_key: vid
+    bundle: countries
+    ignore_case: true
+  field_survey_response_closed_ans:
+    plugin: entity_lookup
+    source: answer
+    entity_type: taxonomy_term
+    value_key: field_short_name
+    bundle_key: vid
+    bundle: survey_predefined_answers
+    ignore_case: true
+

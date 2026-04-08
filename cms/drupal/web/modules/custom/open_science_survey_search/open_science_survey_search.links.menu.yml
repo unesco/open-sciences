@@ -1,0 +1,6 @@
+open_science_survey_search.settings:
+  title: 'OpenSearch Analyzer'
+  description: 'Configure OpenSearch text analyzer and stop words for survey responses.'
+  parent: system.admin_config_search
+  route_name: open_science_survey_search.settings
+  weight: 10

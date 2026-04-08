@@ -155,7 +155,7 @@ ost_publish:
 #   main  → environment: main  (make deploy ENV=main)
 # ==============================================================================
 
-build:docker:
+build:invenio:
   stage: build
   image: docker:24.0.5
   services:
@@ -189,19 +189,59 @@ build:docker:
     - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
     - echo ""
     - echo "==================================================================="
-    - echo "Docker image built and pushed successfully!"
+    - echo "InvenioRDM image built and pushed successfully!"
     - echo "==================================================================="
   rules:
     - if: '$CI_COMMIT_BRANCH == "test"'
     - if: '$CI_COMMIT_BRANCH == "main"'
 
+build:cms:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  environment:
+    name: $CI_COMMIT_BRANCH
+  variables:
+    DOCKER_IMAGE: "${CI_REGISTRY_IMAGE}/cms"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+  before_script:
+    - sleep 5
+    - echo "Logging in to GitLab Container Registry..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "=================================================================="
+    - echo "Building CMS (Drupal) Docker image"
+    - echo "=================================================================="
+    - 'echo "Image: ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
+    - 'echo "Environment: ${CI_COMMIT_BRANCH}"'
+    - echo ""
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile.cms -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - echo ""
+    - echo "Pushing image to registry..."
+    - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
+    - echo ""
+    - echo "=================================================================="
+    - echo "CMS image built and pushed successfully!"
+    - echo "=================================================================="
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
 deploy:env:
   stage: deploy
   image: alpine:latest
   environment:
     name: $CI_COMMIT_BRANCH
   needs:
-    - job: build:docker
+    - job: build:invenio
+    - job: build:cms
   variables:
     HTTP_PROXY: "http://proxy.unesco.org:8080"
     HTTPS_PROXY: "http://proxy.unesco.org:8080"
@@ -233,6 +273,17 @@ deploy:env:
       BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS}
       BACKUP_SCHEDULE=${BACKUP_SCHEDULE}
       BACKUP_STORAGE_SIZE=${BACKUP_STORAGE_SIZE}
+      CMS_CPU_LIMIT=${CMS_CPU_LIMIT}
+      CMS_CPU_REQUEST=${CMS_CPU_REQUEST}
+      CMS_DB_NAME=${CMS_DB_NAME}
+      CMS_DB_PASSWORD=${CMS_DB_PASSWORD}
+      CMS_DB_USER=${CMS_DB_USER}
+      CMS_DOCKER_IMAGE_NAME=${CMS_DOCKER_IMAGE_NAME}
+      CMS_DOCKER_IMAGE_TAG=__CI_COMMIT_SHORT_SHA__
+      CMS_DRUPAL_HASH_SALT=${CMS_DRUPAL_HASH_SALT}
+      CMS_IMAGE_REGISTRY=${CMS_IMAGE_REGISTRY}
+      CMS_MEMORY_LIMIT=${CMS_MEMORY_LIMIT}
+      CMS_MEMORY_REQUEST=${CMS_MEMORY_REQUEST}
       DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME}
       DOCKER_IMAGE_TAG=__CI_COMMIT_SHORT_SHA__
       DOCKER_REGISTRY=${DOCKER_REGISTRY}
@@ -282,12 +333,12 @@ deploy:env:
       WEB_MEMORY_LIMIT=${WEB_MEMORY_LIMIT}
       WEB_MEMORY_REQUEST=${WEB_MEMORY_REQUEST}
       WEB_REPLICAS=${WEB_REPLICAS}
+      WIP_MODE=${WIP_MODE}
       WORKER_CPU_LIMIT=${WORKER_CPU_LIMIT}
       WORKER_CPU_REQUEST=${WORKER_CPU_REQUEST}
       WORKER_MEMORY_LIMIT=${WORKER_MEMORY_LIMIT}
       WORKER_MEMORY_REQUEST=${WORKER_MEMORY_REQUEST}
       WORKER_REPLICAS=${WORKER_REPLICAS}
-      WIP_MODE=${WIP_MODE}
       ENVEOF
     - |
       # Remove leading whitespace (heredoc indentation) and substitute CI/CD variables

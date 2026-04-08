@@ -47,7 +47,28 @@ kubectl exec -n "$NAMESPACE" "$PG_POD" -- bash -c \
     | gzip > "$BACKUP_DIR/postgresql.sql.gz"
 
 PG_SIZE=$(du -h "$BACKUP_DIR/postgresql.sql.gz" | cut -f1)
-echo "  ✓ PostgreSQL backup complete (${PG_SIZE})"
+echo "  ✓ PostgreSQL (InvenioRDM) backup complete (${PG_SIZE})"
+
+# CMS database backup
+echo "  Backing up CMS database..."
+CMS_DB=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.CMS_DB_NAME}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+
+if [ -n "$CMS_DB" ]; then
+    CMS_DB_USER=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.CMS_DB_USER}' | base64 -d)
+    CMS_DB_PASS=$(kubectl get secret -n "$NAMESPACE" unesco-rdm-secrets -o jsonpath='{.data.CMS_DB_PASSWORD}' | base64 -d)
+    kubectl exec -n "$NAMESPACE" "$PG_POD" -- bash -c \
+        "PGPASSWORD='$CMS_DB_PASS' pg_dump -U '$CMS_DB_USER' -d '$CMS_DB' --no-owner --no-acl" \
+        | gzip > "$BACKUP_DIR/cms-postgresql.sql.gz" 2>/dev/null || {
+        echo "  ⚠ CMS database backup failed (database may not exist yet)"
+        rm -f "$BACKUP_DIR/cms-postgresql.sql.gz"
+    }
+    if [ -f "$BACKUP_DIR/cms-postgresql.sql.gz" ] && [ -s "$BACKUP_DIR/cms-postgresql.sql.gz" ]; then
+        CMS_PG_SIZE=$(du -h "$BACKUP_DIR/cms-postgresql.sql.gz" | cut -f1)
+        echo "  ✓ PostgreSQL (CMS) backup complete (${CMS_PG_SIZE})"
+    fi
+else
+    echo "  ⚠ CMS database not configured, skipping"
+fi
 
 # --------------------------------------------------------------------------
 # 2. OpenSearch Dump

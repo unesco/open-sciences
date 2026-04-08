@@ -20,11 +20,15 @@ def create_blueprint(app):
         Configured Blueprint instance
     """
     from .views import StatisticsView, CMSPageView
+    from .views.dashboard import DashboardView
     from .api import (
         ExportAPIView,
         LensExportProxyAPIView,
+        PatchRegionsAPIView,
+        ReindexAPIView,
         SearchAPIView,
         StatisticsAPIView,
+        UpdateFieldsAPIView,
         # Resource-Driven CMS API
         CMSResourcesAPIView,
         CMSResourceDefinitionAPIView,
@@ -85,6 +89,14 @@ def create_blueprint(app):
         methods=["GET"],
     )
 
+
+    # Open Science dashboards page
+    blueprint.add_url_rule(
+        "/dashboards",
+        view_func=DashboardView.as_view("dashboard"),
+        methods=["GET"],
+    )
+
     # ========================================
     # API Endpoints (JSON Responses)
     # ========================================
@@ -115,6 +127,27 @@ def create_blueprint(app):
         f"{API_PREFIX}/lens/export",
         view_func=LensExportProxyAPIView.as_view("lens_export_proxy_api"),
         methods=["GET"],
+    )
+
+    # Trigger OpenSearch reindex (admin only)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/reindex",
+        view_func=ReindexAPIView.as_view("reindex_api"),
+        methods=["GET", "POST"],
+    )
+
+    # Patch affiliation regions on existing records (admin only)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/patch-regions",
+        view_func=PatchRegionsAPIView.as_view("patch_regions_api"),
+        methods=["GET", "POST"],
+    )
+
+    # Update custom fields from Lens source data (admin only)
+    blueprint.add_url_rule(
+        f"{API_PREFIX}/update-fields",
+        view_func=UpdateFieldsAPIView.as_view("update_fields_api"),
+        methods=["GET", "POST"],
     )
 
     # ========================================

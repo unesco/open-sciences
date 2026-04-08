@@ -1,0 +1,9 @@
+entity.survey_response.settings:
+  title: 'Settings'
+  route_name: entity.survey_response.settings
+  base_route: entity.survey_response.settings
+entity.survey_response.collection:
+  title: 'Survey Responses'
+  route_name: entity.survey_response.collection
+  base_route: system.admin_content
+  weight: 10
