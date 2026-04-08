@@ -30,11 +30,16 @@ spec:
           env:
             - name: NAMESPACE
               value: "unesco-rdm"
-            - name: CMS_USER_PASSWORD
+            - name: ADMIN_USER_EMAIL
               valueFrom:
                 secretKeyRef:
                   name: unesco-rdm-secrets
-                  key: CMS_USER_PASSWORD
+                  key: ADMIN_USER_EMAIL
+            - name: ADMIN_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: ADMIN_USER_PASSWORD
           command:
             - /bin/bash
             - -c
@@ -62,8 +67,8 @@ spec:
               else
                 kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
                   drush site:install --yes --existing-config \
-                    --account-name=admin@unesco.org \
-                    --account-pass="$CMS_USER_PASSWORD"
+                    --account-name="$ADMIN_USER_EMAIL" \
+                    --account-pass="$ADMIN_USER_PASSWORD"
                 echo "  ✓ Drupal installation complete"
               fi
 

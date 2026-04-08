@@ -55,11 +55,11 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost/cms/   # 200
 
 ### Step 3 — Access
 
-| Service          | URL                                | Credentials                                                               |
-| ---------------- | ---------------------------------- | ------------------------------------------------------------------------- |
-| InvenioRDM       | http://localhost                   | see `ADMIN_USER_EMAIL` / `ADMIN_USER_PASSWORD` in `.env.local`            |
-| Drupal CMS admin | http://localhost/cms/user/login    | `admin@unesco.org` / `Passw0rd!` (or `CMS_USER_PASSWORD` in `.env.local`) |
-| Drupal CMS API   | http://localhost/cms/api/countries | —                                                                         |
+| Service          | URL                                | Credentials                                                    |
+| ---------------- | ---------------------------------- | -------------------------------------------------------------- |
+| InvenioRDM       | http://localhost                   | see `ADMIN_USER_EMAIL` / `ADMIN_USER_PASSWORD` in `.env.local` |
+| Drupal CMS admin | http://localhost/cms/user/login    | see `ADMIN_USER_EMAIL` / `ADMIN_USER_PASSWORD` in `.env.local` |
+| Drupal CMS API   | http://localhost/cms/api/countries | —                                                              |
 
 ### Step 4 — Load sample data (optional)
 
