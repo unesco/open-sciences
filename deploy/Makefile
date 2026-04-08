@@ -170,6 +170,7 @@ deploy: check env-check ## CI/CD deployment (rebuild image + upgrade + restart)
 
 deploy-cms: check ## Re-apply CMS deployment with current image tag
 	@echo "Redeploying CMS (image: $(CMS_DOCKER_IMAGE_NAME):$(CMS_DOCKER_IMAGE_TAG))..."
+	@kubectl delete job cms-db-init cms-init -n $(NAMESPACE) --ignore-not-found=true 2>/dev/null || true
 	@envsubst < cms-services.yaml | kubectl apply -f - -n $(NAMESPACE)
 	@kubectl rollout restart deployment cms -n $(NAMESPACE) 2>/dev/null || true
 
