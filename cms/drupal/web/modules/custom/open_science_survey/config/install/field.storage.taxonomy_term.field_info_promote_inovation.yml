@@ -1,0 +1,19 @@
+uuid: c5589cbf-7e4e-4b20-ae71-5a8a2bfea433
+langcode: en
+status: true
+dependencies:
+  module:
+    - taxonomy
+    - text
+id: taxonomy_term.field_info_promote_inovation
+field_name: field_info_promote_inovation
+entity_type: taxonomy_term
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

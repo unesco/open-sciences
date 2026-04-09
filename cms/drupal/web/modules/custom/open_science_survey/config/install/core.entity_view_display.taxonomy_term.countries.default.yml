@@ -4,12 +4,21 @@ status: true
 dependencies:
   config:
     - field.field.taxonomy_term.countries.field_country_name
-    - field.field.taxonomy_term.countries.field_region
     - field.field.taxonomy_term.countries.field_group
+    - field.field.taxonomy_term.countries.field_info_funding_infra
+    - field.field.taxonomy_term.countries.field_info_funding_training
+    - field.field.taxonomy_term.countries.field_info_policy
+    - field.field.taxonomy_term.countries.field_info_promote_cooperation
+    - field.field.taxonomy_term.countries.field_info_promote_culture
+    - field.field.taxonomy_term.countries.field_info_promote_inovation
+    - field.field.taxonomy_term.countries.field_info_promoting
     - field.field.taxonomy_term.countries.field_iso_alpha3_code
+    - field.field.taxonomy_term.countries.field_region
     - taxonomy.vocabulary.countries
   module:
     - text
+_core:
+  default_config_hash: Ss6zMjku4ZDHNSritZOpH7JrzRN7a7BefM16x-2wEeA
 id: taxonomy_term.countries.default
 targetEntityType: taxonomy_term
 bundle: countries
@@ -30,14 +39,6 @@ content:
     third_party_settings: {  }
     weight: 1
     region: content
-  field_region:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 2
-    region: content
   field_group:
     type: string
     label: above
@@ -46,6 +47,55 @@ content:
     third_party_settings: {  }
     weight: 3
     region: content
+  field_info_funding_infra:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_info_funding_training:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 8
+    region: content
+  field_info_policy:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_info_promote_cooperation:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 11
+    region: content
+  field_info_promote_culture:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 9
+    region: content
+  field_info_promote_inovation:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 10
+    region: content
+  field_info_promoting:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
   field_iso_alpha3_code:
     type: string
     label: above
@@ -53,5 +103,13 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 4
+    region: content
+  field_region:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 2
     region: content
 hidden: {  }
