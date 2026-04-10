@@ -1,0 +1,19 @@
+uuid: 0c022beb-6ac2-4d56-a98e-cd06263c6c8f
+langcode: en
+status: true
+dependencies:
+  module:
+    - taxonomy
+    - text
+id: taxonomy_term.field_info_funding_infra
+field_name: field_info_funding_infra
+entity_type: taxonomy_term
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

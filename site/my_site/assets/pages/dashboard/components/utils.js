@@ -4,6 +4,7 @@
  * Raw constants (palette, colors, CDN URL) live in ../constants.js.
  */
 
+import React from "react";
 import { BLUE_PALETTE, COLOR_YES, COLOR_NO } from "../constants";
 
 /**
@@ -51,3 +52,56 @@ export function loadLink(href, id) {
   l.rel = "stylesheet"; l.href = href; l.id = id;
   document.head.appendChild(l);
 }
+
+// ── HTML helpers ─────────────────────────────────────────────────────────────
+
+export function decodeHtmlEntities(str) {
+  if (!str) return "";
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"');
+}
+
+/**
+ * Decode double-encoded HTML from Drupal's CKEditor storage.
+ * Some fields arrive with entity-encoded tags like &lt;p&gt; inside a real <p>.
+ * We decode iteratively so the browser renders actual HTML elements.
+ */
+export function sanitizeRichText(html) {
+  if (!html || typeof html !== "string") return "";
+  let decoded = html;
+  let prev;
+  do {
+    prev = decoded;
+    decoded = decoded
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;((?:lt|gt|amp|quot|nbsp|apos);)/g, "&$1");
+  } while (decoded !== prev);
+  return decoded;
+}
+
+// ── Shared icons ──────────────────────────────────────────────────────────────
+
+/**
+ * Medal / badge icon used in topic cards and country sidebar nav.
+ * @param {string} className  CSS class applied to the <svg> element
+ */
+export const MedalIcon = ({ className }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="12" cy="14" r="6" fill="#1a6fa8" />
+    <circle cx="12" cy="14" r="4" fill="white" />
+    <circle cx="12" cy="14" r="2.5" fill="#1a6fa8" />
+    <path d="M9 8.5L7 2h10l-2 6.5" stroke="#1a6fa8" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
+    <path d="M9 8.5 Q12 10 15 8.5" stroke="#1a6fa8" strokeWidth="1.5" fill="none" />
+  </svg>
+);

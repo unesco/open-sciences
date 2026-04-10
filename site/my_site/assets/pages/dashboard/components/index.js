@@ -9,3 +9,4 @@ export { Challenges } from "./Challenges";
 export { DonutChart } from "./DonutChart";
 export { CountryBreakdownModal } from "./CountryBreakdownModal";
 export { RegionBreakdownModal } from "./RegionBreakdownModal";
+export { CountryDetail } from "./CountryDetail";

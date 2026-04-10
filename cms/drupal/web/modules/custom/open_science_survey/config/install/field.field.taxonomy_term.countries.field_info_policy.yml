@@ -1,0 +1,24 @@
+uuid: fd98bf11-e33e-4ddf-8858-c7db21bea5b7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_info_policy
+    - filter.format.basic_html
+    - taxonomy.vocabulary.countries
+  module:
+    - text
+id: taxonomy_term.countries.field_info_policy
+field_name: field_info_policy
+entity_type: taxonomy_term
+bundle: countries
+label: 'Developing an enabling policy'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic_html
+field_type: text_long
