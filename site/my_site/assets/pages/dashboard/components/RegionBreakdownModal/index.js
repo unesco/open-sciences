@@ -33,6 +33,8 @@ export const RegionBreakdownModal = ({
   description,
   countriesByAnswer,
   countryToRegion,
+  countriesList,
+  onCountryClick,
   onClose,
 }) => {
   useEffect(() => {
@@ -81,7 +83,16 @@ export const RegionBreakdownModal = ({
             <p className="breakdown-no-data">No region data available.</p>
           )}
           {!isLoading && regions.map(([regionName, data]) => (
-            <RegionCard key={regionName} regionName={regionName} data={data} />
+            <RegionCard
+              key={regionName}
+              regionName={regionName}
+              data={data}
+              countriesList={countriesList}
+              onCountryClick={(iso3, name) => {
+                onClose();
+                if (onCountryClick) onCountryClick(iso3, name);
+              }}
+            />
           ))}
         </div>
       </div>
@@ -94,6 +105,11 @@ RegionBreakdownModal.propTypes = {
   description:       PropTypes.string,
   countriesByAnswer: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
   countryToRegion:   PropTypes.objectOf(PropTypes.string),
+  countriesList:     PropTypes.arrayOf(PropTypes.shape({
+    name:  PropTypes.string,
+    iso_3: PropTypes.string,
+  })),
+  onCountryClick:    PropTypes.func,
   onClose:           PropTypes.func.isRequired,
 };
 
@@ -101,4 +117,6 @@ RegionBreakdownModal.defaultProps = {
   description:       undefined,
   countriesByAnswer: {},
   countryToRegion:   {},
+  countriesList:     [],
+  onCountryClick:    undefined,
 };

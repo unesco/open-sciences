@@ -11,6 +11,14 @@ import { RegionMiniDonut } from "../RegionMiniDonut";
 
 const ANSWER_PRIORITY = ["yes", "partial", "ongoing", "no answer", "no"];
 
+function findIso3(countriesList, countryName) {
+  if (!countriesList || !countryName) return null;
+  const match = countriesList.find(
+    (c) => c.name && c.name.toLowerCase() === countryName.toLowerCase()
+  );
+  return match ? match.iso_3 : null;
+}
+
 function sortAnswerEntries(entries) {
   return entries.slice().sort((a, b) => {
     const ai = ANSWER_PRIORITY.indexOf(a.name.toLowerCase().trim());
@@ -21,7 +29,7 @@ function sortAnswerEntries(entries) {
   });
 }
 
-export function RegionCard({ regionName, data }) {
+export function RegionCard({ regionName, data, countriesList, onCountryClick }) {
   const answerEntries = sortAnswerEntries(
     Object.entries(data.answers).map(([name, count], i) => ({ name, count, colorIdx: i }))
   );
@@ -45,11 +53,26 @@ export function RegionCard({ regionName, data }) {
               </div>
               {countries.length > 0 && (
                 <div className="rbd-legend-countries">
-                  {countries.map((c, ci) => (
-                    <span key={c} className="rbd-country-name">
-                      {c}{ci < countries.length - 1 ? ", " : ""}
-                    </span>
-                  ))}
+                  {countries.map((c, ci) => {
+                    const iso3 = findIso3(countriesList, c);
+                    const clickable = iso3 && onCountryClick;
+                    return (
+                      <span key={c}>
+                        {clickable ? (
+                          <button
+                            type="button"
+                            className="rbd-country-link"
+                            onClick={() => onCountryClick(iso3, c)}
+                          >
+                            {c}
+                          </button>
+                        ) : (
+                          <span className="rbd-country-name">{c}</span>
+                        )}
+                        {ci < countries.length - 1 ? ", " : ""}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -67,4 +90,14 @@ RegionCard.propTypes = {
     countries: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
     total:     PropTypes.number.isRequired,
   }).isRequired,
+  countriesList: PropTypes.arrayOf(PropTypes.shape({
+    name:  PropTypes.string,
+    iso_3: PropTypes.string,
+  })),
+  onCountryClick: PropTypes.func,
+};
+
+RegionCard.defaultProps = {
+  countriesList:  [],
+  onCountryClick: undefined,
 };

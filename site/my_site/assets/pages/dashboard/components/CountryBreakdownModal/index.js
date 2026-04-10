@@ -8,14 +8,26 @@ import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { getAnswerColor } from "../utils";
 
+// ─── Helper: find ISO-3 code for a country name ─────────────────────────────
+
+function findIso3(countriesList, countryName) {
+  if (!countriesList || !countryName) return null;
+  const match = countriesList.find(
+    (c) => c.name && c.name.toLowerCase() === countryName.toLowerCase()
+  );
+  return match ? match.iso_3 : null;
+}
+
 // ─── Component ─────────────────────────────────────────────────────────────
 
 /**
  * @param {string}  chartLabel         Question label shown in the drawer header
  * @param {Object}  countriesByAnswer  Map: { [answerName]: [countryName, ...] }
+ * @param {Array}   countriesList      Full countries array with iso_3 codes
+ * @param {Function} onCountryClick    Called with (iso3, name) when a country is clicked
  * @param {Function} onClose           Called when the drawer should close
  */
-export const CountryBreakdownModal = ({ chartLabel, countriesByAnswer, onClose }) => {
+export const CountryBreakdownModal = ({ chartLabel, countriesByAnswer, countriesList, onCountryClick, onClose }) => {
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handler);
@@ -82,11 +94,24 @@ export const CountryBreakdownModal = ({ chartLabel, countriesByAnswer, onClose }
 
               {section.countries.length > 0 && (
                 <div className="breakdown-country-grid">
-                  {section.countries.map((c) => (
-                    <button key={c} type="button" className="breakdown-country-link">
-                      {c}
-                    </button>
-                  ))}
+                  {section.countries.map((c) => {
+                    const iso3 = findIso3(countriesList, c);
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        className={`breakdown-country-link${iso3 && onCountryClick ? " breakdown-country-link--clickable" : ""}`}
+                        onClick={() => {
+                          if (iso3 && onCountryClick) {
+                            onClose();
+                            onCountryClick(iso3, c);
+                          }
+                        }}
+                      >
+                        {c}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -106,9 +131,16 @@ export const CountryBreakdownModal = ({ chartLabel, countriesByAnswer, onClose }
 CountryBreakdownModal.propTypes = {
   chartLabel:        PropTypes.string.isRequired,
   countriesByAnswer: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
+  countriesList:     PropTypes.arrayOf(PropTypes.shape({
+    name:  PropTypes.string,
+    iso_3: PropTypes.string,
+  })),
+  onCountryClick:    PropTypes.func,
   onClose:           PropTypes.func.isRequired,
 };
 
 CountryBreakdownModal.defaultProps = {
   countriesByAnswer: {},
+  countriesList:     [],
+  onCountryClick:    undefined,
 };
