@@ -68,7 +68,7 @@ HEADER_FRONTPAGE_DEFAULT = {
     ],
     "title": "UNESCO Open Science Platform",
     "subtitle": "Your Gateway to Knowledge from the UNESCO Natural Science Family",
-    "search_placeholder": "Search UNESCO research publications",
+    "search_placeholder": "Search UNESCO\'s research publications",
     "advanced_search_label": "Advanced search",
 }
 
