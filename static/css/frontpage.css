@@ -580,17 +580,17 @@
 /* Partners Section */
 .partners-section {
   background-color: #fff;
-  padding: 64px 120px 64px 120px;
+  padding: 64px 120px 0 120px;
   position: relative;
+  margin-bottom:-45px;
 }
 
 .partners-section::before {
   content: "";
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 95%;
+  left: 120px;
+  right: 120px;
   height: 1px;
   background: #d5dadd;
 }
@@ -601,10 +601,10 @@
 
 .partners-wrapper {
   background-color: #f1f4f6;
-  padding: 40px 60px;
+  padding: 70px 60px;
   border-radius: 0;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
 }
 
 .partners-title {
@@ -633,7 +633,7 @@
 }
 
 .partner-logo {
-  height: 60px;
+  height: 70px;
   width: auto;
   object-fit: contain;
   transition: transform 0.3s ease, opacity 0.3s ease;

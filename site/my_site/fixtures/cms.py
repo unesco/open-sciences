@@ -115,7 +115,7 @@ FOOTER_DEFAULT = {
 # Templates are stored in: fixtures/templates/static_pages/<slug>.html
 STATIC_PAGES_METADATA = {
     "about": {
-        "title": "About Open Science - UNESCO Open Science Platform",
+        "title": "About the UNESCO Open Science Platform",
         "slug": "about",
         "template": "about.html",
         "meta_title": "About Open Science - UNESCO Open Science Platform",

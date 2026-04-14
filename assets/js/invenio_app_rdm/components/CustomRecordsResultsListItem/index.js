@@ -19,7 +19,7 @@ const CustomRecordsResultsListItem = ({
 }) => {
   const accessStatusId = _get(result, "ui.access_status.id", "open");
   const accessStatus = _get(result, "ui.access_status.title_l10n", "Open");
-  const accessStatusIcon = _get(result, "ui.access_status.icon", "unlock");
+  const accessStatusIcon = _get(result, "ui.access_status.icon", "unlock alternate");
   const createdDate = _get(
     result,
     "ui.created_date_l10n_long",
@@ -248,12 +248,13 @@ const CustomRecordsResultsListItem = ({
                     fontWeight: "400",
                     gap: "6px",
                   }}
-                >
-                  <Icon
-                    name="unlock"
-                    style={{ margin: 0, display: "flex", alignItems: "center" }}
-                  />
+                > 
                   Open Access
+                  <img
+                    src="/static/images/unlock.png"
+                    alt="Open Access"
+                    style={{ margin: 0, width: "16px", height: "16px" }}
+                  />
                 </span>
               )}
             </div>
@@ -276,12 +277,12 @@ const CustomRecordsResultsListItem = ({
               <span>{viewsCount.toLocaleString()}</span>
             </span> */}
           </Item.Extra>
+          <Item className="creatibutors" style={{ textDecoration: "underline" }}>
+            <SearchItemCreators creators={creators} othersLink={viewLink} />
+          </Item>
           <Item.Header as="h2" className="theme-primary-text">
             <a href={viewLink}>{title}</a>
           </Item.Header>
-          <Item className="creatibutors">
-            <SearchItemCreators creators={creators} othersLink={viewLink} />
-          </Item>
           <Overridable
             id={buildUID("RecordsResultsListItem.description", "", appName)}
             descriptionStripped={descriptionStripped}
