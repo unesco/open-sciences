@@ -59,17 +59,23 @@ def _load_country_to_region_mapping() -> Dict[str, str]:
     Returns:
         Dict mapping country code (ISO alpha-2) to region display name
     """
-    # Find the project root by looking for site directory
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Navigate up until we find the directory containing 'site'
-    while current_dir != os.path.dirname(current_dir):  # Not at root
-        site_path = os.path.join(current_dir, "site", "my_site", "filters", "data", "country_code_region_mapping.json")
-        if os.path.exists(site_path):
-            json_path = site_path
-            break
-        current_dir = os.path.dirname(current_dir)
+    # First check for bundled copy next to this module
+    module_dir = os.path.dirname(os.path.abspath(__file__))
+    local_path = os.path.join(module_dir, "data", "country_code_region_mapping.json")
+    if os.path.exists(local_path):
+        json_path = local_path
     else:
+        # Fall back: walk up to find the project root containing 'site'
+        json_path = None
+        current_dir = module_dir
+        while current_dir != os.path.dirname(current_dir):  # Not at root
+            site_path = os.path.join(current_dir, "site", "my_site", "filters", "data", "country_code_region_mapping.json")
+            if os.path.exists(site_path):
+                json_path = site_path
+                break
+            current_dir = os.path.dirname(current_dir)
+    
+    if json_path is None:
         logger.warning("Could not find country_code_region_mapping.json in project structure")
         return {}
     
