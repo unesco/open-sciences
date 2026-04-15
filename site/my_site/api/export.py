@@ -317,7 +317,7 @@ def _extract_related_identifiers(record):
             else ""
         )
         if scheme and identifier:
-            identifiers.append(f"{scheme}: {identifier} ({relation_title})")
+            identifiers.append(f"{scheme}: {identifier}")
     return "; ".join(identifiers)
 
 

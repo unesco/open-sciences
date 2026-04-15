@@ -360,7 +360,7 @@
                     {% set is_open_access = custom_fields.get("publication:is_open_access", "") %}
                     {% if is_open_access == "true" %}
                       <span class="unesco-tag unesco-tag-open-access">
-                        <i class="unlock icon" aria-hidden="true"></i>
+                        <img src="/static/images/unlock.png" alt="Open Access" style="width:16px;height:16px;vertical-align:middle;" />
                         {{ _('Open Access') }}
                       </span>
                     {% endif %}

@@ -507,7 +507,41 @@ article {
 /* ====================
    Ant Design style for standard UI buttons (Export, etc.)
    ==================== */
-.ui.button:not(.basic):not(.transparent):not(.jump-to-top):not(.labeled):not(.search) {
+/* ====================
+   Affiliations button - outlined blue pill
+   ==================== */
+.ui.button.affiliations-button {
+  border: 1.5px solid #0073b7 !important;
+  color: #0073b7 !important;
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  padding: 6px 14px !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: none !important;
+  
+  i.chevron.icon {
+    transition: transform 0.2s ease !important;
+    transform: rotate(0deg) !important;
+    margin: 0 !important;
+    color: #0073b7 !important;
+  }
+  
+  &[aria-expanded="true"] i.chevron.icon {
+    transform: rotate(180deg) !important;
+  }
+  
+  &:hover, &:focus, &:active {
+    border-color: #0073b7 !important;
+    color: #0073b7 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+}
+
+.ui.button:not(.basic):not(.transparent):not(.jump-to-top):not(.labeled):not(.search):not(.affiliations-button) {
   background-color: #ffffff !important;
   color: rgba(0, 0, 0, 0.85) !important;
   border: 1px solid #d9d9d9 !important;
