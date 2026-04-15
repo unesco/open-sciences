@@ -5,6 +5,8 @@ dependencies:
   config:
     - field.storage.taxonomy_term.field_country_name
     - taxonomy.vocabulary.countries
+_core:
+  default_config_hash: hjMD45GEqfDmA7O__yEXrfCrv8uw6PuW6wRIgQqqT3U
 id: taxonomy_term.countries.field_country_name
 field_name: field_country_name
 entity_type: taxonomy_term

@@ -2,7 +2,9 @@ uuid: 8a7f3c1e-b5d9-4a2e-9f7c-2b8e1d5a3f9c
 langcode: en
 status: true
 dependencies: {  }
-name: 'Countries'
+_core:
+  default_config_hash: pM76zkk4Nzn2iw1InH09FlEwZPUZw5VJ9Xon2TpHHXE
+name: Countries
 vid: countries
 description: null
 weight: 0

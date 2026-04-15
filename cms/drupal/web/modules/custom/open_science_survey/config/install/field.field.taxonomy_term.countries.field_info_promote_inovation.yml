@@ -8,6 +8,8 @@ dependencies:
     - taxonomy.vocabulary.countries
   module:
     - text
+_core:
+  default_config_hash: K-mPuB18zdlcyk3r2FxPj0FNPPcFVaQJnQhHJbyb8GA
 id: taxonomy_term.countries.field_info_promote_inovation
 field_name: field_info_promote_inovation
 entity_type: taxonomy_term

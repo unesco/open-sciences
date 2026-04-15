@@ -18,7 +18,7 @@ dependencies:
   module:
     - text
 _core:
-  default_config_hash: Ss6zMjku4ZDHNSritZOpH7JrzRN7a7BefM16x-2wEeA
+  default_config_hash: 0YFn83vEspCaE_bmjcGqgHyVNBID-qUIZBF0B2C2WQY
 id: taxonomy_term.countries.default
 targetEntityType: taxonomy_term
 bundle: countries

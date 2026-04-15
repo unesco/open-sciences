@@ -5,6 +5,8 @@ dependencies:
   config:
     - field.storage.taxonomy_term.field_iso_alpha3_code
     - taxonomy.vocabulary.countries
+_core:
+  default_config_hash: _SB8Z2QYIn8yBR4L387lNULUDNDGnwbYNsFnlFeaz6I
 id: taxonomy_term.countries.field_iso_alpha3_code
 field_name: field_iso_alpha3_code
 entity_type: taxonomy_term

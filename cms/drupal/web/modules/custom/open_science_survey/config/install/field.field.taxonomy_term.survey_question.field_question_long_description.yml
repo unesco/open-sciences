@@ -1,9 +1,12 @@
+uuid: be8a2558-c051-4133-9d58-43b8dbe6c89f
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.taxonomy_term.field_question_long_description
     - taxonomy.vocabulary.survey_question
+_core:
+  default_config_hash: NhRkXMs9XMW6aI-p3HHw0gpknnRjoiu8zTiBYBVeNmM
 id: taxonomy_term.survey_question.field_question_long_description
 field_name: field_question_long_description
 entity_type: taxonomy_term

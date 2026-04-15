@@ -3,14 +3,16 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.survey_response.survey_response.field_survey_response_closed_ans
-    - field.field.survey_response.survey_response.field_survey_response_country
-    - field.field.survey_response.survey_response.field_survey_response_question
+    - field.field.survey_response.survey_response.field_closed_ans
+    - field.field.survey_response.survey_response.field_country
+    - field.field.survey_response.survey_response.field_open_ans
+    - field.field.survey_response.survey_response.field_open_ans_translated
+    - field.field.survey_response.survey_response.field_question
   module:
     - open_science_survey
     - user
 _core:
-  default_config_hash: zXK5v3S7qwz_yXmqx9W5ocgs_MP8tjf52TsiZO78iis
+  default_config_hash: e60MjizfaenNvPA9VfDH02P_TBBhmXQRQGwNYEGjtXQ
 id: survey_response.survey_response.default
 targetEntityType: survey_response
 bundle: survey_response
@@ -35,7 +37,7 @@ content:
     third_party_settings: {  }
     weight: 20
     region: content
-  field_survey_response_closed_ans:
+  field_closed_ans:
     type: entity_reference_label
     label: above
     settings:
@@ -43,7 +45,7 @@ content:
     third_party_settings: {  }
     weight: 23
     region: content
-  field_survey_response_country:
+  field_country:
     type: entity_reference_label
     label: above
     settings:
@@ -51,15 +53,7 @@ content:
     third_party_settings: {  }
     weight: 22
     region: content
-  field_survey_response_question:
-    type: entity_reference_label
-    label: above
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 21
-    region: content
-  field_survey_response_open_ans:
+  field_open_ans:
     label: visible
     type: string
     settings:
@@ -67,7 +61,7 @@ content:
     third_party_settings: {  }
     weight: 30
     region: content
-  field_survey_response_open_ans_translated:
+  field_open_ans_translated:
     label: visible
     type: boolean
     settings:
@@ -75,13 +69,13 @@ content:
     third_party_settings: {  }
     weight: 31
     region: content
-  field_open_ans_translated:
-    label: visible
-    type: boolean
+  field_question:
+    type: entity_reference_label
+    label: above
     settings:
-      format: default
+      link: true
     third_party_settings: {  }
-    weight: 33
+    weight: 21
     region: content
   status:
     type: boolean

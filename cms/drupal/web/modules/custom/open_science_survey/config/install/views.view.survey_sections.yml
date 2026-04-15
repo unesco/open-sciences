@@ -10,6 +10,8 @@ dependencies:
     - serialization
     - taxonomy
     - user
+_core:
+  default_config_hash: W44m3wM9D7tC5APmQFY9vKxxhRXfoGS7RisH5z97DVQ
 id: survey_sections
 label: 'Survey Sections'
 module: views

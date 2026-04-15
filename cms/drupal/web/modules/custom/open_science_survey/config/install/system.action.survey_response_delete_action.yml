@@ -5,7 +5,7 @@ dependencies:
   module:
     - open_science_survey
 _core:
-  default_config_hash: z-kZdoJaIzpKtPlcoXVjkt6ebaQDoy7raNxRvDX1hSE
+  default_config_hash: pu-ROWgcgvu1BEr83C_ksfOwv3a5F6XXhZlj2jzwY8U
 id: survey_response_delete_action
 label: 'Delete survey responses'
 type: survey_response

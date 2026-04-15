@@ -1,3 +1,4 @@
+uuid: 7a400c80-6c48-45b1-907f-c107d80c9c1a
 langcode: en
 status: true
 dependencies:
@@ -7,8 +8,10 @@ dependencies:
     - field.field.taxonomy_term.survey_predefined_answers.field_short_name
     - taxonomy.vocabulary.survey_predefined_answers
   module:
-    - taxonomy
-id: core.entity_view_display.taxonomy_term.survey_predefined_answers.default
+    - text
+_core:
+  default_config_hash: H5Xnn_Gr3oLkDOccQwRieVtXa7TSqC08OpgMNxiuYXw
+id: taxonomy_term.survey_predefined_answers.default
 targetEntityType: taxonomy_term
 bundle: survey_predefined_answers
 mode: default
@@ -19,12 +22,14 @@ content:
     weight: 1
     settings: {  }
     third_party_settings: {  }
+    region: content
   field_description:
     type: text_default
     label: above
     weight: 4
     settings: {  }
     third_party_settings: {  }
+    region: content
   field_long_name:
     type: string
     label: above
@@ -32,6 +37,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
+    region: content
   field_short_name:
     type: string
     label: above
@@ -39,11 +45,5 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-  name:
-    type: string
-    label: hidden
-    weight: 0
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
+    region: content
 hidden: {  }

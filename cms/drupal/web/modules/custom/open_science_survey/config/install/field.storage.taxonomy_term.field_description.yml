@@ -1,14 +1,18 @@
+uuid: b487e0c5-e054-4a00-b683-6fe31cf8d41c
 langcode: en
 status: true
 dependencies:
   module:
     - taxonomy
-id: taxonomy_term.survey_predefined_answers.field_description
+    - text
+_core:
+  default_config_hash: BEHG1kCkpMPWZFErqiF_eGH_HtbQu7LK6ETVZ7Vi1TE
+id: taxonomy_term.field_description
 field_name: field_description
 entity_type: taxonomy_term
 type: text_long
 settings: {  }
-module: core
+module: text
 locked: false
 cardinality: 1
 translatable: true

@@ -19,7 +19,7 @@ dependencies:
     - path
     - text
 _core:
-  default_config_hash: fNvryi9lBmZ4BdCbZSJN23OHgtcuducfIUECujoGPL4
+  default_config_hash: FuJQ8DYDcq7Jt0ffcl3W3byORwtpj-jPiiV8yt3LXLA
 id: taxonomy_term.countries.default
 targetEntityType: taxonomy_term
 bundle: countries

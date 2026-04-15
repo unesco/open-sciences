@@ -5,6 +5,8 @@ dependencies:
   module:
     - taxonomy
     - text
+_core:
+  default_config_hash: T3PYGOxIT-xxJH9_l1YzNzppLIt82bCY6vfCRuDxX9A
 id: taxonomy_term.field_info_policy
 field_name: field_info_policy
 entity_type: taxonomy_term

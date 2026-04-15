@@ -4,6 +4,8 @@ status: true
 dependencies:
   module:
     - taxonomy
+_core:
+  default_config_hash: qoVzs0ENq89ISm080HYORiERFhpU_HXFtNqKF1XJ9eU
 id: taxonomy_term.field_section_id
 field_name: field_section_id
 entity_type: taxonomy_term

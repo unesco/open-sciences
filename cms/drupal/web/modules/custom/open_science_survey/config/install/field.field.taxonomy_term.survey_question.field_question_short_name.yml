@@ -1,9 +1,12 @@
+uuid: c75d56ab-8009-4329-bff4-78a64839e399
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.taxonomy_term.field_question_short_name
     - taxonomy.vocabulary.survey_question
+_core:
+  default_config_hash: qZKfKMuSlSRruLpGhWbIizFayrhErYACVU3i0aTvGoE
 id: taxonomy_term.survey_question.field_question_short_name
 field_name: field_question_short_name
 entity_type: taxonomy_term

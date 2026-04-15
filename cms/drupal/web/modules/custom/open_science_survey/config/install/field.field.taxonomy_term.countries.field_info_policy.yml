@@ -8,6 +8,8 @@ dependencies:
     - taxonomy.vocabulary.countries
   module:
     - text
+_core:
+  default_config_hash: ai3cHMEjE0_ZothEIg9zNPqh8ojwkNzEcuVTxht4fWc
 id: taxonomy_term.countries.field_info_policy
 field_name: field_info_policy
 entity_type: taxonomy_term

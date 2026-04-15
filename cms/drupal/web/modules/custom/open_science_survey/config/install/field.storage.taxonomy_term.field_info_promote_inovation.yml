@@ -5,6 +5,8 @@ dependencies:
   module:
     - taxonomy
     - text
+_core:
+  default_config_hash: xmQp8ex0oeUQBp0NPz9im-7XaSoeKtwrAzBztSmIgWw
 id: taxonomy_term.field_info_promote_inovation
 field_name: field_info_promote_inovation
 entity_type: taxonomy_term

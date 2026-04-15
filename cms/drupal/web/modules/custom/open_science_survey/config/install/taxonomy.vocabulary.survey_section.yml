@@ -2,6 +2,8 @@ uuid: 8f3e5a7d-9c2b-4f1e-a8d6-3b4c7e9f2a1d
 langcode: en
 status: true
 dependencies: {  }
+_core:
+  default_config_hash: SNdAUSqAw6FfAmg2O8ZnmjkPgwOAz7gYIOieOV8XGis
 name: 'Survey Section'
 vid: survey_section
 description: null

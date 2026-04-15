@@ -21,6 +21,8 @@ dependencies:
     - taxonomy
     - text
     - user
+_core:
+  default_config_hash: hLoGX2_Uyzmdqv2iRy-iH2SaBF1QRwiEpK_cyPkhjLI
 id: countries
 label: Countries
 module: views

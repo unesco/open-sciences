@@ -9,16 +9,16 @@ dependencies:
     - field.storage.taxonomy_term.field_question_short_name
     - field.storage.taxonomy_term.field_question_text
     - field.storage.taxonomy_term.field_question_type
-    - field.storage.taxonomy_term.field_section
     - field.storage.taxonomy_term.field_section_id
     - taxonomy.vocabulary.survey_question
-    - taxonomy.vocabulary.survey_section
   module:
     - options
     - rest
     - serialization
     - taxonomy
     - user
+_core:
+  default_config_hash: lRhbEQ6Vm_z9OVAkl5ftjCw5d0AADspmAhrxtCjqrco
 id: survey_questions
 label: 'Survey Questions'
 module: views
@@ -655,4 +655,3 @@ display:
         - 'config:field.storage.taxonomy_term.field_question_type'
         - 'config:field.storage.taxonomy_term.field_section'
         - 'config:field.storage.taxonomy_term.field_section_id'
-

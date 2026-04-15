@@ -3,14 +3,14 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.survey_response.field_survey_response_question
+    - field.storage.survey_response.field_question
     - taxonomy.vocabulary.survey_question
   module:
     - open_science_survey
 _core:
-  default_config_hash: bmeHAZn5jK-WEYViUsvjS643RzWW-oDQEXQHBFtqvvs
-id: survey_response.survey_response.field_survey_response_question
-field_name: field_survey_response_question
+  default_config_hash: b8D6aZeADJcmcrEEQ_YRBI5WORm1iLG4ASq0LPZMCYw
+id: survey_response.survey_response.field_question
+field_name: field_question
 entity_type: survey_response
 bundle: survey_response
 label: survey_response_question

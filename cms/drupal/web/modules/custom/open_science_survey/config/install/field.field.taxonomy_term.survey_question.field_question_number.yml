@@ -5,6 +5,8 @@ dependencies:
   config:
     - field.storage.taxonomy_term.field_question_number
     - taxonomy.vocabulary.survey_question
+_core:
+  default_config_hash: Hde22H0YYjNiygTEjAbjJfmPa1Ulr8K74QYVt8AlOsw
 id: taxonomy_term.survey_question.field_question_number
 field_name: field_question_number
 entity_type: taxonomy_term
@@ -15,5 +17,5 @@ required: true
 translatable: false
 default_value: {  }
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: string

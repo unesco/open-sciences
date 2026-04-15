@@ -3,13 +3,15 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.survey_response.survey_response.field_survey_response_closed_ans
-    - field.field.survey_response.survey_response.field_survey_response_country
-    - field.field.survey_response.survey_response.field_survey_response_question
+    - field.field.survey_response.survey_response.field_closed_ans
+    - field.field.survey_response.survey_response.field_country
+    - field.field.survey_response.survey_response.field_open_ans
+    - field.field.survey_response.survey_response.field_open_ans_translated
+    - field.field.survey_response.survey_response.field_question
   module:
     - open_science_survey
 _core:
-  default_config_hash: 4d2Ay8y2Bzpt5bS9ChG6T6zrggDYB3tIe4yWMLE2HC4
+  default_config_hash: Hbc1j1Uo1NtP3SYrRIeXhBSMklsKPRAeyYZwnB5n9DM
 id: survey_response.survey_response.default
 targetEntityType: survey_response
 bundle: survey_response
@@ -21,7 +23,7 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_survey_response_closed_ans:
+  field_closed_ans:
     type: entity_reference_autocomplete
     weight: 28
     region: content
@@ -31,7 +33,7 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_survey_response_country:
+  field_country:
     type: entity_reference_autocomplete
     weight: 27
     region: content
@@ -41,7 +43,21 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_survey_response_question:
+  field_open_ans:
+    type: string_textarea
+    weight: 29
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_open_ans_translated:
+    type: boolean_checkbox
+    weight: 32
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_question:
     type: entity_reference_autocomplete
     weight: 26
     region: content
@@ -50,26 +66,6 @@ content:
       match_limit: 10
       size: 60
       placeholder: ''
-    third_party_settings: {  }
-  field_survey_response_open_ans:
-    type: string_textarea
-    weight: 29
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_survey_response_open_ans_translated:
-    type: options_buttons
-    weight: 30
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_open_ans_translated:
-    type: boolean_checkbox
-    weight: 32
-    region: content
-    settings: {  }
     third_party_settings: {  }
   status:
     type: boolean_checkbox

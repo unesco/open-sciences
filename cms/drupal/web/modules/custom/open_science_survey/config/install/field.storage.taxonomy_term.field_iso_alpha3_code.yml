@@ -4,6 +4,8 @@ status: true
 dependencies:
   module:
     - taxonomy
+_core:
+  default_config_hash: Wdnq61wxbTCHnQQUOrWWy_elTd2S2aKYijbMXZItOVo
 id: taxonomy_term.field_iso_alpha3_code
 field_name: field_iso_alpha3_code
 entity_type: taxonomy_term

@@ -5,7 +5,7 @@ dependencies:
   module:
     - open_science_survey
 _core:
-  default_config_hash: iL40cM2xFrzmw-GJt-HJ1-s9KX7-c8pKPCiPQeqcgB0
+  default_config_hash: _sYiZw7u1ZOZ27m-h7A9_R4qLcWIIPRtw4cZTC_gZmA
 id: survey_response_save_action
 label: 'Save survey responses'
 type: survey_response

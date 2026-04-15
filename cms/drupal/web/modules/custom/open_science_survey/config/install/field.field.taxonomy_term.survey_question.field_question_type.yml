@@ -5,6 +5,10 @@ dependencies:
   config:
     - field.storage.taxonomy_term.field_question_type
     - taxonomy.vocabulary.survey_question
+  module:
+    - options
+_core:
+  default_config_hash: tEOFryN3KyRsx5l8N56QhgL6R3FanNORZ7Bj8TqPFuo
 id: taxonomy_term.survey_question.field_question_type
 field_name: field_question_type
 entity_type: taxonomy_term

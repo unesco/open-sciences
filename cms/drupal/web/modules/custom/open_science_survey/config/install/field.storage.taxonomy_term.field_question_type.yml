@@ -3,18 +3,24 @@ langcode: en
 status: true
 dependencies:
   module:
+    - options
     - taxonomy
+_core:
+  default_config_hash: 23yUViHSe65KhR1ph6-Cyu82EqSNfCDal1RfvuB36fE
 id: taxonomy_term.field_question_type
 field_name: field_question_type
 entity_type: taxonomy_term
 type: list_string
 settings:
   allowed_values:
-    - value: Open
+    -
+      value: Open
       label: Open
-    - value: Closed
+    -
+      value: Closed
       label: Closed
-module: core
+  allowed_values_function: ''
+module: options
 locked: false
 cardinality: 1
 translatable: true

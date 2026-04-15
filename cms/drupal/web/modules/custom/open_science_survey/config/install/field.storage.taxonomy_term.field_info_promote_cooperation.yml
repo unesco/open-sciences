@@ -5,6 +5,8 @@ dependencies:
   module:
     - taxonomy
     - text
+_core:
+  default_config_hash: 7EXaD3QyMXhbgALNUnGZ2kC_tLPuQTlgrvaWc7_YUZc
 id: taxonomy_term.field_info_promote_cooperation
 field_name: field_info_promote_cooperation
 entity_type: taxonomy_term

@@ -5,11 +5,13 @@ dependencies:
   config:
     - field.storage.taxonomy_term.field_group
     - taxonomy.vocabulary.countries
+_core:
+  default_config_hash: 1BbcKfKontunbV_dqoKunQKdKTq-R-Zia2DeDWP_gsw
 id: taxonomy_term.countries.field_group
 field_name: field_group
 entity_type: taxonomy_term
 bundle: countries
-label: 'Group'
+label: Group
 description: ''
 required: false
 translatable: false

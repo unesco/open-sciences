@@ -9,10 +9,13 @@ dependencies:
     - field.field.taxonomy_term.survey_question.field_question_short_name
     - field.field.taxonomy_term.survey_question.field_question_text
     - field.field.taxonomy_term.survey_question.field_question_type
+    - field.field.taxonomy_term.survey_question.field_section
     - taxonomy.vocabulary.survey_question
   module:
     - path
     - text
+_core:
+  default_config_hash: R8J-6aiCY8rWoUKTV0dk3R6_ZVxN6gWU8SsAzcA01ew
 id: taxonomy_term.survey_question.default
 targetEntityType: taxonomy_term
 bundle: survey_question
@@ -24,14 +27,6 @@ content:
     region: content
     settings:
       rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_question_short_name:
-    type: string_textfield
-    weight: 1
-    region: content
-    settings:
-      size: 60
       placeholder: ''
     third_party_settings: {  }
   field_question_description:
@@ -55,6 +50,14 @@ content:
     weight: 101
     region: content
     settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_question_short_name:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
       placeholder: ''
     third_party_settings: {  }
   field_question_text:
@@ -92,4 +95,5 @@ content:
     settings:
       display_label: true
     third_party_settings: {  }
-hidden: {  }
+hidden:
+  field_section: true

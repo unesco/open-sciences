@@ -1,4 +1,4 @@
-uuid: 70b239fb-103b-4b02-b8ed-239a24dceaa4
+uuid: 5fe7b8ae-4ec6-4503-a72b-500b8700fbcd
 langcode: en
 status: true
 dependencies:
@@ -6,9 +6,9 @@ dependencies:
     - open_science_survey
     - taxonomy
 _core:
-  default_config_hash: aprXqMMem0lmU3wF8YS3tc5QwcE2hjATF_Bkxqg1Di8
-id: survey_response.field_survey_response_question
-field_name: field_survey_response_question
+  default_config_hash: JWdkBci5InFBmx9bCW1fp07N3s4PCE8-18bi_2i1t2c
+id: survey_response.field_country
+field_name: field_country
 entity_type: survey_response
 type: entity_reference
 settings:

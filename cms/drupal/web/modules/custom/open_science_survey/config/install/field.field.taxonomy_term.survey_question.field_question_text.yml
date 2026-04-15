@@ -5,6 +5,8 @@ dependencies:
   config:
     - field.storage.taxonomy_term.field_question_text
     - taxonomy.vocabulary.survey_question
+_core:
+  default_config_hash: zrL2vzIjjmrv_U_-0s9RdnaEuwi1AA_72BhgjlFQejU
 id: taxonomy_term.survey_question.field_question_text
 field_name: field_question_text
 entity_type: taxonomy_term

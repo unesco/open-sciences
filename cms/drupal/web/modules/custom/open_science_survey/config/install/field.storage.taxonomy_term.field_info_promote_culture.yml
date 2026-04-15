@@ -5,6 +5,8 @@ dependencies:
   module:
     - taxonomy
     - text
+_core:
+  default_config_hash: r-MC4yQUuPFNKKEsiWEcTDYoOANAc4wSvB51UFzEYhg
 id: taxonomy_term.field_info_promote_culture
 field_name: field_info_promote_culture
 entity_type: taxonomy_term

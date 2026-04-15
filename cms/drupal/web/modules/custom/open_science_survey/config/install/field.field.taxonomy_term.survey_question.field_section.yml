@@ -6,11 +6,13 @@ dependencies:
     - field.storage.taxonomy_term.field_section
     - taxonomy.vocabulary.survey_question
     - taxonomy.vocabulary.survey_section
+_core:
+  default_config_hash: ZVnyDmICIlmyYKfrvBAE5ALfuU7aK-8R7e4Nv-PNVbI
 id: taxonomy_term.survey_question.field_section
 field_name: field_section
 entity_type: taxonomy_term
 bundle: survey_question
-label: 'Section'
+label: Section
 description: ''
 required: false
 translatable: false

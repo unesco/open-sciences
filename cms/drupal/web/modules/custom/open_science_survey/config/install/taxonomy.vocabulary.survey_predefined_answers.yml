@@ -1,6 +1,11 @@
+uuid: 8db3f8bf-8bac-4b40-b73c-9608698f0ec2
 langcode: en
 status: true
 dependencies: {  }
+_core:
+  default_config_hash: S7xHhTGQ6Sx4eiabGelG_k_l_cvK2oO3-4VEiGEImUI
 name: survey_predefined_answers
 vid: survey_predefined_answers
 description: 'Predefined answers for survey questions'
+weight: 0
+new_revision: false

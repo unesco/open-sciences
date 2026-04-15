@@ -8,6 +8,8 @@ dependencies:
     - taxonomy.vocabulary.countries
   module:
     - text
+_core:
+  default_config_hash: 0TmlIfHqX-G_72IXo6KtDD8E0bIJ2r9XUvL5og9KpNA
 id: taxonomy_term.countries.field_info_funding_infra
 field_name: field_info_funding_infra
 entity_type: taxonomy_term
