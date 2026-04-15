@@ -20,18 +20,16 @@ help:
 	@echo " For more details, see comments in this Makefile."
 
 cms-setup:
-
-
 ifdef CLEAN
 	@docker compose up -d --build --force-recreate db search cms
 else
 	@docker compose up -d db search cms
 endif
-	@$(MAKE) fix-volumes-permissions
-	@$(MAKE) install-drupal
+	@$(MAKE) cms-fix-volumes-permissions
+	@$(MAKE) cms-install-drupal
 
 cms-setup-clean:
-	@$(MAKE) setup CLEAN=1
+	@$(MAKE) cms-setup CLEAN=1
 
 cms-fix-volumes-permissions:
 	@docker compose exec -u root cms chown -R nobody:nobody /var/www/html/sites/default/files
@@ -53,6 +51,8 @@ endif
 cms-import-survey-data:
 	@docker compose exec cms drush en open_science_survey_migration -y
 	@docker compose exec cms drush migrate:import --all
+	@docker compose exec cms drush scr web/modules/custom/open_science_survey_migration/data/countries_profiles_import.php 
+
 
 cms-index-survey-responses:
 	@docker compose exec cms drush en open_science_survey_search -y

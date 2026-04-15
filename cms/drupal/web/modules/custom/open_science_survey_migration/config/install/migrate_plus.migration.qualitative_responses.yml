@@ -18,7 +18,7 @@ destination:
   default_bundle: survey_response
 
 process:
-  field_survey_response_question:
+  field_question:
     plugin: entity_lookup
     source: question_number
     entity_type: taxonomy_term
@@ -26,7 +26,7 @@ process:
     bundle_key: vid
     bundle: survey_question
     ignore_case: true
-  field_survey_response_country:
+  field_country:
     plugin: entity_lookup
     source: country
     entity_type: taxonomy_term
@@ -34,7 +34,7 @@ process:
     bundle_key: vid
     bundle: countries
     ignore_case: true
-  field_survey_response_open_ans:
+  field_open_ans:
     plugin: get
     source: response
   field_open_ans_translated:
