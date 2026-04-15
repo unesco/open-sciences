@@ -4,15 +4,12 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import { DonutChart } from "../DonutChart";
 import { CountryBreakdownModal } from "../CountryBreakdownModal";
 import { RegionBreakdownModal } from "../RegionBreakdownModal";
 import { fetchSurveySections, fetchSurveyQuestions, fetchSurveyResponsesByQuestion, fetchCountries } from "../../api";
-
-function decodeHtmlEntities(str) {
-  if (!str) return "";
-  return str.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
-}
+import { decodeHtmlEntities, MedalIcon } from "../utils";
 
 /**
  * Build a lookup map: question_number → { answers: { [answerName]: count }, total }
@@ -40,28 +37,9 @@ function buildResponsesMap(responses) {
   return map;
 }
 
-// ─── MedalIcon sub-component ───────────────────────────────────────────────
-
-const MedalIcon = () => (
-  <svg
-    className="topic-medal-icon"
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <circle cx="12" cy="14" r="6" fill="#1a6fa8" />
-    <circle cx="12" cy="14" r="4" fill="white" />
-    <circle cx="12" cy="14" r="2.5" fill="#1a6fa8" />
-    <path d="M9 8.5L7 2h10l-2 6.5" stroke="#1a6fa8" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-    <path d="M9 8.5 Q12 10 15 8.5" stroke="#1a6fa8" strokeWidth="1.5" fill="none" />
-  </svg>
-);
-
 // ─── Comparison component ──────────────────────────────────────────────────
 
-export const Comparison = () => {
+export const Comparison = ({ onCountryClick }) => {
   const [topics, setTopics] = useState([]);
   const [topicsLoading, setTopicsLoading] = useState(true);
   const [topicsError, setTopicsError] = useState(null);
@@ -77,6 +55,7 @@ export const Comparison = () => {
   const [showPerRegion, setShowPerRegion] = useState(false);
   const [activeBreakdown, setActiveBreakdown] = useState(null);
   const [countryToRegion, setCountryToRegion] = useState({});
+  const [countriesList, setCountriesList] = useState([]);
 
   // Closed questions whose section matches the selected topic.
   // Stringify both sides so numeric IDs from one API and string IDs from
@@ -94,6 +73,7 @@ export const Comparison = () => {
           if (name && region) map[name] = decodeHtmlEntities(region);
         });
         setCountryToRegion(map);
+        setCountriesList(countries);
       })
       .catch((err) => console.error("Failed to load countries:", err));
   }, []);
@@ -180,7 +160,7 @@ export const Comparison = () => {
               onClick={() => setSelectedTopic(t.id)}
             >
               <span className="topic-icon">
-                <MedalIcon />
+                <MedalIcon className="topic-medal-icon" />
               </span>
               <span className="topic-label">{t.title}</span>
               <span className={`topic-radio ${selectedTopic === t.id ? "checked" : ""}`} />
@@ -252,6 +232,8 @@ export const Comparison = () => {
         <CountryBreakdownModal
           chartLabel={activeBreakdown.label}
           countriesByAnswer={activeBreakdown.countries || {}}
+          countriesList={countriesList}
+          onCountryClick={onCountryClick}
           onClose={closeBreakdown}
         />
       )}
@@ -263,9 +245,19 @@ export const Comparison = () => {
           description={activeBreakdown.description}
           countriesByAnswer={activeBreakdown.countries || {}}
           countryToRegion={countryToRegion}
+          countriesList={countriesList}
+          onCountryClick={onCountryClick}
           onClose={closeBreakdown}
         />
       )}
     </div>
   );
+};
+
+Comparison.propTypes = {
+  onCountryClick: PropTypes.func,
+};
+
+Comparison.defaultProps = {
+  onCountryClick: undefined,
 };
