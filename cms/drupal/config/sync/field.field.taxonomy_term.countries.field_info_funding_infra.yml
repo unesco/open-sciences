@@ -1,0 +1,26 @@
+uuid: 17d61a66-c673-4ca9-9478-72b8c24c1cad
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_info_funding_infra
+    - filter.format.basic_html
+    - taxonomy.vocabulary.countries
+  module:
+    - text
+_core:
+  default_config_hash: 0TmlIfHqX-G_72IXo6KtDD8E0bIJ2r9XUvL5og9KpNA
+id: taxonomy_term.countries.field_info_funding_infra
+field_name: field_info_funding_infra
+entity_type: taxonomy_term
+bundle: countries
+label: 'Investing in open science infrastructures and services'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic_html
+field_type: text_long

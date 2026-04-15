@@ -1,0 +1,87 @@
+uuid: aa4130b3-9010-44a7-8bc2-8ed442f1ea38
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.survey_response.survey_response.field_closed_ans
+    - field.field.survey_response.survey_response.field_country
+    - field.field.survey_response.survey_response.field_open_ans
+    - field.field.survey_response.survey_response.field_open_ans_translated
+    - field.field.survey_response.survey_response.field_question
+  module:
+    - open_science_survey
+_core:
+  default_config_hash: Hbc1j1Uo1NtP3SYrRIeXhBSMklsKPRAeyYZwnB5n9DM
+id: survey_response.survey_response.default
+targetEntityType: survey_response
+bundle: survey_response
+mode: default
+content:
+  created:
+    type: datetime_timestamp
+    weight: 20
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_closed_ans:
+    type: entity_reference_autocomplete
+    weight: 28
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_country:
+    type: entity_reference_autocomplete
+    weight: 27
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_open_ans:
+    type: string_textarea
+    weight: 29
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_open_ans_translated:
+    type: boolean_checkbox
+    weight: 32
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_question:
+    type: entity_reference_autocomplete
+    weight: 26
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 0
+    region: content
+    settings:
+      display_label: false
+    third_party_settings: {  }
+  uid:
+    type: entity_reference_autocomplete
+    weight: 15
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }

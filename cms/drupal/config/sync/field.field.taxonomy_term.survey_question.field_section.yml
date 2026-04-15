@@ -1,0 +1,31 @@
+uuid: 5e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_section
+    - taxonomy.vocabulary.survey_question
+    - taxonomy.vocabulary.survey_section
+_core:
+  default_config_hash: ZVnyDmICIlmyYKfrvBAE5ALfuU7aK-8R7e4Nv-PNVbI
+id: taxonomy_term.survey_question.field_section
+field_name: field_section
+entity_type: taxonomy_term
+bundle: survey_question
+label: Section
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      survey_section: survey_section
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

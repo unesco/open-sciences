@@ -1,0 +1,21 @@
+uuid: 38a73064-3a58-4e9b-be0c-cc951421b5cf
+langcode: en
+status: true
+dependencies:
+  module:
+    - taxonomy
+_core:
+  default_config_hash: sLMee9R2dKF0g1rNr2WO5406ks8chsoBWOqPgi8JY3A
+id: taxonomy_term.field_question_long_description
+field_name: field_question_long_description
+entity_type: taxonomy_term
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

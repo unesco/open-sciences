@@ -1,0 +1,21 @@
+uuid: d1ae3f09-d336-4cb4-9cda-9f43b4e435c0
+langcode: en
+status: true
+dependencies:
+  module:
+    - taxonomy
+_core:
+  default_config_hash: Ugs6OzBCGu1ge-6amMNXiP0Xb0Dx9eEpijbOK4GnDb8
+id: taxonomy_term.field_question_description
+field_name: field_question_description
+entity_type: taxonomy_term
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

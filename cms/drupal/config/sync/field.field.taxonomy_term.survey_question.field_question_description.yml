@@ -1,0 +1,21 @@
+uuid: a3b930d4-e352-48da-8768-48e6de14d79d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_question_description
+    - taxonomy.vocabulary.survey_question
+_core:
+  default_config_hash: YncbAL2DtgcW_pJ2ivSZO-dxPSxIIGd8lJkbY4JiHgI
+id: taxonomy_term.survey_question.field_question_description
+field_name: field_question_description
+entity_type: taxonomy_term
+bundle: survey_question
+label: 'Question description'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

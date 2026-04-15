@@ -1,0 +1,32 @@
+uuid: ce8800bd-1254-4133-b872-8ffd4637e576
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.survey_response.field_closed_ans
+    - taxonomy.vocabulary.survey_predefined_answers
+  module:
+    - open_science_survey
+_core:
+  default_config_hash: ZVGy82wka3N_kMxV4oBg_NmxExrHx8omlIDEPzkGp7Y
+id: survey_response.survey_response.field_closed_ans
+field_name: field_closed_ans
+entity_type: survey_response
+bundle: survey_response
+label: 'Survey Response Closed Answer'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      survey_predefined_answers: survey_predefined_answers
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

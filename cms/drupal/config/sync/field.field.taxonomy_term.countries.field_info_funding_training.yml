@@ -1,0 +1,26 @@
+uuid: 5623a3d7-c7d8-4c39-bed6-d91233a1051a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_info_funding_training
+    - filter.format.basic_html
+    - taxonomy.vocabulary.countries
+  module:
+    - text
+_core:
+  default_config_hash: e3UBp33ImoCbBSE5yl-bTS6feQ0tKdgIlsm9dwe00yY
+id: taxonomy_term.countries.field_info_funding_training
+field_name: field_info_funding_training
+entity_type: taxonomy_term
+bundle: countries
+label: 'Investing in human resources'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic_html
+field_type: text_long

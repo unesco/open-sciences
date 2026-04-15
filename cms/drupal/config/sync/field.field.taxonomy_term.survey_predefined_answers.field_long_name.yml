@@ -1,0 +1,21 @@
+uuid: 2e5ac7d1-3a1a-496c-8f1e-84d3a498c965
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_long_name
+    - taxonomy.vocabulary.survey_predefined_answers
+_core:
+  default_config_hash: NR7nhCHZeGfZ55vEYbdxc8TRVNhelu4h_KsdEXqr0cw
+id: taxonomy_term.survey_predefined_answers.field_long_name
+field_name: field_long_name
+entity_type: taxonomy_term
+bundle: survey_predefined_answers
+label: 'Long Name'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

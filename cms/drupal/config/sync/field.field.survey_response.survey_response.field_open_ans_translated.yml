@@ -1,0 +1,26 @@
+uuid: 123e4567-e89b-12d3-a456-426614174008
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.survey_response.field_open_ans_translated
+  module:
+    - open_science_survey
+_core:
+  default_config_hash: As4VYElX8YsnJI5CDxkhVPQD59MVs3pq3MUwULyBtMM
+id: survey_response.survey_response.field_open_ans_translated
+field_name: field_open_ans_translated
+entity_type: survey_response
+bundle: survey_response
+label: 'Open Answer Translated'
+description: 'A boolean field to indicate if the open answer is translated.'
+required: false
+translatable: false
+default_value:
+  -
+    value: false
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean
