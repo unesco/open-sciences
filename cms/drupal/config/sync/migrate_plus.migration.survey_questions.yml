@@ -1,0 +1,43 @@
+uuid: 791c2c7d-375b-44c5-90e5-835c83d49d87
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: dDnlHKTS_Nr2m9-DmAAuiAUdoz2GxR9ct7OzijUuxho
+id: survey_questions
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags: null
+migration_group: open_science_survey
+label: 'Survey Questions'
+source:
+  plugin: csv
+  path: modules/custom/open_science_survey_migration/data/survey_questions.csv
+  header_row_count: 1
+  ids:
+    - question_number
+process:
+  name: question_number
+  description: question_description
+  field_question_number: question_number
+  field_question_text: question_text
+  field_question_type: type
+  field_question_short_name: question_short_name
+  field_question_description: question_description
+  field_question_long_description: question_long_description
+  field_section:
+    plugin: entity_lookup
+    source: section_number
+    entity_type: taxonomy_term
+    value_key: field_section_id
+    bundle_key: vid
+    bundle: survey_section
+    ignore_case: true
+destination:
+  plugin: 'entity:taxonomy_term'
+  default_bundle: survey_question
+migration_dependencies:
+  required:
+    - survey_sections

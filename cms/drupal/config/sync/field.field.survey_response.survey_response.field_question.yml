@@ -1,19 +1,21 @@
-uuid: ce8800bd-1254-4133-b872-8ffd4637e576
+uuid: 6be1e3dd-5db2-4bb0-b88b-79d4a55f79e3
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.survey_response.field_survey_response_closed_ans
-    - taxonomy.vocabulary.survey_predefined_answers
+    - field.storage.survey_response.field_question
+    - taxonomy.vocabulary.survey_question
   module:
     - open_science_survey
-id: survey_response.survey_response.field_survey_response_closed_ans
-field_name: field_survey_response_closed_ans
+_core:
+  default_config_hash: b8D6aZeADJcmcrEEQ_YRBI5WORm1iLG4ASq0LPZMCYw
+id: survey_response.survey_response.field_question
+field_name: field_question
 entity_type: survey_response
 bundle: survey_response
-label: 'Survey Response Closed Answer'
+label: survey_response_question
 description: ''
-required: false
+required: true
 translatable: false
 default_value: {  }
 default_value_callback: ''
@@ -21,7 +23,7 @@ settings:
   handler: 'default:taxonomy_term'
   handler_settings:
     target_bundles:
-      survey_predefined_answers: survey_predefined_answers
+      survey_question: survey_question
     sort:
       field: name
       direction: asc

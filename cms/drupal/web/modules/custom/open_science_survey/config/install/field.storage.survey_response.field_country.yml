@@ -1,0 +1,22 @@
+uuid: 5fe7b8ae-4ec6-4503-a72b-500b8700fbcd
+langcode: en
+status: true
+dependencies:
+  module:
+    - open_science_survey
+    - taxonomy
+_core:
+  default_config_hash: JWdkBci5InFBmx9bCW1fp07N3s4PCE8-18bi_2i1t2c
+id: survey_response.field_country
+field_name: field_country
+entity_type: survey_response
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

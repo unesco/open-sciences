@@ -6,9 +6,9 @@ dependencies:
     - open_science_survey
     - taxonomy
 _core:
-  default_config_hash: aprXqMMem0lmU3wF8YS3tc5QwcE2hjATF_Bkxqg1Di8
-id: survey_response.field_survey_response_question
-field_name: field_survey_response_question
+  default_config_hash: UpmMEfNLqf-ygF9AsgwCpdkK1wB6UYk_pEqDHSPktmQ
+id: survey_response.field_question
+field_name: field_question
 entity_type: survey_response
 type: entity_reference
 settings:
