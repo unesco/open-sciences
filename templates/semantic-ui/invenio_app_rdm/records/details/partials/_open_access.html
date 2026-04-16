@@ -16,7 +16,7 @@
   {%- set oa_license = oa_data.split('"license":')[1].split(',')[0].replace('"', '').strip() -%}
 {%- endif -%}
 
-<div class="unesco-section collapsed" id="unesco-openaccess-section">
+<div class="unesco-section" id="unesco-openaccess-section">
   <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-openaccess-section')">
     <h3>
       <i class="unlock alternate icon"></i>
@@ -56,7 +56,7 @@
     <div class="unesco-list">
       <div class="unesco-list-item">
         <span class="unesco-list-text">{{ _('Publisher Website') }}</span>
-        <a href="{{ first_url.value }}" class="unesco-find-more-btn" target="_blank" rel="noopener noreferrer">
+        <a href="{{ first_url.value }}" class="unesco-find-more-btn" target="_blank" rel="noopener noreferrer" style="background: #0077D4; color: #fff;">
           {{ _('Access full text') }} <i class="external alternate icon"></i>
         </a>
       </div>
