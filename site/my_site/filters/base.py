@@ -80,9 +80,14 @@ class BaseFilterBackend(ABC):
                 if ":" in facet_filter:
                     facet_name, facet_value = facet_filter.split(":", 1)
                     # Skip if it's the same facet we're aggregating on
-                    if facet_name != self.get_filter_key():
+                    # Check both the filter key and the OpenSearch field to
+                    # avoid self-filtering (e.g. "publication_country" and
+                    # "country" both map to the same field).
+                    field_mapping = self._get_facet_field_mapping()
+                    own_field = self.get_field_name()
+                    mapped_field = field_mapping.get(facet_name)
+                    if facet_name != self.get_filter_key() and mapped_field != own_field:
                         # Determine the field to filter on based on facet name
-                        field_mapping = self._get_facet_field_mapping()
                         field_name = field_mapping.get(
                             facet_name, f"metadata.{facet_name}"
                         )

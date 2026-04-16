@@ -26,14 +26,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
-# Region display names (must match site/my_site/constants.py and the mapper)
-REGION_DISPLAY_NAMES = {
-    "EUROPE_NORTH_AMERICA": "Europe & North America",
-    "ARAB_STATES": "Arab States",
-    "AFRICA": "Africa",
-    "LATIN_AMERICA_CARIBBEAN": "Latin America & the Caribbean",
-    "ASIA_PACIFIC": "Asia & the Pacific",
-}
+from my_site.constants import REGION_DISPLAY_NAMES
 
 
 def load_country_code_to_region() -> dict:
