@@ -1,19 +1,21 @@
-uuid: 8b93cbfc-f0a2-4721-8cb5-6debcc9a2367
+uuid: ce8800bd-1254-4133-b872-8ffd4637e576
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.survey_response.field_survey_response_country
-    - taxonomy.vocabulary.countries
+    - field.storage.survey_response.field_closed_ans
+    - taxonomy.vocabulary.survey_predefined_answers
   module:
     - open_science_survey
-id: survey_response.survey_response.field_survey_response_country
-field_name: field_survey_response_country
+_core:
+  default_config_hash: ZVGy82wka3N_kMxV4oBg_NmxExrHx8omlIDEPzkGp7Y
+id: survey_response.survey_response.field_closed_ans
+field_name: field_closed_ans
 entity_type: survey_response
 bundle: survey_response
-label: 'Survey Response Country'
+label: 'Survey Response Closed Answer'
 description: ''
-required: true
+required: false
 translatable: false
 default_value: {  }
 default_value_callback: ''
@@ -21,7 +23,7 @@ settings:
   handler: 'default:taxonomy_term'
   handler_settings:
     target_bundles:
-      countries: countries
+      survey_predefined_answers: survey_predefined_answers
     sort:
       field: name
       direction: asc

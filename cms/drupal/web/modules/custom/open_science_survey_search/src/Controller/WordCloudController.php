@@ -22,14 +22,14 @@ class WordCloudController extends ControllerBase {
     try {
       /** @var \Drupal\search_api\ServerInterface $server */
       $server = Server::load('open_search');
-      
+
       if (!$server) {
         return NULL;
       }
 
       /** @var \Drupal\search_api_opensearch\Plugin\search_api\backend\SearchApiOpensearchBackend $backend */
       $backend = $server->getBackend();
-      
+
       return $backend->getClient();
     } catch (\Exception $e) {
       $this->getLogger('open_science_survey_search')->error('Failed to get OpenSearch client: @message', ['@message' => $e->getMessage()]);
@@ -70,7 +70,7 @@ class WordCloudController extends ControllerBase {
    */
   public function wordcloud(Request $request) {
     $client = $this->getOpenSearchClient();
-    
+
     if (!$client) {
       return new JsonResponse([
         'error' => 'OpenSearch client not available',
@@ -91,14 +91,14 @@ class WordCloudController extends ControllerBase {
 
     // Build query.
     $query = ['bool' => ['must' => []]];
-    
+
     // Add filters if provided.
     if ($question_number) {
       $query['bool']['must'][] = [
         'term' => ['question_number' => $question_number],
       ];
     }
-    
+
     if ($country_iso3) {
       $query['bool']['must'][] = [
         'term' => ['country_iso3' => $country_iso3],
@@ -107,7 +107,7 @@ class WordCloudController extends ControllerBase {
 
     // Determine if we have filters.
     $has_filters = !empty($query['bool']['must']);
-    
+
     // If no filters, match all.
     if (!$has_filters) {
       $query = ['match_all' => (object) []];
@@ -139,29 +139,36 @@ class WordCloudController extends ControllerBase {
 
     try {
       $response = $client->search($params);
-      
+
       // Extract terms from response.
       $buckets = $response['aggregations']['top_terms']['buckets'] ?? [];
-      
-      $terms = array_map(function($bucket) {
+
+      $total = 0;
+      foreach ($buckets as $bucket) {
+        $total += $bucket['doc_count'];
+      }
+      if ($total == 0) {
+        $buckets = [];
+      }
+
+      $terms = array_map(function($bucket) use ($total) {
         return [
           'term' => $bucket['key'],
-          'count' => $bucket['doc_count'],
+          'percent' => 100 * $bucket['doc_count'] / $total, // Normalize count to total documents for relative size.
         ];
       }, $buckets);
 
       return new JsonResponse([
-        'total' => $response['hits']['total']['value'] ?? 0,
-        'terms' => $terms,
         'filters' => [
           'question_number' => $question_number,
           'country_iso3' => $country_iso3,
         ],
+        'terms' => $terms,
       ]);
 
     } catch (\Exception $e) {
       $this->getLogger('open_science_survey_search')->error('Word cloud query failed: @message', ['@message' => $e->getMessage()]);
-      
+
       return new JsonResponse([
         'error' => 'Failed to generate word cloud',
         'message' => $e->getMessage(),
@@ -186,7 +193,7 @@ class WordCloudController extends ControllerBase {
    */
   public function termContext(Request $request) {
     $client = $this->getOpenSearchClient();
-    
+
     if (!$client) {
       return new JsonResponse([
         'error' => 'OpenSearch client not available',
@@ -194,7 +201,7 @@ class WordCloudController extends ControllerBase {
     }
 
     $term = $request->query->get('term');
-    
+
     if (!$term) {
       return new JsonResponse([
         'error' => 'Missing required parameter: term',
@@ -213,13 +220,13 @@ class WordCloudController extends ControllerBase {
         ],
       ],
     ];
-    
+
     if ($question_number) {
       $must_clauses[] = [
         'term' => ['question_number' => $question_number],
       ];
     }
-    
+
     if ($country_iso3) {
       $must_clauses[] = [
         'term' => ['country_iso3' => $country_iso3],
@@ -259,14 +266,14 @@ class WordCloudController extends ControllerBase {
 
     try {
       $response = $client->search($params);
-      
+
       // Extract hits with highlights.
       $hits = $response['hits']['hits'] ?? [];
-      
+
       $results = array_map(function($hit) {
         $source = $hit['_source'] ?? [];
         $highlight = $hit['highlight']['answer_open_text'][0] ?? null;
-        
+
         return [
           'id' => $hit['_id'],
           'text' => $source['answer_open_text_raw'] ?? '',
@@ -290,7 +297,7 @@ class WordCloudController extends ControllerBase {
 
     } catch (\Exception $e) {
       $this->getLogger('open_science_survey_search')->error('Term context query failed: @message', ['@message' => $e->getMessage()]);
-      
+
       return new JsonResponse([
         'error' => 'Failed to search term in context',
         'message' => $e->getMessage(),

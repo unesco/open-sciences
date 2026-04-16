@@ -1,0 +1,30 @@
+uuid: ffa4c843-5dd9-4598-b4e8-3c51326519b4
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: K5XeHJJ2pNIrSP2Z3W2-bsI1Z9pkbtw7a3N7gqP3Ta0
+id: countries
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags: null
+migration_group: open_science_survey
+label: Countries
+source:
+  plugin: csv
+  path: modules/custom/open_science_survey_migration/data/countries.csv
+  header_row_count: 1
+  ids:
+    - ISO_Code
+process:
+  name: Country
+  field_country_name: Country
+  field_region: Region
+  field_group: Group
+  field_iso_alpha3_code: ISO_Code
+destination:
+  plugin: 'entity:taxonomy_term'
+  default_bundle: countries
+migration_dependencies: null

@@ -7,3 +7,4 @@ dependencies:
   - drupal:rest
   - drupal:serialization
   - taxonomy
+  - views_data_export

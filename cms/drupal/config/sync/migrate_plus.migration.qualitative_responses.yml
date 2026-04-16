@@ -1,0 +1,55 @@
+uuid: 689ad744-14b2-4859-ba14-e4c8406fb588
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: 4sYNuvSHxOAHez8jo64XNytdqNIPrOwEqgUXB2A1xcs
+id: qualitative_responses
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags: null
+migration_group: open_science_survey
+label: 'Qualitative Responses'
+source:
+  plugin: csv
+  path: modules/custom/open_science_survey_migration/data/qualitative_responses.csv
+  header_row_count: 1
+  ids:
+    - country
+    - question_number
+process:
+  field_question:
+    plugin: entity_lookup
+    source: question_number
+    entity_type: taxonomy_term
+    value_key: field_question_number
+    bundle_key: vid
+    bundle: survey_question
+    ignore_case: true
+  field_country:
+    plugin: entity_lookup
+    source: country
+    entity_type: taxonomy_term
+    value_key: field_iso_alpha3_code
+    bundle_key: vid
+    bundle: countries
+    ignore_case: true
+  field_open_ans:
+    plugin: get
+    source: response
+  field_open_ans_translated:
+    plugin: static_map
+    source: Translated
+    map:
+      'Y': true
+      'N': false
+    default_value: false
+destination:
+  plugin: 'entity:survey_response'
+  default_bundle: survey_response
+migration_dependencies:
+  required:
+    - countries
+    - survey_questions
