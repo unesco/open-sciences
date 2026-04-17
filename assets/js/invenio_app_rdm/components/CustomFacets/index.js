@@ -176,17 +176,6 @@ export const CustomFacets = ({ aggs, appName }) => {
           maxResults={100}
         />
         <DynamicFacet
-          key={`country-${urlKey}`}
-          label="Author Affiliation Country"
-          apiField="country"
-          queryField="metadata.custom_fields.country"
-          placeholder="Search countries..."
-          icon="globe"
-          maxResults={100}
-          useFacetParameter={true}
-          facetName="publication_country"
-        />
-        <DynamicFacet
           key={`affiliation-region-${urlKey}`}
           label="Author Affiliation Region"
           apiField="affiliation_region"
@@ -196,6 +185,17 @@ export const CustomFacets = ({ aggs, appName }) => {
           maxResults={100}
           useFacetParameter={true}
           facetName="affiliation_region"
+        />
+        <DynamicFacet
+          key={`country-${urlKey}`}
+          label="Author Affiliation Country"
+          apiField="country"
+          queryField="metadata.custom_fields.country"
+          placeholder="Search countries..."
+          icon="globe"
+          maxResults={100}
+          useFacetParameter={true}
+          facetName="publication_country"
         />
         <DynamicFacet
           key={`funding-${urlKey}`}
