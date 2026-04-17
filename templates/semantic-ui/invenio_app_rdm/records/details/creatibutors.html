@@ -30,7 +30,7 @@ li.creatibutor-wrap.creatibutor-hidden {
 <div class="ui grid">
   {% if record_ui["ui"]["creators"] and record_ui["ui"]["creators"]["creators"] %}
     <div class="row ui accordion affiliations">
-      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <div class="sixteen wide mobile twelve wide tablet eleven wide computer column">
         <h3 class="sr-only">{{ _('Creators') }}</h3>
           <ul class="creatibutors">
             {{ show_creatibutors(record_ui["ui"]["creators"]["creators"], show_affiliations=True, show_role=True) }}
@@ -48,7 +48,7 @@ li.creatibutor-wrap.creatibutor-hidden {
 
   {% if record_ui["ui"]["contributors"] and record_ui["ui"]["contributors"]["contributors"] %}
     <div class="row ui accordion affiliations">
-      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <div class="sixteen wide mobile twelve wide tablet eleven wide computer column">
         <h3>{{ _('Contributors') }}</h3>
           {%- for group in record_ui["ui"]["contributors"]["contributors"]|groupby('role.title')%}
           <div>
@@ -99,6 +99,30 @@ function toggleCreatibutors(link) {
     if (showMoreText) showMoreText.style.display = 'none';
     if (showLessText) showLessText.style.display = 'inline';
     link.setAttribute('data-expanded', 'true');
+  }
+}
+
+function toggleAffiliations(btn, event) {
+  event.stopPropagation();
+  event.preventDefault();
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  const newExpanded = !expanded;
+  btn.setAttribute('aria-expanded', String(newExpanded));
+
+  // Toggle button text
+  var text = newExpanded ? btn.getAttribute('data-close-text') : btn.getAttribute('data-open-text');
+  for (var i = 0; i < btn.childNodes.length; i++) {
+    if (btn.childNodes[i].nodeType === Node.TEXT_NODE && btn.childNodes[i].textContent.trim().length > 0) {
+      btn.childNodes[i].textContent = ' ' + text + ' ';
+      break;
+    }
+  }
+
+  // Toggle the content section
+  var targetId = btn.getAttribute('aria-controls');
+  var content = document.getElementById(targetId);
+  if (content) {
+    content.style.display = newExpanded ? 'block' : 'none';
   }
 }
 </script>

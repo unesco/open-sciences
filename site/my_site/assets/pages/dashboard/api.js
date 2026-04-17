@@ -114,3 +114,13 @@ export async function fetchSurveyResponsesByQuestion(questionNumber) {
 export async function fetchCountries() {
   return get(API_PATHS.COUNTRIES);
 }
+
+/**
+ * Fetch a single country's detail by ISO-3 code.
+ * Endpoint: GET /cms/api/countries/<iso3>
+ * @param {string} iso3  e.g. "IND", "NLD"
+ * @returns {Promise<Array>} Array with a single country object
+ */
+export async function fetchCountryByIso3(iso3) {
+  return get(`${API_PATHS.COUNTRIES}/${encodeURIComponent(iso3)}`);
+}

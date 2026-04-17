@@ -57,6 +57,7 @@
 {% for creatibutor in creatibutors if creatibutor.person_or_org and creatibutor.person_or_org.name %}
   <li class="creatibutor-wrap separated{% if loop.index > initial_display_count %} creatibutor-hidden{% endif %}">
     <a class="ui creatibutor-link"
+      style="text-decoration: underline;"
       {% if show_affiliations and creatibutor.affiliations %}
         data-tooltip="{{ format_affiliations_tooltip(creatibutor.affiliations) }}"
         data-position="top left"
@@ -95,13 +96,15 @@
 
 
 {% macro affiliations_accordion(group, affiliations) %}
-<div class="ui sixteen wide tablet three wide computer column title right aligned bottom aligned">
-  <button class="ui affiliations-button trigger button mini mr-0"
+<div class="ui sixteen wide tablet five wide computer column title right aligned bottom aligned">
+  <button class="ui affiliations-button button mini mr-0"
           aria-controls="{{ group }}-affiliations"
           data-open-text="{{_('Show affiliations')}}"
           data-close-text="{{ _('Hide affiliations') }}"
-          aria-expanded="false">
+          aria-expanded="false"
+          onclick="toggleAffiliations(this, event)">
     {{ _("Show affiliations") }}
+    <i class="chevron down icon" style="margin: 0;"></i>
   </button>
 </div>
 
