@@ -534,6 +534,24 @@ RDM_FACETS = {
             "field": "custom_fields.publication:affiliation_region",
         },
     },
+    "keyword": {
+        "facet": CFTermsFacet(
+            field="publication:keyword",
+            label=_("Keyword"),
+        ),
+        "ui": {
+            "field": "custom_fields.publication:keyword",
+        },
+    },
+    "field_of_study": {
+        "facet": CFTermsFacet(
+            field="publication:field_of_study",
+            label=_("Field of Study"),
+        ),
+        "ui": {
+            "field": "custom_fields.publication:field_of_study",
+        },
+    },
 }
 
 # Custom Sort Options
@@ -552,7 +570,7 @@ RDM_SORT_OPTIONS.update({
 
 RDM_SEARCH = {
     **RDM_SEARCH,
-    "facets": RDM_SEARCH["facets"] + ["publication_year", "publication_country", "funding_org", "is_open_access", "affiliation_region"],
+    "facets": RDM_SEARCH["facets"] + ["publication_year", "publication_country", "funding_org", "is_open_access", "affiliation_region", "keyword", "field_of_study"],
     "sort": ["bestmatch", "published-desc", "published-asc", "mostviewed"]
 }
 
