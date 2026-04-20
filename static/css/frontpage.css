@@ -66,7 +66,8 @@
 /* Highlights Section */
 .highlights-section {
   background-color: #fff;
-  padding: 48px 120px 64px;
+  padding: 48px 0 64px;
+  overflow: hidden;
 }
 
 .section-title {
@@ -112,6 +113,7 @@
 .highlightsSwiper {
   width: 100%;
   padding: 20px 0 60px 0;
+  overflow: hidden;
 }
 
 .highlightsSwiper .swiper-slide {
@@ -121,6 +123,49 @@
 
 .highlightsSwiper .swiper-pagination {
   bottom: 20px;
+}
+
+/* Swiper Nav Wrapper */
+.swiper-nav-wrapper {
+  position: relative;
+}
+
+/* Highlights arrows */
+.highlightsSwiper-prev,
+.highlightsSwiper-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #0073b7;
+  color: #0073b7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 0.2s, color 0.2s;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.highlightsSwiper-prev {
+  left: -20px;
+}
+
+.highlightsSwiper-next {
+  right: -20px;
+}
+
+.highlightsSwiper-prev:hover,
+.highlightsSwiper-next:hover {
+  background: #0073b7;
+  color: #fff;
+}
+
+.highlightsSwiper-prev::after,
+.highlightsSwiper-next::after {
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .highlightsSwiper .swiper-pagination-bullet {
@@ -366,6 +411,7 @@
 .researchSwiper {
   width: 100%;
   padding: 20px 0 60px 0;
+  overflow: hidden;
 }
 
 .researchSwiper .swiper-slide {
@@ -374,6 +420,44 @@
 
 .researchSwiper .swiper-pagination {
   bottom: 20px;
+}
+
+/* Research arrows */
+.researchSwiper-prev,
+.researchSwiper-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #0073b7;
+  color: #0073b7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 0.2s, color 0.2s;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.researchSwiper-prev {
+  left: -20px;
+}
+
+.researchSwiper-next {
+  right: -20px;
+}
+
+.researchSwiper-prev:hover,
+.researchSwiper-next:hover {
+  background: #0073b7;
+  color: #fff;
+}
+
+.researchSwiper-prev::after,
+.researchSwiper-next::after {
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .researchSwiper .swiper-pagination-bullet {
