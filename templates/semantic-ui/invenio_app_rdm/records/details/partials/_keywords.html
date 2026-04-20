@@ -1,20 +1,35 @@
 {#
   Keywords/Subjects Card Component
-  Shows keywords/subjects as clickable tags in sidebar card format
-  Style matches InvenioRDM default sidebar cards
+  Shows keywords and fields of study as clickable tags in sidebar card format
+  Uses custom_fields publication:keyword and publication:field_of_study
 #}
 
-{%- if metadata.subjects and metadata.subjects|length > 0 -%}
+{%- set kw_list = record_ui.custom_fields.get("publication:keyword", []) | default([], true) -%}
+{%- set fos_list = record_ui.custom_fields.get("publication:field_of_study", []) | default([], true) -%}
+{%- set seen = [] -%}
+
+{%- if kw_list or fos_list -%}
 <section id="keywords-and-topics" class="sidebar-container unesco-keywords-card" aria-label="{{ _('Keywords and topics') }}">
   <h2 class="ui medium top attached header mt-0">{{ _('Keywords and topics') }}</h2>
   <div class="ui segment bottom attached rdm-sidebar">
     <div class="keywords-tags" style="display: flex; flex-wrap: wrap; gap: 8px;">
-      {%- for subject_item in metadata.subjects -%}
-        {%- if subject_item.subject -%}
-      <a href="/search?q=metadata.subjects.subject:&quot;{{ subject_item.subject | urlencode }}&quot;" 
+      {%- for kw in kw_list -%}
+        {%- if kw and kw.lower() not in seen -%}
+          {%- if seen.append(kw.lower()) -%}{%- endif -%}
+      <a href="/search?q=&f=keyword%3A{{ kw | urlencode }}" 
          class="ui label basic"
          style="margin: 0; border-radius: 4px; font-weight: normal;">
-        {{ subject_item.subject }}
+        {{ kw }}
+      </a>
+        {%- endif -%}
+      {%- endfor -%}
+      {%- for fos in fos_list -%}
+        {%- if fos and fos.lower() not in seen -%}
+          {%- if seen.append(fos.lower()) -%}{%- endif -%}
+      <a href="/search?q=&f=field_of_study%3A{{ fos | urlencode }}" 
+         class="ui label basic"
+         style="margin: 0; border-radius: 4px; font-weight: normal;">
+        {{ fos }}
       </a>
         {%- endif -%}
       {%- endfor -%}
