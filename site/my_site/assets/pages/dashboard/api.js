@@ -124,3 +124,20 @@ export async function fetchCountries() {
 export async function fetchCountryByIso3(iso3) {
   return get(`${API_PATHS.COUNTRIES}/${encodeURIComponent(iso3)}`);
 }
+
+/**
+ * Multi-filter survey responses search.
+ * Endpoint: GET /cms/api/search/survey-responses-multi-filter
+ *
+ * @param {Array<{question: string, answers: string[]}>} filters
+ *   e.g. [{ question: "1.1", answers: ["Y"] }, { question: "1.3", answers: ["Y", "P"] }]
+ * @returns {Promise<{ countries: Array, filters_applied: Array, total_countries: number }>}
+ */
+export async function fetchMultiFilter(filters) {
+  const params = new URLSearchParams();
+  filters.forEach((f, i) => {
+    params.append(`filters[${i}][question]`, f.question);
+    params.append(`filters[${i}][answer]`, f.answers.join(","));
+  });
+  return get(`/api/search/survey-responses-multi-filter?${params.toString()}`);
+}

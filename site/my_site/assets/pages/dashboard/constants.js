@@ -1,5 +1,23 @@
 
 /** Blue-shade cycle for answer/region segments (index → colour). */
+export const TABS = [
+  { id: "global", label: "Global overview" },
+  { id: "comparison", label: "Comparison across countries & regions" },
+  { id: "challenges", label: "Open Science challenges" },
+];
+
+export const DISCLAIMER_TEXT =
+  "The Dashboards present information as reported by the Member States. " +
+  "UNESCO does not independently verify the accuracy or completeness of the " +
+  "submitted information. An AI model [details will be provided later] was " +
+  "used to assist in preparing initial draft summaries for the Country " +
+  "Profiles. These drafts were subsequently reviewed, revised and approved " +
+  "by the UNESCO team. Personal data contained in the original national " +
+  "submission files, including respondents\u2019 contact details, was removed " +
+  "before the files were published as supporting materials accompanying the " +
+  "Dashboards.";
+
+/** Blue-shade cycle for answer/region segments (index → colour). */
 export const BLUE_PALETTE = [
   "#0d3b6e", // deep navy
   "#1a5c9e", // dark blue

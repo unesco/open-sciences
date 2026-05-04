@@ -16,4 +16,7 @@ theme = WebpackBundle(
         "cms": "./pages/administration/cms/mount.js",
         "cms-styles": "./pages/administration/cms/index.less",
     },
+    dependencies={
+        "leaflet": "^1.9.4",
+    },
 )
