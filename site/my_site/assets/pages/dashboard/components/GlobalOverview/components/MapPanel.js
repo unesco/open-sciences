@@ -6,6 +6,8 @@ import {
   WORLD_GEOJSON_URL,
   REGIONS,
   REGION_DISPLAY_TO_API,
+  REGION_VIEW,
+  ALL_REGIONS,
   normaliseRegion,
   featureStyle,
 } from "./constants";
@@ -43,7 +45,7 @@ export const MapPanel = ({
 
   // Region → set of ISO3 codes
   const regionIso3Set = useMemo(() => {
-    if (region === "All regions") return null;
+    if (region === ALL_REGIONS) return null;
     const apiRegion = normaliseRegion(REGION_DISPLAY_TO_API[region] || region);
     const set = new Set(
       allCountries
@@ -175,22 +177,18 @@ export const MapPanel = ({
   // Zoom when region changes
   useEffect(() => {
     const map = leafletRef.current;
-    const layer = geoLayerRef.current;
-    if (!map || !layer) return;
+    if (!map) return;
 
-    if (!regionIso3Set) {
+    if (region === ALL_REGIONS) {
       map.flyTo([20, 15], 2, { duration: 0.6 });
       return;
     }
 
-    let bounds = null;
-    layer.eachLayer((l) => {
-      if (regionIso3Set.has(l.feature?.id)) {
-        bounds = bounds ? bounds.extend(l.getBounds()) : l.getBounds();
-      }
-    });
-    if (bounds) map.flyToBounds(bounds, { padding: [24, 24], duration: 0.6 });
-  }, [regionIso3Set]);
+    const view = REGION_VIEW[region];
+    if (view) {
+      map.flyTo(view.center, view.zoom, { duration: 0.6 });
+    }
+  }, [region]);
 
   // Country list
   const displayedCountries = (() => {

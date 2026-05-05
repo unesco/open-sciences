@@ -13,7 +13,7 @@ import { FilterPanel } from "./components/FilterPanel";
 import { MapPanel } from "./components/MapPanel";
 import { NoDataModal } from "./components/NoDataModal";
 import { CountriesModal } from "./components/CountriesModal";
-import { buildFilterTree } from "./components/constants";
+import { buildFilterTree, ALL_REGIONS } from "./components/constants";
 
 export const GlobalOverview = ({ onCountryClick }) => {
   const [allCountries, setAllCountries]         = useState([]);
@@ -21,7 +21,7 @@ export const GlobalOverview = ({ onCountryClick }) => {
   const [matchingSet, setMatchingSet]           = useState(null);
   const [filterLoading, setFilterLoading]       = useState(false);
   const [activeFilters, setActiveFilters]       = useState({});
-  const [region, setRegion]                     = useState("All regions");
+  const [region, setRegion]                     = useState(ALL_REGIONS);
   const [globalFilters, setGlobalFilters]       = useState([]);
   const [showNoDataModal, setShowNoDataModal]   = useState(false);
   const [showCountriesModal, setShowCountriesModal] = useState(false);

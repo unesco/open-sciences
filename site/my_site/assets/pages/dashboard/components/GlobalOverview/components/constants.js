@@ -8,8 +8,10 @@ export const COLOR_MATCHES      = "#B2D6F2";
 export const WORLD_GEOJSON_URL =
   "https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json";
 
+export const ALL_REGIONS = "All regions";
+
 export const REGIONS = [
-  "All regions",
+  ALL_REGIONS,
   "Africa",
   "Arab States",
   "Asia-Pacific",
@@ -29,10 +31,25 @@ export const REGION_DISPLAY_TO_API = {
   "North America": "Europe & North America",
 };
 
-// Decode &amp; → & and lowercase for tolerant comparison.
+// Decode &amp; → & (iteratively for double-encoding) and lowercase for tolerant comparison.
 export function normaliseRegion(s) {
-  return (s || "").replace(/&amp;/g, "&").trim().toLowerCase();
+  let r = (s || "").trim();
+  // Iteratively decode &amp; to handle single or double encoding.
+  while (r.includes("&amp;")) {
+    r = r.replace(/&amp;/g, "&");
+  }
+  return r.toLowerCase();
 }
+
+// Predefined center + zoom for each region for reliable map zooming.
+export const REGION_VIEW = {
+  "Africa": { center: [2, 20], zoom: 1 },
+  "Arab States": { center: [25, 42], zoom: 2 },
+  "Asia-Pacific": { center: [15, 105], zoom: 1 },
+  "Europe": { center: [52, 15], zoom: 2 },
+  "Latin America & the Caribbean": { center: [-5, -70], zoom: 1 },
+  "North America": { center: [50, -100], zoom: 1 },
+};
 
 // Build the section/question filter tree from the API responses.
 // Only "Closed" questions with a non-empty short_name are usable as Yes/No
