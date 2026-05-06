@@ -87,7 +87,13 @@ class WordCloudController extends ControllerBase {
       'min_doc_count' => 2,
       'shard_size' => 100,
       'size' => 50,
+      'max_entries' => 50,
+      'min_weight_percent' => 0,
     ];
+
+    $max_entries = max(1, (int) ($terms_config['max_entries'] ?? $terms_config['size'] ?? 50));
+    $min_weight_percent = (float) ($terms_config['min_weight_percent'] ?? 0);
+    $min_weight_percent = max(0, min(100, $min_weight_percent));
 
     // Build query.
     $query = ['bool' => ['must' => []]];
@@ -157,6 +163,10 @@ class WordCloudController extends ControllerBase {
           'percent' => 100 * $bucket['doc_count'] / $total, // Normalize count to total documents for relative size.
         ];
       }, $buckets);
+
+      if (count($terms) > $max_entries) {
+        $terms = array_slice($terms, 0, $max_entries);
+      }
 
       return new JsonResponse([
         'filters' => [

@@ -18,3 +18,9 @@ open_science_survey_search.settings:
         size:
           type: integer
           label: 'Maximum number of terms to return'
+        max_entries:
+          type: integer
+          label: 'Maximum number of entries in API response'
+        min_weight_percent:
+          type: float
+          label: 'Minimum percent weight threshold'

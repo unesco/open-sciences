@@ -178,3 +178,5 @@ significant_terms:
   min_doc_count: 2
   shard_size: 100
   size: 50
+  max_entries: 50
+  min_weight_percent: 0

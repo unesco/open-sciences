@@ -61,6 +61,8 @@ class OpenSearchSettingsForm extends ConfigFormBase {
       'min_doc_count' => 2,
       'shard_size' => 100,
       'size' => 50,
+      'max_entries' => 50,
+      'min_weight_percent' => 0,
     ];
 
     $form['advanced']['info_advanced'] = [
@@ -89,9 +91,29 @@ class OpenSearchSettingsForm extends ConfigFormBase {
     $form['advanced']['size'] = [
       '#type' => 'number',
       '#title' => $this->t('Maximum Terms'),
-      '#description' => $this->t('Maximum number of terms to return in word cloud.'),
+      '#description' => $this->t('Maximum number of candidate terms fetched from OpenSearch before response filtering.'),
       '#default_value' => $significant_terms['size'] ?? 50,
       '#min' => 1,
+      '#required' => TRUE,
+    ];
+
+    $form['advanced']['max_entries'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Maximum Response Entries'),
+      '#description' => $this->t('Maximum number of entries returned by the word cloud API response after filtering.'),
+      '#default_value' => $significant_terms['max_entries'] ?? 50,
+      '#min' => 1,
+      '#required' => TRUE,
+    ];
+
+    $form['advanced']['min_weight_percent'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Minimum Weight (%)'),
+      '#description' => $this->t('Exclude terms whose computed percent weight is below this threshold (0-100).'),
+      '#default_value' => $significant_terms['min_weight_percent'] ?? 0,
+      '#min' => 0,
+      '#max' => 100,
+      '#step' => 0.1,
       '#required' => TRUE,
     ];
 
@@ -108,6 +130,8 @@ class OpenSearchSettingsForm extends ConfigFormBase {
         'min_doc_count' => (int) $form_state->getValue('min_doc_count'),
         'shard_size' => (int) $form_state->getValue('shard_size'),
         'size' => (int) $form_state->getValue('size'),
+        'max_entries' => (int) $form_state->getValue('max_entries'),
+        'min_weight_percent' => (float) $form_state->getValue('min_weight_percent'),
       ])
       ->save();
 
