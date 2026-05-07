@@ -29,3 +29,4 @@ content:
     region: content
 hidden:
   member_for: true
+  search_api_excerpt: true
