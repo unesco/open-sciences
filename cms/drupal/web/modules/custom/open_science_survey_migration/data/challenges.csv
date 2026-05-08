@@ -1,522 +1,559 @@
 challenge_name,country,question_number,snippet
-publishing costs,AGO,2.3,"high cost of journal subscriptions and closed databases"
-no national policy,AGO,2.3,"Without a clear policy for sharing data and publications"
+no national policy,AGO,2.3,Without a clear policy for sharing data and publications
+publishing costs,AGO,2.3,high cost of journal subscriptions and closed databases
 inadequate infrastructure,AGO,3.3,"Developing a dedicated network...requires substantial investment in infrastructure, which may be lacking"
-lack of funding,AGO,3.3,"Establishing and maintaining an NREN demands significant financial resources"
-poor coordination,AGO,3.3,"Creating an NREN necessitates collaboration...which can be challenging to coordinate"
-lack of funding,AGO,4.3,"constrained state budgets and scarce private financing"
-inadequate infrastructure,AGO,4.3,"challenges in developing robust scientific research infrastructure"
-no national policy,AGO,5.2,"no clear national policy mandating the integration of open science practices"
-lack of awareness,AGO,5.2,"Many researchers and institutions require further training and guidelines"
-lack of capacity building,AGO,5.2,"Need for Awareness and Capacity Building"
-no national policy,AGO,5.3,"have not yet implemented structured policies to incentivize open science contributions"
+lack of funding,AGO,3.3,Establishing and maintaining an NREN demands significant financial resources
+poor coordination,AGO,3.3,Creating an NREN necessitates collaboration...which can be challenging to coordinate
+inadequate infrastructure,AGO,4.3,challenges in developing robust scientific research infrastructure
+lack of funding,AGO,4.3,constrained state budgets and scarce private financing
+cultural resistance,AGO,5.2,Universities and research institutions are still in the early stages of adapting open science principles into academic evaluation frameworks
+lack of awareness,AGO,5.2,Many researchers and institutions require further training and guidelines
+lack of capacity building,AGO,5.2,Need for Awareness and Capacity Building
+no national policy,AGO,5.2,no clear national policy mandating the integration of open science practices
+no incentives,AGO,5.3,no government-led or institutional awards dedicated to recognizing open science efforts
+no national policy,AGO,5.3,have not yet implemented structured policies to incentivize open science contributions
 traditional metrics,AGO,5.3,"still prioritize traditional academic outputs, such as indexed journal publications"
-no incentives,AGO,5.3,"no government-led or institutional awards dedicated to recognizing open science efforts"
-lack of capacity building,ARM,4.2,"no regular seminars for decision makers on that topic"
-nascent research ecosystem,ARM,4.2,"OS implementation is relevantly new in Armenia"
-nascent research ecosystem,ARM,4.3,"universities are still on their way to incorporate that topic in their respective curricula"
-lack of capacity building,ARM,4.3,"universities are still on their way to incorporate that topic"
-predatory publishing,ARM,5.4,"scientists had problems with identifying predatory or fraud journals"
-poor coordination,ARM,7.3,"need for a more profound research of potential collaborators and partners"
-lack of awareness,ARM,8.1,"Low level of open science awareness among researchers"
-cultural resistance,ARM,8.1,"Unwillingness to share data"
-no legal framework,ARM,8.1,"Immature legislative basis for data protection"
-security concerns,ARM,8.1,"Immature legislative basis for data protection"
-traditional metrics,ARM,8.1,"Insufficient use of diverse metrics in evaluation and review processes"
-limited human resources,ARM,8.1,"lack of personnel capable to work with and maintain open science infrastructures"
-inadequate infrastructure,ARM,8.1,"Underdeveloped state of semantic analysis tools"
-lack of expertise,ARM,8.1,"lack of personnel capable to work with and maintain open science infrastructures"
-no national policy,ARM,8.1,"Low prioritization of open science policy development in the R&D governance"
-no private sector engagement,AUT,2.8,"no comprehensive framework specifically designed to facilitate equitable public-private partnerships"
-competing priorities,AUT,2.8,"Aligning the goals of private sector stakeholders with the principles of Open Science remains challenging"
-lack of funding,AUT,2.8,"Limited financial...resources have hindered the development of structured initiatives"
-limited human resources,AUT,2.8,"Limited...human resources have hindered the development of structured initiatives"
-IP rights concerns,AUT,5.4,"authors and repository operators...must consider various legal provisions...concerning copyright laws"
-publishing costs,AUT,5.4,"the author-pays model of open access can be exclusionary"
-plagiarism concerns,AUT,5.4,"without rigorous peer review...risk of disseminating unverified or low-quality research"
-predatory publishing,AUT,5.4,"Predatory publishing is an issue of considerable concern"
-security concerns,AUT,5.4,"The OSA Steering Board is currently working on the topic of foreign interference and open data"
-lack of planning,BEL,5.4,"reporting on the KPI's...entails a large administrative burden"
-competing priorities,BEL,5.4,"researchers experience conflicting expectations between Open Science and valorisation"
-publishing costs,BEL,5.4,"an increase in APCs"
-security concerns,BEL,8.1,"The rising attention to knowledge security may lead to more caution in the implementation"
-publishing costs,BEN,2.7,"High fees for publishing in scientific journals are obstacles"
-lack of capacity building,BEN,2.7,"lack of training on open science practices"
-no legal framework,BEN,3.4,"establishing the appropriate regulatory framework"
-lack of awareness,BEN,5.3,"Low awareness/information among stakeholders"
-lack of awareness,BHR,2.3,"Lack of awareness of the open science principles"
-nascent research ecosystem,BHR,2.3,"nascent research ecosystem"
-competing priorities,BHR,2.3,"increased focus on economic growth...supersede academic and research frameworks"
-lack of awareness,BHR,2.4,"lack of awareness about open science principles"
-nascent research ecosystem,BHR,2.4,"a nascent research ecosystem"
-competing priorities,BHR,2.4,"greater emphasis on economic growth and digital transformation over academic and research frameworks"
-lack of awareness,BHR,2.7,"limited awareness and understanding of Open Science"
-no national policy,BHR,4.2,"Open Science policies and strategies have not yet been implemented"
-lack of planning,BRA,4.3,"curricular reforms are complex and take time"
-predatory publishing,CAN,5.4,"increase in predatory publishers"
-publishing costs,CAN,5.4,"high article processing charges"
+lack of awareness,ARM,4.2,there are still no regular seminars for decision makers on that topic
+lack of capacity building,ARM,4.2,no regular seminars for decision makers on that topic
+nascent research ecosystem,ARM,4.2,OS implementation is relevantly new in Armenia
+lack of capacity building,ARM,4.3,universities are still on their way to incorporate that topic
+nascent research ecosystem,ARM,4.3,universities are still on their way to incorporate that topic in their respective curricula
+predatory publishing,ARM,5.4,scientists had problems with identifying predatory or fraud journals
+poor coordination,ARM,7.3,need for a more profound research of potential collaborators and partners
+cultural resistance,ARM,8.1,Unwillingness to share data
+inadequate infrastructure,ARM,8.1,Underdeveloped state of semantic analysis tools
+lack of awareness,ARM,8.1,Low level of open science awareness among researchers
+lack of expertise,ARM,8.1,lack of personnel capable to work with and maintain open science infrastructures
+language barriers,ARM,8.1,Underdeveloped state of semantic analysis tools for Armenian language and insufficient state of language technologies for Armenian language
+limited human resources,ARM,8.1,lack of personnel capable to work with and maintain open science infrastructures
+no legal framework,ARM,8.1,Immature legislative basis for data protection
+no national policy,ARM,8.1,Low prioritization of open science policy development in the R&D governance
+security concerns,ARM,8.1,Immature legislative basis for data protection
+traditional metrics,ARM,8.1,Insufficient use of diverse metrics in evaluation and review processes
+competing priorities,AUT,2.8,Aligning the goals of private sector stakeholders with the principles of Open Science remains challenging
+lack of funding,AUT,2.8,Limited financial...resources have hindered the development of structured initiatives
+limited human resources,AUT,2.8,Limited...human resources have hindered the development of structured initiatives
+no private sector engagement,AUT,2.8,no comprehensive framework specifically designed to facilitate equitable public-private partnerships
+IP rights concerns,AUT,5.4,authors and repository operators...must consider various legal provisions...concerning copyright laws
+plagiarism concerns,AUT,5.4,without rigorous peer review...risk of disseminating unverified or low-quality research
+predatory publishing,AUT,5.4,Predatory publishing is an issue of considerable concern
+publishing costs,AUT,5.4,the author-pays model of open access can be exclusionary
+security concerns,AUT,5.4,The OSA Steering Board is currently working on the topic of foreign interference and open data
+competing priorities,BEL,5.4,researchers experience conflicting expectations between Open Science and valorisation
+lack of planning,BEL,5.4,reporting on the KPI's...entails a large administrative burden
+publishing costs,BEL,5.4,an increase in APCs
+security concerns,BEL,8.1,The rising attention to knowledge security may lead to more caution in the implementation
+lack of capacity building,BEN,2.7,lack of training on open science practices
+publishing costs,BEN,2.7,High fees for publishing in scientific journals are obstacles
+no legal framework,BEN,3.4,establishing the appropriate regulatory framework
+lack of awareness,BEN,5.3,Low awareness/information among stakeholders
+competing priorities,BHR,2.3,increased focus on economic growth...supersede academic and research frameworks
+lack of awareness,BHR,2.3,Lack of awareness of the open science principles
+nascent research ecosystem,BHR,2.3,nascent research ecosystem
+competing priorities,BHR,2.4,greater emphasis on economic growth and digital transformation over academic and research frameworks
+lack of awareness,BHR,2.4,lack of awareness about open science principles
+nascent research ecosystem,BHR,2.4,a nascent research ecosystem
+lack of awareness,BHR,2.7,limited awareness and understanding of Open Science
+no national policy,BHR,4.2,Open Science policies and strategies have not yet been implemented
+lack of planning,BRA,4.3,curricular reforms are complex and take time
 IP rights concerns,CAN,5.4,"Ownership, Control, Access and Possession (OCAP) principles by Indigenous communities"
-traditional metrics,CAN,5.4,"lack of recognition for open access publishing practices in the standards used to evaluate researchers"
-lack of funding,CAN,8.1,"institutions in Canada are facing funding challenges"
-IP rights concerns,CAN,8.1,"balance between openness and the protection of proprietary research and intellectual property"
-publishing costs,CAN,8.1,"article processing charges or transformational subscription agreements"
-geopolitical pressures,CAN,8.1,"limitations on the open access dissemination of knowledge due to national security requirements"
-security concerns,CAN,8.1,"Ensuring compliance with privacy laws and safeguarding sensitive data"
-cultural resistance,CAN,8.1,"individual researchers are motivated by prestige and impact associated with scientific journals published by for-profit corporations"
-competing priorities,CHE,4.2,"competing priorities within policymaking bodies"
-lack of awareness,CHE,4.2,"a gap in awareness in these communities regarding the importance of including Open Science"
-institutional fragmentation,CHE,8.1,"Switzerland is a federal country with a decentralized culture of governance"
+predatory publishing,CAN,5.4,increase in predatory publishers
+publishing costs,CAN,5.4,high article processing charges
+traditional metrics,CAN,5.4,lack of recognition for open access publishing practices in the standards used to evaluate researchers
+IP rights concerns,CAN,8.1,balance between openness and the protection of proprietary research and intellectual property
+cultural resistance,CAN,8.1,individual researchers are motivated by prestige and impact associated with scientific journals published by for-profit corporations
+geopolitical pressures,CAN,8.1,limitations on the open access dissemination of knowledge due to national security requirements
+lack of funding,CAN,8.1,institutions in Canada are facing funding challenges
+publishing costs,CAN,8.1,article processing charges or transformational subscription agreements
+security concerns,CAN,8.1,Ensuring compliance with privacy laws and safeguarding sensitive data
+competing priorities,CHE,4.2,competing priorities within policymaking bodies
+lack of awareness,CHE,4.2,a gap in awareness in these communities regarding the importance of including Open Science
+institutional fragmentation,CHE,8.1,Switzerland is a federal country with a decentralized culture of governance
+poor coordination,CHE,8.1,requires that all actors in the Swiss research ecosystem engage with it and implement it at their level
 university autonomy,CHE,8.1,"UNESCO Recommendation cannot be implemented as a single, top-down process"
-no national policy,CIV,2.2,"absence of a national policy and of national legal frameworks"
-no legal framework,CIV,2.2,"absence of...national legal frameworks"
-inadequate infrastructure,CIV,2.2,"lack of appropriate infrastructure"
-institutional fragmentation,CIV,2.2,"fragmentation of implementation initiatives"
-lack of funding,CIV,2.2,"problem of funding...due to insufficient resources"
-lack of awareness,CIV,2.2,"Insufficient awareness-raising and advocacy"
-cultural resistance,CIV,2.2,"Researchers' reluctance toward open access"
-plagiarism concerns,CIV,2.2,"concerns about data protection and plagiarism"
-lack of awareness,CIV,2.3,"low level of knowledge and adoption of open science"
-no national roadmap,CIV,2.3,"No national roadmap has been finalised and adopted"
-no national policy,CIV,2.3,"no formal national or institutional open science policy"
-poor coordination,CIV,2.3,"nor a management committee to ensure proper governance"
+cultural resistance,CIV,2.2,Researchers' reluctance toward open access
+inadequate infrastructure,CIV,2.2,lack of appropriate infrastructure
+institutional fragmentation,CIV,2.2,fragmentation of implementation initiatives
+lack of awareness,CIV,2.2,Insufficient awareness-raising and advocacy
+lack of funding,CIV,2.2,problem of funding...due to insufficient resources
+no legal framework,CIV,2.2,absence of...national legal frameworks
+no national policy,CIV,2.2,absence of a national policy and of national legal frameworks
+plagiarism concerns,CIV,2.2,concerns about data protection and plagiarism
+lack of awareness,CIV,2.3,low level of knowledge and adoption of open science
+no national policy,CIV,2.3,no formal national or institutional open science policy
+no national roadmap,CIV,2.3,No national roadmap has been finalised and adopted
+poor coordination,CIV,2.3,nor a management committee to ensure proper governance
+lack of awareness,CIV,2.4,limited understanding of open science
+no legal framework,CIV,2.4,"institutions lack legal frameworks, policies or roadmaps"
 no national policy,CIV,2.4,"no comprehensive strategy, national roadmap or national policy in place"
 no national roadmap,CIV,2.4,"no comprehensive strategy, national roadmap or national policy"
-no legal framework,CIV,2.4,"institutions lack legal frameworks, policies or roadmaps"
-lack of awareness,CIV,2.4,"limited understanding of open science"
-no national policy,CIV,2.6,"no national policy on open science"
-lack of funding,CIV,2.6,"Institutional research budgets...do not allocate funding for open science activities"
-competing priorities,CIV,2.7,"Budget priorities do not focus on implementing open science initiatives"
-lack of awareness,CIV,2.7,"limited understanding of the stakes and benefits of open science"
-inadequate infrastructure,CIV,2.7,"Digital infrastructures are insufficiently adapted"
-lack of funding,CIV,2.7,"lack of funding or institutional support for research activities"
-no national policy,CIV,2.7,"no policies or strategies to promote open science at the institutional level"
-lack of awareness,CIV,4.2,"majority of decision-makers have limited knowledge of open science"
-lack of awareness,CIV,4.3,"limited knowledge of open science"
+lack of funding,CIV,2.6,Institutional research budgets...do not allocate funding for open science activities
+no national policy,CIV,2.6,no national policy on open science
+competing priorities,CIV,2.7,Budget priorities do not focus on implementing open science initiatives
+inadequate infrastructure,CIV,2.7,Digital infrastructures are insufficiently adapted
+lack of awareness,CIV,2.7,limited understanding of the stakes and benefits of open science
+lack of funding,CIV,2.7,lack of funding or institutional support for research activities
+no national policy,CIV,2.7,no policies or strategies to promote open science at the institutional level
+lack of awareness,CIV,4.2,majority of decision-makers have limited knowledge of open science
+competing priorities,CIV,4.3,competing priorities
+inadequate infrastructure,CIV,4.3,Institutional infrastructures are insufficient
+lack of awareness,CIV,4.3,limited knowledge of open science
 lack of capacity building,CIV,4.3,"no advocacy, awareness-raising or training programme"
-no legal framework,CIV,4.3,"A regulatory framework is lacking"
-inadequate infrastructure,CIV,4.3,"Institutional infrastructures are insufficient"
-lack of funding,CIV,4.3,"limited budgetary resources"
-competing priorities,CIV,4.3,"competing priorities"
-cultural resistance,CIV,5.1,"problem with shifting the scientific paradigm or culture"
-plagiarism concerns,CIV,5.1,"uncertainty and reluctance regarding the risks of open access, such as fraud and plagiarism"
-no national policy,CIV,5.1,"no policies, regulations or legal frameworks in place"
+lack of funding,CIV,4.3,limited budgetary resources
+no legal framework,CIV,4.3,A regulatory framework is lacking
+cultural resistance,CIV,5.1,problem with shifting the scientific paradigm or culture
 no legal framework,CIV,5.1,"no policies, regulations or legal frameworks in place"
-traditional metrics,CIV,5.1,"Innovative systems and processes for research evaluation...have not yet been implemented"
-no legal framework,CIV,5.2,"no formal framework for implementing collaboration with civil society actors"
-poor coordination,CIV,5.2,"no formal framework for implementing...open dialogue"
+no national policy,CIV,5.1,"no policies, regulations or legal frameworks in place"
+plagiarism concerns,CIV,5.1,"uncertainty and reluctance regarding the risks of open access, such as fraud and plagiarism"
+traditional metrics,CIV,5.1,Innovative systems and processes for research evaluation...have not yet been implemented
+no legal framework,CIV,5.2,no formal framework for implementing collaboration with civil society actors
+poor coordination,CIV,5.2,no formal framework for implementing...open dialogue
 plagiarism concerns,CIV,5.4,"problems of plagiarism, cybercrime...theft of ideas and research results"
-predatory publishing,CIV,5.4,"predatory journals"
-lack of awareness,CIV,6.1,"Insufficient information regarding the Recommendation on Open Science"
-plagiarism concerns,CIV,6.1,"risks of plagiarism and idea theft associated with open access publishing"
-cultural resistance,CIV,6.1,"Reluctance among teacher-researchers"
-lack of awareness,CIV,7.2,"Lack of knowledge about open science and its partners"
+predatory publishing,CIV,5.4,predatory journals
+security concerns,CIV,5.4,problems of cybercrime theft of ideas and research results
+cultural resistance,CIV,6.1,Reluctance among teacher-researchers
+lack of awareness,CIV,6.1,Insufficient information regarding the Recommendation on Open Science
+plagiarism concerns,CIV,6.1,risks of plagiarism and idea theft associated with open access publishing
+lack of awareness,CIV,7.2,Lack of knowledge about open science and its partners
 no national policy,CIV,7.2,"Absence of policies, strategies or roadmaps on open science"
 no national roadmap,CIV,7.2,"Absence of policies, strategies or roadmaps on open science"
-no national policy,CIV,7.3,"no national open science policy"
-no national roadmap,CIV,7.3,"no action plan or roadmap for securing the necessary funding"
-lack of funding,CIV,7.3,"Funding for institutional activities depends on budgetary resources...or calls for proposals"
-poor coordination,CIV,7.3,"does not have an officially mandated interlocutor to lead this type of discussion"
-lack of planning,COG,4.2,"Lack of [open science] activity planning"
-lack of funding,COG,4.2,"insufficient funding"
-limited human resources,COG,4.2,"inadequate human resources"
-predatory publishing,COG,5.4,"predatory practices"
-publishing costs,COG,5.4,"high publication costs for articles"
-IP rights concerns,COG,5.4,"exploitation and privatization of research data"
-geopolitical pressures,CUB,8.1,"United States Government Economic Blockade"
-slow internet,CUB,8.1,"cannot access certain sites and services"
-inadequate infrastructure,CUB,8.1,"obsolescence of the available infrastructure is becoming more acute"
-lack of funding,CYP,2.3,"lack of resources"
-lack of funding,CYP,5.3,"lack of funding"
-publishing costs,CZE,5.4,"increase in costs for publications"
-predatory publishing,CZE,5.4,"problems of predatory or potentially predatory journals"
-traditional metrics,CZE,5.4,"Czech researchers are conservative in viewing highly impacted journals as the pinnacle of publishing"
-IP rights concerns,CZE,5.4,"privatisation of research data"
-poor coordination,CZE,7.3,"it is necessary to unify this topic at national level"
-institutional fragmentation,CZE,7.3,"it is necessary to unify this topic at national level"
+lack of funding,CIV,7.3,Funding for institutional activities depends on budgetary resources...or calls for proposals
+no national policy,CIV,7.3,no national open science policy
+no national roadmap,CIV,7.3,no action plan or roadmap for securing the necessary funding
+poor coordination,CIV,7.3,does not have an officially mandated interlocutor to lead this type of discussion
+lack of funding,COG,4.2,insufficient funding
+lack of planning,COG,4.2,Lack of [open science] activity planning
+limited human resources,COG,4.2,inadequate human resources
+IP rights concerns,COG,5.4,exploitation and privatization of research data
+predatory publishing,COG,5.4,predatory practices
+publishing costs,COG,5.4,high publication costs for articles
+geopolitical pressures,CUB,8.1,United States Government Economic Blockade
+inadequate infrastructure,CUB,8.1,obsolescence of the available infrastructure is becoming more acute
+internet connectivity,CUB,8.1,cannot access certain sites and services
+lack of funding,CUB,8.1,Access to international funding technologies and resources necessary for research is hampered
+lack of interoperability,CUB,8.1,Cuban platforms are unable to use the DOI which affects their interoperability
+lack of funding,CYP,2.3,lack of resources
+lack of funding,CYP,5.3,lack of funding
+IP rights concerns,CZE,5.4,privatisation of research data
+lack of funding,CZE,5.4,the overall funding of research is considered to be rather low
+lack of interoperability,CZE,5.4,The lack of interoperability between different data platforms can hinder the efficient sharing and reuse of research data
+no incentives,CZE,5.4,the evaluation schemes don't take these additional efforts into consideration yet
+predatory publishing,CZE,5.4,problems of predatory or potentially predatory journals
+publishing costs,CZE,5.4,increase in costs for publications
+traditional metrics,CZE,5.4,Czech researchers are conservative in viewing highly impacted journals as the pinnacle of publishing
+institutional fragmentation,CZE,7.3,it is necessary to unify this topic at national level
+poor coordination,CZE,7.3,it is necessary to unify this topic at national level
 university autonomy,DEU,4.3,"Due to university autonomy, only very few centralized requirements are possible"
-publishing costs,DEU,5.4,"costs for (commercial) Open Access"
-security concerns,DEU,5.4,"Open Science has become a topic in relation to Research Security and Digital Sovereignty"
-publishing costs,DNK,5.4,"costs of Open Access publishing with APC...have risen significantly"
-publishing costs,DNK,8.1,"current publishing system favors established journals with high fees"
-IP rights concerns,DNK,8.1,"qualitative data raises ethical concerns and risks misinterpretation"
+publishing costs,DEU,5.4,costs for (commercial) Open Access
+security concerns,DEU,5.4,Open Science has become a topic in relation to Research Security and Digital Sovereignty
+publishing costs,DNK,5.4,costs of Open Access publishing with APC...have risen significantly
+IP rights concerns,DNK,8.1,qualitative data raises ethical concerns and risks misinterpretation
 cultural resistance,DNK,8.1,"English dominates scientific discourse, potentially excluding local communities"
-nascent research ecosystem,ECU,5.2,"open science is a relatively new approach...still being socialized"
-nascent research ecosystem,ECU,5.3,"open science is a relatively new approach...still being socialized"
-publishing costs,EGY,5.4,"open access publishing can be expensive due to article processing charges (APCs)"
-publishing costs,EGY,8.1,"steep Article Processing Charges (APCs) imposed by many publishers"
-traditional metrics,EGY,8.1,"lack of universally accepted and equitable more inclusive open metrics"
+language barriers,DNK,8.1,language barriers persist as English dominates scientific discourse potentially excluding local communities
+publishing costs,DNK,8.1,current publishing system favors established journals with high fees
+nascent research ecosystem,ECU,5.2,open science is a relatively new approach...still being socialized
+nascent research ecosystem,ECU,5.3,open science is a relatively new approach...still being socialized
+publishing costs,EGY,5.4,open access publishing can be expensive due to article processing charges (APCs)
+publishing costs,EGY,8.1,steep Article Processing Charges (APCs) imposed by many publishers
+traditional metrics,EGY,8.1,lack of universally accepted and equitable more inclusive open metrics
+predatory publishing,FIN,5.4,commercial open access publishers whose business model is based on collecting as many author fees (APC fees) as possible
 publishing costs,FIN,5.4,"commercial open access publishers, whose business model is based on collecting as many author fees (so called APC fees) as possible"
-no private sector engagement,FRA,2.8,"France does not have an open science policy...oriented toward the private sector"
-lack of planning,FRA,4.3,"no sufficiently clear and widely agreed-upon vision on this matter"
-cultural resistance,FRA,5.4,"Certain opposition emerged following the dissemination of the recommendations on open science"
+no private sector engagement,FRA,2.8,France does not have an open science policy...oriented toward the private sector
+lack of planning,FRA,4.3,no sufficiently clear and widely agreed-upon vision on this matter
+cultural resistance,FRA,5.4,Certain opposition emerged following the dissemination of the recommendations on open science
 lack of planning,FRA,6.1,"their implementation requires a careful analysis of the issues, which has not yet been fully carried out"
-nascent research ecosystem,GEO,5.4,"typical challenges as countries transition to more open and transparent research systems"
-no national policy,GEO,8.1,"Political and Governance Issues"
-lack of funding,GEO,8.1,"Economic Constraints"
-cultural resistance,GEO,8.1,"Cultural and Institutional Resistance"
-inadequate infrastructure,GEO,8.1,"Technical and Infrastructure Limitations"
-geopolitical pressures,GEO,8.1,"International Relations and Alignment"
-lack of awareness,GEO,8.1,"Access to Information and Knowledge Networks"
-lack of funding,GMB,2.2,"funding challenges to review the National STI policy"
-no national policy,GMB,2.8,"lack of policy"
-lack of funding,GMB,3.3,"funding challenges"
-no national policy,GMB,3.4,"lack of policy"
-nascent research ecosystem,GMB,4.1,"Institutional readiness for open science is a challenge"
-no national policy,GMB,4.2,"Lack of Policy"
-nascent research ecosystem,GMB,4.2,"National readiness"
-lack of funding,GMB,5.1,"funding challenges such initiative was not sustained"
-no national policy,GMB,5.2,"Lack of Policy"
-nascent research ecosystem,GMB,5.2,"National readiness"
-traditional metrics,GMB,5.3,"Lack of research assessment standards and tools"
-no incentives,GMB,5.3,"Lack of research assessment standards and tools"
-lack of funding,GMB,7.2,"Funding challenges"
-poor coordination,GMB,8.1,"Coordination challenges"
-lack of capacity building,GMB,8.1,"capacity both in terms of technical and human"
-limited human resources,GMB,8.1,"capacity both in terms of technical and human"
-lack of funding,GNB,2.4,"financial resources are insufficient"
-lack of funding,GNB,2.6,"does not have specific national funding allocated in the general state budget"
-lack of funding,GNB,3.4,"The biggest obstacle is the lack of funding"
-inadequate infrastructure,GNB,3.4,"financial difficulties in building open science infrastructure"
-lack of funding,GNB,4.1,"lack of financial resources for training and capacity-building"
-lack of capacity building,GNB,4.1,"lack of financial resources for training and capacity-building"
-lack of expertise,GNB,4.2,"Technical support for open science policies and strategies"
-inadequate infrastructure,GNB,4.3,"does not have infrastructure for open science"
-lack of funding,GNB,5.4,"country has not supported its existing scientists"
-limited human resources,GNB,5.4,"thereby losing talent in the field of open science"
-inadequate infrastructure,GNB,7.3,"need...support in the development of open science infrastructures"
-lack of expertise,GNB,7.3,"We need technical and institutional support"
-lack of funding,GNB,8.1,"Financial difficulties in collecting information for implementation"
-poor coordination,GRC,2.2,"requires clear guidelines and enhanced coordination"
-institutional fragmentation,GRC,2.2,"distribution of responsibilities across three ministries"
-predatory publishing,HUN,5.4,"articles in journals with objectionable practices"
-lack of awareness,IDN,4.1,"limited understanding by policy makers"
-no national policy,IDN,4.1,"lack of policy initiatives that explicitly support the implementation of open science"
-lack of awareness,IDN,4.2,"limited understanding by policy makers"
-no national policy,IDN,4.2,"lack of policy initiatives that explicitly support the implementation of open science"
-traditional metrics,IDN,5.2,"existing activities are still focused on downstream aspects...especially on open access publications"
-traditional metrics,IDN,5.3,"focus of evaluation and awards is more on citation-based measurements"
+nascent research ecosystem,GEO,5.4,typical challenges as countries transition to more open and transparent research systems
+cultural resistance,GEO,8.1,Cultural and Institutional Resistance
+geopolitical pressures,GEO,8.1,International Relations and Alignment
+inadequate infrastructure,GEO,8.1,Technical and Infrastructure Limitations
+lack of awareness,GEO,8.1,Access to Information and Knowledge Networks
+lack of funding,GEO,8.1,Economic Constraints
+no national policy,GEO,8.1,Political and Governance Issues
+lack of funding,GMB,2.2,funding challenges to review the National STI policy
+no national policy,GMB,2.8,lack of policy
+lack of funding,GMB,3.3,funding challenges
+no national policy,GMB,3.4,lack of policy
+nascent research ecosystem,GMB,4.1,Institutional readiness for open science is a challenge
+nascent research ecosystem,GMB,4.2,National readiness
+no national policy,GMB,4.2,Lack of Policy
+lack of funding,GMB,5.1,funding challenges such initiative was not sustained
+nascent research ecosystem,GMB,5.2,National readiness
+no national policy,GMB,5.2,Lack of Policy
+no incentives,GMB,5.3,Lack of research assessment standards and tools
+traditional metrics,GMB,5.3,Lack of research assessment standards and tools
+lack of funding,GMB,7.2,Funding challenges
+lack of capacity building,GMB,8.1,capacity both in terms of technical and human
+limited human resources,GMB,8.1,capacity both in terms of technical and human
+poor coordination,GMB,8.1,Coordination challenges
+lack of funding,GNB,2.4,financial resources are insufficient
+lack of funding,GNB,2.6,does not have specific national funding allocated in the general state budget
+inadequate infrastructure,GNB,3.4,financial difficulties in building open science infrastructure
+lack of funding,GNB,3.4,The biggest obstacle is the lack of funding
+lack of capacity building,GNB,4.1,lack of financial resources for training and capacity-building
+lack of funding,GNB,4.1,lack of financial resources for training and capacity-building
+lack of expertise,GNB,4.2,Technical support for open science policies and strategies
+inadequate infrastructure,GNB,4.3,does not have infrastructure for open science
+lack of funding,GNB,5.4,country has not supported its existing scientists
+limited human resources,GNB,5.4,thereby losing talent in the field of open science
+inadequate infrastructure,GNB,7.3,need...support in the development of open science infrastructures
+lack of expertise,GNB,7.3,We need technical and institutional support
+lack of funding,GNB,8.1,Financial difficulties in collecting information for implementation
+institutional fragmentation,GRC,2.2,distribution of responsibilities across three ministries
+poor coordination,GRC,2.2,requires clear guidelines and enhanced coordination
+predatory publishing,HUN,5.4,articles in journals with objectionable practices
+lack of awareness,IDN,4.1,limited understanding by policy makers
+no national policy,IDN,4.1,lack of policy initiatives that explicitly support the implementation of open science
+lack of awareness,IDN,4.2,limited understanding by policy makers
+no national policy,IDN,4.2,lack of policy initiatives that explicitly support the implementation of open science
+lack of planning,IDN,5.2,most existing activities are still focused on downstream aspects of the research cycle
+traditional metrics,IDN,5.2,existing activities are still focused on downstream aspects...especially on open access publications
+traditional metrics,IDN,5.3,focus of evaluation and awards is more on citation-based measurements
+IP rights concerns,IDN,5.4,concern that the research results...can easily be exploited commercially
+cultural resistance,IDN,5.4,research results that have been made public will face difficulties in the formal publication process
 plagiarism concerns,IDN,5.4,"fear that when research results are freely disclosed, the work will be vulnerable to acts of plagiarism"
-IP rights concerns,IDN,5.4,"concern that the research results...can easily be exploited commercially"
-cultural resistance,IDN,5.4,"research results that have been made public will face difficulties in the formal publication process"
-traditional metrics,IDN,8.1,"Regulations that are heavy on mainstream metrics (citation based)"
-security concerns,IRL,8.1,"growing international concerns about data security"
-geopolitical pressures,IRN,3.4,"American sanctions and their chilling effects"
-geopolitical pressures,IRN,8.1,"sanctions"
-security concerns,ITA,5.4,"ongoing debate on balancing open science with security and research integrity"
-cultural resistance,ITA,5.4,"ongoing debate on balancing open science with security and research integrity"
-competing priorities,ITA,8.1,"growing attention to the ethical aspects of Artificial Intelligence and Cybersecurity"
-publishing costs,JPN,8.1,"subscription fees for academic journals and article processing charges (APC) are increasing considerably"
-traditional metrics,JPN,8.1,"excessive dependence on quantitative indicators in research evaluation"
-predatory publishing,KOR,5.4,"problems of predatory journals and conferences intensified"
-poor coordination,LBY,8.1,"Coordinating efforts among different ministries and research institutions has proven difficult"
-lack of funding,LBY,8.1,"No funds have been allocated"
-lack of awareness,LBY,8.1,"Delays in the formal dissemination...hinder widespread awareness"
-no national policy,LBY,8.1,"no established policy or strategy specifically for Open Science"
-small country scale,LTU,4.2,"the small size of the administration"
-limited human resources,LTU,4.2,"the small size of the administration"
-lack of funding,LTU,4.5,"resource constraints"
-geopolitical pressures,LTU,6.1,"Geopolitical changes require greater concern for security and autonomy"
-security concerns,LTU,6.1,"greater concern for security and autonomy"
-lack of funding,LTU,7.2,"limited resources"
-publishing costs,LUX,5.4,"significant increases in publication costs...due to article processing charges"
-publishing costs,LUX,8.1,"High costs related to Open Access publishing"
-small country scale,LVA,7.2,"Our country is too small"
-no legal framework,MAR,1.4,"no obligations in the terms of reference of the various calls for projects"
-traditional metrics,MAR,1.4,"generally published in indexed journals"
-no national policy,MAR,4.1,"no policy framework on open science"
-no national policy,MAR,5.3,"depend on the development and approval...of the national policy on open science"
-no national roadmap,MAR,5.3,"depend on the development and approval of the projects of the national strategy"
-nascent research ecosystem,MAR,7.2,"adoption of open science is relatively recent"
-nascent research ecosystem,MAR,7.3,"adoption of open science is relatively recent"
-university autonomy,MEX,4.3,"each educational institution has a certain autonomy in this area"
-lack of awareness,MLI,1.4,"Lack of awareness of open science"
-lack of funding,MLI,1.4,"the country's economic situation"
-lack of funding,MLI,2.2,"Insufficient funding"
-limited human resources,MLI,2.2,"lack of human resources involved in the open science sector"
+traditional metrics,IDN,8.1,Regulations that are heavy on mainstream metrics (citation based)
+security concerns,IRL,8.1,growing international concerns about data security
+geopolitical pressures,IRN,3.4,American sanctions and their chilling effects
+geopolitical pressures,IRN,8.1,sanctions
+cultural resistance,ITA,5.4,ongoing debate on balancing open science with security and research integrity
+security concerns,ITA,5.4,ongoing debate on balancing open science with security and research integrity
+competing priorities,ITA,8.1,growing attention to the ethical aspects of Artificial Intelligence and Cybersecurity
+security concerns,ITA,8.1,there is growing attention to the ethical aspects of Artificial Intelligence and Cybersecurity
+publishing costs,JPN,8.1,subscription fees for academic journals and article processing charges (APC) are increasing considerably
+traditional metrics,JPN,8.1,excessive dependence on quantitative indicators in research evaluation
+predatory publishing,KOR,5.4,problems of predatory journals and conferences intensified
+lack of awareness,LBY,8.1,Delays in the formal dissemination...hinder widespread awareness
+lack of funding,LBY,8.1,No funds have been allocated
+lack of planning,LBY,8.1,Delay in appointing a National Focal Point
+no national policy,LBY,8.1,no established policy or strategy specifically for Open Science
+poor coordination,LBY,8.1,Coordinating efforts among different ministries and research institutions has proven difficult
+limited human resources,LTU,4.2,the small size of the administration
+small country scale,LTU,4.2,the small size of the administration
+lack of funding,LTU,4.5,resource constraints
+geopolitical pressures,LTU,6.1,Geopolitical changes require greater concern for security and autonomy
+security concerns,LTU,6.1,greater concern for security and autonomy
+lack of funding,LTU,7.2,limited resources
+publishing costs,LUX,5.4,significant increases in publication costs...due to article processing charges
+publishing costs,LUX,8.1,High costs related to Open Access publishing
+small country scale,LVA,7.2,Our country is too small
+no legal framework,MAR,1.4,no obligations in the terms of reference of the various calls for projects
+no national policy,MAR,1.4,there are no obligations in the terms of reference of the various calls for projects financed by these funds for such research to be accessible to the public
+traditional metrics,MAR,1.4,generally published in indexed journals
+no national policy,MAR,4.1,no policy framework on open science
+no national policy,MAR,5.3,depend on the development and approval...of the national policy on open science
+no national roadmap,MAR,5.3,depend on the development and approval of the projects of the national strategy
+nascent research ecosystem,MAR,7.2,adoption of open science is relatively recent
+nascent research ecosystem,MAR,7.3,adoption of open science is relatively recent
+university autonomy,MEX,4.3,each educational institution has a certain autonomy in this area
+lack of awareness,MLI,1.4,Lack of awareness of open science
+lack of funding,MLI,1.4,the country's economic situation
+lack of funding,MLI,2.2,Insufficient funding
+limited human resources,MLI,2.2,lack of human resources involved in the open science sector
 lack of planning,MLI,2.3,"Lack of planning, poor management of risks"
-limited human resources,MLI,2.3,"poor management of...human resources"
-lack of capacity building,MLI,2.4,"Training sessions on open science culture"
-lack of funding,MLI,2.7,"Challenges in obtaining funding for open science"
-lack of funding,MLI,2.8,"Insufficient funding"
-lack of capacity building,MLI,2.8,"lack of capacity-building for the National Center"
-lack of funding,MLI,4.1,"Lack of funding"
-inadequate infrastructure,MLI,4.1,"absence of infrastructure for open science"
-lack of funding,MLI,4.5,"Financial difficulties"
-lack of funding,MLI,5.1,"Lack of funding mechanisms"
-nascent research ecosystem,MLI,5.1,"unfavorable research environment for nurturing talent"
-poor coordination,MLI,5.2,"Dialogue among researchers for a shared vision of research priorities"
-lack of funding,MLI,5.3,"Material and human difficulties"
-limited human resources,MLI,5.3,"human difficulties"
-lack of capacity building,MLI,5.3,"difficulties in organising both training sessions"
-no incentives,MLI,5.3,"competitions to reward these practices"
-lack of planning,MLI,7.2,"Lack of a long-term research strategy"
-no national roadmap,MLI,7.2,"Lack of a long-term research strategy"
-lack of funding,MLI,7.3,"integrate open science into research funding mechanisms"
-no legal framework,MRT,2.7,"Lack of an adequate regulatory framework"
-lack of expertise,MRT,4.5,"Lack of trainers"
-lack of capacity building,MRT,4.5,"Lack of trainers"
-lack of funding,MRT,5.1,"Resource mobilisation for an international consultation"
-no legal framework,MRT,5.2,"Inadequate regulatory framework"
-lack of funding,MRT,5.2,"resource mobilisation for an international consultation"
-lack of funding,MRT,5.3,"financial constraints"
-lack of awareness,MRT,6.1,"Lack of awareness"
-lack of funding,MRT,6.1,"financial constraints"
-poor coordination,MUS,2.2,"difficulty lies on who will coordinate such an initiative"
-IP rights concerns,MUS,2.2,"applicability and implications of IP rights for Open Science practices"
-lack of funding,MUS,3.3,"the financial model for the NREN for its sustainability"
-inadequate infrastructure,MUS,3.3,"Technical aspects in terms of the type of technology"
-lack of funding,MUS,3.4,"insufficient financial investment"
-no legal framework,MUS,3.4,"Existing regulations often hinder effective collaboration"
-inadequate infrastructure,MUS,3.4,"Current research infrastructures tend to be fragmented"
+limited human resources,MLI,2.3,poor management of...human resources
+lack of capacity building,MLI,2.4,Training sessions on open science culture
+lack of funding,MLI,2.7,Challenges in obtaining funding for open science
+lack of capacity building,MLI,2.8,lack of capacity-building for the National Center
+lack of funding,MLI,2.8,Insufficient funding
+inadequate infrastructure,MLI,4.1,absence of infrastructure for open science
+lack of funding,MLI,4.1,Lack of funding
+lack of funding,MLI,4.5,Financial difficulties
+lack of funding,MLI,5.1,Lack of funding mechanisms
+nascent research ecosystem,MLI,5.1,unfavorable research environment for nurturing talent
+poor coordination,MLI,5.2,Dialogue among researchers for a shared vision of research priorities
+lack of capacity building,MLI,5.3,difficulties in organising both training sessions
+lack of funding,MLI,5.3,Material and human difficulties
+limited human resources,MLI,5.3,human difficulties
+no incentives,MLI,5.3,competitions to reward these practices
+lack of planning,MLI,7.2,Lack of a long-term research strategy
+no national roadmap,MLI,7.2,Lack of a long-term research strategy
+lack of funding,MLI,7.3,integrate open science into research funding mechanisms
+no legal framework,MRT,2.7,Lack of an adequate regulatory framework
+lack of capacity building,MRT,4.5,Lack of trainers
+lack of expertise,MRT,4.5,Lack of trainers
+limited human resources,MRT,4.5,Lack of trainers
+lack of funding,MRT,5.1,Resource mobilisation for an international consultation
+lack of funding,MRT,5.2,resource mobilisation for an international consultation
+no legal framework,MRT,5.2,Inadequate regulatory framework
+lack of funding,MRT,5.3,financial constraints
+lack of awareness,MRT,6.1,Lack of awareness
+lack of funding,MRT,6.1,financial constraints
+IP rights concerns,MUS,2.2,applicability and implications of IP rights for Open Science practices
+poor coordination,MUS,2.2,difficulty lies on who will coordinate such an initiative
+inadequate infrastructure,MUS,3.3,Technical aspects in terms of the type of technology
+internet connectivity,MUS,3.3,The Technical aspects in terms of the type of technology to be used for the inland connectivity
+lack of funding,MUS,3.3,the financial model for the NREN for its sustainability
+inadequate infrastructure,MUS,3.4,Current research infrastructures tend to be fragmented
 institutional fragmentation,MUS,3.4,"Current research infrastructures tend to be fragmented, lacking coordination"
-inadequate infrastructure,MUS,4.1,"Inadequate infrastructure or strategic support"
-lack of capacity building,MUS,4.1,"implementing open science practices and training programs"
-poor coordination,MUS,7.3,"limited communication about ongoing initiatives or the absence of active participation"
-inadequate infrastructure,MUS,8.1,"Infrastructure costs for digital platforms and data storage"
-limited human resources,MUS,8.1,"Limited human resources for managing open science initiatives"
-lack of awareness,MUS,8.1,"Limited awareness of open science practices"
-cultural resistance,MUS,8.1,"Traditional research culture resistant to open sharing"
-traditional metrics,MUS,8.1,"Lack of standardized protocols for data sharing"
-publishing costs,MUS,8.1,"High costs associated with journal subscriptions"
-lack of expertise,MUS,8.1,"Limited expertise in open science practices"
-lack of funding,MUS,8.1,"Financial constraints"
-lack of funding,MYS,8.1,"limited funding for open science initiatives"
-inadequate infrastructure,MYS,8.1,"insufficient access to digital platforms for data sharing and collaboration"
-cultural resistance,MYS,8.1,"Cultural resistance within traditional research settings"
-IP rights concerns,MYS,8.1,"concerns over intellectual property"
-security concerns,MYS,8.1,"perceived risks associated with public data sharing"
-poor coordination,NER,1.4,"Delay in the designation of the open science focal point"
-lack of capacity building,NER,1.4,"lack of training for the focal point"
-lack of awareness,NER,1.4,"weak dissemination of the values and principles of open science"
-no national roadmap,NER,1.4,"lack of a strategy for disseminating the values and principles of open science"
-no national policy,NER,4.3,"recommendations on open science are not yet operational"
-nascent research ecosystem,NER,4.3,"recommendations on open science are not yet operational"
-lack of awareness,NGA,2.6,"very little knowledge about open science"
-lack of planning,NGA,2.6,"A lot of what has been done in open science have been more by accident than deliberate"
-lack of awareness,NGA,2.7,"Open Science practices are still being viewed as new"
-nascent research ecosystem,NGA,2.7,"Open Science practices are still being viewed as new"
-institutional fragmentation,NGA,4.2,"no coordinated capacity-building initiative targeting government officials"
-lack of capacity building,NGA,4.2,"no coordinated capacity-building initiative"
-lack of funding,NGA,4.2,"absence of dedicated funding and institutional mechanisms"
-no national policy,NGA,4.2,"Open science is not yet a central component of STI policy framework"
-lack of awareness,NGA,4.2,"gap in awareness and implementation at the decision-making level"
-no incentives,NGA,5.3,"tenure and promotion criteria...do not yet formally recognize open science contributions"
-traditional metrics,NGA,5.3,"still prioritize traditional research output metrics"
-lack of funding,NGA,5.3,"Funding for research and development is grossly limited"
-competing priorities,NGA,5.3,"most available funding is directed toward core scientific research rather than establishing incentive mechanisms"
-poor coordination,NGA,5.3,"Nigeria lacks a multi-stakeholder framework"
-lack of awareness,NGA,5.3,"Many researchers are still unfamiliar with the benefits of open science"
-cultural resistance,NGA,5.3,"resistance among some scholars who fear that open science practices may undermine their competitive advantage"
-IP rights concerns,NGA,5.3,"fear that open science practices may undermine their...intellectual property rights"
-IP rights concerns,NGA,5.4,"lack of clear guidelines on how to balance open access with intellectual property protection"
-plagiarism concerns,NGA,5.4,"Risk of Data Misuse and Misinterpretation"
-predatory publishing,NGA,5.4,"increase in predatory journals that charge publication fees without proper peer review"
-slow internet,NGA,5.4,"disparities in internet access and digital literacy across Nigeria"
-lack of funding,NGA,8.1,"many universities and research institutions lack dedicated funding"
-IP rights concerns,NGA,8.1,"Intellectual Property (IP) and Copyright Concerns"
-poor coordination,NGA,8.1,"Limited International Collaboration"
-publishing costs,NLD,5.4,"risen Article Processing Costs"
+lack of funding,MUS,3.4,insufficient financial investment
+no legal framework,MUS,3.4,Existing regulations often hinder effective collaboration
+inadequate infrastructure,MUS,4.1,Inadequate infrastructure or strategic support
+lack of capacity building,MUS,4.1,implementing open science practices and training programs
+poor coordination,MUS,7.3,limited communication about ongoing initiatives or the absence of active participation
+cultural resistance,MUS,8.1,Traditional research culture resistant to open sharing
+inadequate infrastructure,MUS,8.1,Infrastructure costs for digital platforms and data storage
+lack of awareness,MUS,8.1,Limited awareness of open science practices
+lack of expertise,MUS,8.1,Limited expertise in open science practices
+lack of funding,MUS,8.1,Financial constraints
+limited human resources,MUS,8.1,Limited human resources for managing open science initiatives
+publishing costs,MUS,8.1,High costs associated with journal subscriptions
+traditional metrics,MUS,8.1,Lack of standardized protocols for data sharing
+IP rights concerns,MYS,8.1,concerns over intellectual property
+cultural resistance,MYS,8.1,Cultural resistance within traditional research settings
+inadequate infrastructure,MYS,8.1,insufficient access to digital platforms for data sharing and collaboration
+lack of funding,MYS,8.1,limited funding for open science initiatives
+security concerns,MYS,8.1,perceived risks associated with public data sharing
+lack of awareness,NER,1.4,weak dissemination of the values and principles of open science
+lack of capacity building,NER,1.4,lack of training for the focal point
+lack of planning,NER,1.4,lack of a strategy for disseminating the values and principles of open science
+no national roadmap,NER,1.4,lack of a strategy for disseminating the values and principles of open science
+poor coordination,NER,1.4,Delay in the designation of the open science focal point
+nascent research ecosystem,NER,4.3,recommendations on open science are not yet operational
+no national policy,NER,4.3,recommendations on open science are not yet operational
+lack of awareness,NGA,2.6,very little knowledge about open science
+lack of planning,NGA,2.6,A lot of what has been done in open science have been more by accident than deliberate
+lack of awareness,NGA,2.7,Open Science practices are still being viewed as new
+nascent research ecosystem,NGA,2.7,Open Science practices are still being viewed as new
+institutional fragmentation,NGA,4.2,no coordinated capacity-building initiative targeting government officials
+lack of awareness,NGA,4.2,gap in awareness and implementation at the decision-making level
+lack of capacity building,NGA,4.2,no coordinated capacity-building initiative
+lack of funding,NGA,4.2,absence of dedicated funding and institutional mechanisms
+no national policy,NGA,4.2,Open science is not yet a central component of STI policy framework
+IP rights concerns,NGA,5.3,fear that open science practices may undermine their...intellectual property rights
+competing priorities,NGA,5.3,most available funding is directed toward core scientific research rather than establishing incentive mechanisms
+cultural resistance,NGA,5.3,resistance among some scholars who fear that open science practices may undermine their competitive advantage
+lack of awareness,NGA,5.3,Many researchers are still unfamiliar with the benefits of open science
+lack of funding,NGA,5.3,Funding for research and development is grossly limited
+no incentives,NGA,5.3,tenure and promotion criteria...do not yet formally recognize open science contributions
+poor coordination,NGA,5.3,Nigeria lacks a multi-stakeholder framework
+traditional metrics,NGA,5.3,still prioritize traditional research output metrics
+IP rights concerns,NGA,5.4,lack of clear guidelines on how to balance open access with intellectual property protection
+inadequate infrastructure,NGA,5.4,Researchers in rural areas and underfunded institutions may struggle to participate due to inadequate infrastructure
+internet connectivity,NGA,5.4,disparities in internet access and digital literacy across Nigeria
+plagiarism concerns,NGA,5.4,Risk of Data Misuse and Misinterpretation
+predatory publishing,NGA,5.4,increase in predatory journals that charge publication fees without proper peer review
+security concerns,NGA,5.4,publicly available research data may be misused misinterpreted or taken out of context
+IP rights concerns,NGA,8.1,Intellectual Property (IP) and Copyright Concerns
+lack of funding,NGA,8.1,many universities and research institutions lack dedicated funding
+poor coordination,NGA,8.1,Limited International Collaboration
+publishing costs,NLD,5.4,risen Article Processing Costs
 lack of funding,NLD,8.1,"due to upcoming general budget cuts, there will be less budget available"
-predatory publishing,NOR,5.4,"reporting of predatory journals to the Norwegian Register"
-IP rights concerns,PAK,5.4,"Intellectual Property and Data Security"
-security concerns,PAK,5.4,"Data Security"
-lack of funding,PAK,8.1,"limited access to international funding mechanisms"
-inadequate infrastructure,PAK,8.1,"unequal access to global research infrastructure"
+predatory publishing,NOR,5.4,reporting of predatory journals to the Norwegian Register
+IP rights concerns,PAK,5.4,Intellectual Property and Data Security
+security concerns,PAK,5.4,Data Security
 geopolitical pressures,PAK,8.1,"rely on foreign technologies and platforms, which may come with access restrictions"
-no legal framework,PAK,8.1,"lack of globally harmonized standards for open science data sharing"
-no private sector engagement,PER,2.8,"feasibility of implementing public-private partnerships...has not yet been assessed"
-IP rights concerns,PHL,8.1,"data and sample sharing concerns"
-publishing costs,PHL,8.1,"expensive publication fees in journals"
-lack of awareness,PSE,2.2,"lack of awareness and understanding of open science principles among policymakers"
-lack of funding,PSE,2.2,"insufficient funding for open science initiatives"
-no legal framework,PSE,2.2,"absence of a legal framework to support open data sharing"
-inadequate infrastructure,PSE,2.2,"limited infrastructure for implementing open science practices"
-no national policy,PSE,2.2,"existing research policies do not explicitly address the need for open science"
-lack of funding,PSE,2.3,"limited resources allocated to such initiatives"
-lack of planning,PSE,2.3,"lack of clear indicators or goals for evaluating their effectiveness"
-lack of awareness,PSE,2.6,"lack of awareness about the importance of such initiatives"
-lack of funding,PSE,2.6,"limited budget"
-competing priorities,PSE,2.6,"insufficient alignment of national research funding priorities with open science principles"
-lack of awareness,PSE,2.8,"limited awareness of the importance of open science"
-no private sector engagement,PSE,2.8,"lack of clear incentives for private companies to engage in open science practices"
-no incentives,PSE,2.8,"lack of clear incentives for private companies"
-no legal framework,PSE,2.8,"absence of formal frameworks to encourage collaboration"
-no national policy,PSE,4.1,"no comprehensive national policy or strategy that mandates open science practices"
-lack of funding,PSE,4.1,"lack of dedicated financial support"
-slow internet,PSE,4.1,"Limited access to...high-speed internet"
+inadequate infrastructure,PAK,8.1,unequal access to global research infrastructure
+lack of funding,PAK,8.1,limited access to international funding mechanisms
+lack of interoperability,PAK,8.1,access restrictions subscription costs or licensing limitations that affect openness and interoperability
+no legal framework,PAK,8.1,lack of globally harmonized standards for open science data sharing
+no private sector engagement,PER,2.8,feasibility of implementing public-private partnerships...has not yet been assessed
+IP rights concerns,PHL,8.1,data and sample sharing concerns
+publishing costs,PHL,8.1,expensive publication fees in journals
+security concerns,PHL,8.1,data and sample sharing concerns or limitations of other countries
+inadequate infrastructure,PSE,2.2,limited infrastructure for implementing open science practices
+lack of awareness,PSE,2.2,lack of awareness and understanding of open science principles among policymakers
+lack of funding,PSE,2.2,insufficient funding for open science initiatives
+no legal framework,PSE,2.2,absence of a legal framework to support open data sharing
+no national policy,PSE,2.2,existing research policies do not explicitly address the need for open science
+lack of funding,PSE,2.3,limited resources allocated to such initiatives
+lack of planning,PSE,2.3,lack of clear indicators or goals for evaluating their effectiveness
+competing priorities,PSE,2.6,insufficient alignment of national research funding priorities with open science principles
+lack of awareness,PSE,2.6,lack of awareness about the importance of such initiatives
+lack of funding,PSE,2.6,limited budget
+lack of awareness,PSE,2.8,limited awareness of the importance of open science
+no incentives,PSE,2.8,lack of clear incentives for private companies
+no legal framework,PSE,2.8,absence of formal frameworks to encourage collaboration
+no private sector engagement,PSE,2.8,lack of clear incentives for private companies to engage in open science practices
+cultural resistance,PSE,4.1,Many researchers and institutions still follow traditional publishing and data-sharing models
 inadequate infrastructure,PSE,4.1,"Limited access to advanced digital repositories, data-sharing platforms"
-lack of awareness,PSE,4.1,"Many researchers and institutions still follow traditional publishing and data-sharing models"
-cultural resistance,PSE,4.1,"Many researchers and institutions still follow traditional publishing and data-sharing models"
-no national policy,PSE,4.2,"no formalized national framework that mandates training for policymakers"
-lack of funding,PSE,4.2,"Funding constraints"
-competing priorities,PSE,4.2,"Policymakers are often engaged with pressing national issues"
-lack of awareness,PSE,4.2,"policymakers may not be fully aware of the benefits of open science"
-lack of expertise,PSE,4.2,"Many policymakers may not be fully aware...or how to integrate it"
-traditional metrics,PSE,5.1,"evaluation processes prioritize conventional metrics such as journal impact factors and citation counts"
-no national policy,PSE,5.1,"Universities and research institutions have yet to adopt formal policies"
-lack of funding,PSE,5.1,"Limited funding and expertise"
-lack of expertise,PSE,5.1,"Limited...expertise make it challenging to implement reforms"
-cultural resistance,PSE,5.1,"resistance to shifting towards open science-aligned evaluation systems"
-lack of awareness,PSE,5.1,"Many researchers and institutions are accustomed to traditional assessment criteria"
-war,PSE,8.1,"Palestine is still under the Israeli occupation and will suffer for long due to the war in Gaza"
+internet connectivity,PSE,4.1,Limited access to...high-speed internet
+lack of awareness,PSE,4.1,Many researchers and institutions still follow traditional publishing and data-sharing models
+lack of funding,PSE,4.1,lack of dedicated financial support
+no national policy,PSE,4.1,no comprehensive national policy or strategy that mandates open science practices
+competing priorities,PSE,4.2,Policymakers are often engaged with pressing national issues
+lack of awareness,PSE,4.2,policymakers may not be fully aware of the benefits of open science
+lack of expertise,PSE,4.2,Many policymakers may not be fully aware...or how to integrate it
+lack of funding,PSE,4.2,Funding constraints
+no national policy,PSE,4.2,no formalized national framework that mandates training for policymakers
+cultural resistance,PSE,5.1,resistance to shifting towards open science-aligned evaluation systems
+lack of awareness,PSE,5.1,Many researchers and institutions are accustomed to traditional assessment criteria
+lack of expertise,PSE,5.1,Limited...expertise make it challenging to implement reforms
+lack of funding,PSE,5.1,Limited funding and expertise
+no national policy,PSE,5.1,Universities and research institutions have yet to adopt formal policies
+traditional metrics,PSE,5.1,evaluation processes prioritize conventional metrics such as journal impact factors and citation counts
+war,PSE,8.1,Palestine is still under the Israeli occupation and will suffer for long due to the war in Gaza
+IP rights concerns,QAT,5.4,concerns about being scooped by researchers from other countries
+cultural resistance,QAT,5.4,researchers may be reluctant to openly share early findings or data
 geopolitical pressures,QAT,5.4,"Geopolitical tensions, such as the 2017 blockade of Qatar"
-cultural resistance,QAT,5.4,"researchers may be reluctant to openly share early findings or data"
-traditional metrics,QAT,5.4,"current academic evaluations favor traditional metrics"
-plagiarism concerns,QAT,5.4,"push for open science may compel researchers...to share findings...before undergoing thorough peer review"
-IP rights concerns,QAT,5.4,"concerns about being scooped by researchers from other countries"
-security concerns,QAT,5.4,"open data sharing can pose risks of exposing sensitive information"
-lack of funding,QAT,8.1,"open science initiatives often require significant resources"
-inadequate infrastructure,QAT,8.1,"disparities in digital infrastructure across regions"
-publishing costs,QAT,8.1,"transition to open-access publishing is costly...authors who pay publication fees"
-IP rights concerns,QAT,8.1,"risks related to intellectual property rights"
-cultural resistance,QAT,8.1,"researchers and/or institutions may resist changing traditional practices"
-lack of planning,QAT,8.1,"administrative burden for developing and enforcing open science policies"
+language barriers,QAT,5.4,making open science resources accessible to a wider Arabic-speaking audience in Qatar may pose a challenge
+plagiarism concerns,QAT,5.4,push for open science may compel researchers...to share findings...before undergoing thorough peer review
+security concerns,QAT,5.4,open data sharing can pose risks of exposing sensitive information
+traditional metrics,QAT,5.4,current academic evaluations favor traditional metrics
+IP rights concerns,QAT,8.1,risks related to intellectual property rights
+cultural resistance,QAT,8.1,researchers and/or institutions may resist changing traditional practices
+inadequate infrastructure,QAT,8.1,disparities in digital infrastructure across regions
+lack of funding,QAT,8.1,open science initiatives often require significant resources
+lack of planning,QAT,8.1,administrative burden for developing and enforcing open science policies
+publishing costs,QAT,8.1,transition to open-access publishing is costly...authors who pay publication fees
 security concerns,QAT,8.1,"ensuring privacy and security of data, especially personal or sensitive information"
 predatory publishing,ROU,5.4,"proliferation of some special issues, which some argue may compromise academic standards"
 publishing costs,ROU,5.4,"shift in focus from research quality to quantity, driven by the need to cover publication fees"
-traditional metrics,ROU,5.4,"financial burden placed on institutions and the potential shift in focus from research quality to quantity"
-predatory publishing,SAU,5.4,"risks of predatory behaviors"
+traditional metrics,ROU,5.4,financial burden placed on institutions and the potential shift in focus from research quality to quantity
+IP rights concerns,SAU,5.4,concerns over intellectual property rights
+predatory publishing,SAU,5.4,risks of predatory behaviors
 publishing costs,SAU,5.4,"increased financial burden on researchers, such as high article processing charges"
-IP rights concerns,SAU,5.4,"concerns over intellectual property rights"
-traditional metrics,SAU,5.4,"shift toward open science practices may complicate traditional research assessment systems"
-security concerns,SAU,5.4,"concerns over...data security"
-no national policy,SAU,8.1,"imperative to establish formal policies and frameworks that explicitly advocate for the integration of open science principles"
-no private sector engagement,SAU,8.1,"absence of a national framework or incentives that support private companies"
-lack of awareness,SAU,8.1,"significant gap in the widespread understanding of open science principles"
-lack of funding,SAU,8.1,"allocation of funds specifically for open science initiatives presents financial challenges"
-poor coordination,SAU,8.1,"ensure alignment with both national and international standards"
-IP rights concerns,SAU,8.1,"apprehensions regarding the sharing of proprietary information"
-no national policy,SEN,1.4,"There is no national policy"
-no national policy,SEN,5.4,"Lack of political engagement and a specific legal framework"
-no legal framework,SEN,5.4,"Absence of a clear legal framework"
-lack of funding,SEN,5.4,"Lack of dedicated funding"
-lack of awareness,SEN,5.4,"Low initial awareness"
-institutional fragmentation,SEN,5.4,"Fragmentation of initiatives"
-inadequate infrastructure,SEN,5.4,"Digital technologies"
-institutional fragmentation,SVK,2.7,"Difficult and fragmented organizational structure of grant agencies"
-poor coordination,SVK,2.7,"each organization has a different system and different priorities"
-institutional fragmentation,SVK,4.1,"the fragmentation of the system"
-publishing costs,SVK,5.4,"High article processing charges associated with gold OA business models"
-lack of funding,SVK,8.1,"Potential shortage of research funding"
-lack of funding,SVN,5.4,"technically and financially demanding endeavour that requires significant additional resources"
-cultural resistance,SVN,5.4,"requires...cultural change"
-lack of planning,SVN,5.4,"These factors are slowing down the changes"
-lack of funding,TGO,8.1,"Research funding is mainly foreign in origin and highly competitive, with few national mechanisms"
-no national policy,TGO,8.1,"absence of a national law on open science"
-slow internet,TGO,8.1,"Expensive, unstable, or uneven internet connectivity"
-inadequate infrastructure,TGO,8.1,"Scarcity of interoperable and standardized institutional repositories"
-nascent research ecosystem,TGO,8.1,"Universities and research centers have not yet integrated open science into their internal policies"
-lack of awareness,TGO,8.1,"Widespread lack of awareness among faculty members, doctoral students, and administrators"
-poor coordination,TGO,8.1,"Limited or poorly coordinated synergies among ministries, universities, libraries"
-no legal framework,TGO,8.1,"Copyright laws, personal data management regulations...hinder the free dissemination of research outputs"
-traditional metrics,TGO,8.1,"Research evaluation still dominated by traditional indicators"
-competing priorities,TGO,8.1,"Political priorities focused on access to basic education or employment"
+security concerns,SAU,5.4,concerns over...data security
+traditional metrics,SAU,5.4,shift toward open science practices may complicate traditional research assessment systems
+IP rights concerns,SAU,8.1,apprehensions regarding the sharing of proprietary information
+lack of awareness,SAU,8.1,significant gap in the widespread understanding of open science principles
+lack of funding,SAU,8.1,allocation of funds specifically for open science initiatives presents financial challenges
+no national policy,SAU,8.1,imperative to establish formal policies and frameworks that explicitly advocate for the integration of open science principles
+no private sector engagement,SAU,8.1,absence of a national framework or incentives that support private companies
+poor coordination,SAU,8.1,ensure alignment with both national and international standards
+no national policy,SEN,1.4,There is no national policy
+inadequate infrastructure,SEN,5.4,Digital technologies
+institutional fragmentation,SEN,5.4,Fragmentation of initiatives
+lack of awareness,SEN,5.4,Low initial awareness
+lack of funding,SEN,5.4,Lack of dedicated funding
+no legal framework,SEN,5.4,Absence of a clear legal framework
+no national policy,SEN,5.4,Lack of political engagement and a specific legal framework
+institutional fragmentation,SVK,2.7,Difficult and fragmented organizational structure of grant agencies
+poor coordination,SVK,2.7,each organization has a different system and different priorities
+institutional fragmentation,SVK,4.1,the fragmentation of the system
+publishing costs,SVK,5.4,High article processing charges associated with gold OA business models
+lack of funding,SVK,8.1,Potential shortage of research funding
+cultural resistance,SVN,5.4,requires...cultural change
+lack of funding,SVN,5.4,technically and financially demanding endeavour that requires significant additional resources
+lack of planning,SVN,5.4,These factors are slowing down the changes
+IP rights concerns,TGO,8.1,absence of a clear framework on open intellectual property
+competing priorities,TGO,8.1,Political priorities focused on access to basic education or employment
+inadequate infrastructure,TGO,8.1,Scarcity of interoperable and standardized institutional repositories
 institutional fragmentation,TGO,8.1,"Limited or poorly coordinated synergies among ministries, universities, libraries, scholarly societies"
-IP rights concerns,TGO,8.1,"absence of a clear framework on open intellectual property"
-nascent research ecosystem,TLS,2.2,"country's still-developing research ecosystem"
-inadequate infrastructure,TLS,2.2,"lack of technical infrastructure to support open science practices"
-lack of funding,TLS,2.2,"funding constraints have hindered investment in open science initiatives"
-lack of awareness,TLS,2.2,"lack of awareness and technical expertise on open science principles"
-lack of expertise,TLS,2.2,"lack of...technical expertise on open science principles"
-no national policy,TLS,2.2,"absence of a national STI policy"
-no legal framework,TLS,2.7,"lack of a formal policy framework requiring open science integration"
-lack of awareness,TLS,2.7,"limited awareness"
-inadequate infrastructure,TLS,2.7,"technical infrastructure"
-no national policy,TLS,2.8,"absence of a formal open science policy"
-lack of awareness,TLS,2.8,"lack of awareness among private sector stakeholders"
-no private sector engagement,TLS,2.8,"minimal private sector engagement in research activities"
-slow internet,TLS,3.3,"slow internet speeds and limited bandwidth"
-lack of funding,TLS,3.3,"Financial constraints"
-lack of expertise,TLS,3.3,"shortage of specialized technical expertise"
-geographic challenges,TLS,3.3,"scattered population and remote areas"
-no national policy,TLS,3.3,"no coordinated national strategy or policy in place"
-lack of awareness,TLS,4.1,"limited awareness and understanding of open science practices"
-nascent research ecosystem,TLS,4.1,"Open science is still a relatively new concept in the country"
-lack of expertise,TLS,4.1,"shortage of specialized expertise and training resources"
-slow internet,TLS,4.1,"slow internet speeds, limited access to high-bandwidth networks"
-lack of funding,TLS,4.1,"Financial constraints"
-lack of capacity building,TLS,4.1,"limited institutional support for systematic capacity building"
-institutional fragmentation,TLS,4.1,"efforts in this area are often fragmented and ad-hoc"
-lack of awareness,TLS,4.2,"limited awareness and understanding of open science among policymakers"
-nascent research ecosystem,TLS,4.2,"Open science practices are still emerging concepts in the country"
+internet connectivity,TGO,8.1,"Expensive, unstable, or uneven internet connectivity"
+lack of awareness,TGO,8.1,"Widespread lack of awareness among faculty members, doctoral students, and administrators"
+lack of expertise,TGO,8.1,Low level of proficiency in advanced digital tools (repository platforms data analysis software FAIR tools)
+lack of funding,TGO,8.1,"Research funding is mainly foreign in origin and highly competitive, with few national mechanisms"
+lack of interoperability,TGO,8.1,Scarcity of interoperable and standardized institutional repositories
+language barriers,TGO,8.1,Language barriers (French) sometimes limit access to resources and training that are often available in English
+nascent research ecosystem,TGO,8.1,Universities and research centers have not yet integrated open science into their internal policies
+no legal framework,TGO,8.1,"Copyright laws, personal data management regulations...hinder the free dissemination of research outputs"
+no national policy,TGO,8.1,absence of a national law on open science
+poor coordination,TGO,8.1,"Limited or poorly coordinated synergies among ministries, universities, libraries"
+traditional metrics,TGO,8.1,Research evaluation still dominated by traditional indicators
+inadequate infrastructure,TLS,2.2,lack of technical infrastructure to support open science practices
+lack of awareness,TLS,2.2,lack of awareness and technical expertise on open science principles
+lack of expertise,TLS,2.2,lack of...technical expertise on open science principles
+lack of funding,TLS,2.2,funding constraints have hindered investment in open science initiatives
+nascent research ecosystem,TLS,2.2,country's still-developing research ecosystem
+no national policy,TLS,2.2,absence of a national STI policy
+inadequate infrastructure,TLS,2.7,technical infrastructure
+lack of awareness,TLS,2.7,limited awareness
+no legal framework,TLS,2.7,lack of a formal policy framework requiring open science integration
+no national policy,TLS,2.7,the lack of a formal policy framework requiring open science integration within research funding
+lack of awareness,TLS,2.8,lack of awareness among private sector stakeholders
+no national policy,TLS,2.8,absence of a formal open science policy
+no private sector engagement,TLS,2.8,minimal private sector engagement in research activities
+geographic challenges,TLS,3.3,scattered population and remote areas
+internet connectivity,TLS,3.3,slow internet speeds and limited bandwidth
+lack of expertise,TLS,3.3,shortage of specialized technical expertise
+lack of funding,TLS,3.3,Financial constraints
+no national policy,TLS,3.3,no coordinated national strategy or policy in place
+inadequate infrastructure,TLS,4.1,challenges with digital infrastructure including slow internet speeds
+institutional fragmentation,TLS,4.1,efforts in this area are often fragmented and ad-hoc
+internet connectivity,TLS,4.1,"slow internet speeds, limited access to high-bandwidth networks"
+lack of awareness,TLS,4.1,limited awareness and understanding of open science practices
+lack of capacity building,TLS,4.1,limited institutional support for systematic capacity building
+lack of expertise,TLS,4.1,shortage of specialized expertise and training resources
+lack of funding,TLS,4.1,Financial constraints
+nascent research ecosystem,TLS,4.1,Open science is still a relatively new concept in the country
 inadequate infrastructure,TLS,4.2,"digital infrastructure, which has limited the government's ability"
-lack of funding,TLS,4.2,"financial constraints"
-lack of awareness,TLS,4.3,"lack of awareness and understanding of open science principles among educators"
-nascent research ecosystem,TLS,4.3,"Open science practices are still emerging concepts"
-slow internet,TLS,4.3,"Slow internet speeds and limited access to high-bandwidth networks"
-lack of funding,TLS,4.3,"financial and resource constraints"
-lack of capacity building,TLS,4.3,"limited funding for training programs"
-nascent research ecosystem,TLS,5.1,"research ecosystem is still in its early stages of development"
-no national policy,TLS,5.1,"no structured mechanism for assessing research performance"
+lack of awareness,TLS,4.2,limited awareness and understanding of open science among policymakers
+lack of funding,TLS,4.2,financial constraints
+nascent research ecosystem,TLS,4.2,Open science practices are still emerging concepts in the country
+inadequate infrastructure,TLS,4.3,digital infrastructure limits access to the tools and resources necessary to teach open science practices effectively
+internet connectivity,TLS,4.3,Slow internet speeds and limited access to high-bandwidth networks
+lack of awareness,TLS,4.3,lack of awareness and understanding of open science principles among educators
+lack of capacity building,TLS,4.3,limited funding for training programs
+lack of funding,TLS,4.3,financial and resource constraints
+nascent research ecosystem,TLS,4.3,Open science practices are still emerging concepts
+inadequate infrastructure,TLS,5.1,lack of...digital infrastructure
+lack of awareness,TLS,5.1,awareness and policy integration of open science remain limited
 lack of funding,TLS,5.1,"lack of funding, digital infrastructure, and trained personnel"
-inadequate infrastructure,TLS,5.1,"lack of...digital infrastructure"
-limited human resources,TLS,5.1,"lack of...trained personnel"
-traditional metrics,TLS,5.1,"Many researchers still rely on traditional assessment methods"
-lack of awareness,TLS,5.1,"awareness and policy integration of open science remain limited"
-traditional metrics,TLS,5.2,"Academic institutions primarily assess faculty and researchers based on traditional criteria"
-no incentives,TLS,5.2,"Researchers often lack incentives to engage in interdisciplinary collaboration"
-lack of funding,TLS,5.2,"absence of a national research funding system"
-nascent research ecosystem,TLS,5.2,"research career evaluation frameworks are still underdeveloped"
-no legal framework,TLS,5.4,"lack of a robust legal and institutional framework"
-IP rights concerns,TLS,5.4,"lack of intellectual property (IP) protection and recognition for researchers"
-inadequate infrastructure,TLS,5.4,"limited digital infrastructure"
-security concerns,TLS,5.4,"cybersecurity risks pose challenges to open science practices"
-inadequate infrastructure,TLS,6.1,"scientific research infrastructure...remain limited"
-lack of funding,TLS,6.1,"funding remain limited"
-no national policy,TLS,6.1,"no established national framework for open science governance"
-no legal framework,TLS,6.1,"no specific policies that encourage participatory or transparent research processes"
-lack of expertise,TLS,6.1,"digital infrastructure and technical capacity remain underdeveloped"
-no national policy,TLS,7.2,"lack of a national open science policy or regulatory framework"
-no legal framework,TLS,7.2,"lack of a...regulatory framework"
-inadequate infrastructure,TLS,7.2,"research infrastructure...remain limited"
-lack of funding,TLS,7.2,"funding remain limited"
-lack of awareness,TLS,7.2,"limited awareness of open science practices"
-poor coordination,TLS,7.2,"collaboration between stakeholders remains informal and uncoordinated"
-no national policy,TLS,7.3,"absence of a national open science policy"
-lack of funding,TLS,7.3,"most funding for scientific research coming from external sources"
-nascent research ecosystem,TLS,7.3,"research ecosystem is still developing"
-lack of expertise,TLS,7.3,"lack of institutional capacity and technical expertise"
-lack of funding,TLS,8.1,"relies heavily on external funding...Without dedicated financial mechanisms"
-poor coordination,TLS,8.1,"lack of regional frameworks for open science collaboration"
-slow internet,TLS,8.1,"digital infrastructure and internet connectivity challenges"
-language barriers,TLS,8.1,"language barriers and access to global scientific literature"
-predatory publishing,TUN,5.4,"publications in predatory journals"
-publishing costs,TUN,8.1,"International commercial publishers impose high costs to publish in open access (APCs)"
-lack of funding,TUN,8.1,"Making research data and results accessible largely depends on international funding"
-inadequate infrastructure,TUR,2.2,"infrastructure and institutions required to spread open science practices are still in the development stage"
-lack of funding,TUR,2.2,"Investments and allocation of resources related to open science may not have been prioritized"
-lack of planning,TUR,2.2,"Developing scientific policies sometimes requires long processes"
-poor coordination,TUR,2.2,"Inter-institutional coordination is weak in Türkiye"
-limited human resources,TUR,2.2,"It is difficult to find responsible people in institutions"
-inadequate infrastructure,TUR,2.4,"infrastructure and institutions required to spread open science practices are still in the development stage"
-lack of funding,TUR,2.4,"Investments and allocation of resources related to open science may not have been prioritized"
-lack of planning,TUR,2.4,"Developing scientific policies sometimes requires long processes"
-poor coordination,TUR,2.4,"strong cooperation and coordination between all stakeholders is required"
-lack of funding,TZA,8.1,"Financial constraints often limit funding for open science"
-slow internet,TZA,8.1,"unreliable internet access"
-no national policy,TZA,8.1,"existing national and regional policies may not fully support open science"
-IP rights concerns,TZA,8.1,"concerns over intellectual property rights"
-lack of awareness,TZA,8.1,"lack of awareness and training on the benefits of open science"
-security concerns,TZA,8.1,"data privacy"
-lack of expertise,UGA,1.4,"need for experts"
-lack of funding,UGA,1.4,"funding which the National Commission may not be able to muster"
-poor coordination,UGA,1.4,"high-level inter-ministerial involvement"
-lack of expertise,UGA,2.3,"may need some special expertise to develop the relevant policy instruments"
-lack of expertise,UGA,2.4,"may need some special expertise to develop the relevant policy instruments"
-war,UKR,2.6,"protracted war in the country"
-war,UKR,2.8,"the war"
-war,UKR,4.2,"the war"
-lack of awareness,UKR,4.3,"low awareness of open science"
-war,UKR,4.3,"restrictions of the state of war"
-war,UKR,4.5,"war"
-lack of awareness,UKR,4.5,"low awareness of open science principles outside the circle of open science enthusiasts"
-inadequate infrastructure,UKR,5.3,"lack of infrastructure for open science (repositories of data)"
-no incentives,UKR,5.3,"makes it impossible to introduce recognition and rewards"
-nascent research ecosystem,UKR,6.1,"current level of implementation of open science practices is low"
-war,UKR,7.2,"the war"
-competing priorities,ZAF,4.2,"National policy directives focussing more on profit making than on freely sharing knowledge"
-cultural resistance,ZAF,8.1,"General buy-in from the Academic community"
-competing priorities,ZAF,8.1,"Country more geared towards saving money"
-lack of funding,ZAF,8.1,"General lack of available national research funding"
+limited human resources,TLS,5.1,lack of...trained personnel
+nascent research ecosystem,TLS,5.1,research ecosystem is still in its early stages of development
+no legal framework,TLS,5.1,there is no structured mechanism for assessing research performance based on open science criteria
+no national policy,TLS,5.1,no structured mechanism for assessing research performance
+traditional metrics,TLS,5.1,Many researchers still rely on traditional assessment methods
+lack of funding,TLS,5.2,absence of a national research funding system
+nascent research ecosystem,TLS,5.2,research career evaluation frameworks are still underdeveloped
+no incentives,TLS,5.2,Researchers often lack incentives to engage in interdisciplinary collaboration
+no legal framework,TLS,5.2,There is no standardized mechanism to evaluate researchers based on open-access publishing
+traditional metrics,TLS,5.2,Academic institutions primarily assess faculty and researchers based on traditional criteria
+IP rights concerns,TLS,5.4,lack of intellectual property (IP) protection and recognition for researchers
+inadequate infrastructure,TLS,5.4,limited digital infrastructure
+no legal framework,TLS,5.4,lack of a robust legal and institutional framework
+security concerns,TLS,5.4,cybersecurity risks pose challenges to open science practices
+inadequate infrastructure,TLS,6.1,scientific research infrastructure...remain limited
+lack of capacity building,TLS,6.1,Without adequate training and resources the adoption of open science methodologies remains slow
+lack of expertise,TLS,6.1,digital infrastructure and technical capacity remain underdeveloped
+lack of funding,TLS,6.1,funding remain limited
+no legal framework,TLS,6.1,no specific policies that encourage participatory or transparent research processes
+no national policy,TLS,6.1,no established national framework for open science governance
+inadequate infrastructure,TLS,7.2,research infrastructure...remain limited
+lack of awareness,TLS,7.2,limited awareness of open science practices
+lack of funding,TLS,7.2,funding remain limited
+no legal framework,TLS,7.2,lack of a...regulatory framework
+no national policy,TLS,7.2,lack of a national open science policy or regulatory framework
+poor coordination,TLS,7.2,collaboration between stakeholders remains informal and uncoordinated
+lack of expertise,TLS,7.3,lack of institutional capacity and technical expertise
+lack of funding,TLS,7.3,most funding for scientific research coming from external sources
+nascent research ecosystem,TLS,7.3,research ecosystem is still developing
+no national policy,TLS,7.3,absence of a national open science policy
+internet connectivity,TLS,8.1,digital infrastructure and internet connectivity challenges
+lack of funding,TLS,8.1,relies heavily on external funding...Without dedicated financial mechanisms
+language barriers,TLS,8.1,language barriers and access to global scientific literature
+poor coordination,TLS,8.1,lack of regional frameworks for open science collaboration
+small country scale,TLS,8.1,As a small developing nation Timor-Leste relies heavily on external funding
+predatory publishing,TUN,5.4,publications in predatory journals
+lack of funding,TUN,8.1,Making research data and results accessible largely depends on international funding
+publishing costs,TUN,8.1,International commercial publishers impose high costs to publish in open access (APCs)
+inadequate infrastructure,TUR,2.2,infrastructure and institutions required to spread open science practices are still in the development stage
+lack of funding,TUR,2.2,Investments and allocation of resources related to open science may not have been prioritized
+lack of planning,TUR,2.2,Developing scientific policies sometimes requires long processes
+limited human resources,TUR,2.2,It is difficult to find responsible people in institutions
+poor coordination,TUR,2.2,Inter-institutional coordination is weak in Türkiye
+inadequate infrastructure,TUR,2.4,infrastructure and institutions required to spread open science practices are still in the development stage
+lack of funding,TUR,2.4,Investments and allocation of resources related to open science may not have been prioritized
+lack of planning,TUR,2.4,Developing scientific policies sometimes requires long processes
+poor coordination,TUR,2.4,strong cooperation and coordination between all stakeholders is required
+IP rights concerns,TZA,8.1,concerns over intellectual property rights
+inadequate infrastructure,TZA,8.1,Inadequate digital infrastructure particularly unreliable internet access
+internet connectivity,TZA,8.1,unreliable internet access
+lack of awareness,TZA,8.1,lack of awareness and training on the benefits of open science
+lack of funding,TZA,8.1,Financial constraints often limit funding for open science
+no national policy,TZA,8.1,existing national and regional policies may not fully support open science
+security concerns,TZA,8.1,data privacy
+lack of expertise,UGA,1.4,need for experts
+lack of funding,UGA,1.4,funding which the National Commission may not be able to muster
+limited human resources,UGA,1.4,There is need for experts high-level inter-ministerial involvement and funding
+poor coordination,UGA,1.4,high-level inter-ministerial involvement
+lack of expertise,UGA,2.3,may need some special expertise to develop the relevant policy instruments
+lack of expertise,UGA,2.4,may need some special expertise to develop the relevant policy instruments
+war,UKR,2.6,protracted war in the country
+war,UKR,2.8,the war
+war,UKR,4.2,the war
+lack of awareness,UKR,4.3,low awareness of open science
+war,UKR,4.3,restrictions of the state of war
+lack of awareness,UKR,4.5,low awareness of open science principles outside the circle of open science enthusiasts
+war,UKR,4.5,war
+inadequate infrastructure,UKR,5.3,lack of infrastructure for open science (repositories of data)
+no incentives,UKR,5.3,makes it impossible to introduce recognition and rewards
+nascent research ecosystem,UKR,6.1,current level of implementation of open science practices is low
+war,UKR,7.2,the war
+competing priorities,ZAF,4.2,National policy directives focussing more on profit making than on freely sharing knowledge
+no national policy,ZAF,4.2,National policy directives focussing more on profit making than on freely sharing knowledge
+competing priorities,ZAF,8.1,Country more geared towards saving money
+cultural resistance,ZAF,8.1,General buy-in from the Academic community
 lack of awareness,ZAF,8.1,"Colonial history which has influences how research, science and the academic enterprise is conducted"
-no national roadmap,ZAF,8.1,"Academic Libraries should be given the opportunity to lead...and to influence the national strategy"
+lack of funding,ZAF,8.1,General lack of available national research funding
+no national roadmap,ZAF,8.1,Academic Libraries should be given the opportunity to lead...and to influence the national strategy
