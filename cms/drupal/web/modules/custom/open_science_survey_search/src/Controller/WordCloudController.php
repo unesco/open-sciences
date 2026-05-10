@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Drupal\search_api\Entity\Server;
 
 /**
- * REST controller for word cloud and term-in-context endpoints.
+ * REST controller for word cloud endpoint.
  */
 class WordCloudController extends ControllerBase {
 
@@ -181,135 +181,6 @@ class WordCloudController extends ControllerBase {
 
       return new JsonResponse([
         'error' => 'Failed to generate word cloud',
-        'message' => $e->getMessage(),
-      ], 500);
-    }
-  }
-
-  /**
-   * Term-in-context endpoint.
-   *
-   * GET /api/term-context
-   * Query params:
-   *   - term: The term to search for (required)
-   *   - question_number: Filter by question number
-   *   - country_iso3: Filter by country ISO3 code
-   *
-   * @param \Symfony\Component\HttpFoundation\Request $request
-   *   The request object.
-   *
-   * @return \Symfony\Component\HttpFoundation\JsonResponse
-   *   JSON response with matching documents and highlighted snippets.
-   */
-  public function termContext(Request $request) {
-    $client = $this->getOpenSearchClient();
-
-    if (!$client) {
-      return new JsonResponse([
-        'error' => 'OpenSearch client not available',
-      ], 500);
-    }
-
-    $term = $request->query->get('term');
-
-    if (!$term) {
-      return new JsonResponse([
-        'error' => 'Missing required parameter: term',
-      ], 400);
-    }
-
-    // Get filter parameters.
-    $question_number = $request->query->get('question_number');
-    $country_iso3 = $request->query->get('country_iso3');
-
-    // Build query with filters.
-    $must_clauses = [
-      [
-        'match' => [
-          'answer_open_text' => $term,
-        ],
-      ],
-    ];
-
-    if ($question_number) {
-      $must_clauses[] = [
-        'term' => ['question_number' => $question_number],
-      ];
-    }
-
-    if ($country_iso3) {
-      $must_clauses[] = [
-        'term' => ['country_iso3' => $country_iso3],
-      ];
-    }
-
-    // Build search request with highlighting.
-    $params = [
-      'index' => $this->getIndexName(),
-      'body' => [
-        'size' => 50,
-        'query' => [
-          'bool' => [
-            'must' => $must_clauses,
-          ],
-        ],
-        'highlight' => [
-          'fields' => [
-            'answer_open_text' => [
-              'type' => 'unified',
-              'fragment_size' => 200,
-              'number_of_fragments' => 1,
-              'pre_tags' => ['<mark>'],
-              'post_tags' => ['</mark>'],
-            ],
-          ],
-        ],
-        '_source' => [
-          'answer_open_text_raw',
-          'question_number',
-          'question_text',
-          'country_name',
-          'country_iso3',
-        ],
-      ],
-    ];
-
-    try {
-      $response = $client->search($params);
-
-      // Extract hits with highlights.
-      $hits = $response['hits']['hits'] ?? [];
-
-      $results = array_map(function($hit) {
-        $source = $hit['_source'] ?? [];
-        $highlight = $hit['highlight']['answer_open_text'][0] ?? null;
-
-        return [
-          'id' => $hit['_id'],
-          'text' => $source['answer_open_text_raw'] ?? '',
-          'highlight' => $highlight,
-          'question_number' => $source['question_number'] ?? null,
-          'question_text' => $source['question_text'] ?? null,
-          'country_name' => $source['country_name'] ?? null,
-          'country_iso3' => $source['country_iso3'] ?? null,
-        ];
-      }, $hits);
-
-      return new JsonResponse([
-        'total' => $response['hits']['total']['value'] ?? 0,
-        'term' => $term,
-        'results' => $results,
-        'filters' => [
-          'question_number' => $question_number,
-          'country_iso3' => $country_iso3,
-        ],
-      ]);
-
-    } catch (\Exception $e) {
-      $this->getLogger('open_science_survey_search')->error('Term context query failed: @message', ['@message' => $e->getMessage()]);
-
-      return new JsonResponse([
-        'error' => 'Failed to search term in context',
         'message' => $e->getMessage(),
       ], 500);
     }

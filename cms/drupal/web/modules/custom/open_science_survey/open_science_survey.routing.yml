@@ -21,3 +21,11 @@ open_science_survey.multi_filter:
   methods: [GET]
   requirements:
     _access: 'TRUE'
+
+open_science_survey.term_context:
+  path: '/api/term-context'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\TermContextController::termContext'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'

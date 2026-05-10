@@ -5,11 +5,3 @@ open_science_survey_search.settings:
     _title: 'OpenSearch Analyzer Settings'
   requirements:
     _permission: 'administer search_api'
-
-open_science_survey_search.term_context:
-  path: '/api/term-context'
-  defaults:
-    _controller: '\Drupal\open_science_survey_search\Controller\WordCloudController::termContext'
-  methods: [GET]
-  requirements:
-    _access: 'TRUE'
