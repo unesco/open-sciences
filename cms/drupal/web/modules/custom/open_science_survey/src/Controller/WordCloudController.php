@@ -14,10 +14,10 @@ class WordCloudController extends ControllerBase {
   /**
    * Challenge occurrence word cloud endpoint.
    *
-   * GET /api/wordcloud-challenges
+    * GET /api/wordcloud
    * Query params:
-  *   - question_number: Filter by question number
-  *   - region: Filter by country region
+    *   - question_number: Filter by question number
+    *   - region: Filter by country region
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
@@ -152,10 +152,10 @@ class WordCloudController extends ControllerBase {
   /**
    * Builds endpoint response payload.
    *
-  * @param string|null $question_number
-  *   Echoed question number filter.
-  * @param string|null $region
-  *   Echoed region filter.
+    * @param string|null $question_number
+    *   Echoed question number filter.
+    * @param string|null $region
+    *   Echoed region filter.
    * @param array $terms
    *   Terms payload.
    *

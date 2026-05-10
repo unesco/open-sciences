@@ -8,3 +8,4 @@ dependencies:
   - drupal:serialization
   - taxonomy
   - views_data_export
+  - search_api_opensearch:search_api_opensearch

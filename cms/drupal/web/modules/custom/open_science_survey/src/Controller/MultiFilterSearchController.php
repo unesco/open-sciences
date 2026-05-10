@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\open_science_survey_search\Controller;
+namespace Drupal\open_science_survey\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,17 +27,18 @@ class MultiFilterSearchController extends ControllerBase {
     try {
       /** @var \Drupal\search_api\ServerInterface $server */
       $server = Server::load('open_search');
-      
+
       if (!$server) {
         return NULL;
       }
 
       /** @var \Drupal\search_api_opensearch\Plugin\search_api\backend\SearchApiOpensearchBackend $backend */
       $backend = $server->getBackend();
-      
+
       return $backend->getClient();
-    } catch (\Exception $e) {
-      $this->getLogger('open_science_survey_search')->error('Failed to get OpenSearch client: @message', ['@message' => $e->getMessage()]);
+    }
+    catch (\Exception $e) {
+      $this->getLogger('open_science_survey')->error('Failed to get OpenSearch client: @message', ['@message' => $e->getMessage()]);
       return NULL;
     }
   }
@@ -54,7 +55,8 @@ class MultiFilterSearchController extends ControllerBase {
       $backend_config = $server->getBackendConfig();
       $prefix = $backend_config['advanced']['prefix'] ?? '';
       return $prefix . 'survey_responses';
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       return 'cms_survey_responses';
     }
   }
@@ -70,7 +72,7 @@ class MultiFilterSearchController extends ControllerBase {
    */
   protected function parseFilters(array $filters) {
     $parsed = [];
-    
+
     if (empty($filters)) {
       return [
         'valid' => FALSE,
@@ -88,7 +90,7 @@ class MultiFilterSearchController extends ControllerBase {
       }
 
       $question = trim($filter['question']);
-      
+
       // Validate question number format (digits and dots).
       if (!preg_match('/^[\d.]+$/', $question)) {
         return [
@@ -108,7 +110,7 @@ class MultiFilterSearchController extends ControllerBase {
       // Parse comma-separated answers.
       $answers = array_map('trim', explode(',', $filter['answer']));
       $answers = array_filter($answers); // Remove empty values.
-      
+
       if (empty($answers)) {
         return [
           'valid' => FALSE,
@@ -163,7 +165,8 @@ class MultiFilterSearchController extends ControllerBase {
       $must_clauses[] = [
         'term' => ['answer_closed_short_name.keyword' => $answers[0]],
       ];
-    } else {
+    }
+    else {
       $must_clauses[] = [
         'terms' => ['answer_closed_short_name.keyword' => $answers],
       ];
@@ -198,10 +201,10 @@ class MultiFilterSearchController extends ControllerBase {
     // Build multi-search request body.
     foreach ($filters as $filter) {
       $query = $this->buildFilterQuery($filter['question'], $filter['answers']);
-      
+
       // Header line for this search.
       $body[] = ['index' => $index_name];
-      
+
       // Body line for this search.
       $body[] = [
         'size' => 0,
@@ -222,9 +225,9 @@ class MultiFilterSearchController extends ControllerBase {
     try {
       $response = $client->msearch($params);
       $responses = $response['responses'] ?? [];
-      
+
       if (count($responses) !== count($filters)) {
-        $this->getLogger('open_science_survey_search')->error(
+        $this->getLogger('open_science_survey')->error(
           'Multi-search returned unexpected number of responses: expected @expected, got @actual',
           ['@expected' => count($filters), '@actual' => count($responses)]
         );
@@ -232,11 +235,11 @@ class MultiFilterSearchController extends ControllerBase {
       }
 
       $country_sets = [];
-      
+
       foreach ($responses as $index => $single_response) {
         // Check for errors in individual response.
         if (isset($single_response['error'])) {
-          $this->getLogger('open_science_survey_search')->error(
+          $this->getLogger('open_science_survey')->error(
             'Multi-search response @index returned error: @error',
             [
               '@index' => $index,
@@ -245,18 +248,19 @@ class MultiFilterSearchController extends ControllerBase {
           );
           return NULL;
         }
-        
+
         $buckets = $single_response['aggregations']['countries']['buckets'] ?? [];
-        
+
         $country_sets[] = array_map(function($bucket) {
           return $bucket['key'];
         }, $buckets);
       }
-      
+
       return $country_sets;
-      
-    } catch (\Exception $e) {
-      $this->getLogger('open_science_survey_search')->error(
+
+    }
+    catch (\Exception $e) {
+      $this->getLogger('open_science_survey')->error(
         'Failed to execute multi-search query: @message',
         ['@message' => $e->getMessage()]
       );
@@ -314,9 +318,10 @@ class MultiFilterSearchController extends ControllerBase {
     try {
       $response = $client->search($params);
       return $response['hits']['hits'] ?? [];
-      
-    } catch (\Exception $e) {
-      $this->getLogger('open_science_survey_search')->error(
+
+    }
+    catch (\Exception $e) {
+      $this->getLogger('open_science_survey')->error(
         'Failed to fetch responses for countries: @message',
         ['@message' => $e->getMessage()]
       );
@@ -359,7 +364,7 @@ class MultiFilterSearchController extends ControllerBase {
    */
   public function search(Request $request) {
     $client = $this->getOpenSearchClient();
-    
+
     if (!$client) {
       return new JsonResponse([
         'error' => 'OpenSearch client not available',
@@ -369,9 +374,9 @@ class MultiFilterSearchController extends ControllerBase {
     // Get and parse filters from query parameters.
     $all_params = $request->query->all();
     $raw_filters = $all_params['filters'] ?? [];
-    
+
     $validation = $this->parseFilters($raw_filters);
-    
+
     if (!$validation['valid']) {
       return new JsonResponse([
         'error' => $validation['error'],
@@ -382,7 +387,7 @@ class MultiFilterSearchController extends ControllerBase {
 
     // Step 1 & 2: Get countries matching each filter using multi-search.
     $country_sets = $this->getCountriesForFiltersMultiSearch($client, $filters);
-    
+
     if ($country_sets === NULL) {
       return new JsonResponse([
         'error' => 'Failed to process filters',
@@ -390,8 +395,8 @@ class MultiFilterSearchController extends ControllerBase {
     }
 
     // Find intersection of all country sets.
-    $matching_countries = empty($country_sets) ? [] : 
-      (count($country_sets) === 1 ? $country_sets[0] : 
+    $matching_countries = empty($country_sets) ? [] :
+      (count($country_sets) === 1 ? $country_sets[0] :
       array_values(array_intersect(...$country_sets)));
 
     // If no matching countries, return early.
@@ -427,16 +432,16 @@ class MultiFilterSearchController extends ControllerBase {
 
     // Step 4: Group responses by country.
     $countries_data = [];
-    
+
     foreach ($hits as $hit) {
       $source = $hit['_source'] ?? [];
-      
+
       $country_iso = $this->extractValue($source['country_iso3'] ?? '');
-      
+
       if (empty($country_iso)) {
         continue;
       }
-      
+
       if (!isset($countries_data[$country_iso])) {
         $countries_data[$country_iso] = [
           'iso3' => $country_iso,
@@ -444,7 +449,7 @@ class MultiFilterSearchController extends ControllerBase {
           'responses' => [],
         ];
       }
-      
+
       // Extract response fields - handle array cases.
       $response_data = [
         'question_number' => $this->extractValue($source['question_number'] ?? ''),
@@ -457,11 +462,11 @@ class MultiFilterSearchController extends ControllerBase {
         $response_data['answer_short'] = $this->extractValue($source['answer_closed_short_name']);
         $response_data['answer'] = $this->extractValue($source['answer_closed_name'] ?? '');
       }
-      
+
       if (!empty($source['answer_open_text_raw'])) {
         $response_data['answer_open'] = $this->extractValue($source['answer_open_text_raw']);
       }
-      
+
       $countries_data[$country_iso]['responses'][] = $response_data;
     }
 
