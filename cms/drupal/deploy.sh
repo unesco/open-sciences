@@ -20,10 +20,3 @@ echo "Importing data..."
 vendor/bin/drush migrate:import --all
 vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/countries_profiles_import.php 
 vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/challenges_import.php
-
-echi "Installing open_science_survey_search..."
-vendor/bin/drush en open_science_survey_search -y
-
-echo "Indexing data..."
-vendor/bin/drush search-api:reset-tracker survey_responses
-vendor/bin/drush search-api:index survey_responses

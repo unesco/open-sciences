@@ -1,7 +1,0 @@
-open_science_survey_search.settings:
-  path: '/admin/config/search/opensearch-settings'
-  defaults:
-    _form: '\Drupal\open_science_survey_search\Form\OpenSearchSettingsForm'
-    _title: 'OpenSearch Analyzer Settings'
-  requirements:
-    _permission: 'administer search_api'

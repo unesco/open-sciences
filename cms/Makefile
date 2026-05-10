@@ -18,11 +18,11 @@ cms-help:
 	@echo " For more details, see comments in this Makefile."
 
 cms-setup:
-	@docker compose up -d db search cms
+	@docker compose up -d db cms
 	@$(MAKE) cms-install-drupal
 
 cms-setup-clean:
-	@docker compose up -d --build --force-recreate db search cms
+	@docker compose up -d --build --force-recreate db cms
 	@$(MAKE) cms-setup
 
 cms-disable-elastic:
