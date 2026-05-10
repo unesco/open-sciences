@@ -86,6 +86,7 @@ This command will:
 - Install all required dependencies
 - Setup containerized services (PostgreSQL, OpenSearch, Redis, RabbitMQ)
 - Prepare the InvenioRDM instance
+- Install and configure the Drupal CMS
 
 **Note**: If you encounter issues with services not starting (especially Redis), run `make check` first to clean up Docker, then retry `make init`.
 
@@ -386,9 +387,7 @@ Run these from the `cms/` directory:
 | `make cms-setup-clean`             | Clean and setup CMS containers                  |
 | `make cms-fix-volumes-permissions` | Fix file permissions for CMS volumes            |
 | `make cms-install-drupal`          | Install Drupal if not already installed         |
-| `make cms-import-survey-data`      | Enable migration module and import survey data  |
-| `make cms-index-survey-responses`  | Enable search module and index survey responses |
-| `make help`                        | Show all available commands                     |
+| `make cms-help`                    | Show all available commands                     |
 
 ## Available Make Commands
 

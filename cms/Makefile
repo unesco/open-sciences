@@ -1,61 +1,33 @@
-.PHONY: setup help wait-db setup-db setup-db-clean fix-volumes-permissions install-drupal
+.PHONY: cms-setup cms-help cms-install-drupal cms-disable-elastic
 
 # Configuration variables
 WAIT_TIMEOUT ?= 60
 
-help:
+cms-help:
 	@echo "=============================="
 	@echo " CMS Makefile Documentation"
 	@echo "=============================="
 	@echo ""
 	@echo "CMS Commands:"
-	@echo "  make cms-setup                  - Setup CMS containers and permissions"
-	@echo "  make cms-setup-clean            - Clean and setup CMS containers and permissions"
-	@echo "  make cms-fix-volumes-permissions - Fix file permissions for CMS volumes"
-	@echo "  make cms-install-drupal         - Install Drupal if not already installed"
-	@echo "  make cms-import-survey-data     - Enable migration module and import survey data"
-	@echo "  make cms-index-survey-responses - Enable search module and index survey responses"
+	@echo "  make cms-setup                  - Setup CMS containers"
+	@echo "  make cms-setup-clean            - Clean and setup CMS containers"
+	@echo "  make cms-install-drupal         - Install Drupal"
+	@echo "  make cms-disable-elastic        - Disable Elastic APM"
 	@echo ""
 	@echo "=============================="
 	@echo " For more details, see comments in this Makefile."
 
 cms-setup:
-ifdef CLEAN
-	@docker compose up -d --build --force-recreate db search cms
-else
 	@docker compose up -d db search cms
-endif
-	@$(MAKE) cms-fix-volumes-permissions
 	@$(MAKE) cms-install-drupal
 
 cms-setup-clean:
-	@$(MAKE) cms-setup CLEAN=1
+	@docker compose up -d --build --force-recreate db search cms
+	@$(MAKE) cms-setup
 
-cms-fix-volumes-permissions:
-	@docker compose exec -u root cms chown -R nobody:nobody /var/www/html/sites/default/files
-	@docker compose exec -u root cms chown -R nobody:nobody /var/www/private
+cms-disable-elastic:
+	@docker compose exec -u root cms mv /usr/local/etc/php/conf.d/98-elastic-apm.ini /usr/local/etc/php/conf.d/98-elastic-apm.ini.off
+	@docker compose exec -u root cms killall -9 php-fpm
 
 cms-install-drupal:
-ifndef CLEAN
-	@if docker compose exec cms drush status --fields=bootstrap 2>/dev/null | grep -q "Successful"; then \
-		echo "✓ Drupal is already installed"; \
-		exit 0; \
-	fi
-endif
-	@echo "Installing Drupal..."
-	@docker compose exec cms drush site:install --yes --existing-config \
-		--account-name=admin@unesco.org \
-		--account-pass=$(USER_PASSWORD)
-	@echo "✓ Drupal installation complete"
-
-cms-import-survey-data:
-	@docker compose exec cms drush en open_science_survey_migration -y
-	@docker compose exec cms drush migrate:import --all
-	@docker compose exec cms drush scr web/modules/custom/open_science_survey_migration/data/countries_profiles_import.php 
-
-
-cms-index-survey-responses:
-	@docker compose exec cms drush en open_science_survey_search -y
-	@docker compose exec cms drush search-api:reset-tracker survey_responses
-	@docker compose exec cms drush search-api:index survey_responses
-
+	@docker compose exec -u root -e ENV=dev -e ADMIN_USER_EMAIL=admin@unesco.org -e ADMIN_USER_PASSWORD=$(USER_PASSWORD) cms /var/www/deploy.sh
