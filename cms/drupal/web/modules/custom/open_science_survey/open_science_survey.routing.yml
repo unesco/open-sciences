@@ -22,6 +22,14 @@ open_science_survey.multi_filter:
   requirements:
     _access: 'TRUE'
 
+open_science_survey.term_context_csv:
+  path: '/api/term-context-csv'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\TermContextController::termContextCsv'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
 open_science_survey.term_context:
   path: '/api/term-context'
   defaults:
