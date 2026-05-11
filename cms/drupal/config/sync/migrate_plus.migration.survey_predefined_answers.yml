@@ -6,7 +6,6 @@ _core:
   default_config_hash: J_ge3OYCweO0sqh3CtwDLx9artSbq8lm48Fy85ltqr8
 id: survey_predefined_answers
 class: null
-idMap: {  }
 field_plugin_method: null
 cck_plugin_method: null
 migration_tags: null
@@ -51,4 +50,5 @@ process:
 destination:
   plugin: 'entity:taxonomy_term'
   default_bundle: survey_predefined_answers
+idMap: {  }
 migration_dependencies: null

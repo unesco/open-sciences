@@ -1,23 +1,23 @@
+uuid: 0c7891d3-aa05-4b1c-9a71-e734b20ebbad
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: 4aqOcV65yBk9qfnP97dGWjJyNiIFT3pAEtBD0gVi2gU
 id: survey_responses
-label: 'Survey Responses'
+class: null
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags: null
 migration_group: open_science_survey
-migration_dependencies:
-  required:
-    - survey_predefined_answers
-    - countries
-    - survey_questions
+label: 'Survey Responses'
 source:
   plugin: csv
-  path: 'modules/custom/open_science_survey_migration/data/survey_responses.csv'
+  path: modules/custom/open_science_survey_migration/data/survey_responses.csv
   header_row_count: 1
   ids:
     - country_iso_code
     - question_number
-
-destination:
-  plugin: entity:survey_response
-  default_bundle: survey_response
-
 process:
   field_question:
     plugin: entity_lookup
@@ -43,4 +43,12 @@ process:
     bundle_key: vid
     bundle: survey_predefined_answers
     ignore_case: true
-
+destination:
+  plugin: 'entity:survey_response'
+  default_bundle: survey_response
+idMap: {  }
+migration_dependencies:
+  required:
+    - survey_predefined_answers
+    - countries
+    - survey_questions

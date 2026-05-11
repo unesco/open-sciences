@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.survey_response.survey_response.field_challenge
     - field.field.survey_response.survey_response.field_closed_ans
     - field.field.survey_response.survey_response.field_country
     - field.field.survey_response.survey_response.field_open_ans
@@ -19,13 +20,23 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 20
+    weight: 2
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_challenge:
+    type: entity_reference_autocomplete
+    weight: 8
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   field_closed_ans:
     type: entity_reference_autocomplete
-    weight: 28
+    weight: 5
     region: content
     settings:
       match_operator: CONTAINS
@@ -35,7 +46,7 @@ content:
     third_party_settings: {  }
   field_country:
     type: entity_reference_autocomplete
-    weight: 27
+    weight: 4
     region: content
     settings:
       match_operator: CONTAINS
@@ -45,21 +56,22 @@ content:
     third_party_settings: {  }
   field_open_ans:
     type: string_textarea
-    weight: 29
+    weight: 6
     region: content
     settings:
-      size: 60
+      rows: 5
       placeholder: ''
     third_party_settings: {  }
   field_open_ans_translated:
     type: boolean_checkbox
-    weight: 32
+    weight: 7
     region: content
-    settings: {  }
+    settings:
+      display_label: true
     third_party_settings: {  }
   field_question:
     type: entity_reference_autocomplete
-    weight: 26
+    weight: 3
     region: content
     settings:
       match_operator: CONTAINS
@@ -76,7 +88,7 @@ content:
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 15
+    weight: 1
     region: content
     settings:
       match_operator: CONTAINS

@@ -171,13 +171,10 @@ curl -G "http://localhost/api/search/survey-responses-multi-filter" \
 ## Implementation Details
 
 - **Controller**: `MultiFilterSearchController.php`
-- **Route**: `open_science_survey_search.multi_filter`
-- **Indexed Fields Used**:
-  - `question_number` (string)
-  - `answer_closed_short_name` (string)
-  - `country_iso3` (string)
-  - `country_name` (string)
-  - `question_text` (string)
-  - `question_type` (string)
-  - `answer_closed_name` (string)
+- **Route**: `open_science_survey.multi_filter`
+- **Entity Types Used**:
+  - `survey_response` — main entity with `field_question`, `field_country`, `field_closed_ans`, `field_open_ans`
+  - `taxonomy_term` (vocabulary: `survey_question`) — `field_question_number`, `field_question_text`, `field_question_type`
+  - `taxonomy_term` (vocabulary: `countries`) — `field_iso_alpha3_code`, `field_country_name`
+  - `taxonomy_term` (vocabulary: `survey_predefined_answers`) — `field_short_name`, `field_long_name`
 

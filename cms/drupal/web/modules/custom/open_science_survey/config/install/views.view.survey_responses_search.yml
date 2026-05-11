@@ -1,27 +1,27 @@
-uuid: 7c6ed59e-4ff9-4d22-b5bb-7f1b32cad95f
+uuid: 4cd5eb75-427e-4393-8270-81453bb45161
 langcode: en
 status: true
 dependencies:
   config:
+    - field.storage.survey_response.field_closed_ans
     - field.storage.taxonomy_term.field_country_name
     - field.storage.taxonomy_term.field_iso_alpha3_code
-    - field.storage.taxonomy_term.field_long_name
     - field.storage.taxonomy_term.field_question_number
     - field.storage.taxonomy_term.field_question_text
     - field.storage.taxonomy_term.field_question_type
-    - search_api.index.survey_responses
   module:
+    - open_science_survey
     - options
     - rest
-    - search_api
     - serialization
+    - taxonomy
 id: survey_responses_search
 label: 'Survey Responses Search'
 module: views
 description: ''
 tag: ''
-base_table: search_api_index_survey_responses
-base_field: search_api_id
+base_table: survey_response
+base_field: id
 display:
   default:
     id: default
@@ -30,16 +30,14 @@ display:
     position: 0
     display_options:
       fields:
-        answer_closed_name:
-          id: answer_closed_name
-          table: search_api_index_survey_responses
-          field: answer_closed_name
+        field_closed_ans:
+          id: field_closed_ans
+          table: survey_response__field_closed_ans
+          field: field_closed_ans
           relationship: none
           group_type: group
           admin_label: ''
-          entity_type: null
-          entity_field: null
-          plugin_id: search_api_field
+          plugin_id: field
           label: ''
           exclude: false
           alter:
@@ -81,10 +79,11 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
-          click_sort_column: value
-          type: string
-          settings: {  }
-          group_column: value
+          click_sort_column: target_id
+          type: entity_reference_label
+          settings:
+            link: false
+          group_column: target_id
           group_columns: {  }
           group_rows: true
           delta_limit: 0
@@ -94,21 +93,14 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          field_rendering: true
-          fallback_handler: search_api
-          fallback_options:
-            link_to_item: false
-            use_highlighting: false
-            multi_type: separator
-            multi_separator: ', '
-        country_name:
-          id: country_name
-          table: search_api_index_survey_responses
-          field: country_name
-          relationship: none
+        field_country_name:
+          id: field_country_name
+          table: taxonomy_term__field_country_name
+          field: field_country_name
+          relationship: field_country
           group_type: group
           admin_label: ''
-          plugin_id: search_api_field
+          plugin_id: field
           label: ''
           exclude: false
           alter:
@@ -164,21 +156,14 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          field_rendering: true
-          fallback_handler: search_api
-          fallback_options:
-            link_to_item: false
-            use_highlighting: false
-            multi_type: separator
-            multi_separator: ', '
-        country_iso3:
-          id: country_iso3
-          table: search_api_index_survey_responses
-          field: country_iso3
-          relationship: none
+        field_iso_alpha3_code:
+          id: field_iso_alpha3_code
+          table: taxonomy_term__field_iso_alpha3_code
+          field: field_iso_alpha3_code
+          relationship: field_country
           group_type: group
           admin_label: ''
-          plugin_id: search_api_field
+          plugin_id: field
           label: ''
           exclude: false
           alter:
@@ -234,21 +219,14 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          field_rendering: true
-          fallback_handler: search_api
-          fallback_options:
-            link_to_item: false
-            use_highlighting: false
-            multi_type: separator
-            multi_separator: ', '
-        question_number:
-          id: question_number
-          table: search_api_index_survey_responses
-          field: question_number
-          relationship: none
+        field_question_number:
+          id: field_question_number
+          table: taxonomy_term__field_question_number
+          field: field_question_number
+          relationship: field_question
           group_type: group
           admin_label: ''
-          plugin_id: search_api_field
+          plugin_id: field
           label: ''
           exclude: false
           alter:
@@ -304,21 +282,14 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          field_rendering: true
-          fallback_handler: search_api
-          fallback_options:
-            link_to_item: false
-            use_highlighting: false
-            multi_type: separator
-            multi_separator: ', '
-        question_text:
-          id: question_text
-          table: search_api_index_survey_responses
-          field: question_text
-          relationship: none
+        field_question_text:
+          id: field_question_text
+          table: taxonomy_term__field_question_text
+          field: field_question_text
+          relationship: field_question
           group_type: group
           admin_label: ''
-          plugin_id: search_api_field
+          plugin_id: field
           label: ''
           exclude: false
           alter:
@@ -373,21 +344,14 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          field_rendering: true
-          fallback_handler: search_api
-          fallback_options:
-            link_to_item: false
-            use_highlighting: false
-            multi_type: separator
-            multi_separator: ', '
-        question_type:
-          id: question_type
-          table: search_api_index_survey_responses
-          field: question_type
-          relationship: none
+        field_question_type:
+          id: field_question_type
+          table: taxonomy_term__field_question_type
+          field: field_question_type
+          relationship: field_question
           group_type: group
           admin_label: ''
-          plugin_id: search_api_field
+          plugin_id: field
           label: ''
           exclude: false
           alter:
@@ -442,13 +406,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          field_rendering: true
-          fallback_handler: search_api
-          fallback_options:
-            link_to_item: false
-            use_highlighting: false
-            multi_type: separator
-            multi_separator: ', '
       pager:
         type: mini
         options:
@@ -482,33 +439,41 @@ display:
         type: none
         options: {  }
       cache:
-        type: search_api_none
+        type: tag
         options: {  }
       empty: {  }
       sorts: {  }
       arguments: {  }
       filters:
-        country_iso3:
-          id: country_iso3
-          table: search_api_index_survey_responses
-          field: country_iso3
-          relationship: none
+        status:
+          id: status
+          table: survey_response
+          field: status
+          entity_type: survey_response
+          entity_field: status
+          plugin_id: boolean
+          value: '1'
+          group: 1
+          expose:
+            operator: ''
+        field_iso_alpha3_code_value:
+          id: field_iso_alpha3_code_value
+          table: taxonomy_term__field_iso_alpha3_code
+          field: field_iso_alpha3_code_value
+          relationship: field_country
           group_type: group
           admin_label: ''
-          plugin_id: search_api_string
+          plugin_id: string
           operator: '='
-          value:
-            min: ''
-            max: ''
-            value: ''
+          value: ''
           group: 1
           exposed: true
           expose:
-            operator_id: country_iso3_op
+            operator_id: field_iso_alpha3_code_value_op
             label: 'Country ISO Code'
             description: ''
             use_operator: false
-            operator: country_iso3_op
+            operator: field_iso_alpha3_code_value_op
             operator_limit_selection: false
             operator_list: {  }
             identifier: country_iso3
@@ -517,8 +482,6 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-            min_placeholder: ''
-            max_placeholder: ''
             placeholder: ''
           is_grouped: false
           group_info:
@@ -532,27 +495,24 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-        question_number:
-          id: question_number
-          table: search_api_index_survey_responses
-          field: question_number
-          relationship: none
+        field_question_number_value:
+          id: field_question_number_value
+          table: taxonomy_term__field_question_number
+          field: field_question_number_value
+          relationship: field_country
           group_type: group
           admin_label: ''
-          plugin_id: search_api_string
+          plugin_id: string
           operator: '='
-          value:
-            min: ''
-            max: ''
-            value: ''
+          value: ''
           group: 1
           exposed: true
           expose:
-            operator_id: question_number_op
+            operator_id: field_question_number_value_op
             label: 'Question Number'
             description: ''
             use_operator: false
-            operator: question_number_op
+            operator: field_question_number_value_op
             operator_limit_selection: false
             operator_list: {  }
             identifier: question_number
@@ -561,8 +521,6 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-            min_placeholder: ''
-            max_placeholder: ''
             placeholder: ''
           is_grouped: false
           group_info:
@@ -576,27 +534,60 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
-      filter_groups:
-        operator: AND
-        groups:
-          1: AND
       style:
         type: serializer
+        options:
+          formats:
+            json: json
       row:
-        type: fields
+        type: data_field
         options:
-          default_field_elements: true
-          inline: {  }
-          separator: ''
-          hide_empty: false
+          field_options:
+            field_closed_ans:
+              alias: answer_closed_name
+              raw_output: false
+            field_country_name:
+              alias: country_name
+              raw_output: false
+            field_iso_alpha3_code:
+              alias: country_iso3
+              raw_output: false
+            field_question_number:
+              alias: question_number
+              raw_output: false
+            field_question_text:
+              alias: question_text
+              raw_output: false
+            field_question_type:
+              alias: question_type
+              raw_output: false
       query:
-        type: search_api_query
+        type: views_query
         options:
-          bypass_access: false
-          skip_access: true
-          preserve_facet_query_args: false
+          query_comment: ''
+          disable_sql_rewrite: false
+          distinct: false
+          replica: false
           query_tags: {  }
-      relationships: {  }
+      relationships:
+        field_country:
+          id: field_country
+          table: survey_response__field_country
+          field: field_country
+          relationship: none
+          group_type: group
+          admin_label: 'field_country: Taxonomy term'
+          plugin_id: standard
+          required: true
+        field_question:
+          id: field_question
+          table: survey_response__field_question
+          field: field_question
+          relationship: none
+          group_type: group
+          admin_label: 'field_question: Taxonomy term'
+          plugin_id: standard
+          required: true
       header: {  }
       footer: {  }
       display_extenders: {  }
@@ -609,38 +600,25 @@ display:
         - url
         - url.query_args
       tags:
+        - 'config:field.storage.survey_response.field_closed_ans'
         - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
-        - 'config:field.storage.taxonomy_term.field_long_name'
         - 'config:field.storage.taxonomy_term.field_question_number'
         - 'config:field.storage.taxonomy_term.field_question_text'
         - 'config:field.storage.taxonomy_term.field_question_type'
-        - 'config:search_api.index.survey_responses'
-        - 'search_api_list:survey_responses'
-  rest_api_search_survey_responses:
-    id: rest_api_search_survey_responses
+  rest_export_1:
+    id: rest_export_1
     display_title: 'REST export'
     display_plugin: rest_export
     position: 1
     display_options:
       pager:
-        type: some
+        type: none
         options:
           offset: 0
-          items_per_page: 100
-      style:
-        type: serializer
-        options:
-          uses_fields: false
-          formats:
-            json: json
-      row:
-        type: data_field
-        options:
-          field_options:
-            answer_closed_name:
-              alias: ''
-              raw_output: false
+      defaults:
+        style: true
+        row: true
       display_extenders: {  }
       path: api/search/survey-responses
     cache_metadata:
@@ -651,12 +629,9 @@ display:
         - request_format
         - url
       tags:
+        - 'config:field.storage.survey_response.field_closed_ans'
         - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
-        - 'config:field.storage.taxonomy_term.field_long_name'
         - 'config:field.storage.taxonomy_term.field_question_number'
         - 'config:field.storage.taxonomy_term.field_question_text'
         - 'config:field.storage.taxonomy_term.field_question_type'
-        - 'config:search_api.index.survey_responses'
-        - 'search_api_list:survey_responses'
-

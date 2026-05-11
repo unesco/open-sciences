@@ -13,7 +13,7 @@ id: survey_response.survey_response.field_closed_ans
 field_name: field_closed_ans
 entity_type: survey_response
 bundle: survey_response
-label: 'Survey Response Closed Answer'
+label: 'Closed Answer'
 description: ''
 required: false
 translatable: false

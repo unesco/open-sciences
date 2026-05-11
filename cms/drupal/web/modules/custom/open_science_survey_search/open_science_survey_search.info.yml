@@ -1,8 +1,0 @@
-name: 'open_science_survey_search'
-type: module
-description: 'Open Search Indexer for Open Science Survey data'
-package: Custom
-core_version_requirement: ^10 || ^11
-dependencies:
-  - open_science_survey:open_science_survey
-  - search_api_opensearch:search_api_opensearch

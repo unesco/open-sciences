@@ -6,7 +6,6 @@ _core:
   default_config_hash: 4sYNuvSHxOAHez8jo64XNytdqNIPrOwEqgUXB2A1xcs
 id: qualitative_responses
 class: null
-idMap: {  }
 field_plugin_method: null
 cck_plugin_method: null
 migration_tags: null
@@ -49,6 +48,7 @@ process:
 destination:
   plugin: 'entity:survey_response'
   default_bundle: survey_response
+idMap: {  }
 migration_dependencies:
   required:
     - countries

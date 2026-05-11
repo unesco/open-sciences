@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Science Survey - Word Cloud</title>
+  <style>
+    :root {
+      --bg: #eceff3;
+      --panel: #ffffff;
+      --text: #1f2a3a;
+      --muted: #6b7789;
+      --blue-1: #0f4f9e;
+      --blue-2: #1664c3;
+      --blue-3: #2a7de0;
+      --blue-4: #4792ea;
+      --blue-5: #7db3f5;
+      --error: #9f1f1f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top right, #f8fafc 0%, var(--bg) 60%);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      background: var(--panel);
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(15, 33, 60, 0.11);
+      overflow: hidden;
+      border: 1px solid #d8e0ea;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar h1 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.2px;
+      font-weight: 700;
+    }
+
+    .toolbar input {
+      border: 1px solid #c8d2df;
+      border-radius: 8px;
+      padding: 8px 10px;
+      min-width: 130px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .toolbar input:focus {
+      border-color: #2a7de0;
+      box-shadow: 0 0 0 3px rgba(42, 125, 224, 0.15);
+    }
+
+    .toolbar button {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(180deg, #2f83e8 0%, #1b67c5 100%);
+      cursor: pointer;
+    }
+
+    .toolbar button:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    .toolbar .status {
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+
+    .toolbar .status.error {
+      color: var(--error);
+      font-weight: 600;
+    }
+
+    .cloud-wrap {
+      background: #ffffff;
+      width: 100%;
+      height: 580px;
+      position: relative;
+    }
+
+    #cloud {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .empty {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 15px;
+      text-align: center;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .empty[hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 760px) {
+      .cloud-wrap {
+        height: 430px;
+      }
+
+      .toolbar h1 {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="toolbar">
+      <div class="toolbar-left">
+        <h1>Challenge Word Cloud</h1>
+        <input id="questionNumber" type="text" placeholder="question_number (optional)">
+        <input id="region" type="text" placeholder="region (optional)">
+        <button id="refreshButton" type="button">Refresh</button>
+      </div>
+      <div id="status" class="status">Loading terms from API...</div>
+    </section>
+
+    <section class="cloud-wrap" aria-live="polite">
+      <canvas id="cloud"></canvas>
+      <div id="empty" class="empty" hidden>No terms found for the current filters.</div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1/build/d3.layout.cloud.min.js"></script>
+  <script>
+    (function () {
+      var API_URL = "http://127.0.0.1:8080/api/wordcloud";
+      var BLUE_SCALE = ["#003f8a", "#0058b3", "#0b6cd4", "#1b82ea", "#2c95f2"];
+
+      var canvas = document.getElementById("cloud");
+      var statusEl = document.getElementById("status");
+      var emptyEl = document.getElementById("empty");
+      var questionInput = document.getElementById("questionNumber");
+      var regionInput = document.getElementById("region");
+      var refreshButton = document.getElementById("refreshButton");
+      var latestRequestId = 0;
+      var latestLayoutId = 0;
+
+      function updateStatus(message, isError) {
+        statusEl.textContent = message;
+        statusEl.classList.toggle("error", Boolean(isError));
+      }
+
+      function buildUrl() {
+        var url = new URL(API_URL);
+        var q = questionInput.value.trim();
+        var r = regionInput.value.trim();
+
+        if (q) {
+          url.searchParams.set("question_number", q);
+        }
+
+        if (r) {
+          url.searchParams.set("region", r);
+        }
+
+        return url.toString();
+      }
+
+      function clearCanvas() {
+        var ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function drawWordCloud(terms) {
+        var layoutId = ++latestLayoutId;
+        var wrap = canvas.parentElement;
+        var width = wrap.clientWidth;
+        var height = wrap.clientHeight;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        clearCanvas();
+
+        if (!terms.length) {
+          emptyEl.hidden = false;
+          return;
+        }
+
+        emptyEl.hidden = true;
+
+        var percents = terms.map(function (d) {
+          return Number(d.percent) || 0;
+        });
+
+        var minP = d3.min(percents);
+        var maxP = d3.max(percents);
+
+        var sizeScale = d3.scalePow()
+          .exponent(0.6)
+          .domain([minP, maxP === minP ? minP + 1 : maxP])
+          .range([20, Math.min(110, Math.max(56, width / 6.2))]);
+
+        var colorScale = d3.scaleQuantize()
+          .domain([minP, maxP === minP ? minP + 1 : maxP])
+          .range(BLUE_SCALE);
+
+        var words = terms.map(function (term) {
+          var value = Number(term.percent) || 0;
+          return {
+            text: String(term.term || "").trim(),
+            size: Math.round(sizeScale(value)),
+            percent: value,
+            color: colorScale(value)
+          };
+        }).filter(function (word) {
+          return word.text.length > 0;
+        });
+
+        d3.layout.cloud()
+          .size([width, height])
+          .canvas(function () { return canvas; })
+          .words(words)
+          .padding(5)
+          .rotate(function () { return 0; })
+          .font("Segoe UI")
+          .fontSize(function (d) { return d.size; })
+          .on("end", function (layoutWords) {
+            if (layoutId !== latestLayoutId) {
+              return;
+            }
+
+            var ctx = canvas.getContext("2d");
+            if (!layoutWords.length) {
+              emptyEl.hidden = false;
+              return;
+            }
+
+            var minX = Infinity;
+            var maxX = -Infinity;
+            var minY = Infinity;
+            var maxY = -Infinity;
+
+            layoutWords.forEach(function (d) {
+              var hw = (d.width || d.size * d.text.length * 0.55) / 2;
+              var hh = (d.height || d.size) / 2;
+              minX = Math.min(minX, d.x - hw);
+              maxX = Math.max(maxX, d.x + hw);
+              minY = Math.min(minY, d.y - hh);
+              maxY = Math.max(maxY, d.y + hh);
+            });
+
+            var cloudW = Math.max(1, maxX - minX);
+            var cloudH = Math.max(1, maxY - minY);
+            var targetW = width * 0.96;
+            var targetH = height * 0.9;
+            var fitScale = Math.min(targetW / cloudW, targetH / cloudH);
+            var offsetX = -(minX + cloudW / 2);
+            var offsetY = -(minY + cloudH / 2);
+
+            clearCanvas();
+            ctx.save();
+            ctx.translate(width / 2, height / 2);
+            ctx.scale(fitScale, fitScale);
+            ctx.translate(offsetX, offsetY);
+
+            layoutWords.forEach(function (d) {
+              ctx.save();
+              ctx.translate(d.x, d.y);
+              ctx.rotate(d.rotate * Math.PI / 180);
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.font = "700 " + d.size + "px Segoe UI";
+              ctx.fillStyle = d.color;
+              ctx.fillText(d.text, 0, 0);
+              ctx.restore();
+            });
+
+            ctx.restore();
+          })
+          .start();
+      }
+
+      function parsePayload(payload) {
+        if (!payload || !Array.isArray(payload.terms)) {
+          return [];
+        }
+
+        return payload.terms
+          .map(function (item) {
+            if (!item || typeof item.term === "undefined") {
+              return null;
+            }
+
+            return {
+              term: item.term,
+              percent: Number(item.percent) || 0
+            };
+          })
+          .filter(Boolean);
+      }
+
+      async function loadAndRender() {
+        var requestId = ++latestRequestId;
+        updateStatus("Loading terms from API...", false);
+        refreshButton.disabled = true;
+        emptyEl.hidden = true;
+
+        try {
+          var response = await fetch(buildUrl(), {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+          });
+
+          if (requestId !== latestRequestId) {
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status + " while requesting /api/wordcloud");
+          }
+
+          var payload = await response.json();
+
+          if (requestId !== latestRequestId) {
+            return;
+          }
+
+          var terms = parsePayload(payload);
+
+          drawWordCloud(terms);
+
+          if (terms.length === 0) {
+            updateStatus("Loaded successfully. No terms returned for these filters.", false);
+          } else {
+            updateStatus("Loaded " + terms.length + " terms.", false);
+          }
+        } catch (error) {
+          if (requestId !== latestRequestId) {
+            return;
+          }
+
+          clearCanvas();
+          emptyEl.hidden = false;
+          updateStatus("Unable to load data: " + error.message, true);
+        } finally {
+          if (requestId === latestRequestId) {
+            refreshButton.disabled = false;
+          }
+        }
+      }
+
+      refreshButton.addEventListener("click", function () {
+        loadAndRender();
+      });
+
+      window.addEventListener("resize", function () {
+        loadAndRender();
+      });
+
+      loadAndRender();
+    })();
+  </script>
+</body>
+</html>

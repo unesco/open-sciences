@@ -6,7 +6,6 @@ _core:
   default_config_hash: LhaJ7jVEjFEt1FNRzQKPdchGb7Z63L9KiSg3I39_q70
 id: survey_sections
 class: null
-idMap: {  }
 field_plugin_method: null
 cck_plugin_method: null
 migration_tags: null
@@ -21,7 +20,9 @@ source:
 process:
   name: title
   field_section_id: id
+  field_visible_in_dashboard: visible
 destination:
   plugin: 'entity:taxonomy_term'
   default_bundle: survey_section
+idMap: {  }
 migration_dependencies: null

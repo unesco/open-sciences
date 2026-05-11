@@ -73,6 +73,7 @@ This command will:
 - Install all required dependencies
 - Setup containerized services (PostgreSQL, OpenSearch, Redis, RabbitMQ)
 - Prepare the InvenioRDM instance
+- Install and configure the Drupal CMS
 
 **Note**: If you encounter issues with services not starting (especially Redis), run `make check` first to clean up Docker, then retry `make init`.
 
