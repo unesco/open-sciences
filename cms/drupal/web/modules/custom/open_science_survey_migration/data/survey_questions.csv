@@ -9,25 +9,26 @@ A.15,Sector of other organization(s) or entity(ies) (including non-governmental)
 1.2.1,"If yes, which language(s)?",Open,,,,1
 1.3,"Have there been awareness raising activities on open science, including all its key elements, associated benefits and challenges, organized or foreseen to be organized by the end of 2025 in your country by national authorities or entities?",Closed,"Awareness raising activities on open science, including all its key elements, associated benefits and challenges, have been organised or foreseen to be organised by the end of 2025 by national authorities or entities",Awareness-raising activities,,1
 1.3.1,"If yes, please provide details on the activities organized or foreseen and links as relevant.",Open,,,,1
+1.4,"Have specific actions been undertaken or are planned to be undertaken by end of 2025 in your country to incorporate the values and principles of open science, in publicly funded research?",Closed,,,,1
 1.4.1,"If yes, please indicate the actions that are taken to incorporate the specific values and principles. For each case, please provide details and links as relevant.",Open,,,,1
 1.4.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,1
 2.1,"Does your country have a national policy, strategy or plan of action on science, technology and innovation (STI)?",Closed,,,,2
 2.1.1,"If yes, please share a machine-readable PDF file of the policy and provide information",Open,,,,2
 2.1.2,If yes: does it include any of the following open science elements,Closed,"Availability of a national science, technology and innovation (STI) policy, strategy or plan of action that includes an open science element(s)",Open science in a national STI policy,Countries reported additional details on the inclusion of the following specific open science elements in their national STI policy: - open access to scientific knowledge; - open science infrastructure; - open engagement of societal actors; - open dialogue with other knowledge systems,2
 2.1.3,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,2
-2.2,"In your country, is there a policy, or a set of policies and/or legal framework(s) at the national level that address open science or any of its key elements in line with the definition, values and principles outlined in the 2021 Recommendation on Open Science?",Open,"Availability of a legal framework(s) at the national level that addresses open science elements in line with the definition, values 
+2.2,"In your country, is there a policy, or a set of policies and/or legal framework(s) at the national level that address open science or any of its key elements in line with the definition, values and principles outlined in the 2021 Recommendation on Open Science?",Open,"Availability of a legal framework(s) at the national level that addresses open science elements in line with the definition, values
 and principles outlined in the 2021 Recommendation on Open Science",Legal frameworks,,2
 2.2.1,"If yes or partly, please share a machine-readable PDF file(s) of the policy(ies) and provide information",Open,,,,2
 2.2.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to develop such policies.",Open,,,,2
 2.3,"In your country, are there specific policy instruments that aim to promote open science?",Open,Availability of specific policy instruments in the country that aim to promote open science,Policy instruments,,2
 2.3.1,"If yes or under development, please provide details and links as relevant",Open,,,,2
 2.3.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to develop such policy instruments.",Open,,,,2
-2.4,"In your country, is there a national implementation plan, strategy, policy or a roadmap for implementation of open science at the national level in line with the 2021 Recommendation?",Open,"Availability of a national implementation plan, strategy or a roadmap for 
+2.4,"In your country, is there a national implementation plan, strategy, policy or a roadmap for implementation of open science at the national level in line with the 2021 Recommendation?",Open,"Availability of a national implementation plan, strategy or a roadmap for
 implementation of open science at the national level in line with the 2021 Recommendation",National plan/roadmap,,2
 2.4.1,"If yes or under development, please provide details and links as relevant",Open,,,,2
 2.4.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to develop such policy instruments.",Open,,,,2
-2.5,"In your country, are there policies and/or strategies that promote open science in line with the 2021 Recommendation at institutional level, including in the context of research-performing institutions, universities, scientific unions and associations and learned societies?",Open,"Avaialbility of policies and/or strategies that promote open science in line with the 
-2021 Recommendation at institutional level, including in the context of research performing 
+2.5,"In your country, are there policies and/or strategies that promote open science in line with the 2021 Recommendation at institutional level, including in the context of research-performing institutions, universities, scientific unions and associations and learned societies?",Open,"Avaialbility of policies and/or strategies that promote open science in line with the
+2021 Recommendation at institutional level, including in the context of research performing
 institutions, universities, scientific unions and associations and learned societies",Institutional open science policies,,2
 2.5.1,"If yes, please provide more information, including the number of policies, name of the institute(s) that has/have developed the policy(s) and elements of open science included in the policy",Open,,,,2
 2.6,"In your country, are there specific funding mechanisms for open science at the national level?",Open,Availability of specific funding mechanisms for implementation of open science at the national level,Funding mechanisms,,2
@@ -36,7 +37,7 @@ institutions, universities, scientific unions and associations and learned socie
 2.7,"In your country, have open science practices been integrated in existing research funding mechanisms?",Closed,Open science practices have been integrated in existing research funding mechanisms,Open science in research funding,,2
 2.7.1,"If yes, please provide details and links as relevant.",Open,,,,2
 2.7.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,2
-2.8,Have efforts been made or are foreseen to be undertaken by end of 2025 in your country to foster equitable public-private partnerships on open science in line with the 2021 Recommendation?,Closed,"Efforts have been made or are foreseen to be undertaken by end of 2025 in the country to 
+2.8,Have efforts been made or are foreseen to be undertaken by end of 2025 in your country to foster equitable public-private partnerships on open science in line with the 2021 Recommendation?,Closed,"Efforts have been made or are foreseen to be undertaken by end of 2025 in the country to
 foster equitable public-private partnerships on open science in line with the 2021 Recommendation",Public-private partnerships,,2
 2.8.1,"If yes, please provide details and links as relevant.",Open,,,,2
 2.8.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,2
@@ -70,7 +71,7 @@ foster equitable public-private partnerships on open science in line with the 20
 4.5,"Have there been any initiatives in your country to support science communication in line with open science value and principles with a view to the dissemination of scientific knowledge to researchers of different disciplines, decision-makers and the public at large?",Closed,"Initiatives to support science communication in line with open science values and principles, with a view to the dissemination of scientific knowledge to researchers of different disciplines, decision-makers and the public at large",Open science-driven science communication initiatives,,4
 4.5.1,"If yes, please provide more information and links as relevant.",Open,,,,4
 4.5.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,4
-5.1,"Have there been any initiatives at the national or institutional level, e.g. by universities and/or research performing institutions, to review the existing research assessment and evaluation processes in order to align them with open science principles and values or are they foreseen by the end of 2025?",Closed,"Initiatives at the national or institutional level, e.g. by universities and/or research performing institutions, to review the existing research assessment and evaluation 
+5.1,"Have there been any initiatives at the national or institutional level, e.g. by universities and/or research performing institutions, to review the existing research assessment and evaluation processes in order to align them with open science principles and values or are they foreseen by the end of 2025?",Closed,"Initiatives at the national or institutional level, e.g. by universities and/or research performing institutions, to review the existing research assessment and evaluation
 processes in order to align them with open science principles and values have been undertaken or are foreseen by the end of 2025",Research assessment review,,5
 5.1.1,"If yes, please provide more information and links as relevant.",Open,,,,5
 5.1.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,5
@@ -92,12 +93,12 @@ processes in order to align them with open science principles and values have be
 6.1.7,"If yes, please provide more information and links as relevant",Open,,,,6
 6.1.8,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,6
 7.1,How is your country promoting and facilitating international scientific collaborations on open science as outlined in the 2021 Recommendation on Open Science?,Open,,,,7
-7.2,"Does your country have a strategy or a plan for stimulating cross-border multi-stakeholder collaboration on open science, including with regards to exchange of best practices, capacity building and metrics for open science?",Closed,"Avaialbility of a strategy or a plan in the country for stimulating cross-border multi-stakeholder 
-collaboration on open science, including with regards to exchange of best practices, capacity 
+7.2,"Does your country have a strategy or a plan for stimulating cross-border multi-stakeholder collaboration on open science, including with regards to exchange of best practices, capacity building and metrics for open science?",Closed,"Avaialbility of a strategy or a plan in the country for stimulating cross-border multi-stakeholder
+collaboration on open science, including with regards to exchange of best practices, capacity
 building and metrics for open science",Cross-border  collaboration strategies,,7
 7.2.1,"If yes, please provide links as relevant and more information.",Open,,,,7
 7.2.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,7
-7.3,Is your country involved in any discussion on the establishment of regional and international funding mechanisms for open science?,Closed,"The country's involved in any discussion on the establishment of regional and international 
+7.3,Is your country involved in any discussion on the establishment of regional and international funding mechanisms for open science?,Closed,"The country's involved in any discussion on the establishment of regional and international
 funding mechanisms for open science",Discussions on the establishment of regional/international funding mechanisms,,7
 7.3.1,"If yes, please provide links as relevant and more information.",Open,,,,7
 7.3.2,"If no, please, if possible, briefly explain the reason and the difficulties or obstacles in this area and indicate if there are plans to do so.",Open,,,,7

@@ -1,0 +1,54 @@
+uuid: c0d10d73-a2ca-4504-ad6b-f86ab96fcaf4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.survey_section.field_section_id
+    - field.field.taxonomy_term.survey_section.field_visible_in_dashboard
+    - taxonomy.vocabulary.survey_section
+  module:
+    - path
+    - text
+id: taxonomy_term.survey_section.default
+targetEntityType: taxonomy_term
+bundle: survey_section
+mode: default
+content:
+  description:
+    type: text_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_visible_in_dashboard:
+    type: boolean_checkbox
+    weight: 101
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  name:
+    type: string_textfield
+    weight: -5
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  path:
+    type: path
+    weight: 30
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 100
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+hidden:
+  field_section_id: true

@@ -13,7 +13,7 @@ id: survey_response.survey_response.field_country
 field_name: field_country
 entity_type: survey_response
 bundle: survey_response
-label: 'Survey Response Country'
+label: Country
 description: ''
 required: true
 translatable: false

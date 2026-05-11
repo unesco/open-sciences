@@ -6,7 +6,6 @@ _core:
   default_config_hash: dDnlHKTS_Nr2m9-DmAAuiAUdoz2GxR9ct7OzijUuxho
 id: survey_questions
 class: null
-idMap: {  }
 field_plugin_method: null
 cck_plugin_method: null
 migration_tags: null
@@ -38,6 +37,7 @@ process:
 destination:
   plugin: 'entity:taxonomy_term'
   default_bundle: survey_question
+idMap: {  }
 migration_dependencies:
   required:
     - survey_sections

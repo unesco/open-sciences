@@ -1,0 +1,31 @@
+uuid: 9a52d819-9519-4f23-b2c6-469c73a6a05b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.challenges.field_snippet
+    - taxonomy.vocabulary.challenges
+  module:
+    - text
+id: taxonomy_term.challenges.default
+targetEntityType: taxonomy_term
+bundle: challenges
+mode: default
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_snippet:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+hidden:
+  search_api_excerpt: true

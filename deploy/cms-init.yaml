@@ -50,7 +50,7 @@ spec:
               echo "  CMS (Drupal) Initialization"
               echo "=========================================="
 
-              echo "[1/5] Waiting for CMS pod to be ready..."
+              echo "[1/2] Waiting for CMS pod to be ready..."
               kubectl wait --for=condition=ready pod -l app=cms \
                 -n "$NAMESPACE" --timeout=300s
 
@@ -59,41 +59,13 @@ spec:
               echo "  CMS pod: $CMS_POD"
 
               echo ""
-              echo "[2/5] Installing Drupal..."
-              # Check if already installed
-              if kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                drush status --fields=bootstrap 2>/dev/null | grep -q "Successful"; then
-                echo "  ✓ Drupal is already installed"
-              else
-                kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                  drush site:install --yes --existing-config \
-                    --account-name="$ADMIN_USER_EMAIL" \
-                    --account-pass="$ADMIN_USER_PASSWORD"
-                echo "  ✓ Drupal installation complete"
-              fi
-
-              echo ""
-              echo "[3/5] Fixing file permissions..."
+              echo "[2/2] Installing Drupal..."
               kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                sh -c "chown -R nobody:nobody /var/www/web/sites/default/files /var/www/private 2>/dev/null || true"
-
-              echo ""
-              echo "[4/5] Importing survey data..."
-              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                drush en open_science_survey_migration -y 2>/dev/null || echo "  (module may already be enabled)"
-              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                drush migrate:import --all 2>/dev/null || echo "  (migrations may already have run)"
-              echo "  ✓ Survey data imported"
-
-              echo ""
-              echo "[5/5] Indexing survey responses..."
-              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                drush en open_science_survey_search -y 2>/dev/null || echo "  (module may already be enabled)"
-              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                drush search-api:reset-tracker survey_responses 2>/dev/null || true
-              kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                drush search-api:index survey_responses 2>/dev/null || true
-              echo "  ✓ Survey responses indexed"
+                env ENV=dev \
+                    ADMIN_USER_EMAIL="$ADMIN_USER_EMAIL" \
+                    ADMIN_USER_PASSWORD="$ADMIN_USER_PASSWORD" \
+                    /var/www/deploy.sh
+              echo "  ✓ Drupal installation complete"
 
               echo ""
               echo "=========================================="

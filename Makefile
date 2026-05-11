@@ -95,6 +95,8 @@ init:
 	$(MAKE) db-init-cms
 	@echo "📦 Loading CMS fixtures..."
 	$(MAKE) cms-fixtures
+	@echo "🌐 Setting up Drupal CMS..."
+	$(MAKE) cms-setup
 	@echo "🔧 Installing openscience_tools package..."
 	$(MAKE) tools-install
 	@echo "✅ Initialization complete! Use 'make up' to start the server."

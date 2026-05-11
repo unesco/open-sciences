@@ -1,0 +1,9 @@
+uuid: 8dd97015-b4ac-46a5-b85e-ad73cb1eae7f
+langcode: en
+status: true
+dependencies: {  }
+name: Challenges
+vid: challenges
+description: 'List of challanges identified from the qualitative responses.'
+weight: 0
+new_revision: false

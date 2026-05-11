@@ -19,43 +19,43 @@ content:
   description:
     type: text_textarea
     weight: 1
+    region: content
     settings:
       rows: 4
       placeholder: ''
     third_party_settings: {  }
-    region: content
   field_description:
     type: text_textarea
     weight: 4
+    region: content
     settings:
       rows: 4
       placeholder: ''
     third_party_settings: {  }
-    region: content
   field_long_name:
     type: string_textfield
     weight: 2
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    region: content
   field_short_name:
     type: string_textfield
     weight: 3
+    region: content
     settings:
       size: 10
       placeholder: ''
     third_party_settings: {  }
-    region: content
   name:
     type: string_textfield
     weight: 0
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    region: content
 hidden:
   path: true
   status: true

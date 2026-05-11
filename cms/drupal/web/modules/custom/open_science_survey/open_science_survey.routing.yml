@@ -5,3 +5,35 @@ entity.survey_response.settings:
     _title: 'Survey Response'
   requirements:
     _permission: 'administer survey_response'
+
+open_science_survey.wordcloud_challenges:
+  path: '/api/wordcloud'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\WordCloudController::wordcloud'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+open_science_survey.multi_filter:
+  path: '/api/search/survey-responses-multi-filter'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\MultiFilterSearchController::search'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+open_science_survey.term_context_csv:
+  path: '/api/term-context-csv'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\TermContextController::termContextCsv'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+open_science_survey.term_context:
+  path: '/api/term-context'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\TermContextController::termContext'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'

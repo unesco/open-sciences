@@ -4,7 +4,7 @@ status: true
 dependencies: {  }
 _core:
   default_config_hash: S7xHhTGQ6Sx4eiabGelG_k_l_cvK2oO3-4VEiGEImUI
-name: survey_predefined_answers
+name: 'Predefined closed answers'
 vid: survey_predefined_answers
 description: 'Predefined answers for survey questions'
 weight: 0

@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.survey_response.survey_response.field_challenge
     - field.field.survey_response.survey_response.field_closed_ans
     - field.field.survey_response.survey_response.field_country
     - field.field.survey_response.survey_response.field_open_ans
@@ -37,6 +38,14 @@ content:
     third_party_settings: {  }
     weight: 20
     region: content
+  field_challenge:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 32
+    region: content
   field_closed_ans:
     type: entity_reference_label
     label: above
@@ -54,16 +63,16 @@ content:
     weight: 22
     region: content
   field_open_ans:
-    label: visible
     type: string
+    label: visible
     settings:
       link_to_entity: false
     third_party_settings: {  }
     weight: 30
     region: content
   field_open_ans_translated:
-    label: visible
     type: boolean
+    label: visible
     settings:
       format: default
     third_party_settings: {  }
@@ -94,4 +103,5 @@ content:
     third_party_settings: {  }
     weight: 15
     region: content
-hidden: {  }
+hidden:
+  search_api_excerpt: true

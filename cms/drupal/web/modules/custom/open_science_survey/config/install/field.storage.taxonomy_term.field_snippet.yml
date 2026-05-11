@@ -1,13 +1,11 @@
-uuid: 5b3f7a2c-9e1d-4f8a-b2c7-1e9a5d3f8c6a
+uuid: a2fafa87-d25e-49d9-ad47-de9ff1d8ce05
 langcode: en
 status: true
 dependencies:
   module:
     - taxonomy
-_core:
-  default_config_hash: SNIowi2_C5EMwQqonuCpa2SoU53sD90aS-zpWTySbEA
-id: taxonomy_term.field_group
-field_name: field_group
+id: taxonomy_term.field_snippet
+field_name: field_snippet
 entity_type: taxonomy_term
 type: string
 settings:
@@ -16,7 +14,7 @@ settings:
   is_ascii: false
 module: core
 locked: false
-cardinality: 1
+cardinality: -1
 translatable: true
 indexes: {  }
 persist_with_no_fields: false
