@@ -123,13 +123,12 @@
 
 /* Filters Panel */
 .dashboard-filters-panel {
-  flex: 0 0 320px;
+  flex: 0 0 380px;
   background: #fff;
   border-radius: 10px;
-  padding: 20px;
+  padding: 24px 20px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   border: 1px solid #e8e8e8;
-
   @media (max-width: 900px) {
     flex: none;
     width: 100%;
@@ -137,32 +136,32 @@
 }
 
 .dashboard-filters-title {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: #888;
+  color: #555;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .dashboard-filters-subtitle {
-  font-size: 0.9rem;
-  color: #555;
-  margin-bottom: 14px;
+  font-size: 0.88rem;
+  color: #777;
+  margin-bottom: 16px;
 }
 
 .dashboard-reset-btn {
   background: none;
   border: none;
   color: #0073b7;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 500;
   cursor: pointer;
   padding: 0;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 
   &:hover {
     text-decoration: underline;
@@ -172,21 +171,26 @@
 .dashboard-filters-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .dashboard-filter-group {
-  border: 1px solid #e0e8f0;
-  border-radius: 8px;
-  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #e0e0e0;
+  overflow: visible;
+
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
 .dashboard-filter-group-header {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 12px 14px;
-  background: #f7f9fb;
+  gap: 10px;
+  padding: 18px 0;
+  background: transparent;
   cursor: pointer;
   user-select: none;
   width: 100%;
@@ -194,48 +198,70 @@
   text-align: left;
 
   .filter-icon {
-    font-size: 1.2rem;
     flex-shrink: 0;
-    margin-top: 2px;
+    width: 28px;
+    height: 28px;
+    margin-top: 1px;
   }
 
   .filter-label {
     flex: 1;
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     font-weight: 600;
-    color: #222;
-    line-height: 1.4;
+    color: #1a1a2e;
+    line-height: 1.45;
   }
 
   .filter-chevron {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: #888;
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: 4px;
   }
 }
 
 .dashboard-filter-items {
-  padding: 12px 14px;
+  padding: 0 0 16px 38px;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .dashboard-filter-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
 
   .filter-item-label {
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     color: #333;
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .filter-item-info {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid #bbb;
+    font-size: 0.7rem;
+    color: #888;
+    cursor: help;
+    flex-shrink: 0;
+    line-height: 1;
   }
 }
 
 .filter-toggle-group {
   display: flex;
-  border: 1px solid #d0d0d0;
+  border: 1px solid #c8c8c8;
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
@@ -244,15 +270,15 @@
 .filter-toggle-btn {
   background: #fff;
   border: none;
-  padding: 4px 14px;
-  font-size: 0.85rem;
+  padding: 5px 16px;
+  font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
   color: #444;
   transition: background 0.15s, color 0.15s;
 
   &:not(:last-child) {
-    border-right: 1px solid #d0d0d0;
+    border-right: 1px solid #c8c8c8;
   }
 
   &:hover {
@@ -328,25 +354,128 @@
   display: inline-block;
 
   &.no-data {
-    background: #ccc;
+    background: #D5DADD;
   }
 
   &.participated {
-    background: #444;
+    background: #4C5054;
   }
 
   &.matches {
-    background: #90c8f0;
+    background: #B2D6F2;
   }
 }
 
 /* Leaflet map */
 .dashboard-leaflet-map {
   width: 100%;
-  height: 420px;
+  height: 80vh;
   border-radius: 8px;
   overflow: hidden;
   z-index: 0;
+
+  &.leaflet-container {
+    background: rgba(178, 214, 242, 0.1); // #B2D6F2 @ 10%
+    outline: none;
+  }
+
+  /* Kill the SVG path focus outline (the bounding rectangle on click) */
+  .leaflet-interactive:focus,
+  .leaflet-interactive:focus-visible {
+    outline: none;
+  }
+
+  /* Stacked zoom card (bottom-left) */
+  .leaflet-control-zoom {
+    margin: 0 0 16px 16px;
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: #fff;
+      color: #4a5159;
+      border: none;
+      border-radius: 0;
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1;
+
+      &:hover {
+        background: #f5f7fa;
+        color: #1a6fa8;
+      }
+
+      &.leaflet-disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+    }
+
+    a + a {
+      border-top: 1px solid #eef0f3;
+    }
+  }
+}
+
+/* Leaflet tooltip */
+.map-tooltip {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #222;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* Filter loading spinner */
+.map-filter-spinner {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+  margin-left: 4px;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Country list grid below the map */
+.dashboard-map-country-list {
+  column-count: 4;
+  column-gap: 24px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
+
+  @media (max-width: 900px) {
+    column-count: 2;
+  }
+}
+
+.map-country-link {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.88rem;
+  color: #0073b7;
+  text-decoration: underline;
+  line-height: 2;
+  white-space: nowrap;
+  cursor: pointer;
+  text-align: left;
+  &:hover {
+    color: #005a8e;
+  }
 }
 
 /* Generic action buttons */
@@ -1467,6 +1596,184 @@
   }
   .country-header-name {
     font-size: 1.3rem;
+  }
+}
+
+/* ── Disclaimer Modal ── */
+.disclaimer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.disclaimer-modal {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  width: 640px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+}
+
+.disclaimer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.disclaimer-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1a1a2e;
+}
+
+.disclaimer-close-x {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+  padding: 6px 10px;
+
+  &:hover {
+    color: #000;
+  }
+}
+
+.disclaimer-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.disclaimer-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 14px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.disclaimer-close-btn {
+  background: #0077d4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 32px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    background: #005fa3;
+  }
+}
+
+/* ── Countries Modal ── */
+.countries-modal {
+  width: 720px;
+  max-width: 90vw;
+  height: 70vh;
+}
+
+.countries-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.countries-search-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.countries-search-input {
+  flex: 1;
+  border: 1px solid #d0d0d0;
+  border-radius: 24px;
+  padding: 9px 18px;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: #0073b7;
+  }
+}
+
+.countries-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0073b7;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 9px 20px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #005fa3;
+  }
+}
+
+.countries-count {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0 0 14px;
+  font-weight: 500;
+}
+
+.countries-loading,
+.countries-empty {
+  font-size: 0.92rem;
+  color: #777;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.countries-grid {
+  column-count: 4;
+  column-gap: 24px;
+
+  @media (max-width: 700px) {
+    column-count: 2;
+  }
+}
+
+.countries-grid-link {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.88rem;
+  color: #0073b7;
+  text-decoration: none;
+  line-height: 2;
+  white-space: nowrap;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    color: #005a8e;
+    text-decoration: underline;
   }
 }
 

@@ -8,14 +8,8 @@
 
 import React, { useState } from "react";
 import { GlobalOverview, Comparison, Challenges, CountryDetail } from "./components";
-
-// ─── Constants ─────────────────────────────────────────────────────────────
-
-const TABS = [
-  { id: "global", label: "Global overview" },
-  { id: "comparison", label: "Comparison across countries & regions" },
-  { id: "challenges", label: "Open Science challenges" },
-];
+import { DisclaimerModal } from "./components/DisclaimerModal";
+import { TABS } from "./constants";
 
 // ─── Root component ────────────────────────────────────────────────────────
 
@@ -23,6 +17,8 @@ export const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("global");
   // Country detail view: { iso3, name } or null
   const [selectedCountry, setSelectedCountry] = useState(null);
+  // Show disclaimer modal on first load
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   const handleCountryClick = (iso3, name) => {
     setSelectedCountry({ iso3, name });
@@ -98,10 +94,12 @@ export const Dashboard = () => {
       </div>
 
       <div className="dashboard-tab-content">
-        {activeTab === "global" && <>Global Overview Section</>}
+        {activeTab === "global" && <GlobalOverview onCountryClick={handleCountryClick} />}
         {activeTab === "comparison" && <Comparison onCountryClick={handleCountryClick} />}
         {activeTab === "challenges" && <>Challenges Section</>}
       </div>
+
+      {showDisclaimer && <DisclaimerModal onClose={() => setShowDisclaimer(false)} />}
     </div>
   );
 };
