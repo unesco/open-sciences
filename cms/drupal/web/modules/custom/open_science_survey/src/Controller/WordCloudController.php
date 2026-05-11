@@ -106,8 +106,9 @@ class WordCloudController extends ControllerBase {
             $terms = [];
             foreach ($term_counts as $term_name => $count) {
                 $terms[] = [
-                'term' => $term_name,
-                'percent' => 100 * $count / $total_occurrences,
+                    'term' => $term_name,
+                    'percent' => 100 * $count / $total_occurrences,
+                    'count' => $count,
                 ];
             }
 
