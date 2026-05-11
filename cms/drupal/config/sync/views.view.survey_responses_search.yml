@@ -499,7 +499,7 @@ display:
           id: field_question_number_value
           table: taxonomy_term__field_question_number
           field: field_question_number_value
-          relationship: field_country
+          relationship: field_question
           group_type: group
           admin_label: ''
           plugin_id: string
