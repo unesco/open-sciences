@@ -12,7 +12,10 @@ chown -R nobody:nobody html/sites/default/files/ private/
 vendor/bin/drush site:install --yes --existing-config \
   --account-name="$ADMIN_USER_EMAIL" \
   --account-pass="$ADMIN_USER_PASSWORD"
-  
+
+echo "Rebuilding Drupal cache..."
+vendor/bin/drush cr
+
 echo "Installing open_science_survey_migration..."
 vendor/bin/drush en open_science_survey_migration -y
 
