@@ -10,6 +10,8 @@ export const API_PATHS = {
   SURVEY_QUESTIONS: "/api/survey-questions",
   SURVEY_RESPONSES: "/api/search/survey-responses",
   COUNTRIES: "/api/countries",
+  WORDCLOUD: "/api/wordcloud",
+  TERM_CONTEXT: "/api/term-context",
 };
 
 const isDev =
@@ -140,4 +142,30 @@ export async function fetchMultiFilter(filters) {
     params.append(`filters[${i}][answer]`, f.answers.join(","));
   });
   return get(`/api/search/survey-responses-multi-filter?${params.toString()}`);
+}
+
+/**
+ * Fetch word cloud terms, optionally filtered by region.
+ * Endpoint: GET /cms/api/wordcloud
+ * @param {object} [filters]          Optional filters
+ * @param {string} [filters.region]   API region value, e.g. "Asia & the Pacific"
+ */
+export async function fetchWordcloud(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.region) params.set("region", filters.region);
+  const qs = params.toString();
+  return get(`${API_PATHS.WORDCLOUD}${qs ? `?${qs}` : ""}`);
+}
+
+/**
+ * Fetch term context snippets for a given challenge term.
+ * Endpoint: GET /cms/api/term-context
+ * @param {string} term               The challenge term, e.g. "lack of funding"
+ * @param {object} [filters]          Optional filters
+ * @param {string} [filters.region]   API region value
+ */
+export async function fetchTermContext(term, filters = {}) {
+  const params = new URLSearchParams({ term });
+  if (filters.region) params.set("region", filters.region);
+  return get(`${API_PATHS.TERM_CONTEXT}?${params.toString()}`);
 }

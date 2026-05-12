@@ -96,7 +96,7 @@ export const Dashboard = () => {
       <div className="dashboard-tab-content">
         {activeTab === "global" && <GlobalOverview onCountryClick={handleCountryClick} />}
         {activeTab === "comparison" && <Comparison onCountryClick={handleCountryClick} />}
-        {activeTab === "challenges" && <>Challenges Section</>}
+        {activeTab === "challenges" && <Challenges onCountryClick={handleCountryClick} />}
       </div>
 
       {showDisclaimer && <DisclaimerModal onClose={() => setShowDisclaimer(false)} />}

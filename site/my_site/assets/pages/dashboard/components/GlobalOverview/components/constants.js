@@ -11,25 +11,31 @@ export const WORLD_GEOJSON_URL =
 export const ALL_REGIONS = "All regions";
 
 export const REGIONS = [
-  ALL_REGIONS,
-  "Africa",
-  "Arab States",
-  "Asia-Pacific",
-  "Europe",
-  "Latin America & the Caribbean",
-  "North America",
+  { label: "All regions",                    apiValue: null,                             view: null },
+  { label: "Africa",                         apiValue: "Africa",                         view: { center: [2, 20],    zoom: 1 } },
+  { label: "Arab States",                    apiValue: "Arab States",                    view: { center: [25, 42],   zoom: 2 } },
+  { label: "Asia-Pacific",                   apiValue: "Asia & the Pacific",             view: { center: [15, 105],  zoom: 1 } },
+  { label: "Europe",                         apiValue: "Europe & North America",         view: { center: [52, 15],   zoom: 2 } },
+  { label: "Latin America & the Caribbean",  apiValue: "Latin America & the Caribbean",  view: { center: [-5, -70],  zoom: 1 } },
+  { label: "North America",                  apiValue: "Europe & North America",         view: { center: [50, -100], zoom: 1 } },
 ];
 
-// Region value normalisation. The API region field may include HTML entities
-// (e.g. "Europe &amp; North America"), so we always normalise on both sides.
-export const REGION_DISPLAY_TO_API = {
-  "Africa": "Africa",
-  "Arab States": "Arab States",
-  "Asia-Pacific": "Asia & the Pacific",
-  "Europe": "Europe & North America",
-  "Latin America & the Caribbean": "Latin America & the Caribbean",
-  "North America": "Europe & North America",
-};
+// Derived lookups for convenience — kept for backward-compat with existing consumers.
+export const REGION_LABELS = REGIONS.map((r) => r.label);
+
+export const REGION_DISPLAY_TO_API = Object.fromEntries(
+  REGIONS.filter((r) => r.apiValue).map((r) => [r.label, r.apiValue])
+);
+
+export const REGION_VIEW = Object.fromEntries(
+  REGIONS.filter((r) => r.view).map((r) => [r.label, r.view])
+);
+
+/** Convert a display label to its API value. Returns the label itself as fallback. */
+export function regionToApi(label) {
+  const entry = REGIONS.find((r) => r.label === label);
+  return entry && entry.apiValue ? entry.apiValue : label;
+}
 
 // Decode &amp; → & (iteratively for double-encoding) and lowercase for tolerant comparison.
 export function normaliseRegion(s) {
@@ -40,16 +46,6 @@ export function normaliseRegion(s) {
   }
   return r.toLowerCase();
 }
-
-// Predefined center + zoom for each region for reliable map zooming.
-export const REGION_VIEW = {
-  "Africa": { center: [2, 20], zoom: 1 },
-  "Arab States": { center: [25, 42], zoom: 2 },
-  "Asia-Pacific": { center: [15, 105], zoom: 1 },
-  "Europe": { center: [52, 15], zoom: 2 },
-  "Latin America & the Caribbean": { center: [-5, -70], zoom: 1 },
-  "North America": { center: [50, -100], zoom: 1 },
-};
 
 // Build the section/question filter tree from the API responses.
 // Only "Closed" questions with a non-empty short_name are usable as Yes/No
