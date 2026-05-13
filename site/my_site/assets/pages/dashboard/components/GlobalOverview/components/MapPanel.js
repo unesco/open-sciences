@@ -180,7 +180,7 @@ export const MapPanel = ({
     if (!map) return;
 
     if (region === ALL_REGIONS) {
-      map.flyTo([20, 15], 2, { duration: 0.6 });
+      map.flyTo([25, 0], 2, { duration: 0.6 });
       return;
     }
 

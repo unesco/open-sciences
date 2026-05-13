@@ -15,6 +15,7 @@ import { termsToWords } from "./utils";
 export const Challenges = ({ onCountryClick }) => {
   const [region, setRegion] = useState(ALL_REGIONS);
   const [terms, setTerms] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [countryMap, setCountryMap] = useState({});
@@ -34,10 +35,12 @@ export const Challenges = ({ onCountryClick }) => {
   }, []);
 
   useEffect(() => {
+    setLoading(true);
     const apiRegion = region !== ALL_REGIONS ? regionToApi(region) : null;
     fetchWordcloud({ region: apiRegion })
       .then((data) => setTerms(data.terms || []))
-      .catch(() => setTerms([]));
+      .catch(() => setTerms([]))
+      .finally(() => setLoading(false));
   }, [region]);
 
   const words = useMemo(() => termsToWords(terms), [terms]);
@@ -104,7 +107,7 @@ export const Challenges = ({ onCountryClick }) => {
         </div>
       </div>
 
-      <WordCloud words={words} onWordClick={handleTermClick} />
+      <WordCloud words={words} loading={loading} onWordClick={handleTermClick} />
 
       <div className="challenge-search-section">
         <div className="challenge-search-bar">

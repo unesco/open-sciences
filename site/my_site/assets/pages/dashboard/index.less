@@ -777,16 +777,38 @@
   background: #f5f8fb;
   border-radius: 12px;
   padding: 48px 40px;
+  overflow: hidden;
+  min-height: 420px;
 
   @media (max-width: 768px) {
     display: none;
   }
 }
 
+.word-cloud-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 340px;
+}
+
+.word-cloud-spinner {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border: 4px solid #e0e7ed;
+  border-top-color: #1a7fe8;
+  border-radius: 50%;
+  animation: wc-spin 0.8s linear infinite;
+}
+
+@keyframes wc-spin {
+  to { transform: rotate(360deg); }
+}
+
 .word-cloud-container {
   position: relative;
   margin: 0 auto;
-  min-height: 300px;
 }
 
 .word-cloud-item {
@@ -930,6 +952,7 @@
   font-size: 14px;
   cursor: pointer;
   text-decoration: none;
+  text-align: left;
 
   &:hover {
     color: #005a8e;

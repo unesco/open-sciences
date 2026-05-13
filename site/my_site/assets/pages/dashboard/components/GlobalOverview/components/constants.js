@@ -12,12 +12,11 @@ export const ALL_REGIONS = "All regions";
 
 export const REGIONS = [
   { label: "All regions",                    apiValue: null,                             view: null },
-  { label: "Africa",                         apiValue: "Africa",                         view: { center: [2, 20],    zoom: 1 } },
-  { label: "Arab States",                    apiValue: "Arab States",                    view: { center: [25, 42],   zoom: 2 } },
-  { label: "Asia-Pacific",                   apiValue: "Asia & the Pacific",             view: { center: [15, 105],  zoom: 1 } },
-  { label: "Europe",                         apiValue: "Europe & North America",         view: { center: [52, 15],   zoom: 2 } },
-  { label: "Latin America & the Caribbean",  apiValue: "Latin America & the Caribbean",  view: { center: [-5, -70],  zoom: 1 } },
-  { label: "North America",                  apiValue: "Europe & North America",         view: { center: [50, -100], zoom: 1 } },
+  { label: "Africa",                         apiValue: "Africa",                         view: { center: [5,    20],  zoom: 2.5 } },
+  { label: "Arab States",                    apiValue: "Arab States",                    view: { center: [25,   42],  zoom: 3.5 } },
+  { label: "Asia-Pacific",                   apiValue: "Asia & the Pacific",             view: { center: [25,   100], zoom: 2.5 } },
+  { label: "Europe & North America",         apiValue: "Europe & North America",         view: { center: [50,   -20], zoom: 3 } },
+  { label: "Latin America & the Caribbean",  apiValue: "Latin America & the Caribbean",  view: { center: [-15,  -60], zoom: 2.5 } },
 ];
 
 // Derived lookups for convenience — kept for backward-compat with existing consumers.
