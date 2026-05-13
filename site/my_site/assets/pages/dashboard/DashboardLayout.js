@@ -55,7 +55,7 @@ export const DashboardLayout = () => {
 
       <div className="dashboard-tab-content">
         <Routes>
-          <Route path="/" element={<Navigate to="/global" replace />} />
+          <Route index element={<Navigate to="/global" replace />} />
           <Route path="/global" element={<GlobalOverview onCountryClick={handleCountryClick} />} />
           <Route path="/comparison" element={<Comparison onCountryClick={handleCountryClick} />} />
           <Route path="/challenges" element={<Challenges onCountryClick={handleCountryClick} />} />
@@ -63,6 +63,7 @@ export const DashboardLayout = () => {
             path="/country/:iso3"
             element={<CountryDetailRoute onBack={() => navigate(-1)} />}
           />
+          <Route path="*" element={<Navigate to="/global" replace />} />
         </Routes>
       </div>
 
