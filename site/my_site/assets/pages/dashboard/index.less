@@ -773,24 +773,250 @@
 .donut-callout-item  { display: none; }
 
 /* ── Challenges / Word cloud tab ────────────────────────── */
-.word-cloud-container {
+.word-cloud-wrapper {
+  background: #f5f8fb;
+  border-radius: 12px;
+  padding: 48px 40px;
+  overflow: hidden;
+  min-height: 420px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.word-cloud-loader {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 14px 22px;
-  padding: 40px 24px;
-  min-height: 300px;
+  min-height: 340px;
+}
+
+.word-cloud-spinner {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border: 4px solid #e0e7ed;
+  border-top-color: #1a7fe8;
+  border-radius: 50%;
+  animation: wc-spin 0.8s linear infinite;
+}
+
+@keyframes wc-spin {
+  to { transform: rotate(360deg); }
+}
+
+.word-cloud-container {
+  position: relative;
+  margin: 0 auto;
 }
 
 .word-cloud-item {
-  color: #0073b7;
+  color: #1a7fe8;
   font-weight: 700;
   line-height: 1.2;
-  cursor: default;
-  transition: color 0.15s;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, text-decoration 0.15s;
+
+  &:hover {
+    color: #005a8e;
+    text-decoration: underline;
+  }
+}
+
+/* ── Challenge search section ──────────────────────────── */
+.challenge-search-section {
+  margin-top: 24px;
+  padding: 28px 32px;
+  background: #f5f8fb;
+  border-radius: 12px;
+}
+
+.challenge-search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  max-width: 480px;
+}
+
+.challenge-search-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid #d0d5dd;
+  border-radius: 24px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+
+  &:focus { border-color: #1a7fe8; }
+}
+
+.challenge-search-btn {
+  border-radius: 24px !important;
+  gap: 6px;
+}
+
+.challenge-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px 32px;
+}
+
+.challenge-list-link {
+  color: #1a7fe8;
+  font-size: 14px;
+  text-decoration: underline;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
 
   &:hover { color: #005a8e; }
+}
+
+/* ── Term Detail view ──────────────────────────────────── */
+.term-detail {
+  padding: 0;
+}
+
+.term-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #1a7fe8;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+
+  &:hover { color: #005a8e; }
+}
+
+.term-detail-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d2939;
+  margin: 0 0 20px;
+}
+
+.term-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  thead tr {
+    background: #1a7fe8;
+    color: #fff;
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .term-detail-th-country {
+    width: 180px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e4e7ec;
+    vertical-align: top;
+  }
+
+  tbody tr:nth-child(even) {
+    background: #f9fafb;
+  }
+
+  mark {
+    background: #c8dff5;
+    padding: 1px 2px;
+    border-radius: 2px;
+  }
+}
+
+.term-detail-country-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1a7fe8;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: left;
+
+  &:hover {
+    color: #005a8e;
+    text-decoration: underline;
+  }
+}
+
+.term-detail-snippet {
+  line-height: 1.6;
+}
+
+.term-detail-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.term-detail-pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  button {
+    background: none;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #344054;
+
+    &:hover:not(:disabled) {
+      background: #f2f4f7;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    &.active {
+      background: #1a7fe8;
+      color: #fff;
+      border-color: #1a7fe8;
+    }
+  }
+}
+
+.term-detail-pagination-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #344054;
+
+  select {
+    padding: 5px 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    font-size: 13px;
+  }
 }
 
 /* Screen-reader only utility */
