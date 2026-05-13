@@ -3,69 +3,92 @@
  * Tab 3: Word cloud of most frequently mentioned Open Science challenges
  */
 
-import React, { useState } from "react";
-
-// ─── Constants ─────────────────────────────────────────────────────────────
-
-const REGIONS = [
-  "All regions",
-  "Africa",
-  "Arab States",
-  "Asia-Pacific",
-  "Europe",
-  "Latin America",
-  "North America",
-];
-
-const CHALLENGE_WORDS = [
-  { text: "Policy",         weight: 9  },
-  { text: "Knowledge",      weight: 10 },
-  { text: "Security",       weight: 8  },
-  { text: "Bureaucracy",    weight: 6  },
-  { text: "Capacity",       weight: 8  },
-  { text: "Inequality",     weight: 7  },
-  { text: "Literacy",       weight: 6  },
-  { text: "Politics",       weight: 5  },
-  { text: "Mistrust",       weight: 8  },
-  { text: "Regulation",     weight: 6  },
-  { text: "Privacy",        weight: 6  },
-  { text: "Patents",        weight: 8  },
-  { text: "Infrastructure", weight: 7  },
-  { text: "Competition",    weight: 5  },
-  { text: "Funding",        weight: 7  },
-  { text: "Awareness",      weight: 6  },
-  { text: "Access",         weight: 7  },
-  { text: "Standards",      weight: 5  },
-  { text: "Collaboration",  weight: 6  },
-  { text: "Trust",          weight: 7  },
-  { text: "Skills",         weight: 6  },
-  { text: "Resources",      weight: 7  },
-  { text: "Barriers",       weight: 6  },
-  { text: "Incentives",     weight: 5  },
-];
-
-// ─── Helpers ───────────────────────────────────────────────────────────────
-
-const fontSizes = [0.8, 0.9, 1.0, 1.15, 1.35, 1.6, 1.9, 2.3, 2.8, 3.4];
-
-const getSize = (weight) => {
-  const idx = Math.min(
-    Math.round(((weight - 5) / 5) * (fontSizes.length - 1)),
-    fontSizes.length - 1
-  );
-  return fontSizes[Math.max(idx, 0)];
-};
+import React, { useState, useEffect, useMemo } from "react";
+import { fetchCountries, fetchWordcloud } from "../../api";
+import { REGION_LABELS, ALL_REGIONS, regionToApi } from "../GlobalOverview/components/constants";
+import { WordCloud } from "./components/WordCloud";
+import { TermDetail } from "./components/TermDetail";
+import { termsToWords } from "./utils";
 
 // ─── Challenges component ──────────────────────────────────────────────────
 
-export const Challenges = () => {
-  const [region, setRegion] = useState("All regions");
+export const Challenges = ({ onCountryClick }) => {
+  const [region, setRegion] = useState(ALL_REGIONS);
+  const [terms, setTerms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selectedTerm, setSelectedTerm] = useState(null);
+  const [countryMap, setCountryMap] = useState({});
+
+  // Fetch countries once on mount for ISO3 → name mapping
+  useEffect(() => {
+    fetchCountries()
+      .then((list) => {
+        const map = {};
+        (list || []).forEach((c) => {
+          const iso = c.iso_3 || c.iso3 || c.iso_code || "";
+          if (iso) map[iso.toUpperCase()] = c.name || iso;
+        });
+        setCountryMap(map);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const apiRegion = region !== ALL_REGIONS ? regionToApi(region) : null;
+    fetchWordcloud({ region: apiRegion })
+      .then((data) => setTerms(data.terms || []))
+      .catch(() => setTerms([]))
+      .finally(() => setLoading(false));
+  }, [region]);
+
+  const words = useMemo(() => termsToWords(terms), [terms]);
+
+  // Sorted by count descending for the listing
+  const sortedWords = useMemo(
+    () => [...words].sort((a, b) => b.count - a.count),
+    [words]
+  );
+
+  const filteredWords = useMemo(() => {
+    if (!search.trim()) return sortedWords;
+    const q = search.trim().toLowerCase();
+    return sortedWords.filter((w) => w.text.toLowerCase().includes(q));
+  }, [sortedWords, search]);
+
+  const handleTermClick = (word) => {
+    // Find the original API term (lowercase) for the API call
+    const original = terms.find(
+      (t) => t.term.toLowerCase() === word.text.toLowerCase()
+    );
+    setSelectedTerm({
+      term: original ? original.term : word.text,
+      count: word.count,
+    });
+  };
+
+  // Detail view
+  if (selectedTerm) {
+    return (
+      <div className="dash-challenges">
+        <TermDetail
+          term={selectedTerm.term}
+          count={selectedTerm.count}
+          region={region !== ALL_REGIONS ? regionToApi(region) : null}
+          countryMap={countryMap}
+          onBack={() => setSelectedTerm(null)}
+          onCountryClick={onCountryClick}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="dash-challenges">
       <div className="dashboard-subheader">
         <strong>
-          Most frequently mentioned challenges in the implementation of Open Science.
+          Most frequently mentioned challenges and concerns in the implementation of open science.
         </strong>
         <div className="dashboard-subheader-actions">
           <select
@@ -73,7 +96,7 @@ export const Challenges = () => {
             value={region}
             onChange={(e) => setRegion(e.target.value)}
           >
-            {REGIONS.map((r) => (
+            {REGION_LABELS.map((r) => (
               <option key={r}>{r}</option>
             ))}
           </select>
@@ -84,16 +107,34 @@ export const Challenges = () => {
         </div>
       </div>
 
-      <div className="word-cloud-container">
-        {CHALLENGE_WORDS.map((w) => (
-          <span
-            key={w.text}
-            className="word-cloud-item"
-            style={{ fontSize: `${getSize(w.weight)}rem` }}
-          >
-            {w.text}
-          </span>
-        ))}
+      <WordCloud words={words} loading={loading} onWordClick={handleTermClick} />
+
+      <div className="challenge-search-section">
+        <div className="challenge-search-bar">
+          <input
+            type="text"
+            className="challenge-search-input"
+            placeholder="Search by challenge"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button type="button" className="dash-btn primary challenge-search-btn">
+            Search
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          </button>
+        </div>
+        <div className="challenge-list">
+          {filteredWords.map((w) => (
+            <button
+              key={w.text}
+              type="button"
+              className="challenge-list-link"
+              onClick={() => handleTermClick(w)}
+            >
+              {w.text} ({w.count})
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { fetchCountries } from "../../../api";
 import {
   WORLD_GEOJSON_URL,
-  REGIONS,
+  REGION_LABELS,
   REGION_DISPLAY_TO_API,
   REGION_VIEW,
   ALL_REGIONS,
@@ -180,7 +180,7 @@ export const MapPanel = ({
     if (!map) return;
 
     if (region === ALL_REGIONS) {
-      map.flyTo([20, 15], 2, { duration: 0.6 });
+      map.flyTo([25, 0], 2, { duration: 0.6 });
       return;
     }
 
@@ -211,7 +211,7 @@ export const MapPanel = ({
           value={region}
           onChange={(e) => setRegion(e.target.value)}
         >
-          {REGIONS.map((r) => (
+          {REGION_LABELS.map((r) => (
             <option key={r}>{r}</option>
           ))}
         </select>
