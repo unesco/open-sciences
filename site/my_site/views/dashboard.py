@@ -10,6 +10,6 @@ class DashboardView(MethodView):
     def __init__(self):
         self.template = "my_site/dashboard/index.html"
 
-    def get(self):
-        """Render dashboard page."""
+    def get(self, subpath=None):
+        """Render dashboard page. Subpath is handled by client-side router."""
         return render_template(self.template)

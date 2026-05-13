@@ -90,10 +90,16 @@ def create_blueprint(app):
     )
 
 
-    # Open Science dashboards page
+    # Open Science dashboards page (catch-all for client-side routing)
+    dashboard_view = DashboardView.as_view("dashboard")
     blueprint.add_url_rule(
         "/dashboards",
-        view_func=DashboardView.as_view("dashboard"),
+        view_func=dashboard_view,
+        methods=["GET"],
+    )
+    blueprint.add_url_rule(
+        "/dashboards/<path:subpath>",
+        view_func=dashboard_view,
         methods=["GET"],
     )
 
