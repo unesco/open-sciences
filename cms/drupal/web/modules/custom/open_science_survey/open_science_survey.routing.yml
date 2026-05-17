@@ -14,8 +14,16 @@ open_science_survey.multi_filter:
   requirements:
     _access: 'TRUE'
 
+open_science_survey.multi_filter_download:
+  path: '/api/download/survey-responses-multi-filter'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\MultiFilterSearchController::download'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
 open_science_survey.term_context_csv:
-  path: '/api/term-context-csv'
+  path: '/api/download/term-context'
   defaults:
     _controller: '\Drupal\open_science_survey\Controller\TermContextController::termContextCsv'
   methods: [GET]

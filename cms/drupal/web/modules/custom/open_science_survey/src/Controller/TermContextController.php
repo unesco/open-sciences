@@ -28,7 +28,7 @@ class TermContextController extends ControllerBase {
     /**
      * Term context CSV endpoint.
      *
-     * GET /api/term-context-csv
+     * GET /api/download/term-context
      * Query params:
      *   - term: Challenge term label (required)
      *   - question_number: Filter by question number
