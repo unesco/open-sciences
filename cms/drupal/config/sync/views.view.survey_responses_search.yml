@@ -535,6 +535,125 @@ display:
             default_group: All
             default_group_multiple: {  }
             group_items: {  }
+        field_region_value:
+          id: field_region_value
+          table: taxonomy_term__field_region
+          field: field_region_value
+          relationship: field_country
+          group_type: group
+          admin_label: ''
+          plugin_id: list_field
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_region_value_op
+            label: 'Region (field_region)'
+            description: ''
+            use_operator: false
+            operator: field_region_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: region
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
+        field_section_id_value:
+          id: field_section_id_value
+          table: taxonomy_term__field_section_id
+          field: field_section_id_value
+          relationship: field_section
+          group_type: group
+          admin_label: ''
+          plugin_id: string
+          operator: '='
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_section_id_value_op
+            label: 'Section ID (field_section_id)'
+            description: ''
+            use_operator: false
+            operator: field_section_id_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: section_id
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            placeholder: ''
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+        field_question_type_value:
+          id: field_question_type_value
+          table: taxonomy_term__field_question_type
+          field: field_question_type_value
+          relationship: field_question
+          group_type: group
+          admin_label: ''
+          plugin_id: list_field
+          operator: or
+          value: {  }
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_question_type_value_op
+            label: 'Question Type (field_question_type)'
+            description: ''
+            use_operator: false
+            operator: field_question_type_value_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: type
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+            reduce: false
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          reduce_duplicates: false
       style:
         type: serializer
         options:
@@ -587,6 +706,15 @@ display:
           relationship: none
           group_type: group
           admin_label: 'field_question: Taxonomy term'
+          plugin_id: standard
+          required: true
+        field_section:
+          id: field_section
+          table: taxonomy_term__field_section
+          field: field_section
+          relationship: field_question
+          group_type: group
+          admin_label: section
           plugin_id: standard
           required: true
       header: {  }
