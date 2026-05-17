@@ -3,7 +3,6 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.taxonomy_term.field_country_name
     - field.storage.taxonomy_term.field_info_funding_infra
     - field.storage.taxonomy_term.field_info_funding_training
     - field.storage.taxonomy_term.field_info_policy
@@ -37,14 +36,16 @@ display:
     position: 0
     display_options:
       fields:
-        field_country_name:
-          id: field_country_name
-          table: taxonomy_term__field_country_name
-          field: field_country_name
+        name:
+          id: name
+          table: taxonomy_term_field_data
+          field: name
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: field
+          entity_type: taxonomy_term
+          entity_field: name
+          plugin_id: term_name
           label: ''
           exclude: false
           alter:
@@ -316,7 +317,6 @@ display:
         - url.query_args
         - user.permissions
       tags:
-        - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_region'
   rest_api_countries:
@@ -339,7 +339,7 @@ display:
         type: data_field
         options:
           field_options:
-            field_country_name:
+            name:
               alias: name
               raw_output: false
             field_group:
@@ -362,7 +362,6 @@ display:
         - request_format
         - user.permissions
       tags:
-        - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_region'
   rest_api_country_details:
@@ -372,14 +371,16 @@ display:
     position: 1
     display_options:
       fields:
-        field_country_name:
-          id: field_country_name
-          table: taxonomy_term__field_country_name
-          field: field_country_name
+        name:
+          id: name
+          table: taxonomy_term_field_data
+          field: name
           relationship: none
           group_type: group
           admin_label: ''
-          plugin_id: field
+          entity_type: taxonomy_term
+          entity_field: name
+          plugin_id: term_name
           label: ''
           exclude: false
           alter:
@@ -1049,7 +1050,7 @@ display:
         type: data_field
         options:
           field_options:
-            field_country_name:
+            name:
               alias: name
               raw_output: false
             field_group:
@@ -1076,7 +1077,6 @@ display:
         - url
         - user.permissions
       tags:
-        - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_info_funding_infra'
         - 'config:field.storage.taxonomy_term.field_info_funding_training'
         - 'config:field.storage.taxonomy_term.field_info_policy'

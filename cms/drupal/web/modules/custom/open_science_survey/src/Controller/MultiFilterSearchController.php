@@ -295,7 +295,7 @@ class MultiFilterSearchController extends ControllerBase {
         foreach ($country_terms as $tid => $term) {
             $country_cache[$tid] = [
             'iso3' => $term->get('field_iso_alpha3_code')->value ?? '',
-            'name' => $term->get('field_country_name')->value ?? $term->label(),
+            'name' => $term->label(),
             ];
         }
 

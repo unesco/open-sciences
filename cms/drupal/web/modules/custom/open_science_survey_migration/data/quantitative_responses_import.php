@@ -27,7 +27,6 @@ $taxonomy_storage = $entity_type_manager->getStorage('taxonomy_term');
 $survey_response_storage = $entity_type_manager->getStorage('node');
 
 $required_taxonomy_fields = [
-  'countries' => ['field_country_name'],
   'survey_question' => ['field_question_number', 'field_question_type'],
   'survey_predefined_answers' => ['field_short_name'],
 ];
@@ -124,7 +123,7 @@ if (!empty($country_term_ids)) {
       continue;
     }
 
-    $country_name = (string) $country_term->get('field_country_name')->value;
+    $country_name = (string) $country_term->label();
     $country_key = $normalize_text($country_name);
 
     if ($country_key === '') {

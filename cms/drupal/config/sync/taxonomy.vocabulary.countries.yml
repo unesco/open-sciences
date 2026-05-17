@@ -6,6 +6,6 @@ _core:
   default_config_hash: pM76zkk4Nzn2iw1InH09FlEwZPUZw5VJ9Xon2TpHHXE
 name: Countries
 vid: countries
-description: null
+description: 'List of countries participating in the surverys.'
 weight: 0
 new_revision: false

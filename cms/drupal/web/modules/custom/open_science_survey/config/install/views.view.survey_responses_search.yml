@@ -4,7 +4,6 @@ status: true
 dependencies:
   config:
     - field.storage.node.field_closed_ans
-    - field.storage.taxonomy_term.field_country_name
     - field.storage.taxonomy_term.field_iso_alpha3_code
     - field.storage.taxonomy_term.field_question_number
     - field.storage.taxonomy_term.field_question_text
@@ -93,14 +92,16 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_country_name:
-          id: field_country_name
-          table: taxonomy_term__field_country_name
-          field: field_country_name
+        name:
+          id: name
+          table: taxonomy_term_field_data
+          field: name
           relationship: field_country
           group_type: group
           admin_label: ''
-          plugin_id: field
+          entity_type: taxonomy_term
+          entity_field: name
+          plugin_id: term_name
           label: ''
           exclude: false
           alter:
@@ -546,7 +547,7 @@ display:
             field_closed_ans:
               alias: answer_closed_name
               raw_output: false
-            field_country_name:
+            name:
               alias: country_name
               raw_output: false
             field_iso_alpha3_code:
@@ -601,7 +602,6 @@ display:
         - url.query_args
       tags:
         - 'config:field.storage.node.field_closed_ans'
-        - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_question_number'
         - 'config:field.storage.taxonomy_term.field_question_text'
@@ -630,7 +630,6 @@ display:
         - url
       tags:
         - 'config:field.storage.node.field_closed_ans'
-        - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_question_number'
         - 'config:field.storage.taxonomy_term.field_question_text'

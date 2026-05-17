@@ -175,6 +175,6 @@ curl -G "http://localhost/api/search/survey-responses-multi-filter" \
 - **Entity Types Used**:
   - `survey_response` — main entity with `field_question`, `field_country`, `field_closed_ans`, `field_open_ans`
   - `taxonomy_term` (vocabulary: `survey_question`) — `field_question_number`, `field_question_text`, `field_question_type`
-  - `taxonomy_term` (vocabulary: `countries`) — `field_iso_alpha3_code`, `field_country_name`
+  - `taxonomy_term` (vocabulary: `countries`) — `name`, `field_iso_alpha3_code`
   - `taxonomy_term` (vocabulary: `survey_predefined_answers`) — `field_short_name`, `field_long_name`
 

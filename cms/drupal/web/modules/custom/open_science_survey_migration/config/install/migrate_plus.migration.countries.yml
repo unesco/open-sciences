@@ -19,7 +19,6 @@ source:
     - ISO_Code
 process:
   name: Country
-  field_country_name: Country
   field_region: Region
   field_iso_alpha3_code: ISO_Code
 destination:
