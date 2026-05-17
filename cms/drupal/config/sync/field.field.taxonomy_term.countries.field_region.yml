@@ -5,6 +5,8 @@ dependencies:
   config:
     - field.storage.taxonomy_term.field_region
     - taxonomy.vocabulary.countries
+  module:
+    - options
 _core:
   default_config_hash: o5f-hAsV_nd_8yxiQEBvRQf9-4S_W-PNDt4vngcGmBk
 id: taxonomy_term.countries.field_region
@@ -18,4 +20,4 @@ translatable: false
 default_value: {  }
 default_value_callback: ''
 settings: {  }
-field_type: string
+field_type: list_string

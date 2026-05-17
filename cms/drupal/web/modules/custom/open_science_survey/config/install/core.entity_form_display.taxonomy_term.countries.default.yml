@@ -14,6 +14,7 @@ dependencies:
     - field.field.taxonomy_term.countries.field_region
     - taxonomy.vocabulary.countries
   module:
+    - options
     - path
     - text
 _core:
@@ -96,12 +97,10 @@ content:
       placeholder: ''
     third_party_settings: {  }
   field_region:
-    type: string_textfield
+    type: options_select
     weight: 102
     region: content
-    settings:
-      size: 60
-      placeholder: ''
+    settings: {  }
     third_party_settings: {  }
   name:
     type: string_textfield

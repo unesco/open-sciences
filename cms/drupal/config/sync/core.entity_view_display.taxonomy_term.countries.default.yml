@@ -14,6 +14,7 @@ dependencies:
     - field.field.taxonomy_term.countries.field_region
     - taxonomy.vocabulary.countries
   module:
+    - options
     - text
 _core:
   default_config_hash: 0YFn83vEspCaE_bmjcGqgHyVNBID-qUIZBF0B2C2WQY
@@ -87,10 +88,9 @@ content:
     weight: 4
     region: content
   field_region:
-    type: string
+    type: list_default
     label: above
-    settings:
-      link_to_entity: false
+    settings: {  }
     third_party_settings: {  }
     weight: 2
     region: content
