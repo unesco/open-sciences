@@ -17,17 +17,17 @@ settings:
       value: Africa
       label: Africa
     -
-      value: Arab States
-      label: Arab States
+      value: 'Arab States'
+      label: 'Arab States'
     -
-      value: Asia & the Pacific
-      label: Asia & the Pacific
+      value: 'Asia & the Pacific'
+      label: 'Asia & the Pacific'
     -
-      value: Europe & North America
-      label: Europe & North America
+      value: 'Europe & North America'
+      label: 'Europe & North America'
     -
-      value: Latin America & the Caribbean
-      label: Latin America & the Caribbean
+      value: 'Latin America & the Caribbean'
+      label: 'Latin America & the Caribbean'
   allowed_values_function: ''
 module: options
 locked: false
