@@ -8,10 +8,15 @@
 /**
  * Implements hook_form_alter().
  *
- * Hides the title field from the survey_response node form.
+ * Hides the title field from survey node forms with computed titles.
  */
 function open_science_survey_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
-  if (in_array($form_id, ['node_survey_response_form', 'node_survey_response_edit_form'])) {
+  if (in_array($form_id, [
+    'node_survey_response_form',
+    'node_survey_response_edit_form',
+    'node_survey_report_form',
+    'node_survey_report_edit_form',
+  ])) {
     $form['title']['#access'] = FALSE;
   }
 }
@@ -19,31 +24,53 @@ function open_science_survey_form_alter(&$form, \Drupal\Core\Form\FormStateInter
 /**
  * Implements hook_node_presave().
  *
- * Auto-computes the survey_response title as "{ISO3} {question_number}",
- * e.g. "ALB 1.2".
+ * Auto-computes survey node titles.
  */
 function open_science_survey_node_presave(\Drupal\node\NodeInterface $node) {
-  if ($node->bundle() !== 'survey_response') {
+  if ($node->bundle() === 'survey_response') {
+    $iso3 = '';
+    if (!$node->get('field_country')->isEmpty()) {
+      /** @var \Drupal\taxonomy\TermInterface $country */
+      $country = $node->get('field_country')->entity;
+      if ($country && !$country->get('field_iso_alpha3_code')->isEmpty()) {
+        $iso3 = trim($country->get('field_iso_alpha3_code')->value);
+      }
+    }
+
+    $question_number = '';
+    if (!$node->get('field_question')->isEmpty()) {
+      /** @var \Drupal\taxonomy\TermInterface $question */
+      $question = $node->get('field_question')->entity;
+      if ($question && !$question->get('field_question_number')->isEmpty()) {
+        $question_number = trim($question->get('field_question_number')->value);
+      }
+    }
+
+    $node->setTitle($iso3 . ' ' . $question_number);
     return;
   }
 
-  $iso3 = '';
-  if (!$node->get('field_country')->isEmpty()) {
-    /** @var \Drupal\taxonomy\TermInterface $country */
-    $country = $node->get('field_country')->entity;
-    if ($country && !$country->get('field_iso_alpha3_code')->isEmpty()) {
-      $iso3 = trim($country->get('field_iso_alpha3_code')->value);
+  if ($node->bundle() === 'survey_report') {
+    $country_name = '';
+    if (!$node->get('field_country')->isEmpty()) {
+      /** @var \Drupal\taxonomy\TermInterface $country */
+      $country = $node->get('field_country')->entity;
+      if ($country) {
+        $country_name = trim($country->label());
+      }
+    }
+
+    $year = '';
+    if (!$node->get('field_year')->isEmpty()) {
+      $year = trim((string) $node->get('field_year')->value);
+    }
+
+    $parts = array_filter([$country_name, $year], function ($part) {
+      return $part !== '';
+    });
+
+    if (!empty($parts)) {
+      $node->setTitle(implode(' - ', $parts));
     }
   }
-
-  $question_number = '';
-  if (!$node->get('field_question')->isEmpty()) {
-    /** @var \Drupal\taxonomy\TermInterface $question */
-    $question = $node->get('field_question')->entity;
-    if ($question && !$question->get('field_question_number')->isEmpty()) {
-      $question_number = trim($question->get('field_question_number')->value);
-    }
-  }
-
-  $node->setTitle($iso3 . ' ' . $question_number);
 }

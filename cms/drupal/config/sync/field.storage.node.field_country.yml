@@ -3,7 +3,7 @@ langcode: en
 status: true
 dependencies:
   module:
-    - open_science_survey
+    - node
     - taxonomy
 _core:
   default_config_hash: JWdkBci5InFBmx9bCW1fp07N3s4PCE8-18bi_2i1t2c

@@ -1,0 +1,48 @@
+uuid: c763624e-a713-4e6b-8c4f-937d6a0b8029
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.survey_report.field_country
+    - field.field.node.survey_report.field_report_file
+    - field.field.node.survey_report.field_year
+    - node.type.survey_report
+  module:
+    - file
+    - user
+id: node.survey_report.default
+targetEntityType: node
+bundle: survey_report
+mode: default
+content:
+  field_country:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_report_file:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_year:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 3
+    region: content
+hidden: {  }
