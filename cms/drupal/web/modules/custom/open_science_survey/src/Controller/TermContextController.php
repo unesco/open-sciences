@@ -204,8 +204,9 @@ class TermContextController extends ControllerBase {
             }
         }
 
-        $survey_response_storage = $this->entityTypeManager()->getStorage('survey_response');
+        $survey_response_storage = $this->entityTypeManager()->getStorage('node');
         $query = $survey_response_storage->getQuery()->accessCheck(true)
+            ->condition('type', 'survey_response')
             ->condition('status', 1)
             ->condition('field_challenge.target_id', $challenge_term_ids, 'IN');
 

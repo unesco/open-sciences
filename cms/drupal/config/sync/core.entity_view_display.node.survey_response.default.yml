@@ -1,0 +1,86 @@
+uuid: ad42b09f-ac87-4ef5-9afa-59d344958c77
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.survey_response.field_challenge
+    - field.field.node.survey_response.field_closed_ans
+    - field.field.node.survey_response.field_country
+    - field.field.node.survey_response.field_open_ans
+    - field.field.node.survey_response.field_open_ans_translated
+    - field.field.node.survey_response.field_question
+  module:
+    - open_science_survey
+    - user
+_core:
+  default_config_hash: e60MjizfaenNvPA9VfDH02P_TBBhmXQRQGwNYEGjtXQ
+id: node.survey_response.default
+targetEntityType: node
+bundle: survey_response
+mode: default
+content:
+  field_challenge:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 32
+    region: content
+  field_closed_ans:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 23
+    region: content
+  field_country:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 22
+    region: content
+  field_open_ans:
+    type: string
+    label: visible
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 30
+    region: content
+  field_open_ans_translated:
+    type: boolean
+    label: visible
+    settings:
+      format: default
+    third_party_settings: {  }
+    weight: 31
+    region: content
+  field_question:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 21
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+  status:
+    type: boolean
+    label: above
+    settings:
+      format: enabled-disabled
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  search_api_excerpt: true

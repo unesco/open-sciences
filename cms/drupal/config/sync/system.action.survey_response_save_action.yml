@@ -8,6 +8,6 @@ _core:
   default_config_hash: _sYiZw7u1ZOZ27m-h7A9_R4qLcWIIPRtw4cZTC_gZmA
 id: survey_response_save_action
 label: 'Save survey responses'
-type: survey_response
-plugin: 'entity:save_action:survey_response'
+type: node
+plugin: 'entity:save_action:node'
 configuration: {  }

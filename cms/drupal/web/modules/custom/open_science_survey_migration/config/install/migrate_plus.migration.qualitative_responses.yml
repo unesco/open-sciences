@@ -46,7 +46,7 @@ process:
       'N': false
     default_value: false
 destination:
-  plugin: 'entity:survey_response'
+  plugin: 'entity:node'
   default_bundle: survey_response
 idMap: {  }
 migration_dependencies:

@@ -160,9 +160,10 @@ class MultiFilterSearchController extends ControllerBase {
      *   Unique array of country term IDs.
      */
     protected function getCountryTidsForFilter(array $question_tids, array $answer_tids): array {
-        $storage = $this->entityTypeManager()->getStorage('survey_response');
+        $storage = $this->entityTypeManager()->getStorage('node');
 
         $response_ids = $storage->getQuery()
+            ->condition('type', 'survey_response')
             ->condition('field_question', $question_tids, 'IN')
             ->condition('field_closed_ans', $answer_tids, 'IN')
             ->condition('status', 1)
@@ -274,9 +275,10 @@ class MultiFilterSearchController extends ControllerBase {
 
         // Step 3: Load survey responses for matching countries and filtered questions.
         $all_question_tids = array_merge(...array_values($filter_question_tids));
-        $response_storage = $this->entityTypeManager()->getStorage('survey_response');
+        $response_storage = $this->entityTypeManager()->getStorage('node');
 
         $response_ids = $response_storage->getQuery()
+            ->condition('type', 'survey_response')
             ->condition('field_country', $matching_country_tids, 'IN')
             ->condition('field_question', $all_question_tids, 'IN')
             ->condition('status', 1)

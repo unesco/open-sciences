@@ -3,7 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.survey_response.field_closed_ans
+    - field.storage.node.field_closed_ans
     - field.storage.taxonomy_term.field_country_name
     - field.storage.taxonomy_term.field_iso_alpha3_code
     - field.storage.taxonomy_term.field_question_number
@@ -20,8 +20,8 @@ label: 'Survey Responses Search'
 module: views
 description: ''
 tag: ''
-base_table: survey_response
-base_field: id
+base_table: node_field_data
+base_field: nid
 display:
   default:
     id: default
@@ -32,7 +32,7 @@ display:
       fields:
         field_closed_ans:
           id: field_closed_ans
-          table: survey_response__field_closed_ans
+          table: node__field_closed_ans
           field: field_closed_ans
           relationship: none
           group_type: group
@@ -447,9 +447,9 @@ display:
       filters:
         status:
           id: status
-          table: survey_response
+          table: node_field_data
           field: status
-          entity_type: survey_response
+          entity_type: node
           entity_field: status
           plugin_id: boolean
           value: '1'
@@ -572,7 +572,7 @@ display:
       relationships:
         field_country:
           id: field_country
-          table: survey_response__field_country
+          table: node__field_country
           field: field_country
           relationship: none
           group_type: group
@@ -581,7 +581,7 @@ display:
           required: true
         field_question:
           id: field_question
-          table: survey_response__field_question
+          table: node__field_question
           field: field_question
           relationship: none
           group_type: group
@@ -600,7 +600,7 @@ display:
         - url
         - url.query_args
       tags:
-        - 'config:field.storage.survey_response.field_closed_ans'
+        - 'config:field.storage.node.field_closed_ans'
         - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_question_number'
@@ -629,7 +629,7 @@ display:
         - request_format
         - url
       tags:
-        - 'config:field.storage.survey_response.field_closed_ans'
+        - 'config:field.storage.node.field_closed_ans'
         - 'config:field.storage.taxonomy_term.field_country_name'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_question_number'

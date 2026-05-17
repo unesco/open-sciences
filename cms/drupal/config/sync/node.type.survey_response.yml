@@ -1,0 +1,13 @@
+uuid: 3f29db60-a7ea-4c0f-bfae-7fdd1fb0c8b4
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: sRzYqE4K5xQ7H6z0Q2V9n1E3LwYx7f2QxA7t2P9m9k0
+name: 'Survey Response'
+type: survey_response
+description: 'Stores survey response records as content nodes.'
+help: null
+new_revision: true
+preview_mode: 0
+display_submitted: false

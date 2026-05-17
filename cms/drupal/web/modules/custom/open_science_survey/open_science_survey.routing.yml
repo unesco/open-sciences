@@ -1,11 +1,3 @@
-entity.survey_response.settings:
-  path: 'admin/structure/survey-response'
-  defaults:
-    _form: '\Drupal\open_science_survey\Form\SurveyResponseSettingsForm'
-    _title: 'Survey Response'
-  requirements:
-    _permission: 'administer survey_response'
-
 open_science_survey.wordcloud_challenges:
   path: '/api/wordcloud'
   defaults:

@@ -3,11 +3,11 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.survey_response.field_closed_ans
-    - field.storage.survey_response.field_country
-    - field.storage.survey_response.field_open_ans
-    - field.storage.survey_response.field_open_ans_translated
-    - field.storage.survey_response.field_question
+    - field.storage.node.field_closed_ans
+    - field.storage.node.field_country
+    - field.storage.node.field_open_ans
+    - field.storage.node.field_open_ans_translated
+    - field.storage.node.field_question
     - system.menu.admin
     - taxonomy.vocabulary.countries
   module:
@@ -20,8 +20,8 @@ label: 'Survey Responses'
 module: views
 description: ''
 tag: ''
-base_table: survey_response
-base_field: id
+base_table: node_field_data
+base_field: nid
 display:
   default:
     id: default
@@ -33,7 +33,7 @@ display:
       fields:
         field_country:
           id: field_country
-          table: survey_response__field_country
+          table: node__field_country
           field: field_country
           relationship: none
           group_type: group
@@ -96,7 +96,7 @@ display:
           field_api_classes: false
         field_question:
           id: field_question
-          table: survey_response__field_question
+          table: node__field_question
           field: field_question
           relationship: none
           group_type: group
@@ -159,7 +159,7 @@ display:
           field_api_classes: false
         field_closed_ans:
           id: field_closed_ans
-          table: survey_response__field_closed_ans
+          table: node__field_closed_ans
           field: field_closed_ans
           relationship: none
           group_type: group
@@ -222,7 +222,7 @@ display:
           field_api_classes: false
         field_open_ans:
           id: field_open_ans
-          table: survey_response__field_open_ans
+          table: node__field_open_ans
           field: field_open_ans
           relationship: none
           group_type: group
@@ -285,7 +285,7 @@ display:
           field_api_classes: false
         field_open_ans_translated:
           id: field_open_ans_translated
-          table: survey_response__field_open_ans_translated
+          table: node__field_open_ans_translated
           field: field_open_ans_translated
           relationship: none
           group_type: group
@@ -389,9 +389,9 @@ display:
       filters:
         status:
           id: status
-          table: survey_response
+          table: node_field_data
           field: status
-          entity_type: survey_response
+          entity_type: node
           entity_field: status
           plugin_id: boolean
           value: '1'
@@ -400,7 +400,7 @@ display:
             operator: ''
         field_country_target_id:
           id: field_country_target_id
-          table: survey_response__field_country
+          table: node__field_country
           field: field_country_target_id
           relationship: none
           group_type: group
@@ -467,11 +467,11 @@ display:
         - url
         - url.query_args
       tags:
-        - 'config:field.storage.survey_response.field_open_ans_translated'
-        - 'config:field.storage.survey_response.field_closed_ans'
-        - 'config:field.storage.survey_response.field_country'
-        - 'config:field.storage.survey_response.field_open_ans'
-        - 'config:field.storage.survey_response.field_question'
+        - 'config:field.storage.node.field_open_ans_translated'
+        - 'config:field.storage.node.field_closed_ans'
+        - 'config:field.storage.node.field_country'
+        - 'config:field.storage.node.field_open_ans'
+        - 'config:field.storage.node.field_question'
   page_1:
     id: page_1
     display_title: Page
@@ -497,8 +497,8 @@ display:
         - url
         - url.query_args
       tags:
-        - 'config:field.storage.survey_response.field_open_ans_translated'
-        - 'config:field.storage.survey_response.field_closed_ans'
-        - 'config:field.storage.survey_response.field_country'
-        - 'config:field.storage.survey_response.field_open_ans'
-        - 'config:field.storage.survey_response.field_question'
+        - 'config:field.storage.node.field_open_ans_translated'
+        - 'config:field.storage.node.field_closed_ans'
+        - 'config:field.storage.node.field_country'
+        - 'config:field.storage.node.field_open_ans'
+        - 'config:field.storage.node.field_question'

@@ -1,0 +1,32 @@
+uuid: 6be1e3dd-5db2-4bb0-b88b-79d4a55f79e3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_question
+    - taxonomy.vocabulary.survey_question
+  module:
+    - open_science_survey
+_core:
+  default_config_hash: b8D6aZeADJcmcrEEQ_YRBI5WORm1iLG4ASq0LPZMCYw
+id: node.survey_response.field_question
+field_name: field_question
+entity_type: node
+bundle: survey_response
+label: Question
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      survey_question: survey_question
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

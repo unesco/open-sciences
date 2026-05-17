@@ -23,7 +23,7 @@ $entity_type_manager = \Drupal::entityTypeManager();
 $field_manager = \Drupal::service('entity_field.manager');
 
 $taxonomy_storage = $entity_type_manager->getStorage('taxonomy_term');
-$survey_response_storage = $entity_type_manager->getStorage('survey_response');
+$survey_response_storage = $entity_type_manager->getStorage('node');
 
 $required_taxonomy_fields = [
   'countries' => ['field_iso_alpha3_code'],
@@ -42,11 +42,11 @@ foreach ($required_taxonomy_fields as $bundle => $fields) {
   }
 }
 
-$survey_response_field_definitions = $field_manager->getFieldDefinitions('survey_response', 'survey_response');
+$survey_response_field_definitions = $field_manager->getFieldDefinitions('node', 'survey_response');
 foreach (['field_country', 'field_question', 'field_challenge'] as $field_name) {
   if (!isset($survey_response_field_definitions[$field_name])) {
     throw new \RuntimeException(
-      "Field '{$field_name}' does not exist on survey_response bundle 'survey_response'."
+      "Field '{$field_name}' does not exist on node bundle 'survey_response'."
     );
   }
 }
@@ -291,6 +291,7 @@ while (($row = fgetcsv($handle)) !== FALSE) {
 
   $survey_response_ids = $survey_response_storage->getQuery()
     ->accessCheck(FALSE)
+    ->condition('type', 'survey_response')
     ->condition('field_country.target_id', (int) $country_term->id())
     ->condition('field_question.target_id', (int) $question_term->id())
     ->execute();
