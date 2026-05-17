@@ -9,7 +9,7 @@ dependencies:
     - field.storage.taxonomy_term.field_question_text
     - field.storage.taxonomy_term.field_question_type
   module:
-    - open_science_survey
+    - node
     - options
     - rest
     - serialization
@@ -549,19 +549,19 @@ display:
               raw_output: false
             name:
               alias: country_name
-              raw_output: false
+              raw_output: true
             field_iso_alpha3_code:
               alias: country_iso3
-              raw_output: false
+              raw_output: true
             field_question_number:
               alias: question_number
-              raw_output: false
+              raw_output: true
             field_question_text:
               alias: question_text
               raw_output: false
             field_question_type:
               alias: question_type
-              raw_output: false
+              raw_output: true
       query:
         type: views_query
         options:
@@ -600,6 +600,7 @@ display:
         - request_format
         - url
         - url.query_args
+        - 'user.node_grants:view'
       tags:
         - 'config:field.storage.node.field_closed_ans'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
@@ -628,6 +629,7 @@ display:
         - 'languages:language_interface'
         - request_format
         - url
+        - 'user.node_grants:view'
       tags:
         - 'config:field.storage.node.field_closed_ans'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'

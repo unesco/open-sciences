@@ -14,6 +14,7 @@ dependencies:
     - field.storage.taxonomy_term.field_region
     - taxonomy.vocabulary.countries
   module:
+    - options
     - rest
     - serialization
     - taxonomy
@@ -356,16 +357,13 @@ display:
           field_options:
             name:
               alias: name
-              raw_output: false
-            field_group:
-              alias: group
-              raw_output: false
+              raw_output: true
             field_iso_alpha3_code:
               alias: iso_3
-              raw_output: false
+              raw_output: true
             field_region:
               alias: region
-              raw_output: false
+              raw_output: true
       display_description: ''
       display_extenders: {  }
       path: api/countries
@@ -1067,15 +1065,33 @@ display:
           field_options:
             name:
               alias: name
-              raw_output: false
-            field_group:
-              alias: group
-              raw_output: false
+              raw_output: true
             field_iso_alpha3_code:
               alias: iso_3
-              raw_output: false
+              raw_output: true
             field_region:
               alias: region
+              raw_output: true
+            field_info_policy:
+              alias: ''
+              raw_output: false
+            field_info_promote_culture:
+              alias: ''
+              raw_output: false
+            field_info_funding_training:
+              alias: ''
+              raw_output: false
+            field_info_funding_infra:
+              alias: ''
+              raw_output: false
+            field_info_promoting:
+              alias: ''
+              raw_output: false
+            field_info_promote_cooperation:
+              alias: ''
+              raw_output: false
+            field_info_promote_inovation:
+              alias: ''
               raw_output: false
       defaults:
         fields: false
