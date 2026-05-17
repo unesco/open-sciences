@@ -19,6 +19,8 @@ if (!is_file($csv_path) || !is_readable($csv_path)) {
   throw new \RuntimeException("CSV file not found or not readable: {$csv_path}");
 }
 
+print "Importing $csv_path. This might take several minutes.\n";
+
 $entity_type_manager = \Drupal::entityTypeManager();
 $field_manager = \Drupal::service('entity_field.manager');
 

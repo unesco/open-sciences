@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 /**
  * @file
- * Drush script: import quantitative responses from wide CSV into survey responses.
+ * Drush script: import qualitative responses from CSV into survey responses.
  *
  * Usage (from Drupal root):
- *   drush php:script web/modules/custom/open_science_survey_migration/data/quantitative_responses_import.php /path/to/quantitative_responses.csv
+ *   drush php:script web/modules/custom/open_science_survey_migration/data/qualitative_responses_import.php /path/to/qualitative_responses.csv
  */
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\taxonomy\TermInterface;
 
 ini_set('memory_limit', '512M');
-$csv_path = empty($extra[0]) ? __DIR__ . '/quantitative_responses.csv' : $extra[0];
+$csv_path = empty($extra[0]) ? __DIR__ . '/qualitative_responses.csv' : $extra[0];
 
 if (!is_file($csv_path) || !is_readable($csv_path)) {
   throw new \RuntimeException("CSV file not found or not readable: {$csv_path}");
@@ -30,7 +30,6 @@ $survey_response_storage = $entity_type_manager->getStorage('node');
 
 $required_taxonomy_fields = [
   'survey_question' => ['field_question_number', 'field_question_type'],
-  'survey_predefined_answers' => ['field_short_name'],
 ];
 
 foreach ($required_taxonomy_fields as $bundle => $fields) {
@@ -45,7 +44,7 @@ foreach ($required_taxonomy_fields as $bundle => $fields) {
 }
 
 $survey_response_field_definitions = $field_manager->getFieldDefinitions('node', 'survey_response');
-foreach (['field_country', 'field_question', 'field_closed_ans'] as $field_name) {
+foreach (['field_country', 'field_question', 'field_open_ans', 'field_open_ans_translated'] as $field_name) {
   if (!isset($survey_response_field_definitions[$field_name])) {
     throw new \RuntimeException(
       "Field '{$field_name}' does not exist on node bundle 'survey_response'."
@@ -174,38 +173,6 @@ if (!empty($question_term_ids)) {
   }
 }
 
-$answer_term_cache = [];
-$answer_term_ids = $taxonomy_storage->getQuery()
-  ->accessCheck(FALSE)
-  ->condition('vid', 'survey_predefined_answers')
-  ->execute();
-
-if (!empty($answer_term_ids)) {
-  $answer_terms = $taxonomy_storage->loadMultiple($answer_term_ids);
-  foreach ($answer_terms as $answer_term) {
-    if (!$answer_term instanceof TermInterface) {
-      continue;
-    }
-
-    $short_name_raw = (string) $answer_term->get('field_short_name')->value;
-    $short_name = $normalize_text($short_name_raw);
-
-    if ($short_name === '') {
-      continue;
-    }
-
-    if (isset($answer_term_cache[$short_name])) {
-      print "ERROR preload survey_predefined_answers: duplicate field_short_name '{$short_name_raw}'.\n";
-      continue;
-    }
-
-    $answer_term_cache[$short_name] = $answer_term;
-    if ($short_name === 'x') {
-      $answer_term_cache['n/a'] = $answer_term;
-    }
-  }
-}
-
 $delimiter = $detect_delimiter($csv_path);
 $handle = fopen($csv_path, 'r');
 if ($handle === FALSE) {
@@ -263,12 +230,6 @@ foreach ($headers as $column_index => $header) {
 
   $question_meta = $question_term_cache[$question_number];
   $question_type = $normalize_text((string) $question_meta['type']);
-  if ($question_type !== 'closed') {
-    $errors++;
-    print "ERROR header '{$header}': question '{$question_number}' is type '{$question_meta['type']}', expected Closed.\n";
-    continue;
-  }
-
   $valid_question_columns[$column_index] = [
     'header' => $header,
     'question_number' => $question_number,
@@ -358,23 +319,14 @@ while (($row = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
   $country_term_id = (int) $country_term->id();
 
   foreach ($valid_question_columns as $column_index => $column_meta) {
-    $raw_value = trim((string) ($row[$column_index] ?? ''));
-    if ($raw_value === '') {
+    $response_text = trim((string) ($row[$column_index] ?? ''));
+    if ($response_text === '') {
       $skipped_cells++;
       continue;
     }
 
     $processed_cells++;
 
-    $answer_key = $normalize_text($raw_value);
-    if (!isset($answer_term_cache[$answer_key])) {
-      $errors++;
-      $skipped_cells++;
-      print "ERROR line {$line_number}: no survey_predefined_answers term found for value '{$raw_value}' in '{$column_meta['header']}'.\n";
-      continue;
-    }
-
-    $answer_term_id = (int) $answer_term_cache[$answer_key]->id();
     $question_term_id = (int) $column_meta['question_term_id'];
 
     try {
@@ -385,7 +337,8 @@ while (($row = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
           'title' => sprintf('%s - Q%s', $country_value, $column_meta['question_number']),
           'field_country' => ['target_id' => $country_term_id],
           'field_question' => ['target_id' => $question_term_id],
-          'field_closed_ans' => ['target_id' => $answer_term_id],
+          'field_open_ans' => ['value' => $response_text],
+          'field_open_ans_translated' => FALSE,
         ]);
 
         if (!$response instanceof ContentEntityInterface) {
@@ -405,12 +358,12 @@ while (($row = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
           continue;
         }
 
-        $current_target_id = (int) ($response->get('field_closed_ans')->target_id ?? 0);
-        if ($current_target_id === $answer_term_id) {
+        $current_open_ans = trim((string) ($response->get('field_open_ans')->value ?? ''));
+        if ($current_open_ans === $response_text) {
           continue;
         }
 
-        $response->set('field_closed_ans', ['target_id' => $answer_term_id]);
+        $response->set('field_open_ans', ['value' => $response_text]);
         $response->save();
         $updated_responses++;
       }
