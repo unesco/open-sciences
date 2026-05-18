@@ -31,7 +31,7 @@ URL format: `filters[N][question]` and `filters[N][answer]` where N is the filte
 - `Y` - Yes
 - `N` - No
 - `P` - Partly
-- `U` - Under Development
+- `U` - Under development
 - `X` - Not applicable
 
 ## Examples
