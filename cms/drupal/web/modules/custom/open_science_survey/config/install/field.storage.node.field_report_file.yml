@@ -1,0 +1,23 @@
+uuid: 9a24d739-635d-478f-b1e5-90c3ae987821
+langcode: en
+status: true
+dependencies:
+  module:
+    - file
+    - node
+id: node.field_report_file
+field_name: field_report_file
+entity_type: node
+type: file
+settings:
+  target_type: file
+  display_field: false
+  display_default: false
+  uri_scheme: public
+module: file
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

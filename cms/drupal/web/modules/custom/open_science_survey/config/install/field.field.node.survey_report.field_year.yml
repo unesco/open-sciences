@@ -1,0 +1,25 @@
+uuid: c196ce10-c2ee-4952-ba69-8def90f25a1c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_year
+    - node.type.survey_report
+id: node.survey_report.field_year
+field_name: field_year
+entity_type: node
+bundle: survey_report
+label: Year
+description: 'Enter the year when the survey was taken.'
+required: true
+translatable: false
+default_value:
+  -
+    value: 2025
+default_value_callback: ''
+settings:
+  min: 2020
+  max: 2100
+  prefix: ''
+  suffix: ''
+field_type: integer

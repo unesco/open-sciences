@@ -3,13 +3,6 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.taxonomy_term.countries.field_info_funding_infra
-    - field.field.taxonomy_term.countries.field_info_funding_training
-    - field.field.taxonomy_term.countries.field_info_policy
-    - field.field.taxonomy_term.countries.field_info_promote_cooperation
-    - field.field.taxonomy_term.countries.field_info_promote_culture
-    - field.field.taxonomy_term.countries.field_info_promote_inovation
-    - field.field.taxonomy_term.countries.field_info_promoting
     - field.field.taxonomy_term.countries.field_iso_alpha3_code
     - field.field.taxonomy_term.countries.field_region
     - taxonomy.vocabulary.countries
@@ -27,62 +20,6 @@ content:
   description:
     type: text_textarea
     weight: 0
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_info_funding_infra:
-    type: text_textarea
-    weight: 107
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_info_funding_training:
-    type: text_textarea
-    weight: 108
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_info_policy:
-    type: text_textarea
-    weight: 106
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_info_promote_cooperation:
-    type: text_textarea
-    weight: 111
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_info_promote_culture:
-    type: text_textarea
-    weight: 109
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_info_promote_inovation:
-    type: text_textarea
-    weight: 110
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_info_promoting:
-    type: text_textarea
-    weight: 105
     region: content
     settings:
       rows: 5

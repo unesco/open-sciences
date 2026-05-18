@@ -1,0 +1,19 @@
+uuid: b8a0d551-5a81-45c1-9d08-8fdd12768871
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+id: node.field_info_funding_training
+field_name: field_info_funding_training
+entity_type: node
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

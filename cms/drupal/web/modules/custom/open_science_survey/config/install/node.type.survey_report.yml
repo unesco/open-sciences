@@ -11,6 +11,7 @@ third_party_settings:
 name: 'Survey report'
 type: survey_report
 description: 'The information related to a report submitted by a country.'
+title_label: 'Auto-generated title (Country - Year)'
 help: null
 new_revision: true
 preview_mode: 1
