@@ -1,5 +1,0 @@
-survey_response.add_form:
-  title: 'Add survey response'
-  route_name: entity.survey_response.add_form
-  appears_on:
-    - entity.survey_response.collection

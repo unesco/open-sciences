@@ -20,14 +20,15 @@ if (!is_file($csv_path) || !is_readable($csv_path)) {
   throw new \RuntimeException("CSV file not found or not readable: {$csv_path}");
 }
 
+print "Importing $csv_path. This might take several minutes.\n";
+
 $entity_type_manager = \Drupal::entityTypeManager();
 $field_manager = \Drupal::service('entity_field.manager');
 
 $taxonomy_storage = $entity_type_manager->getStorage('taxonomy_term');
-$survey_response_storage = $entity_type_manager->getStorage('survey_response');
+$survey_response_storage = $entity_type_manager->getStorage('node');
 
 $required_taxonomy_fields = [
-  'countries' => ['field_country_name'],
   'survey_question' => ['field_question_number', 'field_question_type'],
   'survey_predefined_answers' => ['field_short_name'],
 ];
@@ -43,11 +44,11 @@ foreach ($required_taxonomy_fields as $bundle => $fields) {
   }
 }
 
-$survey_response_field_definitions = $field_manager->getFieldDefinitions('survey_response', 'survey_response');
+$survey_response_field_definitions = $field_manager->getFieldDefinitions('node', 'survey_response');
 foreach (['field_country', 'field_question', 'field_closed_ans'] as $field_name) {
   if (!isset($survey_response_field_definitions[$field_name])) {
     throw new \RuntimeException(
-      "Field '{$field_name}' does not exist on survey_response bundle 'survey_response'."
+      "Field '{$field_name}' does not exist on node bundle 'survey_response'."
     );
   }
 }
@@ -124,7 +125,7 @@ if (!empty($country_term_ids)) {
       continue;
     }
 
-    $country_name = (string) $country_term->get('field_country_name')->value;
+    $country_name = (string) $country_term->label();
     $country_key = $normalize_text($country_name);
 
     if ($country_key === '') {
@@ -301,6 +302,7 @@ $load_responses = static function (int $country_term_id, int $question_term_id) 
 
   $ids = $survey_response_storage->getQuery()
     ->accessCheck(FALSE)
+    ->condition('type', 'survey_response')
     ->condition('field_country.target_id', $country_term_id)
     ->condition('field_question.target_id', $question_term_id)
     ->execute();
@@ -380,13 +382,14 @@ while (($row = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
       if (empty($responses)) {
         $response = $survey_response_storage->create([
           'type' => 'survey_response',
+          'title' => sprintf('%s - Q%s', $country_value, $column_meta['question_number']),
           'field_country' => ['target_id' => $country_term_id],
           'field_question' => ['target_id' => $question_term_id],
           'field_closed_ans' => ['target_id' => $answer_term_id],
         ]);
 
         if (!$response instanceof ContentEntityInterface) {
-          throw new \RuntimeException('Created survey_response entity has unexpected type.');
+          throw new \RuntimeException('Created survey_response node has unexpected type.');
         }
 
         $response->save();

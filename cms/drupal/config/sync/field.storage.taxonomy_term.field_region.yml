@@ -3,18 +3,33 @@ langcode: en
 status: true
 dependencies:
   module:
+    - options
     - taxonomy
 _core:
   default_config_hash: uCLDXKOMiylRlQHmt7vg848ufXoV1UTvH5avlTjq-3Y
 id: taxonomy_term.field_region
 field_name: field_region
 entity_type: taxonomy_term
-type: string
+type: list_string
 settings:
-  max_length: 255
-  case_sensitive: false
-  is_ascii: false
-module: core
+  allowed_values:
+    -
+      value: Africa
+      label: Africa
+    -
+      value: 'Arab States'
+      label: 'Arab States'
+    -
+      value: 'Asia & the Pacific'
+      label: 'Asia & the Pacific'
+    -
+      value: 'Europe & North America'
+      label: 'Europe & North America'
+    -
+      value: 'Latin America & the Caribbean'
+      label: 'Latin America & the Caribbean'
+  allowed_values_function: ''
+module: options
 locked: false
 cardinality: 1
 translatable: true

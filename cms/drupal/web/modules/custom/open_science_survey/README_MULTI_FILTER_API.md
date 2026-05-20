@@ -10,11 +10,20 @@ The multi-filter search endpoint allows you to find countries that satisfy multi
 GET /api/search/survey-responses-multi-filter
 ```
 
+## Download Endpoint
+
+```
+GET /api/download/survey-responses-multi-filter
+```
+
+Uses the same `filters` query parameters as the search endpoint and returns a CSV file download.
+
 ## Parameters
 
 The endpoint accepts a `filters` array parameter where each filter specifies:
 - `question`: Question number (e.g., "2.8", "1.1")
 - `answer`: One or more answer short codes, comma-separated for OR logic
+- `type` (optional): Question type filter. Allowed values: `Closed`, `Open` (case-insensitive). Default: `Closed`
 
 URL format: `filters[N][question]` and `filters[N][answer]` where N is the filter index (0, 1, 2, ...)
 
@@ -22,7 +31,7 @@ URL format: `filters[N][question]` and `filters[N][answer]` where N is the filte
 - `Y` - Yes
 - `N` - No
 - `P` - Partly
-- `U` - Under Development
+- `U` - Under development
 - `X` - Not applicable
 
 ## Examples
@@ -55,6 +64,24 @@ curl -G "http://localhost/api/search/survey-responses-multi-filter" \
   --data-urlencode "filters[0][answer]=Y,P" \
   --data-urlencode "filters[1][question]=2.9" \
   --data-urlencode "filters[1][answer]=N"
+```
+
+### Example 5: Download CSV for matching results
+```bash
+curl -G "http://localhost/api/download/survey-responses-multi-filter" \
+  --data-urlencode "filters[0][question]=2.8" \
+  --data-urlencode "filters[0][answer]=Y,P" \
+  --data-urlencode "filters[1][question]=2.9" \
+  --data-urlencode "filters[1][answer]=N" \
+  -o survey-responses-multi-filter.csv
+```
+
+### Example 6: Search only open questions
+```bash
+curl -G "http://localhost/api/search/survey-responses-multi-filter" \
+  --data-urlencode "filters[0][question]=2.8" \
+  --data-urlencode "filters[0][answer]=Y,P" \
+  --data-urlencode "type=Open"
 ```
 
 ## Response Format
@@ -113,6 +140,21 @@ curl -G "http://localhost/api/search/survey-responses-multi-filter" \
   "total_countries": 0
 }
 ```
+
+## CSV Response Format
+
+The download endpoint returns a CSV attachment with this header:
+
+```csv
+country,question_number,answer
+```
+
+Rules:
+- One row per response for matching countries and filtered question numbers
+- `country` uses the country ISO3 code
+- `question_number` uses `field_question_number`
+- `answer` prefers the closed-answer long label, and falls back to open-answer text
+- If no data matches, the file contains only the header row
 
 ### Error Responses
 
@@ -175,6 +217,6 @@ curl -G "http://localhost/api/search/survey-responses-multi-filter" \
 - **Entity Types Used**:
   - `survey_response` — main entity with `field_question`, `field_country`, `field_closed_ans`, `field_open_ans`
   - `taxonomy_term` (vocabulary: `survey_question`) — `field_question_number`, `field_question_text`, `field_question_type`
-  - `taxonomy_term` (vocabulary: `countries`) — `field_iso_alpha3_code`, `field_country_name`
+  - `taxonomy_term` (vocabulary: `countries`) — `name`, `field_iso_alpha3_code`
   - `taxonomy_term` (vocabulary: `survey_predefined_answers`) — `field_short_name`, `field_long_name`
 

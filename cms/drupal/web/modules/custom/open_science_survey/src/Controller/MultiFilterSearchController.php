@@ -19,6 +19,7 @@ namespace Drupal\open_science_survey\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * REST controller for multi-filter country search.
@@ -28,6 +29,11 @@ class MultiFilterSearchController extends ControllerBase {
      * Valid answer short names.
      */
     const VALID_ANSWERS = ['Y', 'N', 'P', 'U', 'X'];
+
+    /**
+     * Valid question types.
+     */
+    const VALID_QUESTION_TYPES = ['Closed', 'Open'];
 
     /**
      * Validate and parse filters from request.
@@ -111,6 +117,37 @@ class MultiFilterSearchController extends ControllerBase {
     }
 
     /**
+     * Validate and parse question type from request.
+     *
+     * @param string|null $question_type
+     *   Raw type query parameter.
+     *
+     * @return array
+     *   Array with 'valid' => bool, 'type' => normalized string, 'error' => string.
+     */
+    protected function parseQuestionType(?string $question_type): array {
+        if ($question_type === null || trim($question_type) === '') {
+            return [
+            'valid' => true,
+            'type' => 'Closed',
+            ];
+        }
+
+        $normalized = ucfirst(strtolower(trim($question_type)));
+        if (in_array($normalized, self::VALID_QUESTION_TYPES, true)) {
+            return [
+            'valid' => true,
+            'type' => $normalized,
+            ];
+        }
+
+        return [
+        'valid' => false,
+        'error' => "Invalid type '{$question_type}'. Valid values: " . implode(', ', self::VALID_QUESTION_TYPES),
+        ];
+    }
+
+    /**
      * Get survey_question term IDs for a given question number.
      *
      * @param string $question_number
@@ -119,12 +156,13 @@ class MultiFilterSearchController extends ControllerBase {
      * @return array
      *   Array of term IDs.
      */
-    protected function getQuestionTids(string $question_number): array {
+    protected function getQuestionTids(string $question_number, string $question_type): array {
         return $this->entityTypeManager()
             ->getStorage('taxonomy_term')
             ->getQuery()
             ->condition('vid', 'survey_question')
             ->condition('field_question_number', $question_number)
+            ->condition('field_question_type', $question_type)
             ->accessCheck(false)
             ->execute();
     }
@@ -160,9 +198,10 @@ class MultiFilterSearchController extends ControllerBase {
      *   Unique array of country term IDs.
      */
     protected function getCountryTidsForFilter(array $question_tids, array $answer_tids): array {
-        $storage = $this->entityTypeManager()->getStorage('survey_response');
+        $storage = $this->entityTypeManager()->getStorage('node');
 
         $response_ids = $storage->getQuery()
+            ->condition('type', 'survey_response')
             ->condition('field_question', $question_tids, 'IN')
             ->condition('field_closed_ans', $answer_tids, 'IN')
             ->condition('status', 1)
@@ -204,56 +243,29 @@ class MultiFilterSearchController extends ControllerBase {
     }
 
     /**
-     * Multi-filter country search endpoint.
+     * Build country response list for parsed filters.
      *
-     * GET /api/search/survey-responses-multi-filter
-     * Query params:
-     *   - filters[0][question]: Question number (e.g., "2.8")
-     *   - filters[0][answer]: Answer(s), comma-separated (e.g., "Y,P")
-     *   - filters[1][question]: Another question number
-     *   - filters[1][answer]: Answer(s) for second criterion
-     *   - ... (unlimited filters)
+     * @param array $filters
+     *   Parsed filters.
      *
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     *   The request object.
-     *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse
-     *   JSON response with matching countries and their responses.
+     * @return array
+     *   Countries list, grouped and sorted by country name.
      */
-    public function search(Request $request) {
-        // Get and parse filters from query parameters.
-        $all_params = $request->query->all();
-        $raw_filters = $all_params['filters'] ?? [];
-
-        $validation = $this->parseFilters($raw_filters);
-
-        if (!$validation['valid']) {
-            return new JsonResponse([
-            'error' => $validation['error'],
-            ], 400);
-        }
-
-        $filters = $validation['filters'];
-        $empty_response = [
-        'countries' => [],
-        'filters_applied' => $this->formatFilters($filters),
-        'total_countries' => 0,
-        ];
-
+    protected function buildCountriesList(array $filters, string $question_type): array {
         // Step 1: For each filter resolve term IDs and collect matching country TIDs.
         $country_tid_sets = [];
         $filter_question_tids = [];
 
         foreach ($filters as $filter) {
-            $question_tids = $this->getQuestionTids($filter['question']);
+            $question_tids = $this->getQuestionTids($filter['question'], $question_type);
             if (empty($question_tids)) {
-                return new JsonResponse($empty_response);
+                return [];
             }
             $filter_question_tids[$filter['question']] = $question_tids;
 
             $answer_tids = $this->getAnswerTids($filter['answers']);
             if (empty($answer_tids)) {
-                return new JsonResponse($empty_response);
+                return [];
             }
 
             $country_tids = $this->getCountryTidsForFilter($question_tids, $answer_tids);
@@ -262,21 +274,23 @@ class MultiFilterSearchController extends ControllerBase {
 
         // Step 2: Intersect country TID sets (AND logic between filters).
         if (empty($country_tid_sets)) {
-            return new JsonResponse($empty_response);
+            return [];
         }
+
         $matching_country_tids = count($country_tid_sets) === 1
         ? $country_tid_sets[0]
         : array_values(array_intersect(...$country_tid_sets));
 
         if (empty($matching_country_tids)) {
-            return new JsonResponse($empty_response);
+            return [];
         }
 
         // Step 3: Load survey responses for matching countries and filtered questions.
         $all_question_tids = array_merge(...array_values($filter_question_tids));
-        $response_storage = $this->entityTypeManager()->getStorage('survey_response');
+        $response_storage = $this->entityTypeManager()->getStorage('node');
 
         $response_ids = $response_storage->getQuery()
+            ->condition('type', 'survey_response')
             ->condition('field_country', $matching_country_tids, 'IN')
             ->condition('field_question', $all_question_tids, 'IN')
             ->condition('status', 1)
@@ -293,7 +307,7 @@ class MultiFilterSearchController extends ControllerBase {
         foreach ($country_terms as $tid => $term) {
             $country_cache[$tid] = [
             'iso3' => $term->get('field_iso_alpha3_code')->value ?? '',
-            'name' => $term->get('field_country_name')->value ?? $term->label(),
+            'name' => $term->label(),
             ];
         }
 
@@ -370,10 +384,125 @@ class MultiFilterSearchController extends ControllerBase {
             return strcmp($a['name'], $b['name']);
         });
 
+        return $countries_list;
+    }
+
+    /**
+     * Multi-filter country search endpoint.
+     *
+     * GET /api/search/survey-responses-multi-filter
+     * Query params:
+     *   - filters[0][question]: Question number (e.g., "2.8")
+     *   - filters[0][answer]: Answer(s), comma-separated (e.g., "Y,P")
+     *   - filters[1][question]: Another question number
+     *   - filters[1][answer]: Answer(s) for second criterion
+     *   - ... (unlimited filters)
+     *
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     *   The request object.
+     *
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *   JSON response with matching countries and their responses.
+     */
+    public function search(Request $request) {
+        // Get and parse filters from query parameters.
+        $all_params = $request->query->all();
+        $raw_filters = $all_params['filters'] ?? [];
+        $raw_question_type = $all_params['type'] ?? null;
+
+        $type_validation = $this->parseQuestionType($raw_question_type);
+        if (!$type_validation['valid']) {
+            return new JsonResponse([
+            'error' => $type_validation['error'],
+            ], 400);
+        }
+        $question_type = $type_validation['type'];
+
+        $validation = $this->parseFilters($raw_filters);
+
+        if (!$validation['valid']) {
+            return new JsonResponse([
+            'error' => $validation['error'],
+            ], 400);
+        }
+
+        $filters = $validation['filters'];
+        $empty_response = [
+        'countries' => [],
+        'filters_applied' => $this->formatFilters($filters),
+        'total_countries' => 0,
+        ];
+
+        $countries_list = $this->buildCountriesList($filters, $question_type);
+
+        if (empty($countries_list)) {
+            return new JsonResponse($empty_response);
+        }
+
         return new JsonResponse([
         'countries' => $countries_list,
         'filters_applied' => $this->formatFilters($filters),
         'total_countries' => count($countries_list),
         ]);
+    }
+
+    /**
+     * Multi-filter country CSV download endpoint.
+     *
+     * GET /api/download/survey-responses-multi-filter
+     * Query params are identical to the search endpoint.
+     *
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     *   The request object.
+     *
+     * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+     *   CSV streamed response or JSON validation error.
+     */
+    public function download(Request $request) {
+        $all_params = $request->query->all();
+        $raw_filters = $all_params['filters'] ?? [];
+        $raw_question_type = $all_params['type'] ?? null;
+
+        $type_validation = $this->parseQuestionType($raw_question_type);
+        if (!$type_validation['valid']) {
+            return new JsonResponse([
+            'error' => $type_validation['error'],
+            ], 400);
+        }
+        $question_type = $type_validation['type'];
+
+        $validation = $this->parseFilters($raw_filters);
+
+        if (!$validation['valid']) {
+            return new JsonResponse([
+            'error' => $validation['error'],
+            ], 400);
+        }
+
+        $filters = $validation['filters'];
+        $countries_list = $this->buildCountriesList($filters, $question_type);
+
+        $response = new StreamedResponse(function () use ($countries_list) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['country', 'question_number', 'answer']);
+
+            foreach ($countries_list as $country) {
+                foreach ($country['responses'] as $response_data) {
+                    $answer = $response_data['answer'] ?? ($response_data['answer_open'] ?? '');
+                    fputcsv($handle, [
+                    $country['iso3'],
+                    $response_data['question_number'],
+                    $answer,
+                    ]);
+                }
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="survey-responses-multi-filter.csv"');
+
+        return $response;
     }
 }

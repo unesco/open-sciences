@@ -3,18 +3,19 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.taxonomy_term.field_country_name
-    - field.storage.taxonomy_term.field_info_funding_infra
-    - field.storage.taxonomy_term.field_info_funding_training
-    - field.storage.taxonomy_term.field_info_policy
-    - field.storage.taxonomy_term.field_info_promote_cooperation
-    - field.storage.taxonomy_term.field_info_promote_culture
-    - field.storage.taxonomy_term.field_info_promote_inovation
-    - field.storage.taxonomy_term.field_info_promoting
+    - field.storage.node.field_country
+    - field.storage.node.field_info_funding_infra
+    - field.storage.node.field_info_funding_training
+    - field.storage.node.field_info_policy
+    - field.storage.node.field_info_promote_cooperation
+    - field.storage.node.field_info_promote_culture
+    - field.storage.node.field_info_promote_inovation
+    - field.storage.node.field_info_promoting
     - field.storage.taxonomy_term.field_iso_alpha3_code
     - field.storage.taxonomy_term.field_region
     - taxonomy.vocabulary.countries
   module:
+    - node
     - rest
     - serialization
     - taxonomy
@@ -27,8 +28,8 @@ label: Countries
 module: views
 description: 'List of countries'
 tag: ''
-base_table: taxonomy_term_field_data
-base_field: tid
+base_table: node_field_data
+base_field: nid
 display:
   default:
     id: default
@@ -37,14 +38,16 @@ display:
     position: 0
     display_options:
       fields:
-        field_country_name:
-          id: field_country_name
-          table: taxonomy_term__field_country_name
-          field: field_country_name
-          relationship: none
+        name:
+          id: name
+          table: taxonomy_term_field_data
+          field: name
+          relationship: field_country
           group_type: group
           admin_label: ''
-          plugin_id: field
+          entity_type: taxonomy_term
+          entity_field: name
+          plugin_id: term_name
           label: ''
           exclude: false
           alter:
@@ -104,7 +107,7 @@ display:
           id: field_iso_alpha3_code
           table: taxonomy_term__field_iso_alpha3_code
           field: field_iso_alpha3_code
-          relationship: none
+          relationship: field_country
           group_type: group
           admin_label: ''
           plugin_id: field
@@ -167,7 +170,7 @@ display:
           id: field_region
           table: taxonomy_term__field_region
           field: field_region
-          relationship: none
+          relationship: field_country
           group_type: group
           admin_label: ''
           plugin_id: field
@@ -268,24 +271,24 @@ display:
       filters:
         status:
           id: status
-          table: taxonomy_term_field_data
+          table: node_field_data
           field: status
-          entity_type: taxonomy_term
+          entity_type: node
           entity_field: status
           plugin_id: boolean
           value: '1'
           group: 1
           expose:
             operator: ''
-        vid:
-          id: vid
-          table: taxonomy_term_field_data
-          field: vid
-          entity_type: taxonomy_term
-          entity_field: vid
+        type:
+          id: type
+          table: node_field_data
+          field: type
+          entity_type: node
+          entity_field: type
           plugin_id: bundle
           value:
-            countries: countries
+            survey_report: survey_report
       style:
         type: serializer
       row:
@@ -303,7 +306,16 @@ display:
           distinct: false
           replica: false
           query_tags: {  }
-      relationships: {  }
+      relationships:
+        field_country:
+          id: field_country
+          table: node__field_country
+          field: field_country
+          relationship: none
+          group_type: group
+          admin_label: 'field_country: Taxonomy term'
+          plugin_id: standard
+          required: true
       header: {  }
       footer: {  }
       display_extenders: {  }
@@ -316,7 +328,7 @@ display:
         - url.query_args
         - user.permissions
       tags:
-        - 'config:field.storage.taxonomy_term.field_country_name'
+        - 'config:field.storage.node.field_country'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_region'
   rest_api_countries:
@@ -339,7 +351,7 @@ display:
         type: data_field
         options:
           field_options:
-            field_country_name:
+            name:
               alias: name
               raw_output: false
             field_group:
@@ -362,7 +374,7 @@ display:
         - request_format
         - user.permissions
       tags:
-        - 'config:field.storage.taxonomy_term.field_country_name'
+        - 'config:field.storage.node.field_country'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_region'
   rest_api_country_details:
@@ -372,14 +384,16 @@ display:
     position: 1
     display_options:
       fields:
-        field_country_name:
-          id: field_country_name
-          table: taxonomy_term__field_country_name
-          field: field_country_name
-          relationship: none
+        name:
+          id: name
+          table: taxonomy_term_field_data
+          field: name
+          relationship: field_country
           group_type: group
           admin_label: ''
-          plugin_id: field
+          entity_type: taxonomy_term
+          entity_field: name
+          plugin_id: term_name
           label: ''
           exclude: false
           alter:
@@ -439,7 +453,7 @@ display:
           id: field_iso_alpha3_code
           table: taxonomy_term__field_iso_alpha3_code
           field: field_iso_alpha3_code
-          relationship: none
+          relationship: field_country
           group_type: group
           admin_label: ''
           plugin_id: field
@@ -502,7 +516,7 @@ display:
           id: field_region
           table: taxonomy_term__field_region
           field: field_region
-          relationship: none
+          relationship: field_country
           group_type: group
           admin_label: ''
           plugin_id: field
@@ -563,7 +577,7 @@ display:
           field_api_classes: false
         field_info_policy:
           id: field_info_policy
-          table: taxonomy_term__field_info_policy
+          table: node__field_info_policy
           field: field_info_policy
           relationship: none
           group_type: group
@@ -625,7 +639,7 @@ display:
           field_api_classes: false
         field_info_promote_culture:
           id: field_info_promote_culture
-          table: taxonomy_term__field_info_promote_culture
+          table: node__field_info_promote_culture
           field: field_info_promote_culture
           relationship: none
           group_type: group
@@ -687,7 +701,7 @@ display:
           field_api_classes: false
         field_info_funding_training:
           id: field_info_funding_training
-          table: taxonomy_term__field_info_funding_training
+          table: node__field_info_funding_training
           field: field_info_funding_training
           relationship: none
           group_type: group
@@ -749,7 +763,7 @@ display:
           field_api_classes: false
         field_info_funding_infra:
           id: field_info_funding_infra
-          table: taxonomy_term__field_info_funding_infra
+          table: node__field_info_funding_infra
           field: field_info_funding_infra
           relationship: none
           group_type: group
@@ -811,7 +825,7 @@ display:
           field_api_classes: false
         field_info_promoting:
           id: field_info_promoting
-          table: taxonomy_term__field_info_promoting
+          table: node__field_info_promoting
           field: field_info_promoting
           relationship: none
           group_type: group
@@ -873,7 +887,7 @@ display:
           field_api_classes: false
         field_info_promote_cooperation:
           id: field_info_promote_cooperation
-          table: taxonomy_term__field_info_promote_cooperation
+          table: node__field_info_promote_cooperation
           field: field_info_promote_cooperation
           relationship: none
           group_type: group
@@ -935,7 +949,7 @@ display:
           field_api_classes: false
         field_info_promote_inovation:
           id: field_info_promote_inovation
-          table: taxonomy_term__field_info_promote_inovation
+          table: node__field_info_promote_inovation
           field: field_info_promote_inovation
           relationship: none
           group_type: group
@@ -1004,7 +1018,7 @@ display:
           id: field_iso_alpha3_code_value
           table: taxonomy_term__field_iso_alpha3_code
           field: field_iso_alpha3_code_value
-          relationship: none
+          relationship: field_country
           group_type: group
           admin_label: ''
           plugin_id: string
@@ -1049,7 +1063,7 @@ display:
         type: data_field
         options:
           field_options:
-            field_country_name:
+            name:
               alias: name
               raw_output: false
             field_group:
@@ -1076,13 +1090,13 @@ display:
         - url
         - user.permissions
       tags:
-        - 'config:field.storage.taxonomy_term.field_country_name'
-        - 'config:field.storage.taxonomy_term.field_info_funding_infra'
-        - 'config:field.storage.taxonomy_term.field_info_funding_training'
-        - 'config:field.storage.taxonomy_term.field_info_policy'
-        - 'config:field.storage.taxonomy_term.field_info_promote_cooperation'
-        - 'config:field.storage.taxonomy_term.field_info_promote_culture'
-        - 'config:field.storage.taxonomy_term.field_info_promote_inovation'
-        - 'config:field.storage.taxonomy_term.field_info_promoting'
+        - 'config:field.storage.node.field_country'
+        - 'config:field.storage.node.field_info_funding_infra'
+        - 'config:field.storage.node.field_info_funding_training'
+        - 'config:field.storage.node.field_info_policy'
+        - 'config:field.storage.node.field_info_promote_cooperation'
+        - 'config:field.storage.node.field_info_promote_culture'
+        - 'config:field.storage.node.field_info_promote_inovation'
+        - 'config:field.storage.node.field_info_promoting'
         - 'config:field.storage.taxonomy_term.field_iso_alpha3_code'
         - 'config:field.storage.taxonomy_term.field_region'

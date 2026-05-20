@@ -27,7 +27,7 @@ source:
     -
       id: 3
       short_name: U
-      long_name: 'Under Development'
+      long_name: 'Under development'
       description: 'No such policy, framework, or mechanism currently exists, and no development is reported at this time.'
     -
       id: 4

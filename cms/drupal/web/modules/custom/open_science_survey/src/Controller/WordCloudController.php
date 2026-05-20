@@ -59,9 +59,10 @@ class WordCloudController extends ControllerBase {
                 }
             }
 
-            $survey_response_storage = $this->entityTypeManager()->getStorage('survey_response');
+            $survey_response_storage = $this->entityTypeManager()->getStorage('node');
             $query = $survey_response_storage->getQuery()->accessCheck(true);
 
+            $query->condition('type', 'survey_response');
             $query->condition('status', 1);
 
             if ($question_term_ids !== null) {

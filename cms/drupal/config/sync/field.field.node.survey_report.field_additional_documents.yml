@@ -1,0 +1,27 @@
+uuid: 78a944de-b974-41f8-9abf-54747ad906a4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_additional_documents
+    - node.type.survey_report
+  module:
+    - file
+id: node.survey_report.field_additional_documents
+field_name: field_additional_documents
+entity_type: node
+bundle: survey_report
+label: 'Additional documents'
+description: 'Upload additional files that should be displayed on the country page.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'txt doc docx pdf'
+  max_filesize: ''
+  description_field: true
+field_type: file
