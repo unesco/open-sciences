@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.survey_report.field_additional_documents
     - field.field.node.survey_report.field_country
     - field.field.node.survey_report.field_info_funding_infra
     - field.field.node.survey_report.field_info_funding_training
@@ -23,6 +24,14 @@ targetEntityType: node
 bundle: survey_report
 mode: default
 content:
+  field_additional_documents:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 11
+    region: content
   field_country:
     type: entity_reference_label
     label: above

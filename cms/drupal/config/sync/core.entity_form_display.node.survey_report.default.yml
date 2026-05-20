@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.survey_report.field_additional_documents
     - field.field.node.survey_report.field_country
     - field.field.node.survey_report.field_info_funding_infra
     - field.field.node.survey_report.field_info_funding_training
@@ -28,6 +29,13 @@ content:
     weight: 10
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_additional_documents:
+    type: file_generic
+    weight: 26
+    region: content
+    settings:
+      progress_indicator: throbber
     third_party_settings: {  }
   field_country:
     type: entity_reference_autocomplete
