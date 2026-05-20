@@ -173,6 +173,16 @@ deploy-cms: check ## Re-apply CMS deployment with current image tag
 	@kubectl delete job cms-db-init cms-init -n $(NAMESPACE) --ignore-not-found=true 2>/dev/null || true
 	@envsubst < cms-services.yaml | kubectl apply -f - -n $(NAMESPACE)
 	@kubectl rollout restart deployment cms -n $(NAMESPACE) 2>/dev/null || true
+	@echo "Waiting for CMS pod to be ready (up to 5 min)..."
+	@kubectl rollout status deployment cms -n $(NAMESPACE) --timeout=5m 2>/dev/null || true
+	@echo "Running CMS initialization (drush site:install + data migrations)..."
+	@CMS_POD=$$(kubectl get pods -n $(NAMESPACE) -l app=cms -o jsonpath='{.items[0].metadata.name}') && \
+		kubectl exec -n $(NAMESPACE) $$CMS_POD -- \
+			env ENV=$(ENV) \
+			ADMIN_USER_EMAIL='$(ADMIN_USER_EMAIL)' \
+			ADMIN_USER_PASSWORD='$(ADMIN_USER_PASSWORD)' \
+			/var/www/deploy.sh
+	@echo "CMS initialization complete."
 
 deploy-services: check ## Deploy external services (DB, cache, search, queue)
 	@echo "Deploying external services..."

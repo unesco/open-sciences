@@ -26,7 +26,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: cms-init
-          image: bitnami/kubectl:latest
+          image: rancher/kubectl:v1.28.2
           env:
             - name: NAMESPACE
               value: "unesco-rdm"
@@ -61,7 +61,7 @@ spec:
               echo ""
               echo "[2/2] Installing Drupal..."
               kubectl exec -n "$NAMESPACE" "$CMS_POD" -- \
-                env ENV=dev \
+                env ENV=${ENV:-test} \
                     ADMIN_USER_EMAIL="$ADMIN_USER_EMAIL" \
                     ADMIN_USER_PASSWORD="$ADMIN_USER_PASSWORD" \
                     /var/www/deploy.sh
