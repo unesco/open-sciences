@@ -3,11 +3,14 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.plain_language_summary.field_footnotes
     - field.field.node.plain_language_summary.field_meaning
     - field.field.node.plain_language_summary.field_publication_authors
     - field.field.node.plain_language_summary.field_publication_link
     - field.field.node.plain_language_summary.field_publication_sponsor
     - field.field.node.plain_language_summary.field_publication_sponsor_logo
+    - field.field.node.plain_language_summary.field_sdgs
+    - field.field.node.plain_language_summary.field_tags
     - field.field.node.plain_language_summary.field_what_was_done
     - field.field.node.plain_language_summary.field_why_was_done
     - node.type.plain_language_summary
@@ -21,12 +24,19 @@ targetEntityType: node
 bundle: plain_language_summary
 mode: default
 content:
+  field_footnotes:
+    type: text_default
+    label: visually_hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 3
+    region: content
   field_meaning:
     type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 103
+    weight: 2
     region: content
   field_publication_authors:
     type: link
@@ -38,7 +48,7 @@ content:
       rel: ''
       target: ''
     third_party_settings: {  }
-    weight: 105
+    weight: 5
     region: content
   field_publication_link:
     type: link
@@ -50,14 +60,14 @@ content:
       rel: ''
       target: ''
     third_party_settings: {  }
-    weight: 104
+    weight: 4
     region: content
   field_publication_sponsor:
     type: basic_string
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 106
+    weight: 6
     region: content
   field_publication_sponsor_logo:
     type: image
@@ -68,25 +78,41 @@ content:
       image_loading:
         attribute: lazy
     third_party_settings: {  }
-    weight: 107
+    weight: 7
+    region: content
+  field_sdgs:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 8
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 9
     region: content
   field_what_was_done:
     type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 101
+    weight: 0
     region: content
   field_why_was_done:
     type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 102
+    weight: 1
     region: content
   links:
     settings: {  }
     third_party_settings: {  }
-    weight: 100
+    weight: 10
     region: content
 hidden: {  }

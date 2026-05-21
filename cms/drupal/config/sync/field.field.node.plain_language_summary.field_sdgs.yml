@@ -1,0 +1,29 @@
+uuid: 2df1531c-99e8-4690-8509-98e3acbe131a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_sdgs
+    - node.type.plain_language_summary
+    - taxonomy.vocabulary.un_sdgs
+id: node.plain_language_summary.field_sdgs
+field_name: field_sdgs
+entity_type: node
+bundle: plain_language_summary
+label: SDGs
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      un_sdgs: un_sdgs
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

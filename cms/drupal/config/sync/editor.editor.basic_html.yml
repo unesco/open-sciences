@@ -13,10 +13,16 @@ editor: ckeditor5
 settings:
   toolbar:
     items:
+      - removeFormat
+      - undo
+      - redo
+      - '|'
       - bold
       - italic
       - '|'
       - link
+      - subscript
+      - superscript
       - '|'
       - bulletedList
       - numberedList
@@ -27,6 +33,7 @@ settings:
       - heading
       - code
       - '|'
+      - showBlocks
       - sourceEditing
   plugins:
     ckeditor5_heading:
