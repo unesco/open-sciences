@@ -10,7 +10,6 @@ dependencies:
     - contextual
     - file
     - node
-    - path
     - system
     - taxonomy
     - toolbar
@@ -26,11 +25,9 @@ permissions:
   - 'access contextual links'
   - 'access files overview'
   - 'access toolbar'
-  - 'administer url aliases'
   - 'create article content'
   - 'create page content'
   - 'create terms in tags'
-  - 'create url aliases'
   - 'delete article revisions'
   - 'delete own article content'
   - 'delete own files'

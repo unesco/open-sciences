@@ -1,0 +1,24 @@
+uuid: eb9e1431-87d5-4832-97fe-4f4d3a5d9f14
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_meaning
+    - filter.format.basic_html
+    - node.type.plain_language_summary
+  module:
+    - text
+id: node.plain_language_summary.field_meaning
+field_name: field_meaning
+entity_type: node
+bundle: plain_language_summary
+label: 'What do these findings mean?'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic_html
+field_type: text_long

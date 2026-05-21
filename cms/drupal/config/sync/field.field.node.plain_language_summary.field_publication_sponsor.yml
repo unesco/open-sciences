@@ -1,0 +1,19 @@
+uuid: 3e5d7f1e-45ae-4b5b-8dad-290909788cf0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_publication_sponsor
+    - node.type.plain_language_summary
+id: node.plain_language_summary.field_publication_sponsor
+field_name: field_publication_sponsor
+entity_type: node
+bundle: plain_language_summary
+label: 'Original publication sponsor'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

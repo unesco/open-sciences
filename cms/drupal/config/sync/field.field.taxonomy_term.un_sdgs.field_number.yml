@@ -1,0 +1,23 @@
+uuid: ef0b657c-62c8-4bdd-b522-778850d05131
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_number
+    - taxonomy.vocabulary.un_sdgs
+id: taxonomy_term.un_sdgs.field_number
+field_name: field_number
+entity_type: taxonomy_term
+bundle: un_sdgs
+label: Number
+description: 'The number of the goal.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 1
+  max: 30
+  prefix: ''
+  suffix: ''
+field_type: integer

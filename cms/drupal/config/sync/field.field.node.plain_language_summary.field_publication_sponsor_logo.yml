@@ -1,0 +1,38 @@
+uuid: 1534b846-e568-45d1-812a-a9c583bd2946
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_publication_sponsor_logo
+    - node.type.plain_language_summary
+  module:
+    - image
+id: node.plain_language_summary.field_publication_sponsor_logo
+field_name: field_publication_sponsor_logo
+entity_type: node
+bundle: plain_language_summary
+label: 'Original publication sponsor logo'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'png gif jpg jpeg webp'
+  max_filesize: 512KB
+  max_resolution: ''
+  min_resolution: ''
+  alt_field: true
+  alt_field_required: false
+  title_field: true
+  title_field_required: false
+  default_image:
+    uuid: ''
+    alt: ''
+    title: ''
+    width: null
+    height: null
+field_type: image
