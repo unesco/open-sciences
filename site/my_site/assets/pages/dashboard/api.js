@@ -9,6 +9,8 @@ export const API_PATHS = {
   SURVEY_SECTIONS: "/api/survey-sections",
   SURVEY_QUESTIONS: "/api/survey-questions",
   SURVEY_RESPONSES: "/api/search/survey-responses",
+  SURVEY_RESPONSES_DOWNLOAD: "/api/download/survey-responses",
+  SURVEY_RESPONSES_DOWNLOAD_MULTI_FILTER: "/api/download/survey-responses-multi-filter",
   COUNTRIES: "/api/countries",
   WORDCLOUD: "/api/wordcloud",
   TERM_CONTEXT: "/api/term-context",
@@ -106,6 +108,72 @@ export async function fetchSurveyResponsesByQuestion(questionNumber) {
   return get(
     `${API_PATHS.SURVEY_RESPONSES}?question_number=${encodeURIComponent(questionNumber)}`,
   );
+}
+
+/**
+ * Build the absolute URL for the survey-responses download endpoint.
+ * @param {object} [params]  Optional query params, e.g. { section_id: 1 }
+ *                           Falsy values are skipped.
+ */
+export function surveyResponsesDownloadUrl(params = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") qs.set(k, v);
+  });
+  const query = qs.toString();
+  return `${CMS_BASE}${API_PATHS.SURVEY_RESPONSES_DOWNLOAD}${query ? `?${query}` : ""}`;
+}
+
+/**
+ * Build the absolute URL for the multi-filter survey-responses download
+ * endpoint. Mirrors the query shape used by `fetchMultiFilter`.
+ * Example: filters[0][question]=2.2&filters[0][answer]=Y
+ * @param {Array<{question: string, answers: string[]}>} filters
+ */
+export function surveyResponsesMultiFilterDownloadUrl(filters = []) {
+  const params = new URLSearchParams();
+  filters.forEach((f, i) => {
+    params.append(`filters[${i}][question]`, f.question);
+    params.append(`filters[${i}][answer]`, f.answers.join(","));
+  });
+  const query = params.toString();
+  return `${CMS_BASE}${API_PATHS.SURVEY_RESPONSES_DOWNLOAD_MULTI_FILTER}${query ? `?${query}` : ""}`;
+}
+
+// Pull filename out of a Content-Disposition header. Supports the RFC 5987
+// `filename*=UTF-8''…` form and the plain `filename="…"` form.
+function parseFilename(disposition) {
+  if (!disposition) return null;
+  const utf8 = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(disposition);
+  if (utf8) {
+    try { return decodeURIComponent(utf8[1]); } catch { /* fall through */ }
+  }
+  const plain = /filename\s*=\s*"?([^";]+)"?/i.exec(disposition);
+  return plain ? plain[1].trim() : null;
+}
+
+/**
+ * Fetch a file as a blob, returning the blob plus the filename parsed from
+ * the server's Content-Disposition header (or null if absent).
+ * @param {string} url      Absolute URL (e.g. from `surveyResponsesDownloadUrl`)
+ * @param {object} [opts]
+ * @param {AbortSignal} [opts.signal]  Optional abort signal
+ * @returns {Promise<{ blob: Blob, filename: string | null }>}
+ */
+export async function downloadFile(url, { signal } = {}) {
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "same-origin",
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(
+      `GET ${url} failed: ${response.status} ${response.statusText}`,
+    );
+  }
+  const blob = await response.blob();
+  const filename = parseFilename(response.headers.get("Content-Disposition"));
+  return { blob, filename };
 }
 
 /**

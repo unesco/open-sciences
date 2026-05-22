@@ -8,12 +8,15 @@ import {
   fetchMultiFilter,
   fetchSurveySections,
   fetchSurveyQuestions,
+  surveyResponsesDownloadUrl,
+  surveyResponsesMultiFilterDownloadUrl,
 } from "../../api";
 import { FilterPanel } from "./components/FilterPanel";
 import { MapPanel } from "./components/MapPanel";
 import { NoDataModal } from "./components/NoDataModal";
 import { CountriesModal } from "./components/CountriesModal";
 import { buildFilterTree, ALL_REGIONS } from "./components/constants";
+import { DownloadMenu } from "../DownloadMenu";
 
 export const GlobalOverview = ({ onCountryClick }) => {
   const [allCountries, setAllCountries]         = useState([]);
@@ -56,18 +59,21 @@ export const GlobalOverview = ({ onCountryClick }) => {
     );
   }, []);
 
-  // Re-query multi-filter API when activeFilters change
-  useEffect(() => {
+  // Active filters translated into the {question, answers} shape consumed by
+  // both the multi-filter search and the multi-filter download endpoints.
+  const filtersArray = useMemo(() => {
     const qLookup = {};
     globalFilters.forEach((g) =>
       g.items.forEach((it) => { qLookup[it.id] = it.question; })
     );
-
-    const filtersArray = Object.entries(activeFilters)
+    return Object.entries(activeFilters)
       .filter(([, val]) => val)
       .map(([id, val]) => ({ question: qLookup[id], answers: [val] }))
       .filter((f) => f.question);
+  }, [activeFilters, globalFilters]);
 
+  // Re-query multi-filter API when filtersArray changes
+  useEffect(() => {
     if (filtersArray.length === 0) {
       setMatchingSet(null);
       return;
@@ -78,7 +84,7 @@ export const GlobalOverview = ({ onCountryClick }) => {
       .then((data) => setMatchingSet(new Set((data.countries || []).map((c) => c.iso3))))
       .catch(() => setMatchingSet(null))
       .finally(() => setFilterLoading(false));
-  }, [activeFilters, globalFilters]);
+  }, [filtersArray]);
 
   return (
     <div className="dash-global">
@@ -97,10 +103,14 @@ export const GlobalOverview = ({ onCountryClick }) => {
             Search Country Profile
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
           </button>
-          <button type="button" className="dash-btn outline">
-            Download
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-          </button>
+          <DownloadMenu
+            filteredHref={
+              filtersArray.length > 0
+                ? surveyResponsesMultiFilterDownloadUrl(filtersArray)
+                : ""
+            }
+            allHref={surveyResponsesDownloadUrl()}
+          />
         </div>
       </div>
 
