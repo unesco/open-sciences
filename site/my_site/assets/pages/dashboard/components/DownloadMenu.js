@@ -4,20 +4,13 @@
  *  - Download filtered data  → uses `filteredHref`
  *  - Download all data       → uses `allHref`
  *
- * Each option fetches the file via JS so we can show a spinner on the trigger
- * button while the server prepares the response, then triggers a download via
- * a temporary blob URL. The "filtered" option is hidden when `filteredHref` is
- * falsy.
+ * The actual fetch + toast is handled by the shared `useDownload` hook.
+ * The "filtered" option is hidden when `filteredHref` is falsy.
  */
 
 import React, { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
-import { downloadFile } from "../api";
-
-const TOAST_DURATION_MS = 5000;
-const DEFAULT_ERROR_MESSAGE =
-  "Something went wrong. Please contact administrator if the issue persists.";
+import { useDownload } from "./useDownload";
 
 const DownloadIcon = () => (
   <svg
@@ -51,48 +44,10 @@ const Spinner = () => (
   </svg>
 );
 
-const MIME_EXT = {
-  "text/csv": "csv",
-  "application/json": "json",
-  "application/zip": "zip",
-  "application/vnd.ms-excel": "xls",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
-  "text/plain": "txt",
-};
-
-// Filename used when the server omits Content-Disposition. Extension is
-// inferred from the blob's mime type so e.g. CSV → survey_responses.csv.
-function buildFallbackName(blob) {
-  const ext = MIME_EXT[(blob.type || "").split(";")[0].trim()] || "";
-  return ext ? `survey_responses.${ext}` : "survey_responses";
-}
-
-function triggerBlobDownload(blob, filename) {
-  const name = filename || buildFallbackName(blob);
-  const objectUrl = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = objectUrl;
-  a.rel = "noopener";
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(objectUrl);
-}
-
 export const DownloadMenu = ({ filteredHref, allHref }) => {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const wrapRef = useRef(null);
-  const abortRef = useRef(null);
-  const toastTimer = useRef(null);
-
-  const showErrorToast = (message) => {
-    setError(message);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setError(null), TOAST_DURATION_MS);
-  };
+  const { download, loading, toast } = useDownload("survey_responses");
 
   useEffect(() => {
     if (!open) return undefined;
@@ -110,31 +65,9 @@ export const DownloadMenu = ({ filteredHref, allHref }) => {
     };
   }, [open]);
 
-  // Abort any in-flight fetch and clear the toast timer on unmount
-  useEffect(() => () => {
-    if (abortRef.current) abortRef.current.abort();
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-  }, []);
-
-  const handleDownload = async (url) => {
-    if (loading) return;
+  const handleDownload = (url) => {
     setOpen(false);
-    setLoading(true);
-    setError(null);
-    const controller = new AbortController();
-    abortRef.current = controller;
-    try {
-      const { blob, filename } = await downloadFile(url, { signal: controller.signal });
-      triggerBlobDownload(blob, filename);
-    } catch (err) {
-      if (err.name !== "AbortError") {
-        console.error("Download failed:", err);
-        showErrorToast(DEFAULT_ERROR_MESSAGE);
-      }
-    } finally {
-      abortRef.current = null;
-      setLoading(false);
-    }
+    download(url);
   };
 
   return (
@@ -177,20 +110,7 @@ export const DownloadMenu = ({ filteredHref, allHref }) => {
         </div>
       )}
 
-      {error && createPortal(
-        <div className="download-toast" role="alert">
-          <span>{error}</span>
-          <button
-            type="button"
-            className="download-toast-close"
-            aria-label="Dismiss"
-            onClick={() => setError(null)}
-          >
-            ×
-          </button>
-        </div>,
-        document.body,
-      )}
+      {toast}
     </div>
   );
 };

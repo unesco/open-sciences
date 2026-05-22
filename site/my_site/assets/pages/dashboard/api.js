@@ -14,6 +14,7 @@ export const API_PATHS = {
   COUNTRIES: "/api/countries",
   WORDCLOUD: "/api/wordcloud",
   TERM_CONTEXT: "/api/term-context",
+  TERM_CONTEXT_DOWNLOAD: "/api/download/term-context",
 };
 
 const isDev =
@@ -236,4 +237,18 @@ export async function fetchTermContext(term, filters = {}) {
   const params = new URLSearchParams({ term });
   if (filters.region) params.set("region", filters.region);
   return get(`${API_PATHS.TERM_CONTEXT}?${params.toString()}`);
+}
+
+/**
+ * Build the absolute URL for the term-context download endpoint.
+ * @param {object} [filters]          Optional filters
+ * @param {string} [filters.term]     Challenge term, e.g. "lack of funding"
+ * @param {string} [filters.region]   API region value
+ */
+export function termContextDownloadUrl(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.term) params.set("term", filters.term);
+  if (filters.region) params.set("region", filters.region);
+  const query = params.toString();
+  return `${CMS_BASE}${API_PATHS.TERM_CONTEXT_DOWNLOAD}${query ? `?${query}` : ""}`;
 }
