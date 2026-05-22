@@ -16,6 +16,9 @@
 
 namespace Drupal\open_science_survey\Controller;
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -453,7 +456,7 @@ class MultiFilterSearchController extends ControllerBase {
 
         $type_validation = $this->parseQuestionType($raw_question_type);
         if (!$type_validation['valid']) {
-            return new JsonResponse([
+            return $this->buildSearchResponse([
             'error' => $type_validation['error'],
             ], 400);
         }
@@ -462,7 +465,7 @@ class MultiFilterSearchController extends ControllerBase {
         $validation = $this->parseFilters($raw_filters);
 
         if (!$validation['valid']) {
-            return new JsonResponse([
+            return $this->buildSearchResponse([
             'error' => $validation['error'],
             ], 400);
         }
@@ -477,14 +480,29 @@ class MultiFilterSearchController extends ControllerBase {
         $countries_list = $this->buildCountriesList($filters, $question_type);
 
         if (empty($countries_list)) {
-            return new JsonResponse($empty_response);
+            return $this->buildSearchResponse($empty_response);
         }
 
-        return new JsonResponse([
+        return $this->buildSearchResponse([
         'countries' => $countries_list,
         'filters_applied' => $this->formatFilters($filters),
         'total_countries' => count($countries_list),
         ]);
+    }
+
+    /**
+     * Builds a cacheable JSON response for search endpoint payloads.
+     */
+    protected function buildSearchResponse(array $payload, int $status = 200) {
+        $response = new CacheableJsonResponse($payload, $status);
+
+        $cacheability = new CacheableMetadata();
+        $cacheability->setCacheContexts(['url.query_args', 'user.permissions']);
+        $cacheability->setCacheTags(['node_list:survey_response', 'taxonomy_term_list']);
+        $cacheability->setCacheMaxAge(Cache::PERMANENT);
+        $response->addCacheableDependency($cacheability);
+
+        return $response;
     }
 
     /**
@@ -506,7 +524,7 @@ class MultiFilterSearchController extends ControllerBase {
 
         $type_validation = $this->parseQuestionType($raw_question_type);
         if (!$type_validation['valid']) {
-            return new JsonResponse([
+            return $this->buildSearchResponse([
             'error' => $type_validation['error'],
             ], 400);
         }
@@ -515,7 +533,7 @@ class MultiFilterSearchController extends ControllerBase {
         $validation = $this->parseFilters($raw_filters);
 
         if (!$validation['valid']) {
-            return new JsonResponse([
+            return $this->buildSearchResponse([
             'error' => $validation['error'],
             ], 400);
         }
@@ -543,6 +561,8 @@ class MultiFilterSearchController extends ControllerBase {
 
         $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
         $response->headers->set('Content-Disposition', 'attachment; filename="survey-responses-multi-filter.csv"');
+        $response->headers->set('Cache-Control', 'private, no-store');
+        $response->headers->set('Pragma', 'no-cache');
 
         return $response;
     }
