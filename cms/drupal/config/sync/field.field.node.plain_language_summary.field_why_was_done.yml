@@ -1,0 +1,24 @@
+uuid: 3d59d6fc-4ca1-4b19-9260-eef1f662e9d3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_why_was_done
+    - filter.format.basic_html
+    - node.type.plain_language_summary
+  module:
+    - text
+id: node.plain_language_summary.field_why_was_done
+field_name: field_why_was_done
+entity_type: node
+bundle: plain_language_summary
+label: 'Why was the study done?'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic_html
+field_type: text_long

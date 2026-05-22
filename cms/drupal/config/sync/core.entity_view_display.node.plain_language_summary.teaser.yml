@@ -1,0 +1,47 @@
+uuid: 2a8f72e0-7f30-4a02-b1dd-c2609c513095
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.plain_language_summary.field_footnotes
+    - field.field.node.plain_language_summary.field_meaning
+    - field.field.node.plain_language_summary.field_publication_authors
+    - field.field.node.plain_language_summary.field_publication_link
+    - field.field.node.plain_language_summary.field_publication_sponsor
+    - field.field.node.plain_language_summary.field_publication_sponsor_logo
+    - field.field.node.plain_language_summary.field_sdgs
+    - field.field.node.plain_language_summary.field_tags
+    - field.field.node.plain_language_summary.field_what_was_done
+    - field.field.node.plain_language_summary.field_why_was_done
+    - node.type.plain_language_summary
+  module:
+    - user
+id: node.plain_language_summary.teaser
+targetEntityType: node
+bundle: plain_language_summary
+mode: teaser
+content:
+  field_tags:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 10
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_footnotes: true
+  field_meaning: true
+  field_publication_authors: true
+  field_publication_link: true
+  field_publication_sponsor: true
+  field_publication_sponsor_logo: true
+  field_sdgs: true
+  field_what_was_done: true
+  field_why_was_done: true

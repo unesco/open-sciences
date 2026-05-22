@@ -37,3 +37,20 @@ open_science_survey.term_context:
   methods: [GET]
   requirements:
     _access: 'TRUE'
+
+open_science_survey.pls_list:
+  path: '/api/pls'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\PlsController::listpls'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+open_science_survey.pls_detail:
+  path: '/api/pls/{nid}'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\PlsController::detailpls'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    nid: '\d+'
