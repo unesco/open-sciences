@@ -9,10 +9,10 @@ export const TABS = [
 export const DISCLAIMER_TEXT =
   "The Dashboards present information as reported by the Member States. " +
   "UNESCO does not independently verify the accuracy or completeness of the " +
-  "submitted information. An AI model [details will be provided later] was " +
-  "used to assist in preparing initial draft summaries for the Country " +
-  "Profiles. These drafts were subsequently reviewed, revised and approved " +
-  "by the UNESCO team. Personal data contained in the original national " +
+  "submitted information. An AI model, Claude Opus 4.5, was used to assist " +
+  "in preparing initial draft summaries for the Country Profiles. These " +
+  "drafts were subsequently thoroughly reviewed, revised and approved by " +
+  "the UNESCO team. Personal data contained in the original national " +
   "submission files, including respondents\u2019 contact details, was removed " +
   "before the files were published as supporting materials accompanying the " +
   "Dashboards.";
