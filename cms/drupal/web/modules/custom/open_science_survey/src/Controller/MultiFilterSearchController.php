@@ -49,8 +49,8 @@ class MultiFilterSearchController extends ControllerBase {
 
         if (empty($filters)) {
             return [
-            'valid' => false,
-            'error' => 'At least one filter is required',
+            'valid' => true,
+            'filters' => $parsed,
             ];
         }
 
@@ -252,56 +252,97 @@ class MultiFilterSearchController extends ControllerBase {
      *   Countries list, grouped and sorted by country name.
      */
     protected function buildCountriesList(array $filters, string $question_type): array {
-        // Step 1: For each filter resolve term IDs and collect matching country TIDs.
-        $country_tid_sets = [];
-        $filter_question_tids = [];
-
-        foreach ($filters as $filter) {
-            $question_tids = $this->getQuestionTids($filter['question'], $question_type);
-            if (empty($question_tids)) {
-                return [];
-            }
-            $filter_question_tids[$filter['question']] = $question_tids;
-
-            $answer_tids = $this->getAnswerTids($filter['answers']);
-            if (empty($answer_tids)) {
-                return [];
-            }
-
-            $country_tids = $this->getCountryTidsForFilter($question_tids, $answer_tids);
-            $country_tid_sets[] = $country_tids;
-        }
-
-        // Step 2: Intersect country TID sets (AND logic between filters).
-        if (empty($country_tid_sets)) {
-            return [];
-        }
-
-        $matching_country_tids = count($country_tid_sets) === 1
-        ? $country_tid_sets[0]
-        : array_values(array_intersect(...$country_tid_sets));
-
-        if (empty($matching_country_tids)) {
-            return [];
-        }
-
-        // Step 3: Load survey responses for matching countries and filtered questions.
-        $all_question_tids = array_merge(...array_values($filter_question_tids));
         $response_storage = $this->entityTypeManager()->getStorage('node');
+        $term_storage = $this->entityTypeManager()->getStorage('taxonomy_term');
+        $responses = [];
+        $matching_country_tids = [];
+        $all_question_tids = [];
 
-        $response_ids = $response_storage->getQuery()
-            ->condition('type', 'survey_response')
-            ->condition('field_country', $matching_country_tids, 'IN')
-            ->condition('field_question', $all_question_tids, 'IN')
-            ->condition('status', 1)
-            ->accessCheck(false)
-            ->execute();
+        if (empty($filters)) {
+            // No filters: include all published responses for the requested question type.
+            $all_question_tids = $term_storage->getQuery()
+                ->condition('vid', 'survey_question')
+                ->condition('field_question_type', $question_type)
+                ->accessCheck(false)
+                ->execute();
 
-        $responses = $response_storage->loadMultiple($response_ids);
+            if (empty($all_question_tids)) {
+                return [];
+            }
+
+            $response_ids = $response_storage->getQuery()
+                ->condition('type', 'survey_response')
+                ->condition('field_question', $all_question_tids, 'IN')
+                ->condition('status', 1)
+                ->accessCheck(false)
+                ->execute();
+
+            if (empty($response_ids)) {
+                return [];
+            }
+
+            $responses = $response_storage->loadMultiple($response_ids);
+            $country_tids = [];
+            foreach ($responses as $response) {
+                $country_tid = $response->get('field_country')->target_id;
+                if ($country_tid) {
+                    $country_tids[$country_tid] = $country_tid;
+                }
+            }
+
+            $matching_country_tids = array_values($country_tids);
+            if (empty($matching_country_tids)) {
+                return [];
+            }
+        }
+        else {
+            // Step 1: For each filter resolve term IDs and collect matching country TIDs.
+            $country_tid_sets = [];
+            $filter_question_tids = [];
+
+            foreach ($filters as $filter) {
+                $question_tids = $this->getQuestionTids($filter['question'], $question_type);
+                if (empty($question_tids)) {
+                    return [];
+                }
+                $filter_question_tids[$filter['question']] = $question_tids;
+
+                $answer_tids = $this->getAnswerTids($filter['answers']);
+                if (empty($answer_tids)) {
+                    return [];
+                }
+
+                $country_tids = $this->getCountryTidsForFilter($question_tids, $answer_tids);
+                $country_tid_sets[] = $country_tids;
+            }
+
+            // Step 2: Intersect country TID sets (AND logic between filters).
+            if (empty($country_tid_sets)) {
+                return [];
+            }
+
+            $matching_country_tids = count($country_tid_sets) === 1
+                ? $country_tid_sets[0]
+                : array_values(array_intersect(...$country_tid_sets));
+
+            if (empty($matching_country_tids)) {
+                return [];
+            }
+
+            // Step 3: Load survey responses for matching countries and filtered questions.
+            $all_question_tids = array_merge(...array_values($filter_question_tids));
+            $response_ids = $response_storage->getQuery()
+                ->condition('type', 'survey_response')
+                ->condition('field_country', $matching_country_tids, 'IN')
+                ->condition('field_question', $all_question_tids, 'IN')
+                ->condition('status', 1)
+                ->accessCheck(false)
+                ->execute();
+
+            $responses = $response_storage->loadMultiple($response_ids);
+        }
 
         // Step 4: Pre-load term metadata to avoid N+1 queries.
-        $term_storage = $this->entityTypeManager()->getStorage('taxonomy_term');
-
         $country_terms = $term_storage->loadMultiple($matching_country_tids);
         $country_cache = [];
         foreach ($country_terms as $tid => $term) {
