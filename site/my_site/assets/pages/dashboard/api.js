@@ -102,8 +102,9 @@ export async function fetchSurveySections() {
  * Endpoint: GET /cms/api/survey-questions
  * Response shape (per row): { number, text, type, short_name, description, long_description, section }
  */
-export async function fetchSurveyQuestions() {
-  return get(API_PATHS.SURVEY_QUESTIONS);
+export async function fetchSurveyQuestions({ type } = {}) {
+  const qs = type ? `?type=${encodeURIComponent(type)}` : "";
+  return get(`${API_PATHS.SURVEY_QUESTIONS}${qs}`);
 }
 
 /**
