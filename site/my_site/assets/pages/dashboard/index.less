@@ -783,7 +783,7 @@
   font-size: 0.9rem;
   color: #444;
 }
-.toggle-label { font-size: 0.9rem; }
+.toggle-label { font-size: 0.9rem; color: #212121; }
 
 .toggle-switch {
   position: relative;
@@ -1249,7 +1249,10 @@
 
 /* ── "View country breakdown" button on donut cards ────── */
 .breakdown-btn {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 9px 0;
   border: 1px solid #ccc;
@@ -1269,10 +1272,17 @@
   }
 }
 
+.breakdown-btn-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  object-fit: contain;
+}
+
 /* ── Donut footnote ─────────────────────────────────────── */
 .donut-footnote {
   font-size: 0.82rem;
-  color: #888;
+  color: #212121;
   margin: 0;
 }
 
@@ -1547,6 +1557,20 @@
   }
 }
 
+/* Inside the breakdown drawer header, flip the tooltip downwards so it
+   doesn't clip against the top of the drawer. */
+.breakdown-drawer .breakdown-title .info-hover-tooltip {
+  bottom: auto;
+  top: calc(100% + 8px);
+
+  &::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: #1a2a3a;
+  }
+}
+
 /* Show tooltip on hover — only on devices that support hover (desktop) */
 @media (hover: hover) {
   .info-icon-wrap:hover .info-hover-tooltip,
@@ -1773,7 +1797,7 @@
 }
 
 .rbd-country-name {
-  /* inline — commas are appended by JS */
+  display: inline;
 }
 
 .rbd-country-link {
