@@ -8,6 +8,7 @@
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { RegionCard } from "../RegionCard";
+import { buildInfoDescription } from "../utils";
 
 // ─── Pure helper: aggregate countriesByAnswer → per-region data ───────────────
 
@@ -44,6 +45,7 @@ export const RegionBreakdownModal = ({
   }, [onClose]);
 
   const isLoading = !countryToRegion || Object.keys(countryToRegion).length === 0;
+  const infoDescription = buildInfoDescription(description);
 
   const regions = isLoading
     ? []
@@ -66,8 +68,8 @@ export const RegionBreakdownModal = ({
         <div className="breakdown-header">
           <h3 className="breakdown-title">
             {chartLabel}
-            {description && (
-              <span className="breakdown-info-icon" title={description}>ⓘ</span>
+            {infoDescription && (
+              <span className="breakdown-info-icon" title={infoDescription}>ⓘ</span>
             )}
           </h3>
           <button type="button" className="breakdown-close" onClick={onClose} aria-label="Close">

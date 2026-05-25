@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MedalIcon } from "../../utils";
+import { InfoIcon } from "../../InfoIcon";
 
 const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false }) => {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -19,10 +20,22 @@ const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false 
       </button>
       {expanded && (
         <div className="dashboard-filter-items">
-          {filter.items.map((item) => (
+          {filter.items.map((item) => {
+            const labelParts = (item.label || "").split(" ");
+            const lastWord = labelParts.pop() || "";
+            const leading = labelParts.join(" ");
+            return (
               <div key={item.id} className="dashboard-filter-item">
                 <span className="filter-item-label">
-                  {item.label}
+                  {leading && `${leading} `}
+                  <span className="filter-item-label-tail">
+                    {lastWord}
+                    <InfoIcon
+                      description={item.description}
+                      options={item.options}
+                      modalTitle={item.label}
+                    />
+                  </span>
                 </span>
                 <div className="filter-toggle-group">
                   {(item.options || []).map((opt) => (
@@ -37,7 +50,8 @@ const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false 
                   ))}
                 </div>
               </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

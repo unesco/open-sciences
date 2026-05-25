@@ -203,7 +203,6 @@ export const MapPanel = ({
       <div className="dashboard-map-topbar">
         <span className="dashboard-filter-selected">
           Filter selected: {activeFilterCount}
-          {filterLoading && <span className="map-filter-spinner"> \u27F3</span>}
         </span>
         <select
           className="dashboard-region-select"
