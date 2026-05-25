@@ -2059,6 +2059,80 @@
   height: 20px;
 }
 
+/* ── Additional documents (Drupal-generated HTML) ────────── */
+.country-additional-documents {
+  .item-list {
+    margin: 0;
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    li {
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  .file {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f5f8fc;
+    border: 1px solid #dce8f5;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background 0.15s, border-color 0.15s;
+
+    &:hover {
+      background: #e8f0fb;
+      border-color: #0073b7;
+    }
+
+    /* PDF icon via pseudo-element */
+    &::before {
+      content: "";
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0392b'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    a {
+      color: #0073b7;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .file__size {
+    font-size: 0.8rem;
+    color: #888;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
 @media (max-width: 900px) {
   .country-content-layout {
     flex-direction: column;

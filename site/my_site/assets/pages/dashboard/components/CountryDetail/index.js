@@ -148,6 +148,20 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
                 </div>
               );
             })}
+
+            {/* Additional documents section */}
+            {countryData.field_additional_documents &&
+              countryData.field_additional_documents.trim().length > 0 && (
+                <div className="country-section country-additional-documents">
+                  <h3 className="country-section-title">Additional Documents</h3>
+                  <div
+                    className="country-section-body"
+                    dangerouslySetInnerHTML={{
+                      __html: sanitizeRichText(countryData.field_additional_documents.trim()),
+                    }}
+                  />
+                </div>
+              )}
           </div>
 
           {/* On this page — sticky sidebar right */}
