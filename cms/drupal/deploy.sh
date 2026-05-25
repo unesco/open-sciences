@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 ENV=${ENV:-dev}
 ADMIN_USER_EMAIL=${ADMIN_USER_EMAIL:-admin@unesco.org}

@@ -6,6 +6,14 @@ open_science_survey.wordcloud_challenges:
   requirements:
     _access: 'TRUE'
 
+open_science_survey.survey_questions:
+  path: '/api/survey-questions'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\SurveyQuestionsController::listSurveyQuestions'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
 open_science_survey.multi_filter:
   path: '/api/search/survey-responses-multi-filter'
   defaults:

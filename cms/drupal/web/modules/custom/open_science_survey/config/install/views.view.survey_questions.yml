@@ -20,7 +20,7 @@ dependencies:
 _core:
   default_config_hash: lRhbEQ6Vm_z9OVAkl5ftjCw5d0AADspmAhrxtCjqrco
 id: survey_questions
-label: 'Survey Questions'
+label: 'Survey questions'
 module: views
 description: ''
 tag: ''
@@ -97,11 +97,11 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_question_text:
-          id: field_question_text
-          table: taxonomy_term__field_question_text
-          field: field_question_text
-          relationship: none
+        field_section_id:
+          id: field_section_id
+          table: taxonomy_term__field_section_id
+          field: field_section_id
+          relationship: field_section
           group_type: group
           admin_label: ''
           plugin_id: field
@@ -147,8 +147,9 @@ display:
           empty_zero: false
           hide_alter_empty: true
           click_sort_column: value
-          type: basic_string
-          settings: {  }
+          type: string
+          settings:
+            link_to_entity: false
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -210,6 +211,68 @@ display:
           hide_alter_empty: true
           click_sort_column: value
           type: list_default
+          settings: {  }
+          group_column: value
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+        field_question_text:
+          id: field_question_text
+          table: taxonomy_term__field_question_text
+          field: field_question_text
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: field
+          label: ''
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          click_sort_column: value
+          type: basic_string
           settings: {  }
           group_column: value
           group_columns: {  }
@@ -408,19 +471,19 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        field_section_id:
-          id: field_section_id
-          table: taxonomy_term__field_section_id
-          field: field_section_id
-          relationship: field_section
+        nothing:
+          id: nothing
+          table: views
+          field: nothing
+          relationship: none
           group_type: group
-          admin_label: ''
-          plugin_id: field
+          admin_label: closed_answer_options
+          plugin_id: custom
           label: ''
           exclude: false
           alter:
-            alter_text: false
-            text: ''
+            alter_text: true
+            text: "Y|Yes\r\nN|No\r\nP|Partly\r\nU|Under development\r\nX|Non applicable"
             make_link: false
             path: ''
             absolute: false
@@ -456,21 +519,7 @@ display:
           empty: ''
           hide_empty: false
           empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: string
-          settings:
-            link_to_entity: false
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: false
+          hide_alter_empty: false
       pager:
         type: mini
         options:
@@ -508,7 +557,20 @@ display:
         type: tag
         options: {  }
       empty: {  }
-      sorts: {  }
+      sorts:
+        field_question_number_value:
+          id: field_question_number_value
+          table: taxonomy_term__field_question_number
+          field: field_question_number_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: standard
+          order: ASC
+          expose:
+            label: ''
+            field_identifier: ''
+          exposed: false
       arguments:
         field_question_type_value:
           id: field_question_type_value
@@ -692,9 +754,6 @@ display:
         type: data_field
         options:
           field_options:
-            name:
-              alias: ''
-              raw_output: false
             field_question_number:
               alias: number
               raw_output: false
@@ -715,6 +774,9 @@ display:
               raw_output: false
             field_section_id:
               alias: section
+              raw_output: false
+            nothing:
+              alias: closed_answer_options
               raw_output: false
       display_extenders: {  }
       path: api/survey-questions

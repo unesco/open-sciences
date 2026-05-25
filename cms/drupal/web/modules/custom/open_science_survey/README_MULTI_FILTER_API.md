@@ -16,16 +16,18 @@ GET /api/search/survey-responses-multi-filter
 GET /api/download/survey-responses-multi-filter
 ```
 
-Uses the same `filters` query parameters as the search endpoint and returns a CSV file download.
+Uses the same query parameters as the search endpoint and returns a CSV file download.
 
 ## Parameters
 
-The endpoint accepts a `filters` array parameter where each filter specifies:
+The endpoint accepts an optional `filters` array parameter where each filter specifies:
 - `question`: Question number (e.g., "2.8", "1.1")
 - `answer`: One or more answer short codes, comma-separated for OR logic
 - `type` (optional): Question type filter. Allowed values: `Closed`, `Open` (case-insensitive). Default: `Closed`
 
 URL format: `filters[N][question]` and `filters[N][answer]` where N is the filter index (0, 1, 2, ...)
+
+If `filters` is omitted, the endpoint returns all published responses for the selected question type.
 
 ### Valid Answer Codes
 - `Y` - Yes
@@ -82,6 +84,18 @@ curl -G "http://localhost/api/search/survey-responses-multi-filter" \
   --data-urlencode "filters[0][question]=2.8" \
   --data-urlencode "filters[0][answer]=Y,P" \
   --data-urlencode "type=Open"
+```
+
+### Example 7: Search all closed responses (no filters)
+```bash
+curl "http://localhost/api/search/survey-responses-multi-filter"
+```
+
+### Example 8: Download all open responses (no filters)
+```bash
+curl -G "http://localhost/api/download/survey-responses-multi-filter" \
+  --data-urlencode "type=Open" \
+  -o survey-responses-multi-filter.csv
 ```
 
 ## Response Format
@@ -158,13 +172,6 @@ Rules:
 
 ### Error Responses
 
-#### Missing filters (400 Bad Request)
-```json
-{
-  "error": "At least one filter is required"
-}
-```
-
 #### Invalid question format (400 Bad Request)
 ```json
 {
@@ -198,7 +205,7 @@ Rules:
 1. **Unlimited Filters**: Add as many filters as needed
 2. **OR Logic Within Filters**: Use comma-separated answers for "any of" logic
 3. **AND Logic Between Filters**: Countries must satisfy ALL filters
-4. **Filtered Results**: Returns only responses for the specified questions, not all survey data
+4. **Flexible Scope**: With filters, returns only specified questions; without filters, returns all responses for the selected type
 5. **Sorted Output**: Countries sorted alphabetically by name
 6. **Case Insensitive**: Answer codes are case-insensitive (y, Y, yes all convert to Y)
 

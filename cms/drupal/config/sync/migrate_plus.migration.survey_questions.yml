@@ -23,7 +23,11 @@ process:
   field_question_number: question_number
   field_question_text: question_text
   field_question_type: type
-  field_question_short_name: question_short_name
+  field_question_short_name:
+    plugin: first_non_empty
+    source:
+      - question_short_name
+      - question_text
   field_question_description: question_description
   field_question_long_description: question_long_description
   field_section:
