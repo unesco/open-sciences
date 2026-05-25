@@ -581,7 +581,7 @@
     color: #fff;
   }
   &.outline {
-    background: #fff;
+    background: transparent;
     border: 1px solid #0073b7;
     color: #0073b7;
   }
@@ -1457,50 +1457,62 @@
   text-align: right;
 }
 
+/* Bordered card wrapping the answer/country sections */
+.breakdown-countries-block {
+  border: 1px solid #b9d4ec;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 /* Sub-details block (infrastructure types etc.) */
 .breakdown-subdetails {
-  border: 1px solid #e0e8f0;
-  border-radius: 8px;
-  padding: 14px 16px;
-  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.breakdown-subdetails-intro {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a2a3a;
+  margin: 0 0 4px 0;
+  line-height: 1.45;
+}
+
+.breakdown-subdetail-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.breakdown-subdetails-intro {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #222;
-  margin: 0;
-  line-height: 1.5;
-}
-
 .breakdown-subdetail-row {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 8px 0;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid #f0f0f0;
-  }
+  gap: 14px;
+  padding: 12px 14px;
+  background: #f4f6f8;
+  border-radius: 6px;
 }
 
 .breakdown-subdetail-badge {
   flex-shrink: 0;
-  background: #f0f6ff;
-  border: 1px solid #c8dff5;
+  background: #fff;
+  border: 1px solid #b9d4ec;
   border-radius: 4px;
-  padding: 3px 10px;
-  font-size: 0.8rem;
+  padding: 4px 12px;
+  font-size: 0.82rem;
   font-weight: 600;
   color: #0073b7;
   white-space: nowrap;
 }
 
 .breakdown-subdetail-text {
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   color: #333;
   line-height: 1.5;
 }

@@ -28,7 +28,7 @@ function findIso3(countriesList, countryName) {
  * @param {Function} onCountryClick    Called with (iso3, name) when a country is clicked
  * @param {Function} onClose           Called when the drawer should close
  */
-export const CountryBreakdownModal = ({ chartLabel, description, countriesByAnswer, countriesList, onCountryClick, onClose }) => {
+export const CountryBreakdownModal = ({ chartLabel, description, countriesByAnswer, countriesList, subDetails, onCountryClick, onClose }) => {
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handler);
@@ -84,42 +84,64 @@ export const CountryBreakdownModal = ({ chartLabel, description, countriesByAnsw
             <p className="breakdown-no-data">No country data available for this question.</p>
           )}
 
-          {hasData && sections.map((section) => (
-            <div key={section.key} className="breakdown-section">
-              <div className="breakdown-section-heading">
-                <span className="breakdown-dot" style={{ background: section.dot }} />
-                <span className="breakdown-section-label">
-                  {section.label}, {section.pct}%
-                  <span className="breakdown-section-count">
-                    {" "}({section.count} {section.count === 1 ? "response" : "responses"})
-                  </span>
-                </span>
-              </div>
+          {hasData && (
+            <div className="breakdown-countries-block">
+              {sections.map((section, sectionIdx) => (
+                <div key={section.key} className="breakdown-section">
+                  <div className="breakdown-section-heading">
+                    <span className="breakdown-dot" style={{ background: section.dot }} />
+                    <span className="breakdown-section-label">
+                      {section.label}, {section.pct}%
+                      <span className="breakdown-section-count">
+                        {" "}({section.count} {section.count === 1 ? "response" : "responses"})
+                      </span>
+                    </span>
+                  </div>
 
-              {section.countries.length > 0 && (
-                <div className="breakdown-country-grid">
-                  {section.countries.map((c) => {
-                    const iso3 = findIso3(countriesList, c);
-                    return (
-                      <button
-                        key={c}
-                        type="button"
-                        className={`breakdown-country-link${iso3 && onCountryClick ? " breakdown-country-link--clickable" : ""}`}
-                        onClick={() => {
-                          if (iso3 && onCountryClick) {
-                            onClose();
-                            onCountryClick(iso3, c);
-                          }
-                        }}
-                      >
-                        {c}
-                      </button>
-                    );
-                  })}
+                  {section.countries.length > 0 && (
+                    <div className="breakdown-country-grid">
+                      {section.countries.map((c) => {
+                        const iso3 = findIso3(countriesList, c);
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            className={`breakdown-country-link${iso3 && onCountryClick ? " breakdown-country-link--clickable" : ""}`}
+                            onClick={() => {
+                              if (iso3 && onCountryClick) {
+                                onClose();
+                                onCountryClick(iso3, c);
+                              }
+                            }}
+                          >
+                            {c}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {sectionIdx === 0 && subDetails && subDetails.items && subDetails.items.length > 0 && (
+                    <div className="breakdown-subdetails">
+                      {subDetails.intro && (
+                        <p className="breakdown-subdetails-intro">{subDetails.intro}</p>
+                      )}
+                      <div className="breakdown-subdetail-list">
+                        {subDetails.items.map((item, i) => (
+                          <div key={`subdetail-${i}`} className="breakdown-subdetail-row">
+                            <span className="breakdown-subdetail-badge">
+                              {item.count} {item.count === 1 ? "response" : "responses"}
+                            </span>
+                            <span className="breakdown-subdetail-text">{item.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
+          )}
 
           {hasData && (
             <p className="breakdown-total-note">
@@ -140,6 +162,13 @@ CountryBreakdownModal.propTypes = {
     name:  PropTypes.string,
     iso_3: PropTypes.string,
   })),
+  subDetails:        PropTypes.shape({
+    intro: PropTypes.string,
+    items: PropTypes.arrayOf(PropTypes.shape({
+      count: PropTypes.number,
+      text:  PropTypes.string,
+    })),
+  }),
   onCountryClick:    PropTypes.func,
   onClose:           PropTypes.func.isRequired,
 };
@@ -148,5 +177,6 @@ CountryBreakdownModal.defaultProps = {
   description:       undefined,
   countriesByAnswer: {},
   countriesList:     [],
+  subDetails:        null,
   onCountryClick:    undefined,
 };

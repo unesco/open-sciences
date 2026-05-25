@@ -152,6 +152,83 @@ export function normaliseRegion(s) {
   return r.toLowerCase();
 }
 
+// ── Sub-question breakdown helpers ──────────────────────────────────────────
+
+/**
+ * Parse a sub-question's long_description into { intro, bullets }.
+ * Stored format (from CMS):
+ *   "Intro text…: - first bullet; - second bullet; - third bullet"
+ * Returns null when no dash-separated bullets are detected.
+ */
+export function parseSubDetailsDescription(raw) {
+  if (!raw) return null;
+  const text = decodeHtmlEntities(String(raw)).replace(/\s+/g, " ").trim();
+  if (!text) return null;
+  // Split on " - " (the bullet separator used in the source data).
+  const parts = text.split(/\s+-\s+/);
+  if (parts.length < 2) return null;
+  const intro = parts[0].replace(/\s+$/, "");
+  const bullets = parts
+    .slice(1)
+    .map((b) => b.replace(/^[-\s]+/, "").replace(/[;,\s]+$/, "").trim())
+    .filter(Boolean);
+  if (bullets.length === 0) return null;
+  return { intro, bullets };
+}
+
+/**
+ * Build the sub-details payload to render in the breakdown drawer for a
+ * parent question (e.g. Q 3.4). Returns { intro, items: [{ count, text }] }
+ * or null when the question has no sub-question data to surface.
+ *
+ * Two layouts are supported:
+ *  1. One closed sub-question per bullet (Q 3.4 has 3.4.1..3.4.4).
+ *     count = number of "Y"/"Yes" responses to that sub-question.
+ *  2. Single closed sub-question with multiple answer-value bullets
+ *     (Q 3.5 has 3.5.2 with "Yes, accessible" / "No, not accessible").
+ *     count = number of responses for each ordered answer value.
+ */
+export function buildSubDetails(parentQuestion, allQuestions, responsesMap) {
+  if (!parentQuestion || !parentQuestion.number) return null;
+  const prefix = `${parentQuestion.number}.`;
+  const subQs = (allQuestions || [])
+    .filter((q) => q.type === "Closed" && q.number && q.number.startsWith(prefix))
+    .sort((a, b) => String(a.number).localeCompare(String(b.number), undefined, { numeric: true }));
+  if (subQs.length === 0) return null;
+
+  const introHolder = subQs.find((q) => q.long_description);
+  if (!introHolder) return null;
+  const parsed = parseSubDetailsDescription(introHolder.long_description);
+  if (!parsed) return null;
+
+  const isYesKey = (k) => /^(y|yes)$/i.test((k || "").trim());
+
+  let items = null;
+  if (subQs.length === parsed.bullets.length) {
+    items = parsed.bullets.map((text, i) => {
+      const stats = responsesMap[subQs[i].number] || { answers: {} };
+      const count = Object.entries(stats.answers || {})
+        .filter(([k]) => isYesKey(k))
+        .reduce((s, [, v]) => s + v, 0);
+      return { count, text };
+    });
+  } else if (subQs.length === 1) {
+    const stats = responsesMap[subQs[0].number] || { answers: {} };
+    const answers = stats.answers || {};
+    const orderedKeys = Object.keys(answers)
+      .filter((k) => !isNotApplicableLabel(k))
+      .sort((a, b) => (isYesKey(b) ? 1 : 0) - (isYesKey(a) ? 1 : 0));
+    items = parsed.bullets.map((text, i) => ({
+      count: answers[orderedKeys[i]] || 0,
+      text,
+    }));
+  } else {
+    return null;
+  }
+
+  return { intro: parsed.intro, items };
+}
+
 // ── Survey-question helpers ─────────────────────────────────────────────────
 
 // Parse a `closed_answer_options` string from the survey-questions API into
