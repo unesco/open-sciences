@@ -5,7 +5,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { fetchCountries, fetchWordcloud, termContextDownloadUrl } from "../../api";
-import { REGION_LABELS, ALL_REGIONS, regionToApi } from "../GlobalOverview/components/constants";
+import { REGION_LABELS, ALL_REGIONS } from "../GlobalOverview/components/constants";
+import { regionToApi } from "../utils";
 import { WordCloud } from "./components/WordCloud";
 import { TermDetail } from "./components/TermDetail";
 import { useDownload } from "../useDownload";

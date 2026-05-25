@@ -25,20 +25,16 @@ const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false 
                   {item.label}
                 </span>
                 <div className="filter-toggle-group">
-                  <button
-                    type="button"
-                    className={`filter-toggle-btn${activeFilters[item.id] === "Y" ? " active" : ""}`}
-                    onClick={() => onToggle(item.id, "Y")}
-                  >
-                    Yes
-                  </button>
-                  <button
-                    type="button"
-                    className={`filter-toggle-btn${activeFilters[item.id] === "N" ? " active" : ""}`}
-                    onClick={() => onToggle(item.id, "N")}
-                  >
-                    No
-                  </button>
+                  {(item.options || []).map((opt) => (
+                    <button
+                      key={opt.code}
+                      type="button"
+                      className={`filter-toggle-btn${activeFilters[item.id] === opt.code ? " active" : ""}`}
+                      onClick={() => onToggle(item.id, opt.code)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
           ))}

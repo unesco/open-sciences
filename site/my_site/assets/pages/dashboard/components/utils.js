@@ -6,6 +6,13 @@
 
 import React from "react";
 import { BLUE_PALETTE, COLOR_YES, COLOR_NO } from "../constants";
+import {
+  REGIONS,
+  COLOR_NO_DATA,
+  COLOR_BORDER,
+  COLOR_PARTICIPATED,
+  COLOR_MATCHES,
+} from "./GlobalOverview/components/constants";
 
 /**
  * Returns the chart segment colour for a given answer name and palette index.
@@ -81,6 +88,95 @@ export function sanitizeRichText(html) {
       .replace(/&amp;((?:lt|gt|amp|quot|nbsp|apos);)/g, "&$1");
   } while (decoded !== prev);
   return decoded;
+}
+
+// ── Region helpers ──────────────────────────────────────────────────────────
+
+/** Convert a display label to its API value. Returns the label itself as fallback. */
+export function regionToApi(label) {
+  const entry = REGIONS.find((r) => r.label === label);
+  return entry && entry.apiValue ? entry.apiValue : label;
+}
+
+// Decode &amp; → & (iteratively for double-encoding) and lowercase for tolerant comparison.
+export function normaliseRegion(s) {
+  let r = (s || "").trim();
+  while (r.includes("&amp;")) {
+    r = r.replace(/&amp;/g, "&");
+  }
+  return r.toLowerCase();
+}
+
+// ── Survey-question helpers ─────────────────────────────────────────────────
+
+// Parse a `closed_answer_options` string from the survey-questions API into
+// an array of { code, label }. Format: "Y|Yes\nN|No\nP|Partly" — one option
+// per line, code and label separated by `|`.
+export function parseClosedAnswerOptions(raw) {
+  if (!raw) return [];
+  return raw
+    .split(/\r?\n/)
+    .map((line) => {
+      const [code, ...labelParts] = line.split("|");
+      const c = (code || "").trim();
+      const label = labelParts.join("|").trim();
+      return c ? { code: c, label: label || c } : null;
+    })
+    .filter(Boolean);
+}
+
+// Build the section/question filter tree from the API responses.
+// Only "Closed" questions with a non-empty short_name and at least one
+// parseable answer option are usable as filters; section "A" is the
+// administrative section and is excluded.
+export function buildFilterTree(sections, questions) {
+  const usable = (questions || [])
+    .filter((q) => q.type === "Closed" && q.short_name && q.short_name.trim())
+    .map((q) => ({ ...q, _options: parseClosedAnswerOptions(q.closed_answer_options) }))
+    .filter((q) => q._options.length > 0);
+  return (sections || [])
+    .filter((s) => s.id !== "A")
+    .map((section) => ({
+      id: `s${section.id}`,
+      label: section.title,
+      items: usable
+        .filter((q) => q.section === section.id)
+        .map((q) => ({
+          id: `q${String(q.number).replace(/\./g, "_")}`,
+          label: q.short_name.trim(),
+          question: q.number,
+          options: q._options,
+        })),
+    }))
+    .filter((g) => g.items.length > 0);
+}
+
+// ── Map helpers ─────────────────────────────────────────────────────────────
+
+export function featureStyle(iso3, participatingSet, matchingSet) {
+  if (matchingSet === null) {
+    return {
+      fillColor: COLOR_NO_DATA,
+      fillOpacity: 1,
+      color: COLOR_BORDER,
+      weight: 0.7,
+      opacity: 1,
+    };
+  }
+  const isMatch       = matchingSet.has(iso3);
+  const isParticipant = participatingSet.has(iso3);
+  const fill = isMatch
+    ? COLOR_MATCHES
+    : isParticipant
+    ? COLOR_PARTICIPATED
+    : COLOR_NO_DATA;
+  return {
+    fillColor: fill,
+    fillOpacity: 1,
+    color: COLOR_BORDER,
+    weight: 0.7,
+    opacity: 1,
+  };
 }
 
 // ── Shared icons ──────────────────────────────────────────────────────────────
