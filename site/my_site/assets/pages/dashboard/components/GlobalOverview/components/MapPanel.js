@@ -8,9 +8,8 @@ import {
   REGION_DISPLAY_TO_API,
   REGION_VIEW,
   ALL_REGIONS,
-  normaliseRegion,
-  featureStyle,
 } from "./constants";
+import { normaliseRegion, featureStyle } from "../../utils";
 
 export const MapPanel = ({
   allCountries,

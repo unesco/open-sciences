@@ -15,7 +15,8 @@ import { FilterPanel } from "./components/FilterPanel";
 import { MapPanel } from "./components/MapPanel";
 import { NoDataModal } from "./components/NoDataModal";
 import { CountriesModal } from "./components/CountriesModal";
-import { buildFilterTree, ALL_REGIONS } from "./components/constants";
+import { ALL_REGIONS } from "./components/constants";
+import { buildFilterTree } from "../utils";
 import { DownloadMenu } from "../DownloadMenu";
 
 export const GlobalOverview = ({ onCountryClick }) => {
@@ -43,7 +44,11 @@ export const GlobalOverview = ({ onCountryClick }) => {
         const tree = buildFilterTree(sections, questions);
         setGlobalFilters(tree);
         if (tree.length > 0 && tree[0].items.length > 0) {
-          setActiveFilters({ [tree[0].items[0].id]: "Y" });
+          const firstItem = tree[0].items[0];
+          const firstCode = firstItem.options && firstItem.options[0]
+            ? firstItem.options[0].code
+            : null;
+          if (firstCode) setActiveFilters({ [firstItem.id]: firstCode });
         }
       })
       .catch((err) => console.error("[GlobalOverview] filter metadata load failed:", err));
