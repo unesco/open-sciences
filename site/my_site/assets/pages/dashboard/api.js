@@ -20,7 +20,21 @@ const isDev =
   window.location.port !== "" &&
   window.location.port !== "80" &&
   window.location.port !== "443";
+  
 const CMS_BASE = isDev ? "http://localhost:8080/cms" : "/cms";
+
+/**
+ * Resolve a CMS-relative asset path (e.g. "/cms/sites/default/files/foo.pdf")
+ * to an absolute URL that works both in production and the dev server.
+ */
+export function resolveCmsAsset(path) {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  if (isDev && path.startsWith("/cms/")) {
+    return `http://localhost:8080${path}`;
+  }
+  return path;
+}
 
 // ─── Common HTTP helpers ────────────────────────────────────────────────────
 

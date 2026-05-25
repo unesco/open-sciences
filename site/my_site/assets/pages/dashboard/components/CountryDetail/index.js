@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { fetchCountryByIso3 } from "../../api";
+import { fetchCountryByIso3, resolveCmsAsset } from "../../api";
 import { COUNTRY_SECTIONS } from "../../constants";
 import { decodeHtmlEntities, sanitizeRichText, MedalIcon } from "../utils";
 
@@ -53,6 +53,10 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
     countryData && countryData.region
       ? decodeHtmlEntities(countryData.region)
       : "";
+  const reportFileUrl =
+    countryData && countryData.field_report_file
+      ? resolveCmsAsset(countryData.field_report_file.trim())
+      : "";
 
   // Filter sections that have content
   const activeSections = countryData
@@ -87,18 +91,17 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
             <span className="country-header-region">{regionDisplay}</span>
           )} */}
         </div>
-        <a
-          href={`/cms/api/countries/${encodeURIComponent(iso3)}/download`}
-          className="country-download-btn"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => {
-            e.preventDefault();
-            alert("Coming soon");
-          }}
-        >
-          Download national submission ⬇
-        </a>
+        {reportFileUrl && (
+          <a
+            href={reportFileUrl}
+            className="country-download-btn"
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+          >
+            Download national submission ⬇
+          </a>
+        )}
       </div>
 
       {loading && (
