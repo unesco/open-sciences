@@ -230,13 +230,11 @@ export const DonutChart = ({
 
       {!showPerRegion && onViewBreakdown && (
         <button type="button" className="breakdown-btn" onClick={onViewBreakdown}>
-          <img src="/static/images/menu_icon.png" alt="" aria-hidden="true" className="breakdown-btn-icon" />
           View country breakdown
         </button>
       )}
       {showPerRegion && onViewBreakdown && (
         <button type="button" className="breakdown-btn" onClick={onViewBreakdown}>
-          <img src="/static/images/menu_icon.png" alt="" aria-hidden="true" className="breakdown-btn-icon" />
           View region breakdown
         </button>
       )}

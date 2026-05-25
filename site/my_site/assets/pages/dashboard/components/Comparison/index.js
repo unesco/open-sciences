@@ -9,7 +9,7 @@ import { DonutChart } from "../DonutChart";
 import { CountryBreakdownModal } from "../CountryBreakdownModal";
 import { RegionBreakdownModal } from "../RegionBreakdownModal";
 import { fetchSurveySections, fetchSurveyQuestions, fetchSurveyResponsesByQuestion, fetchCountries, surveyResponsesDownloadUrl } from "../../api";
-import { decodeHtmlEntities, parseClosedAnswerOptions, normaliseAnswerName } from "../utils";
+import { decodeHtmlEntities, parseClosedAnswerOptions, normaliseAnswerName, buildSubDetails } from "../utils";
 import { DownloadMenu } from "../DownloadMenu";
 
 /**
@@ -123,9 +123,18 @@ export const Comparison = ({ onCountryClick }) => {
       .finally(() => setResponsesLoading(false));
   }, [selectedTopic, allQuestions]);
 
-  const openBreakdown = useCallback((key, label, countries, description, mode) => {
-    setActiveBreakdown({ key, label, countries, description, mode: mode || "country" });
+  const openBreakdown = useCallback((key, label, countries, description, mode, questionNumber) => {
+    setActiveBreakdown({ key, label, countries, description, mode: mode || "country", questionNumber });
   }, []);
+
+  // Sub-question detail block for the currently-open breakdown (Q 3.4, 3.5, 6.1, …)
+  const activeSubDetails = activeBreakdown && activeBreakdown.questionNumber
+    ? buildSubDetails(
+        allQuestions.find((q) => q.number === activeBreakdown.questionNumber),
+        allQuestions,
+        responsesMap,
+      )
+    : null;
 
   const closeBreakdown = useCallback(() => setActiveBreakdown(null), []);
 
@@ -206,11 +215,13 @@ export const Comparison = ({ onCountryClick }) => {
               const breakdownKey = `${selectedTopic}-${i}`;
               const desc         = q.long_description || q.description || undefined;
               const qOptions     = parseClosedAnswerOptions(q.closed_answer_options);
+              const baseLabel    = q.short_name || q.text;
+              const label        = q.number ? `Q ${q.number} ${baseLabel}` : baseLabel;
               return (
                 <DonutChart
                   key={`${selectedTopic}-${q.number}`}
                   chartData={{
-                    label: `${q.short_name || q.text}`,
+                    label,
                     answers: stats.answers,
                     total: stats.total,
                   }}
@@ -221,8 +232,8 @@ export const Comparison = ({ onCountryClick }) => {
                   countryToRegion={countryToRegion}
                   onViewBreakdown={
                     showPerRegion
-                      ? () => openBreakdown(breakdownKey, q.short_name || q.text, stats.countries, desc, "region")
-                      : () => openBreakdown(breakdownKey, q.short_name || q.text, stats.countries, desc, "country")
+                      ? () => openBreakdown(breakdownKey, label, stats.countries, desc, "region", q.number)
+                      : () => openBreakdown(breakdownKey, label, stats.countries, desc, "country", q.number)
                   }
                 />
               );
@@ -242,6 +253,7 @@ export const Comparison = ({ onCountryClick }) => {
           description={activeBreakdown.description}
           countriesByAnswer={activeBreakdown.countries || {}}
           countriesList={countriesList}
+          subDetails={activeSubDetails}
           onCountryClick={onCountryClick}
           onClose={closeBreakdown}
         />
