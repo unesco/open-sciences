@@ -21,13 +21,12 @@ export const NoDataModal = ({ onClose }) => (
       </div>
       <div className="disclaimer-body">
         <p>
-          Countries shown in light grey did not participate in the 2025 reporting on the
-          implementation of the UNESCO Recommendation on Open Science.
+          Countries shown in light grey did not participate in the 2025 reporting on the implementation of the UNESCO Recommendation on Open Science.
         </p>
         <p>
           Contact your{" "}
           <a
-            href="https://www.unesco.org/en/national-commissions"
+            href="https://pax.unesco.org/countries/NationalCommissions.html"
             target="_blank"
             rel="noopener noreferrer"
           >
