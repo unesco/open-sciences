@@ -4,12 +4,13 @@
  */
 
 import React, { useState, useEffect, useMemo } from "react";
-import { fetchTermContext } from "../../../api";
+import { fetchTermContext, fetchSurveyQuestions } from "../../../api";
 
 const PAGE_SIZES = [20, 50, 100];
 
 export const TermDetail = ({ term, count, region, countryMap, onBack, onCountryClick }) => {
   const [contexts, setContexts] = useState([]);
+  const [questionMap, setQuestionMap] = useState({});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [sortDir, setSortDir] = useState("asc");
@@ -23,6 +24,21 @@ export const TermDetail = ({ term, count, region, countryMap, onBack, onCountryC
       })
       .catch(() => setContexts([]));
   }, [term, region]);
+
+  // Fetch survey questions once for question-number → text lookup
+  useEffect(() => {
+    fetchSurveyQuestions({ type: "all" })
+      .then((list) => {
+        const map = {};
+        (list || []).forEach((q) => {
+          if (q && q.number) {
+            map[String(q.number)] = q.short_name || q.text || "";
+          }
+        });
+        setQuestionMap(map);
+      })
+      .catch(() => setQuestionMap({}));
+  }, []);
 
   const countries = countryMap || {};
 
@@ -84,6 +100,8 @@ export const TermDetail = ({ term, count, region, countryMap, onBack, onCountryC
         <tbody>
           {pagedContexts.map((ctx, i) => {
             const countryName = countries[ctx.country] || ctx.country;
+            const qNum = ctx.question_number != null ? String(ctx.question_number) : "";
+            const questionText = qNum ? questionMap[qNum] : "";
             return (
               <tr key={`${ctx.country}-${i}`}>
                 <td className="term-detail-country">
@@ -96,10 +114,12 @@ export const TermDetail = ({ term, count, region, countryMap, onBack, onCountryC
                     {countryName}
                   </button>
                 </td>
-                <td
-                  className="term-detail-snippet"
-                  dangerouslySetInnerHTML={{ __html: ctx.snippet }}
-                />
+                <td className="term-detail-snippet">
+                  {questionText && (
+                    <div className="term-detail-question">Q: {questionText}</div>
+                  )}
+                  <div dangerouslySetInnerHTML={{ __html: ctx.snippet }} />
+                </td>
               </tr>
             );
           })}
