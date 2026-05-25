@@ -5,7 +5,14 @@
  */
 
 import React from "react";
-import { BLUE_PALETTE, COLOR_YES, COLOR_NO } from "../constants";
+import {
+  BLUE_PALETTE,
+  COLOR_YES,
+  COLOR_NO,
+  NA_LABEL,
+  NA_LABEL_VARIANTS,
+  NA_INFO_NOTE,
+} from "../constants";
 import {
   REGIONS,
   COLOR_NO_DATA,
@@ -69,6 +76,42 @@ export function decodeHtmlEntities(str) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"');
+}
+
+// ── Info-description helpers ───────────────────────────────────────────────
+
+export function isNotApplicableLabel(label) {
+  const l = (label || "").trim().toLowerCase();
+  return NA_LABEL_VARIANTS.includes(l);
+}
+
+export function normaliseAnswerName(name) {
+  return isNotApplicableLabel(name) ? NA_LABEL : (name || "").trim();
+}
+
+export function hasNotApplicableOption(options = []) {
+  return (options || []).some((o) => isNotApplicableLabel(o && o.label));
+}
+
+export function buildInfoDescription(description, options = []) {
+  const base = (description || "").trim();
+  const appendNa = hasNotApplicableOption(options);
+  if (base && appendNa) return `${base}\n\n${NA_INFO_NOTE}`;
+  if (base) return base;
+  if (appendNa) return NA_INFO_NOTE;
+  return "";
+}
+
+// Render text with line breaks so tooltips and modals preserve the same output.
+export function renderInfoDescription(description, options = []) {
+  const text = buildInfoDescription(description, options);
+  if (!text) return null;
+  return text.split("\n").map((line, i) => (
+    <React.Fragment key={`info-desc-line-${i}`}>
+      {i > 0 && <br />}
+      {line}
+    </React.Fragment>
+  ));
 }
 
 /**

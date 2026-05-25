@@ -9,7 +9,7 @@ import { DonutChart } from "../DonutChart";
 import { CountryBreakdownModal } from "../CountryBreakdownModal";
 import { RegionBreakdownModal } from "../RegionBreakdownModal";
 import { fetchSurveySections, fetchSurveyQuestions, fetchSurveyResponsesByQuestion, fetchCountries, surveyResponsesDownloadUrl } from "../../api";
-import { decodeHtmlEntities, MedalIcon } from "../utils";
+import { decodeHtmlEntities, MedalIcon, parseClosedAnswerOptions, normaliseAnswerName } from "../utils";
 import { DownloadMenu } from "../DownloadMenu";
 
 /**
@@ -24,7 +24,7 @@ function buildResponsesMap(responses) {
     if (r.question_type && r.question_type !== "Closed") return;
     const num = r.question_number;
     if (!map[num]) map[num] = { answers: {}, countries: {}, total: 0 };
-    const answer = (r.answer_closed_name && r.answer_closed_name.trim()) ? r.answer_closed_name.trim() : "No answer";
+    const answer = normaliseAnswerName(r.answer_closed_name);
     map[num].answers[answer] = (map[num].answers[answer] || 0) + 1;
     if (r.country_name) {
       if (!map[num].countries[answer]) map[num].countries[answer] = [];
@@ -205,6 +205,7 @@ export const Comparison = ({ onCountryClick }) => {
               const stats       = responsesMap[q.number] || { answers: {}, countries: {}, total: 0 };
               const breakdownKey = `${selectedTopic}-${i}`;
               const desc         = q.long_description || q.description || undefined;
+              const qOptions     = parseClosedAnswerOptions(q.closed_answer_options);
               return (
                 <DonutChart
                   key={`${selectedTopic}-${q.number}`}
@@ -215,6 +216,7 @@ export const Comparison = ({ onCountryClick }) => {
                   }}
                   showPerRegion={showPerRegion}
                   description={desc}
+                  options={qOptions}
                   countriesByAnswer={stats.countries}
                   countryToRegion={countryToRegion}
                   onViewBreakdown={
@@ -237,6 +239,7 @@ export const Comparison = ({ onCountryClick }) => {
       {activeBreakdown && activeBreakdown.mode !== "region" && (
         <CountryBreakdownModal
           chartLabel={activeBreakdown.label}
+          description={activeBreakdown.description}
           countriesByAnswer={activeBreakdown.countries || {}}
           countriesList={countriesList}
           onCountryClick={onCountryClick}

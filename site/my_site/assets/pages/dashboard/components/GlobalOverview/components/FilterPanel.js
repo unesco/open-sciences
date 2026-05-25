@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MedalIcon } from "../../utils";
+import { InfoIcon } from "../../InfoIcon";
 
 const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false }) => {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -23,35 +24,17 @@ const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false 
             const labelParts = (item.label || "").split(" ");
             const lastWord = labelParts.pop() || "";
             const leading = labelParts.join(" ");
-            const hasNA = (item.options || []).some((o) => {
-              const l = (o.label || "").trim().toLowerCase();
-              return l === "n/a" || l === "non applicable" || l === "not applicable";
-            });
-            const naNote = "N/A in this case means “Not applicable, no answer or no clear answer”";
-            const showIcon = !!item.description || hasNA;
             return (
               <div key={item.id} className="dashboard-filter-item">
                 <span className="filter-item-label">
                   {leading && `${leading} `}
                   <span className="filter-item-label-tail">
                     {lastWord}
-                    {showIcon && (
-                      <span className="info-icon-wrap">
-                        <span
-                          className="donut-info-icon"
-                          role="button"
-                          tabIndex={0}
-                          aria-label="Show question description"
-                        >
-                        ⓘ
-                        </span>
-                        <span className="info-hover-tooltip" role="tooltip">
-                          {item.description}
-                          {item.description && hasNA && <><br /><br /></>}
-                          {hasNA && naNote}
-                        </span>
-                      </span>
-                    )}
+                    <InfoIcon
+                      description={item.description}
+                      options={item.options}
+                      modalTitle={item.label}
+                    />
                   </span>
                 </span>
                 <div className="filter-toggle-group">

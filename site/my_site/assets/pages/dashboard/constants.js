@@ -30,6 +30,22 @@ export const BLUE_PALETTE = [
 export const COLOR_YES = "#0077D4";
 export const COLOR_NO  = "#E7E6E6";
 
+// ── N/A handling ──────────────────────────────────────────────────────────────
+// Canonical N/A label shown in charts/legends.
+export const NA_LABEL = "N/A";
+// Note appended to info tooltips/modals when an N/A answer exists.
+export const NA_INFO_NOTE =
+  'N/A in this case means "Not applicable, no answer or no clear answer"';
+// Lower-cased variants that should all be treated as N/A.
+export const NA_LABEL_VARIANTS = [
+  "",
+  "n/a",
+  "na",
+  "no answer",
+  "non applicable",
+  "not applicable",
+];
+
 // ── Chart.js CDN ──────────────────────────────────────────────────────────────
 export const CHARTJS_CDN_URL = "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js";
 export const CHARTJS_CDN_ID  = "chartjs-cdn";

@@ -9,6 +9,7 @@ import PropTypes from "prop-types";
 import { fetchCountryByIso3, resolveCmsAsset } from "../../api";
 import { COUNTRY_SECTIONS } from "../../constants";
 import { decodeHtmlEntities, sanitizeRichText, MedalIcon } from "../utils";
+import { iso3ToIso2 } from "./iso2Map";
 
 // ── CountryDetail component ─────────────────────────────────────────────────
 
@@ -77,14 +78,19 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
       <div className="country-header-card">
         <div className="country-header-info">
           <h2 className="country-header-name">
-            <img
-              className="country-flag"
-              src={`https://flagcdn.com/w40/${iso3.slice(0, 2).toLowerCase()}.png`}
-              alt={`${displayName} flag`}
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
-            />
+            {(() => {
+              const iso2 = iso3ToIso2(iso3);
+              return iso2 ? (
+                <img
+                  className="country-flag"
+                  src={`https://flagcdn.com/${iso2.toLowerCase()}.svg`}
+                  alt={`${displayName} flag`}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                  }}
+                />
+              ) : null;
+            })()}
             {displayName}
           </h2>
           {/* {regionDisplay && (

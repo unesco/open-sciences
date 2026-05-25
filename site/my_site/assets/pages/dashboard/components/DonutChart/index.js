@@ -6,9 +6,9 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { loadScript, getAnswerColor } from "../utils";
+import { InfoIcon } from "../InfoIcon";
 import { BLUE_PALETTE, CHARTJS_CDN_URL, CHARTJS_CDN_ID } from "../../constants";
 
 /**
@@ -54,6 +54,7 @@ export const DonutChart = ({
   showPerRegion,
   onViewBreakdown,
   description,
+  options,
   countriesByAnswer,
   countryToRegion,
 }) => {
@@ -62,7 +63,6 @@ export const DonutChart = ({
   // Tracks current display state so the hover effect can use the right colors
   const displayStateRef = useRef({ entries: [], isRegionMode: false });
 
-  const [showInfo,      setShowInfo]      = useState(false);
   const [hoveredIndex,  setHoveredIndex]  = useState(null);
 
   // ── Hover: dim non-hovered segments ─────────────────────────────────────
@@ -85,18 +85,6 @@ export const DonutChart = ({
     );
     chartRef.current.update("none");
   }, [hoveredIndex]);
-
-  // ── Mobile tooltip: close on Escape ────────────────────────────────────
-  useEffect(() => {
-    if (!showInfo) return;
-    const onKey = (e) => e.key === "Escape" && setShowInfo(false);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [showInfo]);
-
-  const handleIconClick = () => {
-    if (window.matchMedia("(hover: none)").matches) setShowInfo((v) => !v);
-  };
 
   // ── Build / rebuild Chart.js instance ──────────────────────────────────
   useEffect(() => {
@@ -153,57 +141,12 @@ export const DonutChart = ({
     <div className="donut-card">
       <div className="donut-card-title">
         {chartData.label}
-        {description && (
-          <span className="info-icon-wrap">
-            <span
-              className="donut-info-icon"
-              role="button"
-              tabIndex={0}
-              aria-label="Show question description"
-              onClick={handleIconClick}
-              onKeyDown={(e) => e.key === "Enter" && setShowInfo((v) => !v)}
-            >
-              ⓘ
-            </span>
-            <span className="info-hover-tooltip" role="tooltip">
-              {description}
-            </span>
-          </span>
-        )}
+        <InfoIcon
+          description={description}
+          options={options}
+          modalTitle={chartData.label}
+        />
       </div>
-
-      {/* Mobile: portal modal (only on touch devices) */}
-      {showInfo && description && createPortal(
-        <div
-          className="donut-info-modal-backdrop"
-          role="presentation"
-          onClick={(e) => e.target === e.currentTarget && setShowInfo(false)}
-          onKeyDown={(e) => e.key === "Escape" && setShowInfo(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={chartData.label}
-            className="donut-info-modal"
-          >
-            <div className="donut-info-modal-header">
-              <span className="donut-info-modal-title">{chartData.label}</span>
-              <button
-                type="button"
-                className="donut-info-modal-close"
-                aria-label="Close"
-                onClick={() => setShowInfo(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="donut-info-modal-body">
-              <p>{description}</p>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
 
       <div className="donut-chart-area">
         <div className="donut-float-wrap">
@@ -308,6 +251,7 @@ DonutChart.propTypes = {
   showPerRegion:     PropTypes.bool,
   onViewBreakdown:   PropTypes.func,
   description:       PropTypes.string,
+  options:           PropTypes.arrayOf(PropTypes.shape({ code: PropTypes.string, label: PropTypes.string })),
   countriesByAnswer: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
   countryToRegion:   PropTypes.objectOf(PropTypes.string),
 };
