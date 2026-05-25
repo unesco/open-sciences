@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MedalIcon } from "../../utils";
+
 import { InfoIcon } from "../../InfoIcon";
 
 const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false }) => {
@@ -13,7 +13,7 @@ const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false 
         aria-expanded={expanded}
       >
         <span className="filter-icon">
-          <MedalIcon />
+          <img src="/static/images/menu_icon.png" alt="Section icon" className="topic-medal-icon" />
         </span>
         <span className="filter-label">{filter.label}</span>
         <span className="filter-chevron">{expanded ? "\u25B2" : "\u25BC"}</span>

@@ -9,7 +9,7 @@ import { DonutChart } from "../DonutChart";
 import { CountryBreakdownModal } from "../CountryBreakdownModal";
 import { RegionBreakdownModal } from "../RegionBreakdownModal";
 import { fetchSurveySections, fetchSurveyQuestions, fetchSurveyResponsesByQuestion, fetchCountries, surveyResponsesDownloadUrl } from "../../api";
-import { decodeHtmlEntities, MedalIcon, parseClosedAnswerOptions, normaliseAnswerName } from "../utils";
+import { decodeHtmlEntities, parseClosedAnswerOptions, normaliseAnswerName } from "../utils";
 import { DownloadMenu } from "../DownloadMenu";
 
 /**
@@ -166,7 +166,7 @@ export const Comparison = ({ onCountryClick }) => {
               onClick={() => setSelectedTopic(t.id)}
             >
               <span className="topic-icon">
-                <MedalIcon className="topic-medal-icon" />
+                <img src="/static/images/menu_icon.png" alt="Section icon" className="topic-medal-icon" />
               </span>
               <span className="topic-label">{t.title}</span>
               <span className={`topic-radio ${selectedTopic === t.id ? "checked" : ""}`} />
@@ -230,8 +230,8 @@ export const Comparison = ({ onCountryClick }) => {
             {!questionsLoading && !responsesLoading && !questionsError && filteredQuestions.length === 0 && (
               <p className="no-questions">No closed questions for this section.</p>
             )}
+            <p className="donut-footnote">*One response = one Member State</p>
           </div>
-          <p className="donut-footnote">*One response = one Member State</p>
         </div>
       </div>
 

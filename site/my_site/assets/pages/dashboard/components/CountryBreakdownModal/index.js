@@ -6,7 +6,8 @@
 
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
-import { getAnswerColor, buildInfoDescription } from "../utils";
+import { getAnswerColor } from "../utils";
+import { InfoIcon } from "../InfoIcon";
 
 // ─── Helper: find ISO-3 code for a country name ─────────────────────────────
 
@@ -50,8 +51,6 @@ export const CountryBreakdownModal = ({ chartLabel, description, countriesByAnsw
     .sort((a, b) => b.count - a.count); // dominant answer first
 
   const hasData = sections.length > 0 && total > 0;
-  const infoDescription = buildInfoDescription(description);
-
   return (
     <>
       {/* Backdrop */}
@@ -69,9 +68,11 @@ export const CountryBreakdownModal = ({ chartLabel, description, countriesByAnsw
         <div className="breakdown-header">
           <h3 className="breakdown-title">
             {chartLabel}
-            {infoDescription && (
-              <span className="breakdown-info-icon" title={infoDescription}>ⓘ</span>
-            )}
+            <InfoIcon
+              description={description}
+              modalTitle={chartLabel}
+              ariaLabel="Show question description"
+            />
           </h3>
           <button type="button" className="breakdown-close" onClick={onClose} aria-label="Close">
             ✕
