@@ -4,10 +4,11 @@
  */
 
 import React, { useState, useEffect, useMemo } from "react";
-import { fetchCountries, fetchWordcloud } from "../../api";
+import { fetchCountries, fetchWordcloud, termContextDownloadUrl } from "../../api";
 import { REGION_LABELS, ALL_REGIONS, regionToApi } from "../GlobalOverview/components/constants";
 import { WordCloud } from "./components/WordCloud";
 import { TermDetail } from "./components/TermDetail";
+import { useDownload } from "../useDownload";
 import { termsToWords } from "./utils";
 
 // ─── Challenges component ──────────────────────────────────────────────────
@@ -19,6 +20,7 @@ export const Challenges = ({ onCountryClick }) => {
   const [search, setSearch] = useState("");
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [countryMap, setCountryMap] = useState({});
+  const { download, loading: downloadLoading, toast: downloadToast } = useDownload("term_context");
 
   // Fetch countries once on mount for ISO3 → name mapping
   useEffect(() => {
@@ -100,11 +102,24 @@ export const Challenges = ({ onCountryClick }) => {
               <option key={r}>{r}</option>
             ))}
           </select>
-          <button type="button" className="dash-btn outline">
-            Download
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+          <button
+            type="button"
+            className="dash-btn outline"
+            disabled={downloadLoading}
+            aria-busy={downloadLoading}
+            onClick={() => download(termContextDownloadUrl({
+              region: region !== ALL_REGIONS ? regionToApi(region) : null,
+            }))}
+          >
+            {downloadLoading ? "Downloading…" : "Download"}
+            {downloadLoading ? (
+              <svg className="download-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+            )}
           </button>
         </div>
+        {downloadToast}
       </div>
 
       <WordCloud words={words} loading={loading} onWordClick={handleTermClick} />
