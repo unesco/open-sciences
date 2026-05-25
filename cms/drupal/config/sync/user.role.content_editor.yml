@@ -3,12 +3,17 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.basic_html
     - node.type.article
     - node.type.page
+    - node.type.plain_language_summary
+    - node.type.survey_report
+    - node.type.survey_response
     - taxonomy.vocabulary.tags
   module:
     - contextual
     - file
+    - filter
     - node
     - system
     - taxonomy
@@ -27,16 +32,34 @@ permissions:
   - 'access toolbar'
   - 'create article content'
   - 'create page content'
+  - 'create plain_language_summary content'
+  - 'create survey_report content'
+  - 'create survey_response content'
   - 'create terms in tags'
   - 'delete article revisions'
   - 'delete own article content'
   - 'delete own files'
   - 'delete own page content'
+  - 'delete own plain_language_summary content'
+  - 'delete own survey_report content'
+  - 'delete own survey_response content'
   - 'delete page revisions'
+  - 'delete plain_language_summary revisions'
+  - 'delete survey_report revisions'
+  - 'delete survey_response revisions'
+  - 'edit any article content'
+  - 'edit any page content'
+  - 'edit any plain_language_summary content'
+  - 'edit any survey_report content'
+  - 'edit any survey_response content'
   - 'edit own article content'
   - 'edit own page content'
+  - 'edit own plain_language_summary content'
+  - 'edit own survey_report content'
+  - 'edit own survey_response content'
   - 'edit terms in tags'
   - 'revert all revisions'
+  - 'use text format basic_html'
   - 'view all revisions'
   - 'view own unpublished content'
   - 'view the administration theme'

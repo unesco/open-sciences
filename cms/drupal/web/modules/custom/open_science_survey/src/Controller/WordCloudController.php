@@ -16,6 +16,9 @@
 
 namespace Drupal\open_science_survey\Controller;
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -117,9 +120,12 @@ class WordCloudController extends ControllerBase {
         } catch (\Exception $e) {
             $this->getLogger('open_science_survey')->error('Challenge word cloud query failed: @message', ['@message' => $e->getMessage()]);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'error' => 'Failed to generate challenge word cloud',
             ], 500);
+
+            $response->headers->set('Cache-Control', 'private, no-store');
+            return $response;
         }
     }
 
@@ -177,12 +183,20 @@ class WordCloudController extends ControllerBase {
      *   JSON response.
      */
     protected function buildWordCloudResponse($question_number, $region, array $terms) {
-        return new JsonResponse([
-        'filters' => [
-        'question_number' => $question_number,
-        'region' => $region,
-        ],
-        'terms' => $terms,
+        $response = new CacheableJsonResponse([
+            'filters' => [
+                'question_number' => $question_number,
+                'region' => $region,
+            ],
+            'terms' => $terms,
         ]);
+
+        $cacheability = new CacheableMetadata();
+        $cacheability->setCacheContexts(['url.query_args', 'user.permissions']);
+        $cacheability->setCacheTags(['node_list:survey_response', 'taxonomy_term_list']);
+        $cacheability->setCacheMaxAge(Cache::PERMANENT);
+        $response->addCacheableDependency($cacheability);
+
+        return $response;
     }
 }

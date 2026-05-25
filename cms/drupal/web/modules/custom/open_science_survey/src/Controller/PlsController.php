@@ -16,9 +16,11 @@
 
 namespace Drupal\open_science_survey\Controller;
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -46,7 +48,11 @@ class PlsController extends ControllerBase {
                 ->execute();
 
             if (empty($nodeids)) {
-                return new JsonResponse([]);
+                return $this->buildcacheablejsonresponse(
+                    [],
+                    ['user.permissions'],
+                    ['node_list:plain_language_summary']
+                );
             }
 
             $nodes = $nodestorage->loadMultiple($nodeids);
@@ -59,13 +65,20 @@ class PlsController extends ControllerBase {
                 ];
             }
 
-            return new JsonResponse($items);
+            return $this->buildcacheablejsonresponse(
+                $items,
+                ['user.permissions'],
+                ['node_list:plain_language_summary']
+            );
         } catch (\Exception $e) {
             $this->getLogger('open_science_survey')->error('PLS list endpoint failed: @message', ['@message' => $e->getMessage()]);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'error' => 'Failed to fetch plain language summaries',
             ], 500);
+
+            $response->headers->set('Cache-Control', 'private, no-store');
+            return $response;
         }
     }
 
@@ -109,17 +122,55 @@ class PlsController extends ControllerBase {
                 'related' => $this->loadrelatedpls((int) $node->id(), $tagids),
             ];
 
-            return new JsonResponse($data);
+            // This endpoint includes randomized related content; keep it uncacheable.
+            return $this->buildcacheablejsonresponse(
+                $data,
+                ['user.permissions'],
+                ['node_list:plain_language_summary', 'taxonomy_term_list'],
+                null,
+                0
+            );
         } catch (\Exception $e) {
             $this->getLogger('open_science_survey')->error('PLS detail endpoint failed for NID @nid: @message', [
                 '@nid' => $nid,
                 '@message' => $e->getMessage(),
             ]);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'error' => 'Failed to fetch plain language summary',
             ], 500);
+
+            $response->headers->set('Cache-Control', 'private, no-store');
+            return $response;
         }
+    }
+
+    /**
+     * Builds a cacheable JSON response with cache metadata.
+     */
+    protected function buildcacheablejsonresponse(
+        array $data,
+        array $contexts = [],
+        array $tags = [],
+        $entity = null,
+        $maxage = Cache::PERMANENT
+    ) {
+        $response = new CacheableJsonResponse($data);
+
+        $cacheability = new CacheableMetadata();
+        if (!empty($contexts)) {
+            $cacheability->setCacheContexts($contexts);
+        }
+        if (!empty($tags)) {
+            $cacheability->setCacheTags($tags);
+        }
+        $cacheability->setCacheMaxAge($maxage);
+        if ($entity !== null) {
+            $cacheability->addCacheableDependency($entity);
+        }
+
+        $response->addCacheableDependency($cacheability);
+        return $response;
     }
 
     /**

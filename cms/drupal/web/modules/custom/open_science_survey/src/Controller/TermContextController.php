@@ -16,6 +16,9 @@
 
 namespace Drupal\open_science_survey\Controller;
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -77,9 +80,12 @@ class TermContextController extends ControllerBase {
         } catch (\Exception $e) {
             $this->getLogger('open_science_survey')->error('Term context CSV export failed: @message', ['@message' => $e->getMessage()]);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
             'error' => 'Failed to export term context CSV',
             ], 500);
+
+            $response->headers->set('Cache-Control', 'private, no-store');
+            return $response;
         }
     }
 
@@ -145,9 +151,12 @@ class TermContextController extends ControllerBase {
         } catch (\Exception $e) {
             $this->getLogger('open_science_survey')->error('Term context JSON query failed: @message', ['@message' => $e->getMessage()]);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
             'error' => 'Failed to generate term context',
             ], 500);
+
+            $response->headers->set('Cache-Control', 'private, no-store');
+            return $response;
         }
     }
 
@@ -312,14 +321,22 @@ class TermContextController extends ControllerBase {
      *   JSON response.
      */
     protected function buildJsonResponse($term, $question_number, $region, array $contexts) {
-        return new JsonResponse([
-        'filters' => [
-        'term' => $term,
-        'question_number' => $question_number,
-        'region' => $region,
-        ],
-        'contexts' => $contexts,
+        $response = new CacheableJsonResponse([
+            'filters' => [
+                'term' => $term,
+                'question_number' => $question_number,
+                'region' => $region,
+            ],
+            'contexts' => $contexts,
         ]);
+
+        $cacheability = new CacheableMetadata();
+        $cacheability->setCacheContexts(['url.query_args', 'user.permissions']);
+        $cacheability->setCacheTags(['node_list:survey_response', 'taxonomy_term_list']);
+        $cacheability->setCacheMaxAge(Cache::PERMANENT);
+        $response->addCacheableDependency($cacheability);
+
+        return $response;
     }
 
     /**
@@ -473,6 +490,8 @@ class TermContextController extends ControllerBase {
 
         $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
         $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Cache-Control', 'private, no-store');
+        $response->headers->set('Pragma', 'no-cache');
 
         return $response;
     }
