@@ -19,10 +19,32 @@ const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false 
       </button>
       {expanded && (
         <div className="dashboard-filter-items">
-          {filter.items.map((item) => (
+          {filter.items.map((item) => {
+            const labelParts = (item.label || "").split(" ");
+            const lastWord = labelParts.pop() || "";
+            const leading = labelParts.join(" ");
+            return (
               <div key={item.id} className="dashboard-filter-item">
                 <span className="filter-item-label">
-                  {item.label}
+                  {leading && `${leading} `}
+                  <span className="filter-item-label-tail">
+                    {lastWord}
+                    {item.description && (
+                      <span className="info-icon-wrap">
+                        <span
+                          className="donut-info-icon"
+                          role="button"
+                          tabIndex={0}
+                          aria-label="Show question description"
+                        >
+                        ⓘ
+                        </span>
+                        <span className="info-hover-tooltip" role="tooltip">
+                          {item.description}
+                        </span>
+                      </span>
+                    )}
+                  </span>
                 </span>
                 <div className="filter-toggle-group">
                   {(item.options || []).map((opt) => (
@@ -37,7 +59,8 @@ const FilterGroup = ({ filter, activeFilters, onToggle, defaultExpanded = false 
                   ))}
                 </div>
               </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

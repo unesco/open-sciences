@@ -145,6 +145,7 @@ export function buildFilterTree(sections, questions) {
           id: `q${String(q.number).replace(/\./g, "_")}`,
           label: q.short_name.trim(),
           question: q.number,
+          description: (q.long_description || q.description || "").trim(),
           options: q._options,
         })),
     }))

@@ -209,7 +209,7 @@ export const Comparison = ({ onCountryClick }) => {
                 <DonutChart
                   key={`${selectedTopic}-${q.number}`}
                   chartData={{
-                    label: `${q.number}. ${q.short_name || q.text}`,
+                    label: `${q.short_name || q.text}`,
                     answers: stats.answers,
                     total: stats.total,
                   }}
