@@ -130,6 +130,8 @@ export function sanitizeRichText(html) {
       .replace(/&gt;/g, ">")
       .replace(/&amp;((?:lt|gt|amp|quot|nbsp|apos);)/g, "&$1");
   } while (decoded !== prev);
+  // Strip empty paragraphs that CKEditor often inserts for spacing.
+  decoded = decoded.replace(/<p>(?:\s|&nbsp;)*<\/p>/gi, "");
   return decoded;
 }
 
