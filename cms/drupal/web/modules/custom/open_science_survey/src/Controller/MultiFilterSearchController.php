@@ -164,7 +164,7 @@ class MultiFilterSearchController extends ControllerBase {
             ->getStorage('taxonomy_term')
             ->getQuery()
             ->condition('vid', 'survey_question')
-            ->condition('field_question_number', $question_number)
+            ->condition('name', $question_number)
             ->condition('field_question_type', $question_type)
             ->accessCheck(false)
             ->execute();
@@ -359,7 +359,7 @@ class MultiFilterSearchController extends ControllerBase {
         $question_cache = [];
         foreach ($question_terms as $tid => $term) {
             $question_cache[$tid] = [
-            'number' => $term->get('field_question_number')->value ?? '',
+            'number' => trim((string) $term->label()),
             'text' => $term->get('field_question_text')->value ?? '',
             'type' => $term->get('field_question_type')->value ?? '',
             ];

@@ -36,7 +36,7 @@ class SurveyQuestionsController extends ControllerBase {
             ->condition('vid', 'survey_question')
             ->condition('status', 1)
             ->condition('field_question_type', $question_type)
-            ->sort('field_question_number.value', 'ASC')
+            ->sort('name', 'ASC')
             ->accessCheck(false)
             ->execute();
 
@@ -102,12 +102,12 @@ class SurveyQuestionsController extends ControllerBase {
             }
 
             $data[] = [
-                'number' => (string) ($question->get('field_question_number')->value ?? ''),
+                'number' => trim((string) $question->label()),
                 'section' => $visible_sections[$section_id],
                 'type' => $normalized_type,
                 'text' => (string) ($question->get('field_question_text')->value ?? ''),
                 'short_name' => (string) ($question->get('field_question_short_name')->value ?? ''),
-                'description' => (string) ($question->get('field_question_description')->value ?? ''),
+                'description' => trim((string) $question->getDescription()),
                 'long_description' => (string) ($question->get('field_question_long_description')->value ?? ''),
                 'closed_answer_options' => $closed_answer_options,
             ];

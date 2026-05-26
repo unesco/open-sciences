@@ -3,9 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.taxonomy_term.survey_question.field_question_description
     - field.field.taxonomy_term.survey_question.field_question_long_description
-    - field.field.taxonomy_term.survey_question.field_question_number
     - field.field.taxonomy_term.survey_question.field_question_short_name
     - field.field.taxonomy_term.survey_question.field_question_text
     - field.field.taxonomy_term.survey_question.field_question_type
@@ -28,14 +26,6 @@ content:
     third_party_settings: {  }
     weight: 0
     region: content
-  field_question_description:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 2
-    region: content
   field_question_long_description:
     type: string
     label: above
@@ -43,17 +33,6 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 3
-    region: content
-  field_question_number:
-    type: number_decimal
-    label: above
-    settings:
-      thousand_separator: ''
-      decimal_separator: .
-      scale: 2
-      prefix_suffix: true
-    third_party_settings: {  }
-    weight: 4
     region: content
   field_question_short_name:
     type: string

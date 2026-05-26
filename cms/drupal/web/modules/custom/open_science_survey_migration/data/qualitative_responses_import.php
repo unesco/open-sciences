@@ -29,7 +29,7 @@ $taxonomy_storage = $entity_type_manager->getStorage('taxonomy_term');
 $survey_response_storage = $entity_type_manager->getStorage('node');
 
 $required_taxonomy_fields = [
-  'survey_question' => ['field_question_number', 'field_question_type'],
+  'survey_question' => ['name', 'field_question_type'],
 ];
 
 foreach ($required_taxonomy_fields as $bundle => $fields) {
@@ -153,7 +153,7 @@ if (!empty($question_term_ids)) {
       continue;
     }
 
-    $question_number_raw = (string) $question_term->get('field_question_number')->value;
+    $question_number_raw = (string) $question_term->label();
     $question_number = $normalize_question_number($question_number_raw);
 
     if ($question_number === '') {
@@ -161,7 +161,7 @@ if (!empty($question_term_ids)) {
     }
 
     if (isset($question_term_cache[$question_number])) {
-      print "ERROR preload survey_question: duplicate field_question_number '{$question_number_raw}'.\n";
+      print "ERROR preload survey_question: duplicate name '{$question_number_raw}'.\n";
       continue;
     }
 

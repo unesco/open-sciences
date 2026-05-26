@@ -199,7 +199,7 @@ class TermContextController extends ControllerBase {
 
         $question_term_ids = null;
         if ($question_number !== null) {
-            $question_term_ids = $this->resolveTaxonomyTermIdsByField('survey_question', 'field_question_number', $question_number);
+            $question_term_ids = $this->resolveTaxonomyTermIdsByField('survey_question', 'name', $question_number);
             if (empty($question_term_ids)) {
                 return [];
             }
@@ -393,11 +393,11 @@ class TermContextController extends ControllerBase {
         }
 
         $question_term = $survey_response->get('field_question')->entity;
-        if (!$question_term || !$question_term->hasField('field_question_number') || $question_term->get('field_question_number')->isEmpty()) {
+        if (!$question_term) {
             return '';
         }
 
-        return trim((string) $question_term->get('field_question_number')->value);
+        return trim((string) $question_term->label());
     }
 
     /**
@@ -435,9 +435,10 @@ class TermContextController extends ControllerBase {
      */
     protected function resolveTaxonomyTermIdsByField($vocabulary, $field_name, $value) {
         $taxonomy_term_storage = $this->entityTypeManager()->getStorage('taxonomy_term');
+        $condition_field = $field_name === 'name' ? 'name' : $field_name . '.value';
         $query = $taxonomy_term_storage->getQuery()->accessCheck(false)
             ->condition('vid', $vocabulary)
-            ->condition($field_name . '.value', $value);
+            ->condition($condition_field, $value);
 
         return array_values($query->execute());
     }
