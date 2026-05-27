@@ -77,7 +77,7 @@ export const FilterPanel = ({
     )}
     <div className="dashboard-filters-list">
       {globalFilters.length === 0 ? (
-        <div className="dashboard-filters-empty">Loading filters\u2026</div>
+        <div className="dashboard-filters-empty">Loading filters..</div>
       ) : (
         globalFilters.map((f, idx) => (
           <FilterGroup

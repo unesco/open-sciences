@@ -18,6 +18,16 @@ const ArrowIcon = ({ className }) => (
   </svg>
 );
 
+const InfoIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="9.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="12" cy="7.8" r="1.15" fill="currentColor" />
+    <rect x="11.1" y="10.6" width="1.8" height="6.4" rx="0.9" fill="currentColor" />
+  </svg>
+);
+
+const ORCID_RE = /orcid\.org/i;
+
 const HTMLBlock = ({ html }) => {
   if (!html) return null;
   // The Drupal renderer pipeline (renderInIsolation with a text format)
@@ -80,6 +90,15 @@ export const PlsDetail = () => {
     return SECTION_DEFS.filter((s) => data[s.key]);
   }, [data]);
 
+  // Summary nav = body sections + the related section (when present).
+  const summaryItems = useMemo(() => {
+    const items = sections.map((s) => ({ anchor: s.anchor, title: s.title }));
+    if (data?.related?.length) {
+      items.push({ anchor: "related", title: "You may be interested to read" });
+    }
+    return items;
+  }, [sections, data]);
+
   const scrollToTop = () =>
     window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -120,7 +139,7 @@ export const PlsDetail = () => {
       <section
         className="pls-hero"
         style={{
-          backgroundImage: "url('/static/images/research-family1.jpg')",
+          backgroundImage: "url('/static/images/placeholderimg.jpg')",
         }}
       >
         <div className="pls-hero-inner">
@@ -142,14 +161,8 @@ export const PlsDetail = () => {
               </section>
             ))}
 
-            {data.footnotes && (
-              <section className="pls-section pls-footnotes">
-                <HTMLBlock html={data.footnotes} />
-              </section>
-            )}
-
             {related.length > 0 && (
-              <section className="pls-section">
+              <section id="related" className="pls-section">
                 <h2 className="pls-section-title">You may be interested to read</h2>
                 <div className="pls-related-list">
                   {related.map((r) => (
@@ -164,15 +177,21 @@ export const PlsDetail = () => {
                 </div>
               </section>
             )}
+
+            {data.footnotes && (
+              <section className="pls-section pls-footnotes">
+                <HTMLBlock html={data.footnotes} />
+              </section>
+            )}
           </main>
 
           <aside className="pls-sidebar">
-            {sections.length > 0 && (
+            {summaryItems.length > 0 && (
               <div className="pls-side-block">
                 <h3 className="pls-side-title">Summary</h3>
                 <ul className="pls-side-list">
-                  {sections.map((s) => (
-                    <li key={s.key}>
+                  {summaryItems.map((s) => (
+                    <li key={s.anchor}>
                       <a
                         href={`#${s.anchor}`}
                         onClick={(e) => smoothScrollToAnchor(e, s.anchor)}
@@ -185,58 +204,95 @@ export const PlsDetail = () => {
               </div>
             )}
 
-            {pub.link && (
-              <div className="pls-side-block pls-pub-block">
-                <h3 className="pls-side-title">Original publication</h3>
-                <a
-                  className="pls-open-btn"
-                  href={pub.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span>Open</span>
-                  <ArrowIcon className="pls-open-btn-icon" />
-                </a>
-              </div>
-            )}
+            {(pub.link || authors.length > 0 || pub.sponsor_text || sponsorLogo) && (
+              <div className="pls-side-block pls-pub-card">
+                <div className="pls-pub-header">
+                  <div className="pls-pub-heading">
+                    <h3 className="pls-side-title">Original publication</h3>
+                    <button
+                      type="button"
+                      className="pls-info"
+                      aria-label="More information about the original publication link"
+                    >
+                      <InfoIcon />
+                      <span className="pls-tooltip" role="tooltip">
+                        You can find a link to access the full text of the original
+                        publication under the Open Access section on the following page
+                      </span>
+                    </button>
+                  </div>
+                  {pub.link && (
+                    <a
+                      className="pls-open-btn"
+                      href={pub.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span>Open</span>
+                      <ArrowIcon className="pls-open-btn-icon" />
+                    </a>
+                  )}
+                </div>
 
-            {authors.length > 0 && (
-              <div className="pls-side-block">
-                <h3 className="pls-side-title">Authors of the original publication</h3>
-                <ul className="pls-author-list">
-                  {authors.map((a, i) => (
-                    <li key={i}>
-                      {a.link ? (
-                        <a href={a.link} target="_blank" rel="noopener noreferrer">
-                          {a.name}
-                        </a>
-                      ) : (
-                        a.name
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {(pub.sponsor_text || sponsorLogo) && (
-              <div className="pls-side-block pls-sponsor-block">
-                {pub.sponsor_text && (
-                  <p className="pls-sponsor-text">{pub.sponsor_text}</p>
+                {authors.length > 0 && (
+                  <>
+                    <hr className="pls-card-divider" />
+                    <h4 className="pls-authors-title">
+                      Authors of the original publication
+                    </h4>
+                    <p className="pls-author-list">
+                      {authors.map((a, i) => (
+                        <span className="pls-author" key={i}>
+                          {a.link ? (
+                            <a href={a.link} target="_blank" rel="noopener noreferrer">
+                              {a.name}
+                            </a>
+                          ) : (
+                            <span>{a.name}</span>
+                          )}
+                          {a.link && ORCID_RE.test(a.link) && (
+                            <a
+                              className="pls-orcid"
+                              href={a.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`${a.name}'s ORCID profile`}
+                              title={`${a.name}'s ORCID profile`}
+                            >
+                              <img
+                                className="pls-orcid-icon"
+                                src="/static/images/orcid.svg"
+                                alt="ORCID iD"
+                              />
+                            </a>
+                          )}
+                          {i < authors.length - 1 ? ", " : ""}
+                        </span>
+                      ))}
+                    </p>
+                  </>
                 )}
-                {sponsorLogo && (
-                  <img
-                    className="pls-sponsor-logo"
-                    src={sponsorLogo}
-                    alt="Sponsor"
-                  />
+
+                {(pub.sponsor_text || sponsorLogo) && (
+                  <div className="pls-sponsor-block">
+                    {pub.sponsor_text && (
+                      <p className="pls-sponsor-text">{pub.sponsor_text}</p>
+                    )}
+                    {sponsorLogo && (
+                      <img
+                        className="pls-sponsor-logo"
+                        src={sponsorLogo}
+                        alt="Sponsor"
+                      />
+                    )}
+                  </div>
                 )}
               </div>
             )}
 
             {sdgs.length > 0 && (
-              <div className="pls-side-block">
-                <h3 className="pls-side-title">UN Sustainable Development Goals</h3>
+              <div className="pls-side-block pls-card-outlined">
+                <h3 className="pls-side-title pls-card-title">UN SDGs</h3>
                 <div className="pls-sdgs">
                   {sdgs.map((s) => {
                     const logo = resolveCmsAsset(s.logo);
@@ -259,17 +315,32 @@ export const PlsDetail = () => {
             )}
 
             {tags.length > 0 && (
-              <div className="pls-side-block">
-                <h3 className="pls-side-title">Keywords and topics</h3>
+              <div className="pls-side-block pls-card-outlined">
+                <h3 className="pls-side-title pls-card-title">Keywords and topics</h3>
                 <div className="pls-tags">
                   {tags.map((t) => (
-                    <a
-                      key={t.id}
-                      className="pls-tag"
-                      href={`/search?q=${encodeURIComponent(t.text)}`}
-                    >
-                      {t.text}
-                    </a>
+                    <span className="pls-tag" key={t.id}>
+                      <a
+                        className="pls-tag-link"
+                        href={`/search?q=${encodeURIComponent(t.text)}`}
+                      >
+                        {t.text}
+                      </a>
+                      {t.description && (
+                        <>
+                          <button
+                            type="button"
+                            className="pls-tag-info"
+                            aria-label={`Definition of ${t.text}`}
+                          >
+                            <InfoIcon />
+                          </button>
+                          <span className="pls-tooltip pls-tooltip--tag" role="tooltip">
+                            {t.description}
+                          </span>
+                        </>
+                      )}
+                    </span>
                   ))}
                 </div>
               </div>

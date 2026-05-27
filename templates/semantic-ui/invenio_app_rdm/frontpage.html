@@ -208,16 +208,8 @@
     });
 
     // ── PLS helpers ──────────────────────────────────────────────────────────
-    // Fallback images rotated by index (API has no image field yet).
-    // Match the original card design — researchimage2.png does not exist,
-    // so slot 2 reuses research3.png as the prior version did.
-    var plsFallbackImages = [
-      '/static/images/researchimage1.png',
-      '/static/images/research3.png',
-      '/static/images/researchimage3.png',
-      '/static/images/researchimage4.png',
-      '/static/images/researchimage5.png'
-    ];
+    // The API has no per-PLS image field yet, so all cards use a placeholder.
+    var plsPlaceholderImage = '/static/images/placeholderimg.jpg';
 
     // Render PLS (Plain Language Summary) cards
     var rWrapper = document.getElementById('research-swiper-wrapper');
@@ -231,7 +223,7 @@
       }
 
       items.forEach(function (pls, i) {
-        var img = plsFallbackImages[i % plsFallbackImages.length];
+        var img = plsPlaceholderImage;
         rWrapper.innerHTML += '<div class="swiper-slide">' +
           '<div class="research-card" style="background-image: url(\'' + img + '\');">' +
             '<div class="research-card-overlay"></div>' +
