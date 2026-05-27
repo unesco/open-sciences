@@ -269,7 +269,7 @@ class PlsController extends ControllerBase {
     }
 
     /**
-     * Extracts tags in {text, id} format.
+     * Extracts tags in {text, id, description} format.
      */
     protected function extracttags(EntityInterface $node) {
         $tags = [];
@@ -278,9 +278,15 @@ class PlsController extends ControllerBase {
         }
 
         foreach ($node->get('field_tags')->referencedEntities() as $term) {
+            $description = '';
+            if ($term->hasField('description') && !$term->get('description')->isEmpty()) {
+                $description = (string) ($term->get('description')->value ?? '');
+            }
+
             $tags[] = [
                 'text' => (string) $term->label(),
                 'id' => (int) $term->id(),
+                'description' => $description,
             ];
         }
 
