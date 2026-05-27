@@ -133,6 +133,7 @@ export const PlsDetail = () => {
   const sponsorLogo = resolveCmsAsset(pub.sponsor_logo);
   const heroImage =
     resolveCmsAsset(data.field_hero_image) || "/static/images/placeholderimg.jpg";
+  const heroCopyright = data.field_hero_copyright || "";
 
   return (
     <div className="pls-page">
@@ -147,6 +148,13 @@ export const PlsDetail = () => {
           </p>
           <h1 className="pls-hero-title">{data.title}</h1>
         </div>
+        {heroCopyright && (
+          // Server-side sanitized by Drupal's renderInIsolation pipeline.
+          <div
+            className="pls-hero-copyright"
+            dangerouslySetInnerHTML={{ __html: heroCopyright }}
+          />
+        )}
       </section>
 
       {/* Body */}

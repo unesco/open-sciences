@@ -30,7 +30,9 @@ html { scroll-behavior: smooth; }
   background-repeat: no-repeat;
   position: relative;
   color: #fff;
-  padding: 60px 0 80px;
+  /* Top padding clears the transparent overlay header; the hero is also
+     taller overall than before. */
+  padding: 150px 0 110px;
 
   &::before {
     content: "";
@@ -42,6 +44,19 @@ html { scroll-behavior: smooth; }
       rgba(11,61,79,0.2) 100%);
     pointer-events: none;
   }
+}
+
+/* Image copyright caption, bottom-right of the hero. */
+.pls-hero-copyright {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  z-index: 1;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+
+  p { margin: 0; }
 }
 
 .pls-hero-inner {
@@ -68,8 +83,63 @@ html { scroll-behavior: smooth; }
 }
 
 @media (max-width: 700px) {
-  .pls-hero { padding: 36px 0 48px; }
+  .pls-hero { padding: 110px 0 56px; }
   .pls-hero-title { font-size: 2.1rem; }
+}
+
+/* ── Transparent overlay header (PLS detail page only) ─── */
+/* The site header is rendered outside #pls-root, so we scope these
+   rules with a body class added by the PLS page template, and let the
+   hero's top padding sit the title clear of the nav. */
+body.pls-detail-page {
+  header.theme.header,
+  header.theme.header .outer-navbar,
+  header.theme.header .invenio-header-container {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Lift the header out of the document flow so the hero image
+     shows through behind it. */
+  header.theme.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+  }
+
+  /* Remove the gap the header used to occupy. */
+  #invenio-page-body,
+  main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Vertically center the logo and nav links on one line. The logo image
+     carries an inline margin-top that otherwise pushes it below the links. */
+  /* 20px breathing room above the nav row. Applied as padding on the
+     header wrapper because margin on the flex .ui.menu has no effect. */
+  #header-background {
+    padding-top: 20px !important;
+  }
+
+  #invenio-nav {
+    align-items: center !important;
+  }
+
+  #invenio-nav .logo img {
+    margin-top: 0 !important;
+  }
+
+  #header-nav-desktop {
+    align-items: center !important;
+  }
+
+  #header-nav-desktop a {
+    line-height: 1.2 !important;
+  }
 }
 
 /* ── Container / layout ──────────────────────────────── */
