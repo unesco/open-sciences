@@ -543,14 +543,15 @@ class MultiFilterSearchController extends ControllerBase {
 
         $response = new StreamedResponse(function () use ($countries_list) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['country', 'question_number', 'answer']);
+            fputcsv($handle, ['country', 'question_number', 'question_text', 'answer']);
 
             foreach ($countries_list as $country) {
                 foreach ($country['responses'] as $response_data) {
                     $answer = $response_data['answer'] ?? ($response_data['answer_open'] ?? '');
                     fputcsv($handle, [
-                    $country['iso3'],
+                    $country['name'],
                     $response_data['question_number'],
+                    $response_data['question_text'] ?? '',
                     $answer,
                     ]);
                 }

@@ -68,12 +68,13 @@ class TermContextController extends ControllerBase {
 
             $rows = [];
             foreach ($survey_responses as $survey_response) {
-                $country = $this->extractCountryIso3($survey_response);
+                $country = $this->extractCountryName($survey_response);
                 $question_number_value = $this->extractQuestionNumber($survey_response);
+                $question_text_value = $this->extractQuestionText($survey_response);
 
                 $answer = $this->extractOpenAnswer($survey_response);
 
-                $rows[] = [$country, $question_number_value, $answer];
+                $rows[] = [$country, $question_number_value, $question_text_value, $answer];
             }
 
             return $this->buildCsvResponse($term, $region, $rows);
@@ -357,6 +358,28 @@ class TermContextController extends ControllerBase {
     }
 
     /**
+     * Extracts country label from a survey response.
+     *
+     * @param \Drupal\Core\Entity\EntityInterface $survey_response
+     *   Survey response entity.
+     *
+     * @return string
+     *   Country label or empty string when unavailable.
+     */
+    protected function extractCountryName($survey_response) {
+        if (!$survey_response->hasField('field_country') || $survey_response->get('field_country')->isEmpty()) {
+            return '';
+        }
+
+        $country_term = $survey_response->get('field_country')->entity;
+        if (!$country_term) {
+            return '';
+        }
+
+        return trim((string) $country_term->label());
+    }
+
+    /**
      * Extracts country ISO3 code from a survey response.
      *
      * @param \Drupal\Core\Entity\EntityInterface $survey_response
@@ -398,6 +421,28 @@ class TermContextController extends ControllerBase {
         }
 
         return trim((string) $question_term->label());
+    }
+
+    /**
+     * Extracts question text from a survey response.
+     *
+     * @param \Drupal\Core\Entity\EntityInterface $survey_response
+     *   Survey response entity.
+     *
+     * @return string
+     *   Question text or empty string when unavailable.
+     */
+    protected function extractQuestionText($survey_response) {
+        if (!$survey_response->hasField('field_question') || $survey_response->get('field_question')->isEmpty()) {
+            return '';
+        }
+
+        $question_term = $survey_response->get('field_question')->entity;
+        if (!$question_term || !$question_term->hasField('field_question_text') || $question_term->get('field_question_text')->isEmpty()) {
+            return '';
+        }
+
+        return trim((string) $question_term->get('field_question_text')->value);
     }
 
     /**
@@ -480,7 +525,7 @@ class TermContextController extends ControllerBase {
 
         $response = new StreamedResponse(function () use ($rows) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['country', 'question_number', 'answer']);
+            fputcsv($handle, ['country', 'question_number', 'question_text', 'answer']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, $row);

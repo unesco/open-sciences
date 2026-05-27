@@ -37,7 +37,7 @@ source:
     -
       id: 5
       short_name: X
-      long_name: 'N/A'
+      long_name: N/A
       description: 'Not applicable, not relevant, not applicable'
   ids:
     id:

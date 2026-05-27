@@ -874,7 +874,7 @@ display:
           id: field_question_text
           table: taxonomy_term__field_question_text
           field: field_question_text
-          relationship: field_country
+          relationship: field_question
           group_type: group
           admin_label: ''
           plugin_id: field
