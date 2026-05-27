@@ -33,9 +33,9 @@ class TermContextController extends ControllerBase {
      *
      * GET /api/download/term-context
      * Query params:
-     *   - term: Challenge term label (required)
-     *   - question_number: Filter by question number
-     *   - region: Filter by country region
+    *   - term: Challenge term label
+    *   - question_number: Filter by question number
+    *   - region: Filter by country region
      *
      * @param \Symfony\Component\HttpFoundation\Request $request
      *   The request object.
@@ -45,22 +45,20 @@ class TermContextController extends ControllerBase {
      */
     public function termContextCsv(Request $request) {
         $term = $this->normalizeFilterValue($request->query->get('term'));
-        if ($term === null) {
-            return new JsonResponse([
-            'error' => 'Missing required parameter: term',
-            ], 400);
-        }
-
         $question_number = $this->normalizeFilterValue($request->query->get('question_number'));
         $region = $this->normalizeFilterValue($request->query->get('region'));
 
         try {
-            $challenge_terms = $this->loadChallengeTermsByName($term);
-            if (empty($challenge_terms)) {
-                return $this->buildCsvResponse($term, $region, []);
+            $challenge_term_ids = null;
+            if ($term !== null) {
+                $challenge_terms = $this->loadChallengeTermsByName($term);
+                if (empty($challenge_terms)) {
+                    return $this->buildCsvResponse($term, $region, []);
+                }
+
+                $challenge_term_ids = array_keys($challenge_terms);
             }
 
-            $challenge_term_ids = array_keys($challenge_terms);
             $survey_responses = $this->loadSurveyResponses($challenge_term_ids, $question_number, $region);
             if (empty($survey_responses)) {
                 return $this->buildCsvResponse($term, $region, []);
@@ -183,8 +181,8 @@ class TermContextController extends ControllerBase {
     /**
      * Loads survey responses using shared endpoint filters.
      *
-     * @param array $challenge_term_ids
-     *   Challenge term IDs.
+    * @param array|null $challenge_term_ids
+    *   Optional challenge term IDs.
      * @param string|null $question_number
      *   Optional question number filter.
      * @param string|null $region
@@ -193,11 +191,7 @@ class TermContextController extends ControllerBase {
      * @return \Drupal\Core\Entity\EntityInterface[]
      *   Survey response entities.
      */
-    protected function loadSurveyResponses(array $challenge_term_ids, $question_number, $region) {
-        if (empty($challenge_term_ids)) {
-            return [];
-        }
-
+    protected function loadSurveyResponses(?array $challenge_term_ids, $question_number, $region) {
         $question_term_ids = null;
         if ($question_number !== null) {
             $question_term_ids = $this->resolveTaxonomyTermIdsByField('survey_question', 'name', $question_number);
@@ -218,7 +212,11 @@ class TermContextController extends ControllerBase {
         $query = $survey_response_storage->getQuery()->accessCheck(true)
             ->condition('type', 'survey_response')
             ->condition('status', 1)
-            ->condition('field_challenge.target_id', $challenge_term_ids, 'IN');
+            ->condition('field_challenge.target_id', null, 'IS NOT NULL');
+
+        if ($challenge_term_ids !== null) {
+            $query->condition('field_challenge.target_id', $challenge_term_ids, 'IN');
+        }
 
         if ($question_term_ids !== null) {
             $query->condition('field_question.target_id', $question_term_ids, 'IN');
@@ -510,8 +508,8 @@ class TermContextController extends ControllerBase {
     /**
      * Builds CSV export response.
      *
-     * @param string $term
-     *   Required term filter.
+    * @param string|null $term
+    *   Optional term filter.
      * @param string|null $region
      *   Optional region filter.
      * @param array $rows
@@ -521,8 +519,9 @@ class TermContextController extends ControllerBase {
      *   CSV streamed response.
      */
     protected function buildCsvResponse($term, $region, array $rows) {
+        $term_part = $term ?? 'all_terms';
         $region_part = $region ?? 'Worldwide';
-        $filename = $this->sanitizeFilenamePart($term) . '_' . $this->sanitizeFilenamePart($region_part) . '.csv';
+        $filename = $this->sanitizeFilenamePart($term_part) . '_' . $this->sanitizeFilenamePart($region_part) . '.csv';
 
         $response = new StreamedResponse(function () use ($rows) {
             $handle = fopen('php://output', 'w');
