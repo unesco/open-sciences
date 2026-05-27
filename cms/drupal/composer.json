@@ -23,6 +23,7 @@
         "drupal/core-recommended": "^11.3",
         "drupal/migrate_plus": "^6.0",
         "drupal/migrate_source_csv": "^3.7",
+        "drupal/paragraphs": "^1.20",
         "drupal/search_api": "^1.40",
         "drupal/search_api_opensearch": "^2.5",
         "drupal/views_data_export": "^1.9",

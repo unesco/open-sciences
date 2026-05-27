@@ -17,6 +17,8 @@ source:
   constants:
     logo_source_dir: modules/custom/open_science_survey_migration/data/pls/
     logo_destination_dir: 'public://pls/'
+    hero_source_dir: modules/custom/open_science_survey_migration/data/pls/hero/
+    hero_destination_dir: 'public://pls/hero/'
   ids:
     - Title
 process:
@@ -46,6 +48,32 @@ process:
         - '@_logo_destination_path'
       file_exists: replace
       move: false
+  _hero_filename:
+    plugin: callback
+    callable: basename
+    source: hero
+  _hero_source_path:
+    plugin: concat
+    source:
+      - constants/hero_source_dir
+      - '@_hero_filename'
+  _hero_destination_path:
+    plugin: concat
+    source:
+      - constants/hero_destination_dir
+      - '@_hero_filename'
+  _hero_uri:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: '@_hero_filename'
+    -
+      plugin: file_copy
+      source:
+        - '@_hero_source_path'
+        - '@_hero_destination_path'
+      file_exists: replace
+      move: false
   title: Title
   status:
     plugin: default_value
@@ -73,6 +101,7 @@ process:
     source:
       - Original_authors
       - Original_authors_links
+      - Original_authors_orcids
     delimiter: ','
     trim: true
     fallback_uri: 'route:<nolink>'
@@ -89,6 +118,18 @@ process:
       value_key: uri
   field_publication_sponsor_logo/alt: Title
   field_publication_sponsor_logo/title: Original_sponsor
+  field_hero_image/target_id:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: '@_hero_uri'
+    -
+      plugin: entity_generate
+      source: '@_hero_uri'
+      entity_type: file
+      value_key: uri
+  field_hero_image/alt: Title
+  field_hero_image/title: Title
   field_sdgs:
     plugin: delimited_entity_reference
     source: SDGs
