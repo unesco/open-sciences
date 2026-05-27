@@ -51,7 +51,7 @@ process:
   _hero_filename:
     plugin: callback
     callable: basename
-    source: hero
+    source: hero_image
   _hero_source_path:
     plugin: concat
     source:
@@ -130,6 +130,7 @@ process:
       value_key: uri
   field_hero_image/alt: Title
   field_hero_image/title: Title
+  field_hero_copyright: hero_copyright
   field_sdgs:
     plugin: delimited_entity_reference
     source: SDGs
