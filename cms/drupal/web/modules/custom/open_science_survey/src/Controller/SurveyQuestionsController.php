@@ -32,13 +32,15 @@ class SurveyQuestionsController extends ControllerBase {
         $question_type = $this->normalizeQuestionType($request->query->get('type'));
 
         $term_storage = $this->entityTypeManager()->getStorage('taxonomy_term');
-        $question_ids = $term_storage->getQuery()
+        $query = $term_storage->getQuery()
             ->condition('vid', 'survey_question')
             ->condition('status', 1)
-            ->condition('field_question_type', $question_type)
             ->sort('name', 'ASC')
-            ->accessCheck(false)
-            ->execute();
+            ->accessCheck(false);
+        if (!$this->isAllQuestionType($question_type)) {
+            $query->condition('field_question_type', $question_type);
+        }
+        $question_ids = $query->execute();
 
         if (empty($question_ids)) {
             return $this->buildResponse([]);
@@ -70,6 +72,7 @@ class SurveyQuestionsController extends ControllerBase {
         $question_id_list = array_map('intval', array_keys($questions));
         $closed_answer_definitions = $this->loadClosedAnswerDefinitions();
         $used_closed_answer_terms_by_question = $this->isClosedQuestionType($question_type)
+            || $this->isAllQuestionType($question_type)
             ? $this->loadUsedClosedAnswerTermIdsByQuestion($question_id_list)
             : [];
 
@@ -271,7 +274,21 @@ class SurveyQuestionsController extends ControllerBase {
             return 'Closed';
         }
 
-        return trim($question_type);
+        $normalized = trim($question_type);
+
+        if (strcasecmp($normalized, 'All') === 0) {
+            return 'All';
+        }
+
+        if (strcasecmp($normalized, 'Open') === 0) {
+            return 'Open';
+        }
+
+        if (strcasecmp($normalized, 'Closed') === 0) {
+            return 'Closed';
+        }
+
+        return $normalized;
     }
 
     /**
@@ -285,6 +302,19 @@ class SurveyQuestionsController extends ControllerBase {
      */
     protected function isClosedQuestionType(string $question_type): bool {
         return strcasecmp(trim($question_type), 'Closed') === 0;
+    }
+
+    /**
+     * Checks if question type is All.
+     *
+     * @param string $question_type
+     *   Question type value.
+     *
+     * @return bool
+     *   TRUE if All type.
+     */
+    protected function isAllQuestionType(string $question_type): bool {
+        return strcasecmp(trim($question_type), 'All') === 0;
     }
 
     /**
