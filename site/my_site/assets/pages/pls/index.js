@@ -1,0 +1,1 @@
+export { PlsDetail } from "./PlsDetail";

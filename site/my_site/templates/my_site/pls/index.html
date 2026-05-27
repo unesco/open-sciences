@@ -1,0 +1,6 @@
+{%- extends config.BASE_TEMPLATE %}
+{%- block css %} {{ super() }} {{ webpack['pls-styles.css'] }} {%- endblock %}
+{%- block page_body %}
+<div id="pls-root"></div>
+{%- endblock %}
+{%- block javascript %} {{ super() }} {{ webpack['pls.js'] }} {%- endblock %}
