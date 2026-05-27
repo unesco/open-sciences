@@ -5,6 +5,8 @@ dependencies:
   config:
     - core.entity_view_mode.node.teaser
     - field.field.node.plain_language_summary.field_footnotes
+    - field.field.node.plain_language_summary.field_hero_copyright
+    - field.field.node.plain_language_summary.field_hero_image
     - field.field.node.plain_language_summary.field_meaning
     - field.field.node.plain_language_summary.field_publication_authors
     - field.field.node.plain_language_summary.field_publication_link
@@ -37,6 +39,8 @@ content:
     region: content
 hidden:
   field_footnotes: true
+  field_hero_copyright: true
+  field_hero_image: true
   field_meaning: true
   field_publication_authors: true
   field_publication_link: true
