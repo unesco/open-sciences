@@ -21,6 +21,7 @@ def create_blueprint(app):
     """
     from .views import StatisticsView, CMSPageView
     from .views.dashboard import DashboardView
+    from .views.pls import PLSDetailView
     from .api import (
         ExportAPIView,
         LensExportProxyAPIView,
@@ -89,6 +90,13 @@ def create_blueprint(app):
         methods=["GET"],
     )
 
+
+    # Plain Language Summary detail page (React + Drupal API)
+    pls_view = PLSDetailView.as_view("pls_detail")
+    blueprint.add_url_rule("/pls/<int:nid>", view_func=pls_view, methods=["GET"])
+    blueprint.add_url_rule(
+        "/pls/<int:nid>/<path:subpath>", view_func=pls_view, methods=["GET"]
+    )
 
     # Open Science dashboards page (catch-all for client-side routing)
     dashboard_view = DashboardView.as_view("dashboard")

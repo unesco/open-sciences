@@ -46,7 +46,7 @@
 </section>
 
 <!-- Research Family Section -->
-<section class="research-family-section">
+<section class="research-family-section pls-section">
   <div class="ui container">
     <h2 class="section-title-white">Discover Research across the UNESCO Natural Science Family</h2>
     <p class="section-subtitle-white">
@@ -114,7 +114,7 @@
 <!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-<!-- Frontpage card data -->
+<!-- Frontpage highlight card data -->
 <script id="frontpage-data" type="application/json">
   {
     "highlight_cards": [
@@ -174,33 +174,6 @@
           "description": "of respondents to a global survey of the hydrological community see a clear role for AI and Machine Learning in addressing water resources management challenges, highlighting strong worldwide momentum for AI-enabled modelling, forecasting, water resources management, climate adaptation and disaster risk reduction.",
           "search_query": "AI+water+resources+management+hydrology"
         }
-    ],
-    "research_cards": [
-      {
-        "image": "/static/images/researchimage1.png",
-        "title": "Why cancer immunotherapy helps some patients more than others?",
-        "search_query": "cancer+immunotherapy"
-      },
-      {
-        "image": "/static/images/research3.png",
-        "title": "How can Indigenous people and local communities help safeguard nature?",
-        "search_query": "indigenous+people+local+communities+safeguard+nature"
-      },
-      {
-        "image": "/static/images/researchimage3.png",
-        "title": "Are UNESCO Biosphere Reserves the missing link to achieving global biodiversity",
-        "search_query": "UNESCO+Biosphere+Reserves+global+biodiversity"
-      },
-      {
-        "image": "/static/images/researchimage4.png",
-        "title": "Can Lavender and Rosemary help calm nerve cells?",
-        "search_query": "lavender+rosemary+nerve+cells"
-      },
-      {
-        "image": "/static/images/researchimage5.png",
-        "title": "What helps put more women on the scientific conference stage?",
-        "search_query": "women+representation+scientific+conference"
-      }
     ]
   }
 </script>
@@ -234,25 +207,92 @@
       '</div>';
     });
 
-    // Render research cards
-    var rWrapper = document.getElementById('research-swiper-wrapper');
-    data.research_cards.forEach(function (card) {
-      rWrapper.innerHTML += '<div class="swiper-slide">' +
-        '<div class="research-card" style="background-image: url(\'' + card.image + '\');">' +
-          '<div class="research-card-overlay"></div>' +
-          '<div class="research-card-content">' +
-            '<div class="research-card-text">' +
-              '<h3 class="research-card-title">' + card.title + '</h3>' +
-            '</div>' +
-            '<a href="/search?q=' + card.search_query + '" class="research-card-button">' +
-              '<span>See more</span>' +
-            '</a>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-    });
+    // ── PLS helpers ──────────────────────────────────────────────────────────
+    // Fallback images rotated by index (API has no image field yet).
+    // Match the original card design — researchimage2.png does not exist,
+    // so slot 2 reuses research3.png as the prior version did.
+    var plsFallbackImages = [
+      '/static/images/researchimage1.png',
+      '/static/images/research3.png',
+      '/static/images/researchimage3.png',
+      '/static/images/researchimage4.png',
+      '/static/images/researchimage5.png'
+    ];
 
-  document.addEventListener('DOMContentLoaded', function() {
+    // Render PLS (Plain Language Summary) cards
+    var rWrapper = document.getElementById('research-swiper-wrapper');
+
+    function renderPlsCards(items) {
+      rWrapper.innerHTML = '';
+      if (!items || items.length === 0) {
+        rWrapper.closest('.swiper-nav-wrapper').innerHTML =
+          '<p class="pls-empty">No plain language summaries available yet.</p>';
+        return;
+      }
+
+      items.forEach(function (pls, i) {
+        var img = plsFallbackImages[i % plsFallbackImages.length];
+        rWrapper.innerHTML += '<div class="swiper-slide">' +
+          '<div class="research-card" style="background-image: url(\'' + img + '\');">' +
+            '<div class="research-card-overlay"></div>' +
+            '<div class="research-card-content">' +
+              '<div class="research-card-text">' +
+                '<h3 class="research-card-title">' + pls.title + '</h3>' +
+              '</div>' +
+              '<a href="/pls/' + pls.id + '" class="research-card-button">' +
+                '<span>See more</span>' +
+              '</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+    }
+
+    // Show skeleton loaders while fetching
+    (function showPlsSkeletons() {
+      for (var s = 0; s < 4; s++) {
+        rWrapper.innerHTML += '<div class="swiper-slide">' +
+          '<div class="research-card">' +
+            '<div class="research-card-overlay"></div>' +
+            '<div class="research-card-content">' +
+              '<div class="research-card-text">' +
+                '<div class="research-card-title skeleton"></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }
+    })();
+
+    // Fetch PLS from API (Drupal-backed; in dev it lives on :8080, in prod nginx proxies /cms)
+    var isDev = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') &&
+                location.port !== '' && location.port !== '80' && location.port !== '443';
+    var plsUrl = (isDev ? 'http://localhost:8080' : '') + '/cms/api/pls';
+    fetch(plsUrl, { headers: { Accept: 'application/json' } })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (items) {
+        renderPlsCards(items);
+        new Swiper('.researchSwiper', {
+          slidesPerView: 1,
+          spaceBetween: 20,
+          navigation: { nextEl: '.researchSwiper-next', prevEl: '.researchSwiper-prev' },
+          pagination: { el: '.researchSwiper .swiper-pagination', clickable: true },
+          breakpoints: {
+            768:  { slidesPerView: 2, spaceBetween: 20 },
+            992:  { slidesPerView: 3, spaceBetween: 20 },
+            1200: { slidesPerView: 4, spaceBetween: 20 },
+          },
+        });
+      })
+      .catch(function (err) {
+        console.error('Failed to load plain language summaries:', err);
+        rWrapper.closest('.swiper-nav-wrapper').innerHTML =
+          '<p class="pls-empty">Could not load plain language summaries at this time.</p>';
+      });
+
     // Highlights Swiper
     var highlightsSwiper = new Swiper(".highlightsSwiper", {
       slidesPerView: 1,
@@ -285,34 +325,6 @@
       },
     });
 
-    // Research Family Swiper
-    var researchSwiper = new Swiper(".researchSwiper", {
-      slidesPerView: 1,
-      spaceBetween: 20,
-      navigation: {
-        nextEl: ".researchSwiper-next",
-        prevEl: ".researchSwiper-prev",
-      },
-      pagination: {
-        el: ".researchSwiper .swiper-pagination",
-        clickable: true,
-      },
-      breakpoints: {
-        768: {
-          slidesPerView: 2,
-          spaceBetween: 20,
-        },
-        992: {
-          slidesPerView: 3,
-          spaceBetween: 20,
-        },
-        1200: {
-          slidesPerView: 4,
-          spaceBetween: 20,
-        },
-      },
-    });
-  });
   })();
 </script>
 {%- endblock javascript %}

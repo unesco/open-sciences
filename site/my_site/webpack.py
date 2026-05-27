@@ -15,6 +15,9 @@ theme = WebpackBundle(
         # CMS administration page bundle (React + CSS)
         "cms": "./pages/administration/cms/mount.js",
         "cms-styles": "./pages/administration/cms/index.less",
+        # Plain Language Summary detail page (React + CSS)
+        "pls": "./pages/pls/mount.js",
+        "pls-styles": "./pages/pls/index.less",
     },
     dependencies={
         "leaflet": "^1.9.4",
