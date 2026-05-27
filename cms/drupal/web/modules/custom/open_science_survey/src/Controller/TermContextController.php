@@ -287,14 +287,15 @@ class TermContextController extends ControllerBase {
             return null;
         }
 
+        $extrawords = 15;
         foreach ($term_snippets as $snippet) {
             if ($snippet === '') {
                 continue;
             }
 
-            $pattern = '/(^|(\s+\S+){0,3}\s*)' // Up to 3 preceding "words".
+            $pattern = '/(^|(\s+\S+){0,' . $extrawords . '}\s*)'
                 . '(' . preg_quote(trim($snippet), '/') . ')'
-                . '(\s*(\S+\s+){0,3}|$)/iu'; // Up to 3 following "words".
+                . '(\s*(\S+\s+){0,' . $extrawords . '}|$)/iu';
 
             if (!preg_match($pattern, $answer, $match)) {
                 continue;
