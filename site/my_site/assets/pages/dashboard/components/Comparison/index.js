@@ -216,7 +216,7 @@ export const Comparison = ({ onCountryClick }) => {
               const desc         = q.long_description || q.description || undefined;
               const qOptions     = parseClosedAnswerOptions(q.closed_answer_options);
               const baseLabel    = q.short_name || q.text;
-              const label        = q.number ? `Q ${q.number} ${baseLabel}` : baseLabel;
+              const label        = baseLabel;
               return (
                 <DonutChart
                   key={`${selectedTopic}-${q.number}`}

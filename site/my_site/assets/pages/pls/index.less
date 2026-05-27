@@ -248,39 +248,163 @@ html { scroll-behavior: smooth; }
     color: @pls-text;
     text-decoration: none;
     cursor: pointer;
-
-    &:hover { color: @pls-primary; text-decoration: underline; }
   }
 }
 
-.pls-pub-block { display: flex; flex-direction: column; align-items: flex-start; }
+/* Gray filled card (Original publication + authors) */
+.pls-pub-card {
+  background: #eef1f4;
+  border-radius: 10px;
+  padding: 22px 22px 24px;
+}
+
+/* White outlined card (UN SDGs, Keywords) */
+.pls-card-outlined {
+  background: #fff;
+  border: 1px solid #e3e8ec;
+  border-radius: 10px;
+  padding: 18px 20px 20px;
+}
+
+.pls-card-title {
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e3e8ec;
+}
+
+.pls-card-divider {
+  border: none;
+  border-top: 1px solid #dbe0e5;
+  margin: 16px 0;
+}
+
+.pls-authors-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: @pls-text;
+}
+
+.pls-pub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.pls-pub-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  min-width: 0;
+
+  .pls-side-title {
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .pls-info { flex: 0 0 auto; }
+}
+
+/* Info icon + tooltip */
+.pls-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: @pls-muted;
+  cursor: help;
+  outline: none;
+
+  svg { display: block; }
+}
+
+.pls-tooltip {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-28%);
+  width: 250px;
+  background: #2b2b2b;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: center;
+  padding: 13px 16px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 28%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-bottom-color: #2b2b2b;
+  }
+}
+
+.pls-info:hover .pls-tooltip,
+.pls-info:focus .pls-tooltip,
+.pls-info:focus-within .pls-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
 
 .pls-open-btn {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   background: @pls-primary;
   color: #fff !important;
   border-radius: 20px;
-  padding: 7px 20px;
+  padding: 7px 10px;
   font-size: 0.95rem;
   font-weight: 500;
   text-decoration: none;
+  white-space: nowrap;
 
   &:hover { background: darken(@pls-primary, 6%); }
 }
 
 .pls-author-list {
-  list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  line-height: 1.85;
 
-  li { margin-bottom: 8px; line-height: 1.45; }
-  a { color: @pls-primary; text-decoration: none; }
-  a:hover { text-decoration: underline; }
+  a {
+    color: @pls-text;
+    text-decoration: underline;
+
+    &:hover { color: @pls-primary; }
+  }
+
+  .pls-orcid {
+    display: inline-flex;
+    vertical-align: text-bottom;
+    margin: 0 1px 0 5px;
+    text-decoration: none;
+
+    .pls-orcid-icon {
+      display: block;
+      width: 16px;
+      height: 16px;
+    }
+  }
 }
 
-.pls-sponsor-block { font-size: 0.95rem; color: @pls-text; }
+.pls-sponsor-block { font-size: 0.95rem; color: @pls-text; margin-top: 16px; }
 .pls-sponsor-text { margin: 0 0 10px; line-height: 1.5; }
 .pls-sponsor-logo { max-height: 40px; max-width: 100%; }
 
@@ -307,27 +431,73 @@ html { scroll-behavior: smooth; }
   color: @pls-muted;
 }
 
+/* Inline basic-label tags, matching records/details/partials/_keywords.html */
 .pls-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .pls-tag {
-  background: #eef2f5;
-  color: @pls-text;
-  border-radius: 14px;
-  padding: 5px 14px;
-  font-size: 0.92rem;
-  line-height: 1.4;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fff;
+  border: 1px solid rgba(34, 36, 38, 0.15);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-weight: normal;
+}
 
-  &:hover {
-    background: @pls-primary;
-    color: #fff;
+.pls-tag-link {
+  color: @pls-text;
+  text-decoration: none;
+  font-size: 0.9rem;
+  line-height: 1.2;
+
+  &:hover { color: @pls-primary; }
+}
+
+.pls-tag-info {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: @pls-muted;
+  cursor: help;
+  outline: none;
+
+  svg { display: block; width: 17px; height: 17px; }
+}
+
+/* Tag definition tooltip — opens to the left of the pill */
+.pls-tooltip--tag {
+  top: 50%;
+  bottom: auto;
+  left: auto;
+  right: calc(100% + 14px);
+  transform: translateY(-50%);
+  width: 260px;
+  text-align: left;
+
+  &::before {
+    top: 50%;
+    bottom: auto;
+    left: auto;
+    right: -15px;
+    transform: translateY(-50%);
+    border: 8px solid transparent;
+    border-left-color: #2b2b2b;
   }
+}
+
+.pls-tag-info:hover ~ .pls-tooltip--tag,
+.pls-tag-info:focus ~ .pls-tooltip--tag {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* ── Jump up ─────────────────────────────────────────── */
