@@ -60,8 +60,9 @@ class PlsController extends ControllerBase {
 
             foreach ($nodes as $node) {
                 $items[] = [
-                    'title' => (string) $node->label(),
                     'id' => (int) $node->id(),
+                    'title' => (string) $node->label(),
+                    'field_hero_image' => $this->extractimagefieldabsoluteurl($node, 'field_hero_image'),
                 ];
             }
 
@@ -107,6 +108,8 @@ class PlsController extends ControllerBase {
 
             $data = [
                 'title' => (string) $node->label(),
+                'field_hero_image' => $this->extractimagefieldabsoluteurl($node, 'field_hero_image'),
+                'field_hero_copyright' => $this->extracttextfieldvalue($node, 'field_hero_copyright'),
                 'what_was_done' => $this->extracttextfieldvalue($node, 'field_what_was_done'),
                 'why_was_done' => $this->extracttextfieldvalue($node, 'field_why_was_done'),
                 'meaning' => $this->extracttextfieldvalue($node, 'field_meaning'),
@@ -223,12 +226,26 @@ class PlsController extends ControllerBase {
             return $authors;
         }
 
-        foreach ($node->get('field_publication_authors')->getValue() as $item) {
-            $title = trim((string) ($item['title'] ?? ''));
-            $uri = (string) ($item['uri'] ?? '');
+        foreach ($node->get('field_publication_authors')->referencedEntities() as $authorparagraph) {
+            $title = '';
+            if ($authorparagraph->hasField('field_full_name') && !$authorparagraph->get('field_full_name')->isEmpty()) {
+                $title = trim((string) ($authorparagraph->get('field_full_name')->value ?? ''));
+            }
+
+            $uri = '';
+            if ($authorparagraph->hasField('field_url') && !$authorparagraph->get('field_url')->isEmpty()) {
+                $uri = (string) ($authorparagraph->get('field_url')->first()->uri ?? '');
+            }
+
+            $orcid = '';
+            if ($authorparagraph->hasField('field_orcid') && !$authorparagraph->get('field_orcid')->isEmpty()) {
+                $orcid = trim((string) ($authorparagraph->get('field_orcid')->value ?? ''));
+            }
+
             $authors[] = [
                 'name' => $title,
                 'link' => $uri,
+                'orcid' => $orcid,
             ];
         }
 
@@ -252,7 +269,7 @@ class PlsController extends ControllerBase {
     }
 
     /**
-     * Extracts tags in {text, id} format.
+     * Extracts tags in {text, id, description} format.
      */
     protected function extracttags(EntityInterface $node) {
         $tags = [];
@@ -261,9 +278,15 @@ class PlsController extends ControllerBase {
         }
 
         foreach ($node->get('field_tags')->referencedEntities() as $term) {
+            $description = '';
+            if ($term->hasField('description') && !$term->get('description')->isEmpty()) {
+                $description = (string) ($term->get('description')->value ?? '');
+            }
+
             $tags[] = [
                 'text' => (string) $term->label(),
                 'id' => (int) $term->id(),
+                'description' => $description,
             ];
         }
 
@@ -350,6 +373,7 @@ class PlsController extends ControllerBase {
             $related[] = [
                 'title' => (string) $relatednode->label(),
                 'id' => (int) $relatednode->id(),
+                'field_hero_image' => $this->extractimagefieldabsoluteurl($relatednode, 'field_hero_image'),
             ];
         }
 

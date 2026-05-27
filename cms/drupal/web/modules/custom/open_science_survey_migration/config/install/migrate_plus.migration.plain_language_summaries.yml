@@ -79,6 +79,7 @@ process:
     source:
       - Original_authors
       - Original_authors_links
+      - Original_authors_orcids
     delimiter: ','
     trim: true
     fallback_uri: 'route:<nolink>'

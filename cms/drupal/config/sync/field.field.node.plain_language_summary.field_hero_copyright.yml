@@ -1,0 +1,19 @@
+uuid: 2ea1a861-c5ac-42d2-906a-732e1aa69407
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_hero_copyright
+    - node.type.plain_language_summary
+id: node.plain_language_summary.field_hero_copyright
+field_name: field_hero_copyright
+entity_type: node
+bundle: plain_language_summary
+label: 'Hero copyright'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

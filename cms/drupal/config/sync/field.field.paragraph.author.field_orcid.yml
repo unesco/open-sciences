@@ -1,0 +1,19 @@
+uuid: f54770ee-1519-4841-b31c-a7f6acf1f983
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_orcid
+    - paragraphs.paragraphs_type.author
+id: paragraph.author.field_orcid
+field_name: field_orcid
+entity_type: paragraph
+bundle: author
+label: ORCID
+description: 'The ORCID of the researcher (from https://orcid.org/).'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
