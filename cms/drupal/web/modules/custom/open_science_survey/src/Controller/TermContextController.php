@@ -68,12 +68,13 @@ class TermContextController extends ControllerBase {
 
             $rows = [];
             foreach ($survey_responses as $survey_response) {
-                $country = $this->extractCountryIso3($survey_response);
+                $country = $this->extractCountryName($survey_response);
                 $question_number_value = $this->extractQuestionNumber($survey_response);
+                $question_text_value = $this->extractQuestionText($survey_response);
 
                 $answer = $this->extractOpenAnswer($survey_response);
 
-                $rows[] = [$country, $question_number_value, $answer];
+                $rows[] = [$country, $question_number_value, $question_text_value, $answer];
             }
 
             return $this->buildCsvResponse($term, $region, $rows);
@@ -199,7 +200,7 @@ class TermContextController extends ControllerBase {
 
         $question_term_ids = null;
         if ($question_number !== null) {
-            $question_term_ids = $this->resolveTaxonomyTermIdsByField('survey_question', 'field_question_number', $question_number);
+            $question_term_ids = $this->resolveTaxonomyTermIdsByField('survey_question', 'name', $question_number);
             if (empty($question_term_ids)) {
                 return [];
             }
@@ -286,14 +287,15 @@ class TermContextController extends ControllerBase {
             return null;
         }
 
+        $extrawords = 15;
         foreach ($term_snippets as $snippet) {
             if ($snippet === '') {
                 continue;
             }
 
-            $pattern = '/(^|(\s+\S+){0,3}\s*)' // Up to 3 preceding "words".
+            $pattern = '/(^|(\s+\S+){0,' . $extrawords . '}\s*)'
                 . '(' . preg_quote(trim($snippet), '/') . ')'
-                . '(\s*(\S+\s+){0,3}|$)/iu'; // Up to 3 following "words".
+                . '(\s*(\S+\s+){0,' . $extrawords . '}|$)/iu';
 
             if (!preg_match($pattern, $answer, $match)) {
                 continue;
@@ -357,6 +359,28 @@ class TermContextController extends ControllerBase {
     }
 
     /**
+     * Extracts country label from a survey response.
+     *
+     * @param \Drupal\Core\Entity\EntityInterface $survey_response
+     *   Survey response entity.
+     *
+     * @return string
+     *   Country label or empty string when unavailable.
+     */
+    protected function extractCountryName($survey_response) {
+        if (!$survey_response->hasField('field_country') || $survey_response->get('field_country')->isEmpty()) {
+            return '';
+        }
+
+        $country_term = $survey_response->get('field_country')->entity;
+        if (!$country_term) {
+            return '';
+        }
+
+        return trim((string) $country_term->label());
+    }
+
+    /**
      * Extracts country ISO3 code from a survey response.
      *
      * @param \Drupal\Core\Entity\EntityInterface $survey_response
@@ -393,11 +417,33 @@ class TermContextController extends ControllerBase {
         }
 
         $question_term = $survey_response->get('field_question')->entity;
-        if (!$question_term || !$question_term->hasField('field_question_number') || $question_term->get('field_question_number')->isEmpty()) {
+        if (!$question_term) {
             return '';
         }
 
-        return trim((string) $question_term->get('field_question_number')->value);
+        return trim((string) $question_term->label());
+    }
+
+    /**
+     * Extracts question text from a survey response.
+     *
+     * @param \Drupal\Core\Entity\EntityInterface $survey_response
+     *   Survey response entity.
+     *
+     * @return string
+     *   Question text or empty string when unavailable.
+     */
+    protected function extractQuestionText($survey_response) {
+        if (!$survey_response->hasField('field_question') || $survey_response->get('field_question')->isEmpty()) {
+            return '';
+        }
+
+        $question_term = $survey_response->get('field_question')->entity;
+        if (!$question_term || !$question_term->hasField('field_question_text') || $question_term->get('field_question_text')->isEmpty()) {
+            return '';
+        }
+
+        return trim((string) $question_term->get('field_question_text')->value);
     }
 
     /**
@@ -435,9 +481,10 @@ class TermContextController extends ControllerBase {
      */
     protected function resolveTaxonomyTermIdsByField($vocabulary, $field_name, $value) {
         $taxonomy_term_storage = $this->entityTypeManager()->getStorage('taxonomy_term');
+        $condition_field = $field_name === 'name' ? 'name' : $field_name . '.value';
         $query = $taxonomy_term_storage->getQuery()->accessCheck(false)
             ->condition('vid', $vocabulary)
-            ->condition($field_name . '.value', $value);
+            ->condition($condition_field, $value);
 
         return array_values($query->execute());
     }
@@ -479,7 +526,7 @@ class TermContextController extends ControllerBase {
 
         $response = new StreamedResponse(function () use ($rows) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['country', 'question_number', 'answer']);
+            fputcsv($handle, ['country', 'question_number', 'question_text', 'answer']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, $row);

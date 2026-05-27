@@ -899,3 +899,4 @@ $settings['trusted_host_patterns'] = [
   '^127\.0\.0\.1$',
   '^.+$',  // Allow any host in development - restrict this in production!
 ];
+ini_set('memory_limit', '256M');

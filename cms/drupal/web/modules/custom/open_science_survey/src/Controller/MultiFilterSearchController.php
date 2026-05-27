@@ -164,7 +164,7 @@ class MultiFilterSearchController extends ControllerBase {
             ->getStorage('taxonomy_term')
             ->getQuery()
             ->condition('vid', 'survey_question')
-            ->condition('field_question_number', $question_number)
+            ->condition('name', $question_number)
             ->condition('field_question_type', $question_type)
             ->accessCheck(false)
             ->execute();
@@ -359,7 +359,7 @@ class MultiFilterSearchController extends ControllerBase {
         $question_cache = [];
         foreach ($question_terms as $tid => $term) {
             $question_cache[$tid] = [
-            'number' => $term->get('field_question_number')->value ?? '',
+            'number' => trim((string) $term->label()),
             'text' => $term->get('field_question_text')->value ?? '',
             'type' => $term->get('field_question_type')->value ?? '',
             ];
@@ -543,14 +543,15 @@ class MultiFilterSearchController extends ControllerBase {
 
         $response = new StreamedResponse(function () use ($countries_list) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['country', 'question_number', 'answer']);
+            fputcsv($handle, ['country', 'question_number', 'question_text', 'answer']);
 
             foreach ($countries_list as $country) {
                 foreach ($country['responses'] as $response_data) {
                     $answer = $response_data['answer'] ?? ($response_data['answer_open'] ?? '');
                     fputcsv($handle, [
-                    $country['iso3'],
+                    $country['name'],
                     $response_data['question_number'],
+                    $response_data['question_text'] ?? '',
                     $answer,
                     ]);
                 }

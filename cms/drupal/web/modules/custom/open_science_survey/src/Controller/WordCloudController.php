@@ -48,7 +48,7 @@ class WordCloudController extends ControllerBase {
         try {
             $question_term_ids = null;
             if ($question_number !== null) {
-                $question_term_ids = $this->resolveTaxonomyTermIds('survey_question', 'field_question_number', $question_number);
+                $question_term_ids = $this->resolveTaxonomyTermIds('survey_question', 'name', $question_number);
                 if (empty($question_term_ids)) {
                     return $this->buildWordCloudResponse($question_number, $region, []);
                 }
@@ -144,9 +144,10 @@ class WordCloudController extends ControllerBase {
      */
     protected function resolveTaxonomyTermIds($vocabulary, $field_name, $value) {
         $taxonomy_term_storage = $this->entityTypeManager()->getStorage('taxonomy_term');
+        $condition_field = $field_name === 'name' ? 'name' : $field_name . '.value';
         $query = $taxonomy_term_storage->getQuery()->accessCheck(false)
             ->condition('vid', $vocabulary)
-            ->condition($field_name . '.value', $value);
+            ->condition($condition_field, $value);
 
         return array_values($query->execute());
     }

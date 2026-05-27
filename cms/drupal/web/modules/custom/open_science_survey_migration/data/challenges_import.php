@@ -29,7 +29,7 @@ $survey_response_storage = $entity_type_manager->getStorage('node');
 
 $required_taxonomy_fields = [
   'countries' => ['field_iso_alpha3_code'],
-  'survey_question' => ['field_question_number'],
+  'survey_question' => ['name'],
   'challenges' => ['field_snippet'],
 ];
 
@@ -130,7 +130,7 @@ $load_question_term = static function (string $question_number) use (
   $ids = $taxonomy_storage->getQuery()
     ->accessCheck(FALSE)
     ->condition('vid', 'survey_question')
-    ->condition('field_question_number', $question_number)
+    ->condition('name', $question_number)
     ->range(0, 1)
     ->execute();
 

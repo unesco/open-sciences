@@ -166,7 +166,7 @@ country,question_number,answer
 Rules:
 - One row per response for matching countries and filtered question numbers
 - `country` uses the country ISO3 code
-- `question_number` uses `field_question_number`
+- `question_number` uses taxonomy term `name`
 - `answer` prefers the closed-answer long label, and falls back to open-answer text
 - If no data matches, the file contains only the header row
 
@@ -223,7 +223,7 @@ Rules:
 - **Route**: `open_science_survey.multi_filter`
 - **Entity Types Used**:
   - `survey_response` — main entity with `field_question`, `field_country`, `field_closed_ans`, `field_open_ans`
-  - `taxonomy_term` (vocabulary: `survey_question`) — `field_question_number`, `field_question_text`, `field_question_type`
+  - `taxonomy_term` (vocabulary: `survey_question`) — `name`, `field_question_text`, `field_question_type`
   - `taxonomy_term` (vocabulary: `countries`) — `name`, `field_iso_alpha3_code`
   - `taxonomy_term` (vocabulary: `survey_predefined_answers`) — `field_short_name`, `field_long_name`
 

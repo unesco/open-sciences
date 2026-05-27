@@ -41,8 +41,8 @@ function open_science_survey_node_presave(\Drupal\node\NodeInterface $node) {
     if (!$node->get('field_question')->isEmpty()) {
       /** @var \Drupal\taxonomy\TermInterface $question */
       $question = $node->get('field_question')->entity;
-      if ($question && !$question->get('field_question_number')->isEmpty()) {
-        $question_number = trim($question->get('field_question_number')->value);
+      if ($question) {
+        $question_number = trim((string) $question->label());
       }
     }
 
