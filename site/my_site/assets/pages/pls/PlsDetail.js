@@ -318,11 +318,7 @@ export const PlsDetail = () => {
                 <h3 className="pls-side-title pls-card-title">Keywords and topics</h3>
                 <div className="pls-tags">
                   {tags.map((t) => {
-                    // Show the definition tooltip; until the taxonomy terms have
-                    // real descriptions, fall back to a placeholder.
-                    const description =
-                      (t.description && t.description.trim()) ||
-                      "No description available for this keyword yet.";
+                    const description = t.description && t.description.trim();
                     return (
                       <span className="pls-tag" key={t.id}>
                         <a
@@ -331,16 +327,20 @@ export const PlsDetail = () => {
                         >
                           {t.text}
                         </a>
-                        <button
-                          type="button"
-                          className="pls-tag-info"
-                          aria-label={`Definition of ${t.text}`}
-                        >
-                          <InfoIcon />
-                        </button>
-                        <span className="pls-tooltip pls-tooltip--tag" role="tooltip">
-                          {description}
-                        </span>
+                        {description && (
+                          <>
+                            <button
+                              type="button"
+                              className="pls-tag-info"
+                              aria-label={`Definition of ${t.text}`}
+                            >
+                              <InfoIcon />
+                            </button>
+                            <span className="pls-tooltip pls-tooltip--tag" role="tooltip">
+                              {description}
+                            </span>
+                          </>
+                        )}
                       </span>
                     );
                   })}
