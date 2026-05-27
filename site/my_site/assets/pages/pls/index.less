@@ -473,15 +473,24 @@ html { scroll-behavior: smooth; }
   svg { display: block; width: 17px; height: 17px; }
 }
 
-/* Tag definition tooltip — centered under the pill */
+/* Tag definition tooltip — opens to the left of the pill */
 .pls-tooltip--tag {
-  left: 50%;
-  transform: translateX(-50%);
-  width: 270px;
-  text-align: center;
+  top: 50%;
+  bottom: auto;
+  left: auto;
+  right: calc(100% + 14px);
+  transform: translateY(-50%);
+  width: 260px;
+  text-align: left;
 
   &::before {
-    left: 50%;
+    top: 50%;
+    bottom: auto;
+    left: auto;
+    right: -15px;
+    transform: translateY(-50%);
+    border: 8px solid transparent;
+    border-left-color: #2b2b2b;
   }
 }
 

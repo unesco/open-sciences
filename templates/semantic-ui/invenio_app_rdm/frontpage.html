@@ -208,8 +208,18 @@
     });
 
     // ── PLS helpers ──────────────────────────────────────────────────────────
-    // The API has no per-PLS image field yet, so all cards use a placeholder.
+    // Use each PLS's field_hero_image; fall back to a placeholder when empty.
     var plsPlaceholderImage = '/static/images/placeholderimg.jpg';
+
+    // Resolve a Drupal-relative asset path to an absolute URL (dev hits :8080,
+    // prod is proxied under /cms). Mirrors resolveCmsAsset in pages/pls/api.js.
+    function resolveCmsAsset(path) {
+      if (!path) return '';
+      if (/^https?:\/\//i.test(path)) return path;
+      if (path.indexOf('/cms/') === 0) return (isDev ? 'http://localhost:8080' : '') + path;
+      if (path.charAt(0) === '/') return (isDev ? 'http://localhost:8080' : '/cms') + path;
+      return path;
+    }
 
     // Render PLS (Plain Language Summary) cards
     var rWrapper = document.getElementById('research-swiper-wrapper');
@@ -223,7 +233,7 @@
       }
 
       items.forEach(function (pls, i) {
-        var img = plsPlaceholderImage;
+        var img = resolveCmsAsset(pls.field_hero_image) || plsPlaceholderImage;
         rWrapper.innerHTML += '<div class="swiper-slide">' +
           '<div class="research-card" style="background-image: url(\'' + img + '\');">' +
             '<div class="research-card-overlay"></div>' +

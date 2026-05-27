@@ -26,7 +26,6 @@ const InfoIcon = () => (
   </svg>
 );
 
-const ORCID_RE = /orcid\.org/i;
 
 const HTMLBlock = ({ html }) => {
   if (!html) return null;
@@ -132,15 +131,15 @@ export const PlsDetail = () => {
   const related = data.related || [];
   const authors = pub.authors || [];
   const sponsorLogo = resolveCmsAsset(pub.sponsor_logo);
+  const heroImage =
+    resolveCmsAsset(data.field_hero_image) || "/static/images/placeholderimg.jpg";
 
   return (
     <div className="pls-page">
       {/* Hero */}
       <section
         className="pls-hero"
-        style={{
-          backgroundImage: "url('/static/images/placeholderimg.jpg')",
-        }}
+        style={{ backgroundImage: `url('${heroImage}')` }}
       >
         <div className="pls-hero-inner">
           <p className="pls-hero-eyebrow">
@@ -250,10 +249,10 @@ export const PlsDetail = () => {
                           ) : (
                             <span>{a.name}</span>
                           )}
-                          {a.link && ORCID_RE.test(a.link) && (
+                          {a.orcid && (
                             <a
                               className="pls-orcid"
-                              href={a.link}
+                              href={`https://orcid.org/${a.orcid}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               aria-label={`${a.name}'s ORCID profile`}
@@ -318,30 +317,33 @@ export const PlsDetail = () => {
               <div className="pls-side-block pls-card-outlined">
                 <h3 className="pls-side-title pls-card-title">Keywords and topics</h3>
                 <div className="pls-tags">
-                  {tags.map((t) => (
-                    <span className="pls-tag" key={t.id}>
-                      <a
-                        className="pls-tag-link"
-                        href={`/search?q=${encodeURIComponent(t.text)}`}
-                      >
-                        {t.text}
-                      </a>
-                      {t.description && (
-                        <>
-                          <button
-                            type="button"
-                            className="pls-tag-info"
-                            aria-label={`Definition of ${t.text}`}
-                          >
-                            <InfoIcon />
-                          </button>
-                          <span className="pls-tooltip pls-tooltip--tag" role="tooltip">
-                            {t.description}
-                          </span>
-                        </>
-                      )}
-                    </span>
-                  ))}
+                  {tags.map((t) => {
+                    // Show the definition tooltip; until the taxonomy terms have
+                    // real descriptions, fall back to a placeholder.
+                    const description =
+                      (t.description && t.description.trim()) ||
+                      "No description available for this keyword yet.";
+                    return (
+                      <span className="pls-tag" key={t.id}>
+                        <a
+                          className="pls-tag-link"
+                          href={`/search?q=${encodeURIComponent(t.text)}`}
+                        >
+                          {t.text}
+                        </a>
+                        <button
+                          type="button"
+                          className="pls-tag-info"
+                          aria-label={`Definition of ${t.text}`}
+                        >
+                          <InfoIcon />
+                        </button>
+                        <span className="pls-tooltip pls-tooltip--tag" role="tooltip">
+                          {description}
+                        </span>
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             )}

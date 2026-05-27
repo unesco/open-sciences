@@ -104,6 +104,7 @@ APP_DEFAULT_SECURE_HEADERS = {
         ],
         'img-src': [
             "'self'", "data:", "https:",  # Allow all HTTPS images
+            "http://localhost:8080",  # Local dev: Drupal CMS assets (hero images, logos) over http; prod proxies /cms same-origin
             "https://www.googletagmanager.com",
             "https://*.google-analytics.com",
             "https://*.googletagmanager.com"
