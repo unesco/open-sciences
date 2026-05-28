@@ -1,0 +1,24 @@
+uuid: 8749ed13-251d-4a3d-adfb-1d26f403cc54
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_footnotes
+    - filter.format.basic_html
+    - node.type.plain_language_summary
+  module:
+    - text
+id: node.plain_language_summary.field_footnotes
+field_name: field_footnotes
+entity_type: node
+bundle: plain_language_summary
+label: Footnotes
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic_html
+field_type: text_long

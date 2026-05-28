@@ -1,0 +1,23 @@
+uuid: 8e5f3b0c-2d9a-4c1f-b6e3-9d2c5f1a8e4d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_question_type
+    - taxonomy.vocabulary.survey_question
+  module:
+    - options
+_core:
+  default_config_hash: tEOFryN3KyRsx5l8N56QhgL6R3FanNORZ7Bj8TqPFuo
+id: taxonomy_term.survey_question.field_question_type
+field_name: field_question_type
+entity_type: taxonomy_term
+bundle: survey_question
+label: 'Question Type'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

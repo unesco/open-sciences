@@ -1,0 +1,41 @@
+{# Copyright (C) 2024-2025 UNESCO. UNESCO Science Portal is free software; you
+can redistribute it and/or modify it under the terms of the MIT License; see
+LICENSE file for more details. #} {# Static Page Template - CMS-managed static
+content pages This template mirrors the structure of Invenio's default pages
+feature to ensure consistent styling and appearance. #} {%- extends
+"invenio_theme/page.html" %} {%- block head_links %} {{ super() }}
+<!-- Custom UNESCO favicon -->
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href="{{ url_for('static', filename='images/favicon.ico') }}"
+/>
+<link
+  rel="alternate icon"
+  href="{{ url_for('static', filename='images/favicon.ico') }}"
+/>
+<link
+  rel="mask-icon"
+  href="{{ url_for('static', filename='images/favicon.ico') }}"
+  color="#0073b7"
+/>
+{%- endblock head_links %} {%- block head %} {{ super() }}
+<!-- Custom CSS for static pages -->
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/static-pages.css') }}"
+/>
+{%- endblock head %} {%- block page_header %} {# Include standard header -
+inherited from page.html #} {{ super() }} {%- endblock page_header %} {%- block
+page_body %}
+<div class="ui container rel-mt-2">
+  <div class="row">
+    <div class="col-xs-12 rich-input-content">
+      <div class="page-header">
+        <h1 class="page-header-title">{{ page_title }}</h1>
+      </div>
+      {{ page_content | safe }}
+    </div>
+  </div>
+</div>
+{%- endblock page_body %}

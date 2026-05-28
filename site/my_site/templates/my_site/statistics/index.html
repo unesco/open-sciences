@@ -1,0 +1,5 @@
+{%- extends config.BASE_TEMPLATE %} {%- block css %} {{ super() }} {{
+webpack['statistics-styles.css'] }} {%- endblock %} {%- block page_body %}
+<div id="statistics-root"></div>
+{%- endblock %} {%- block javascript %} {{ super() }} {{
+webpack['statistics.js'] }} {%- endblock %}

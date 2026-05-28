@@ -1,0 +1,51 @@
+_core:
+  default_config_hash: 4GIX5Esnc_umpXUBj4IIocRX7Mt5fPhm4AgXfE3E56E
+module:
+  automated_cron: 0
+  block: 0
+  breakpoint: 0
+  ckeditor5: 0
+  config: 0
+  contextual: 0
+  csv_serialization: 0
+  datetime: 0
+  dblog: 0
+  dynamic_page_cache: 0
+  editor: 0
+  entity_reference_revisions: 0
+  field: 0
+  field_ui: 0
+  file: 0
+  filter: 0
+  image: 0
+  link: 0
+  menu_link_content: 0
+  menu_ui: 0
+  migrate: 0
+  migrate_plus: 0
+  migrate_source_csv: 0
+  node: 0
+  open_science_survey: 0
+  open_science_survey_migration: 0
+  options: 0
+  page_cache: 0
+  path_alias: 0
+  pgsql: 0
+  rest: 0
+  serialization: 0
+  shortcut: 0
+  system: 0
+  taxonomy: 0
+  text: 0
+  toolbar: 0
+  update: 0
+  user: 0
+  views_data_export: 0
+  views_ui: 0
+  views: 10
+  paragraphs: 11
+  standard: 1000
+theme:
+  olivero: 0
+  claro: 0
+profile: standard

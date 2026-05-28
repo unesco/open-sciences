@@ -1,0 +1,217 @@
+{# -*- coding: utf-8 -*- Copyright (C) 2019-2025 CERN. Copyright (C) 2019-2020
+Northwestern University. Copyright (C) 2021 New York University. Copyright (C)
+2024 KTH Royal Institute of Technology. Invenio App RDM is free software; you
+can redistribute it and/or modify it under the terms of the MIT License; see
+LICENSE file for more details. Custom header template override to add Statistics
+link #}
+
+<div>
+  <header class="theme header">
+    {%- block user_impersonation %} {%- if '_impersonator_id' in session %}
+    <div class="ui negative flashed top attached manage m-0 big message">
+      <div class="ui container">
+        <div class="header">
+          <i class="ui spy big icon"></i
+          ><strong>{{ _('Impersonated session') }}</strong>
+        </div>
+        {{ _('You must logout after you finish with you inquiry!') }}
+      </div>
+    </div>
+    {%- endif %} {%- endblock user_impersonation %}
+
+    <div class="outer-navbar">
+      {%- block navbar %}
+      <div class="ui container invenio-header-container">
+        <nav id="invenio-nav" class="ui inverted menu borderless p-0">
+          <div class="item logo p-0" style="display: flex !important; align-items: center; gap: 10px; flex: 0 0 auto !important; width: auto !important;">
+            {%- block navbar_header %} {%- block brand %} {%- if
+            config.THEME_LOGO %}
+            <a class="logo-link" href="/" style="display: inline-block;">
+              <img
+                class="ui image rdm-logo"
+                src="{{ url_for('static', filename=config.THEME_LOGO) }}"
+                alt="{{ _(config.THEME_SITENAME) }} {{ _('home') }}"
+                style="height: 42px !important; width: auto !important; max-height: none !important;"
+              />
+            </a>
+            <span class="computer large screen widescreen only" style="color: #FFFFFF; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; line-height: 1; white-space: nowrap;">UNESCO Open Science Portal</span>
+            {%- else %}
+            <a class="logo" href="/">{{ _(config.THEME_SITENAME) }}</a>
+            {%- endif %} {%- endblock brand %} {%- endblock navbar_header %}
+          </div>
+
+          <div id="rdm-burger-toggle">
+            <button
+              id="rdm-burger-menu-icon"
+              class="ui button transparent"
+              aria-label="{{ _('Menu') }}"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="invenio-menu"
+            >
+              <span class="navicon" aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <nav
+            id="invenio-menu"
+            aria-labelledby="rdm-burger-menu-icon"
+            class="ui fluid menu borderless mobile-hidden"
+          >
+            <button
+              id="rdm-close-burger-menu-icon"
+              class="ui button transparent"
+              aria-label="{{ _('Close menu') }}"
+            >
+              <span class="navicon" aria-hidden="true"></span>
+            </button>
+
+            {%- if config.THEME_SEARCHBAR %} {%- block navbar_search %} {%-
+            include "invenio_app_rdm/searchbar.html" %}
+            {# Advanced Search Button - Only on search page, hidden on mobile #}
+            {# COMMENTED: Uncomment to add Advanced Search button in header (desktop only)
+               Displays a blue button with filter icon and badge showing active filter count
+               Note: Advanced Search is already available in facets sidebar #}
+            <!--
+            {%- if request.endpoint == 'invenio_search_ui.search' %}
+            <div class="item p-0 desktop-only">
+              <button class="ui icon button" id="query-builder-trigger" 
+                      style="background-color: #0073b7; color: white; box-shadow: none; height: 38px; position: relative; padding: 0 14px;"
+                      title="Advanced Search">
+                <i class="sliders horizontal icon" style="margin: 0;"></i>
+                <div id="filter-badge" class="ui red circular label" 
+                     style="position: absolute; top: -8px; right: -8px; min-width: 20px; height: 20px; padding: 4px; 
+                            font-size: 11px; line-height: 12px; display: none;">
+                  0
+                </div>
+              </button>
+            </div>
+            {%- endif %}
+            -->
+            {%- endblock
+            navbar_search %} {%- endif %} {%- block navbar_nav %}
+            {# COMMENTED: Uncomment to show Advanced Search link in mobile menu #}
+            {# Displays Advanced Search modal trigger in mobile drawer menu on search page #}
+            {# Note: Advanced Search is already available in facets sidebar on mobile #}
+            <!--
+            {%- if request.endpoint == 'invenio_search_ui.search' %}
+            <div class="item mobile-only">
+              <a href="#" id="mobile-query-builder-link">
+                <i class="sliders horizontal icon"></i>
+                {{ _('Advanced Search') }}
+              </a>
+            </div>
+            {%- endif %}
+             -->
+            {%- for item
+            in current_menu.submenu('main').children|sort(attribute='order') if
+            item.visible recursive %} {%- if item.children %}
+            <div class="item">
+              <div class="dropdown {{ ' active' if item.active else '' }}">
+                <a
+                  role="button"
+                  class="dropdown-toggle"
+                  data-toggle="dropdown"
+                  aria-haspopup="menu"
+                  aria-expanded="false"
+                  href="{{ item.url }}"
+                >
+                  {{ item.text|safe }}
+                  <b class="caret"></b>
+                </a>
+                <ul role="menu" class="dropdown-menu">
+                  {{ loop(item.children|sort(attribute='order')) }}
+                </ul>
+              </div>
+            </div>
+            {%- else %}
+            <!--
+            <div class="{{ 'item active' if item.active else 'item' }}">
+              <a href="{{ item.url }}">{{ item.text|safe }}</a>
+            </div>
+            -->
+            {# COMMENTED: Uncomment to add Statistics dashboard link in main navigation #}
+            {# Shows usage analytics, views, downloads, and platform statistics #}
+            <!--
+            <div class="item">
+              <a href="{{ url_for('my_site.statistics_dashboard') }}">
+                <i class="chart bar icon"></i>
+                {{ _('Statistics') }}
+              </a>
+            </div>
+            -->
+
+            {%- endif %}
+            {%- endfor %}
+
+            {# CMS navigation links - dynamically loaded from CMS API, mobile only #}
+            <div id="header-cms-nav-links" class="mobile tablet only"></div>
+            <script>
+            (function() {
+              var lang = document.documentElement.lang || 'en';
+              fetch('/data/cms/public/header_frontpage?lang=' + lang)
+                .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+                .then(function(result) {
+                  var data = result.data || {};
+                  if (data.navigation_links && Array.isArray(data.navigation_links)) {
+                    var container = document.getElementById('header-cms-nav-links');
+                    if (container) {
+                      data.navigation_links.forEach(function(link) {
+                        var div = document.createElement('div');
+                        div.className = 'item';
+                        var a = document.createElement('a');
+                        a.href = link.url;
+                        a.textContent = link.label;
+                        if (link.external) {
+                          a.target = '_blank';
+                          a.rel = 'noopener noreferrer';
+                        }
+                        div.appendChild(a);
+                        container.appendChild(div);
+                      });
+                    }
+                  }
+                })
+                .catch(function() {});
+            })();
+            </script>
+            
+            {# COMMENTED: Uncomment to show My Dashboard and related action menu items #}
+            {# Displays links to user's uploads, drafts, requests, and personal workspace #}
+            <!--
+            {% for item in
+            current_menu.submenu('actions').children|sort(attribute='order') if
+            item.visible recursive %}
+            <div class="{{ 'item active' if item.active else 'item' }}">
+              <a href="{{ item.url }}">{{ item.text|safe }}</a>
+            </div>
+            {% endfor %}
+            -->
+            {%- endblock navbar_nav %}
+            
+            {%- block navbar_right %}
+            {# COMMENTED: Uncomment to enable user authentication section #}
+            {# Shows: Login/Sign up buttons for anonymous users #}
+            {# Shows: Inbox notifications and user menu for authenticated users #}
+            {# Required for: User registration, login, profile access, and notifications #}
+            
+            <div class="right menu item">
+              {# REMOVED: Inbox/notifications menu - not needed for this portal #}
+              {%- include config.THEME_HEADER_LOGIN_TEMPLATE %}
+            </div>
+            
+            {%- endblock navbar_right %}
+          </nav>
+        </nav>
+      </div>
+      {%- endblock navbar %}
+    </div>
+
+    {%- block site_banner %} {% from 'invenio_banners/banner.html' import banner
+    %} {{ banner() }} {%- endblock site_banner %} {%- block flashmessages %} {%-
+    from "invenio_theme/macros/messages.html" import flashed_messages with
+    context -%} {{ flashed_messages() }} {%- endblock %}
+  </header>
+
+  {%- block breadcrumbs %} {%- endblock breadcrumbs %}
+</div>

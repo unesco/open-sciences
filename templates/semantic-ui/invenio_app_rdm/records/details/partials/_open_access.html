@@ -1,0 +1,67 @@
+{#
+  UNESCO Open Science Portal - Open Access Section
+  
+  Variables required (from parent context):
+  - lens_open_access (JSON string with license, colour, landing_page_urls)
+#}
+
+{%- set oa_data = lens_open_access -%}
+{# Parse Open Access data #}
+{%- set oa_colour = '' -%}
+{%- set oa_license = '' -%}
+{%- if '"colour":' in oa_data -%}
+  {%- set oa_colour = oa_data.split('"colour":')[1].split(',')[0].split('}')[0].replace('"', '').strip() -%}
+{%- endif -%}
+{%- if '"license":' in oa_data -%}
+  {%- set oa_license = oa_data.split('"license":')[1].split(',')[0].replace('"', '').strip() -%}
+{%- endif -%}
+
+<div class="unesco-section" id="unesco-openaccess-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-openaccess-section')">
+    <h3>
+      <i class="unlock alternate icon"></i>
+      {{ _('Open Access') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    {# License display #}
+    {%- if oa_license -%}
+    <div style="color: #666; font-size: 0.95em; margin-bottom: 12px;">
+      {{ _('Licence Attribution') }} (
+      {%- if 'cc-by-nc-sa' in oa_license -%}CC BY-NC-SA
+      {%- elif 'cc-by-nc-nd' in oa_license -%}CC BY-NC-ND
+      {%- elif 'cc-by-nc' in oa_license -%}CC BY-NC
+      {%- elif 'cc-by-sa' in oa_license -%}CC BY-SA
+      {%- elif 'cc-by-nd' in oa_license -%}CC BY-ND
+      {%- elif 'cc-by' in oa_license -%}CC BY
+      {%- elif 'cc0' in oa_license -%}CC0
+      {%- else -%}{{ oa_license | upper }}
+      {%- endif -%})
+    </div>
+    {%- endif -%}
+    {# Publisher Website link #}
+    {%- if '"landing_page_urls":' in oa_data -%}
+      {%- set urls_str = oa_data.split('"landing_page_urls":')[1].split(']')[0].replace('[', '') -%}
+      {%- set first_url = namespace(value='') -%}
+      {%- for url in urls_str.split(',') -%}
+        {%- set clean_url = url.replace('"', '').strip() -%}
+        {%- if clean_url and clean_url.startswith('http') and not first_url.value -%}
+          {%- set first_url.value = clean_url -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- if first_url.value -%}
+    <div class="unesco-list">
+      <div class="unesco-list-item">
+        <span class="unesco-list-text">{{ _('Publisher Website') }}</span>
+        <a href="{{ first_url.value }}" class="unesco-find-more-btn" target="_blank" rel="noopener noreferrer" style="background: #0077D4; color: #fff;">
+          {{ _('Access full text') }} <i class="external alternate icon"></i>
+        </a>
+      </div>
+    </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</div>

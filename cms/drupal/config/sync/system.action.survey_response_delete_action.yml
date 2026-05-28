@@ -1,0 +1,13 @@
+uuid: dcbea700-ef17-44d4-84c9-669b889a077c
+langcode: en
+status: true
+dependencies:
+  module:
+    - open_science_survey
+_core:
+  default_config_hash: pu-ROWgcgvu1BEr83C_ksfOwv3a5F6XXhZlj2jzwY8U
+id: survey_response_delete_action
+label: 'Delete survey responses'
+type: node
+plugin: 'entity:delete_action:node'
+configuration: {  }

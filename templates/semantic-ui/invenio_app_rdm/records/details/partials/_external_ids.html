@@ -1,0 +1,58 @@
+{#
+  UNESCO Open Science Portal - External Identifiers Section
+  
+  Variables required (from parent context):
+  - lens_external_ids (JSON string with array of {type, value})
+#}
+
+{%- set ext_ids = lens_external_ids -%}
+
+{# Parse JSON array format: [{"type": "doi", "value": "..."}] #}
+{%- set parsed_ids = namespace(list=[]) -%}
+{%- if '"type":' in ext_ids -%}
+  {%- for item in ext_ids.split('{') -%}
+    {%- if '"type":' in item and '"value":' in item -%}
+      {%- set type_part = item.split('"type":')[1].split(',')[0].split('}')[0].strip() -%}
+      {%- set id_type = type_part.replace('"', '').strip() -%}
+      {%- set value_part = item.split('"value":')[1].split('}')[0].split(',')[0].strip() -%}
+      {%- set id_value = value_part.replace('"', '').strip() -%}
+      {%- if id_type and id_value -%}
+        {%- set _ = parsed_ids.list.append({'type': id_type, 'value': id_value}) -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- if parsed_ids.list -%}
+<div class="unesco-section collapsed" id="unesco-extids-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-extids-section')">
+    <h3>
+      <i class="bookmark outline icon"></i>
+      {{ _('Persistent Identifiers') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    <div class="unesco-list">
+      {%- for id in parsed_ids.list -%}
+      <div class="unesco-list-item">
+        <span class="unesco-list-text">
+          <span class="badge" style="margin-right: 8px; font-size: 0.75em; padding: 2px 8px;">{{ id.type | upper }}</span>
+          <span title="{{ id.value }}">{{ id.value }}</span>
+        </span>
+        {%- if id.type in ['doi', 'pmid', 'pmcid', 'arxiv', 'issn', 'coreid'] -%}
+        <a href="{% if id.type == 'doi' %}https://doi.org/{{ id.value }}{% elif id.type == 'pmid' %}https://pubmed.ncbi.nlm.nih.gov/{{ id.value }}{% elif id.type == 'pmcid' %}https://www.ncbi.nlm.nih.gov/pmc/articles/{{ id.value }}{% elif id.type == 'arxiv' %}https://arxiv.org/abs/{{ id.value }}{% elif id.type == 'issn' %}https://portal.issn.org/resource/ISSN/{{ id.value }}{% elif id.type == 'coreid' %}https://core.ac.uk/works/{{ id.value }}{% endif %}" 
+           class="unesco-find-more-btn"
+           title="{{ _('View') }} {{ id.type | upper }}: {{ id.value }}"
+           target="_blank" rel="noopener noreferrer">
+          {{ _('Read more') }} <i class="external alternate icon"></i>
+        </a>
+        {%- endif -%}
+      </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+{%- endif -%}

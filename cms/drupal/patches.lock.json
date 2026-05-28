@@ -1,0 +1,17 @@
+{
+    "_hash": "ce90d62fdbcfc2b07880e2b21ecaf2cca42d492eba027dd28f81b623f8446548",
+    "patches": {
+        "drupal/core": [
+            {
+                "package": "drupal/core",
+                "description": "Hash long table aliases",
+                "url": "patches/core-hash-long-table-aliases-6379.diff",
+                "sha256": "60ad1a9bd6de53198e88091be8cb18243eb44273ce0488c90ce11f82b4fee903",
+                "depth": 2,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}

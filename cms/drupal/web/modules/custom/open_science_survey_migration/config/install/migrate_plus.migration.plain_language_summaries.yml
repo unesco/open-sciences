@@ -1,0 +1,129 @@
+langcode: en
+status: true
+dependencies: {  }
+id: plain_language_summaries
+class: null
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags: null
+migration_group: open_science_survey
+label: 'Plain Language Summaries'
+source:
+  plugin: csv
+  path: modules/custom/open_science_survey_migration/data/pls/pls.csv
+  delimiter: "\t"
+  header_row_count: 1
+  constants:
+    logo_source_dir: modules/custom/open_science_survey_migration/data/pls/
+    logo_destination_dir: 'public://pls/'
+  ids:
+    - Title
+process:
+  _logo_filename:
+    plugin: callback
+    callable: basename
+    source: Original_logo
+  _logo_source_path:
+    plugin: concat
+    source:
+      - constants/logo_source_dir
+      - '@_logo_filename'
+  _logo_destination_path:
+    plugin: concat
+    source:
+      - constants/logo_destination_dir
+      - '@_logo_filename'
+  _logo_uri:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: '@_logo_filename'
+    -
+      plugin: file_copy
+      source:
+        - '@_logo_source_path'
+        - '@_logo_destination_path'
+      file_exists: replace
+      move: false
+
+  title: Title
+  status:
+    plugin: default_value
+    default_value: 1
+
+  field_what_was_done/value: What
+  field_what_was_done/format:
+    plugin: default_value
+    default_value: basic_html
+
+  field_why_was_done/value: Why
+  field_why_was_done/format:
+    plugin: default_value
+    default_value: basic_html
+
+  field_meaning/value: Meaning
+  field_meaning/format:
+    plugin: default_value
+    default_value: basic_html
+
+  field_footnotes/value: Footnotes
+  field_footnotes/format:
+    plugin: default_value
+    default_value: basic_html
+
+  field_publication_link/uri: Original_link
+  field_publication_link/title: Original_title
+
+  field_publication_authors:
+    plugin: delimited_author_links
+    source:
+      - Original_authors
+      - Original_authors_links
+      - Original_authors_orcids
+    delimiter: ','
+    trim: true
+    fallback_uri: 'route:<nolink>'
+
+  field_publication_sponsor: Original_sponsor
+
+  field_publication_sponsor_logo/target_id:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: '@_logo_uri'
+    -
+      plugin: entity_generate
+      source: '@_logo_uri'
+      entity_type: file
+      value_key: uri
+  field_publication_sponsor_logo/alt: Title
+  field_publication_sponsor_logo/title: Original_sponsor
+
+  field_sdgs:
+    plugin: delimited_entity_reference
+    source: SDGs
+    delimiter: ','
+    entity_type: taxonomy_term
+    value_key: field_number
+    bundle_key: vid
+    bundle: un_sdgs
+    trim: true
+
+  field_tags:
+    plugin: delimited_entity_reference
+    source: Keywords
+    delimiter: ','
+    entity_type: taxonomy_term
+    value_key: name
+    bundle_key: vid
+    bundle: tags
+    trim: true
+    autocreate: true
+
+destination:
+  plugin: 'entity:node'
+  default_bundle: plain_language_summary
+idMap: {  }
+migration_dependencies:
+  required:
+    - un_sdgs

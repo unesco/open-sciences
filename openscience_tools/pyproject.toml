@@ -1,0 +1,152 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openscience_tools"
+version = "0.2.6"
+description = "Python tools for interacting with InvenioRDM REST API"
+readme = "README.md"
+authors = [
+    {name = "UNESCO Science Portal Team", email = "info@unesco-science-portal.org"}
+]
+maintainers = [
+    {name = "UNESCO Science Portal Team", email = "info@unesco-science-portal.org"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+keywords = ["invenio", "rdm", "research data", "api client", "unesco"]
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0",
+    "click>=8.1.0",
+    "tabulate>=0.9.0",
+    "colorama>=0.4.6",
+    "pycountry>=23.12.11",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.10.0",
+    "requests-mock>=1.9.0",
+    "black>=23.7.0",
+    "flake8>=6.1.0",
+    "mypy>=1.5.0",
+    "isort>=5.12.0",
+]
+
+[project.urls]
+Homepage = "https://repository.unesco.org/gitlab/sc/sc-openscience"
+Repository = "https://repository.unesco.org/gitlab/sc/sc-openscience"
+Documentation = "https://repository.unesco.org/gitlab/sc/sc-openscience/-/blob/develop/openscience_tools/README.md"
+Issues = "https://repository.unesco.org/gitlab/sc/sc-openscience/-/issues"
+
+[project.scripts]
+openscience-tools = "openscience_tools.cli:main"
+
+[tool.setuptools]
+# Standard layout: openscience_tools/ directory at root
+
+[tool.setuptools.packages.find]
+# Find all packages (openscience_tools and its subpackages)
+include = ["openscience_tools*"]
+
+[tool.setuptools.package-data]
+openscience_tools = ["py.typed", "*.yaml", "*.json"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | \.eggs
+  | __pycache__
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = [
+    "tests"
+]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Markers
+markers = [
+    "integration: marks tests as integration tests (requires live InvenioRDM)",
+    "unit: marks tests as unit tests (no external dependencies)",
+    "slow: marks tests as slow running"
+]
+
+# Output options
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--disable-warnings"
+]
+
+[tool.coverage.run]
+source = ["openscience_tools"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/setup.py"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@abstractmethod"
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"

@@ -1,0 +1,62 @@
+uuid: 4c4b60a0-df26-4b08-9bcf-1f871d5cfcde
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.survey_question.field_question_long_description
+    - field.field.taxonomy_term.survey_question.field_question_short_name
+    - field.field.taxonomy_term.survey_question.field_question_text
+    - field.field.taxonomy_term.survey_question.field_question_type
+    - field.field.taxonomy_term.survey_question.field_section
+    - taxonomy.vocabulary.survey_question
+  module:
+    - options
+    - text
+_core:
+  default_config_hash: fkihz_mR7u915jxIlJEJo8cxhMpU_68j7VjUAzEjwVM
+id: taxonomy_term.survey_question.default
+targetEntityType: taxonomy_term
+bundle: survey_question
+mode: default
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_question_long_description:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_question_short_name:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_question_text:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_question_type:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 6
+    region: content
+hidden:
+  field_section: true
+  search_api_excerpt: true

@@ -1,0 +1,9 @@
+uuid: b300d462-4c64-4b3b-a94f-53d1d90f473a
+langcode: en
+status: true
+dependencies: {  }
+name: 'UN Sustainable Development Goals'
+vid: un_sdgs
+description: 'These are the official UN SDGs.'
+weight: 0
+new_revision: true

@@ -1,0 +1,41 @@
+{#
+  UNESCO Open Science Portal - Funding Section
+  
+  Variables required (from parent context):
+  - metadata.funding
+#}
+
+<div class="unesco-section collapsed" id="unesco-funding-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-funding-section')">
+    <h3>
+      <img src="/static/images/funding.png" alt="Funding" style="width:1.2em;height:1.2em;vertical-align:middle;margin-right:6px;">
+      {{ _('Funding') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    <div class="unesco-section-subheading">
+      {{ _('Financial Support') }}
+    </div>
+    <div class="unesco-list">
+      {%- for funding_item in metadata.funding -%}
+      <div class="unesco-list-item">
+        <span class="unesco-list-text" title="{{ funding_item.funder.name }}{% if funding_item.award and funding_item.award.number %} — Grant: {{ funding_item.award.number }}{% endif %}">
+          <img src="/static/images/fundling_list.png" alt="" style="width:1em;height:1em;vertical-align:middle;margin-right:5px;">
+          {{ funding_item.funder.name }}
+          {%- if funding_item.award and funding_item.award.number -%}
+          <span class="unesco-list-subtext"> — Grant: {{ funding_item.award.number }}</span>
+          {%- endif -%}
+        </span>
+        <a href="/search?q=metadata.funding.funder.name:{{ funding_item.funder.name | urlencode }}" 
+           class="unesco-find-more-btn"
+           title="{{ _('Read more records funded by') }} {{ funding_item.funder.name }}">
+          {{ _('Read more') }} <i class="search icon"></i>
+        </a>
+      </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>

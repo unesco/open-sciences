@@ -1,0 +1,86 @@
+{#
+  UNESCO Open Science Portal - Cited By Section
+  
+  Variables required (from parent context):
+  - lens_citations (JSON string with count, items)
+  - lens_id (for Lens.org links)
+#}
+
+{# Extract count from JSON: {"count": 6, ...} #}
+{%- set cit_count = 0 -%}
+{%- if '"count":' in lens_citations -%}
+  {%- set cit_count_str = lens_citations.split('"count":')[1].split(',')[0].strip() -%}
+  {%- set cit_count = cit_count_str | int -%}
+{%- endif -%}
+
+{# Parse items from JSON #}
+{%- set cit_items = namespace(list=[]) -%}
+{%- if '"items":' in lens_citations -%}
+  {%- for item in lens_citations.split('{') -%}
+    {%- if '"lens_id":' in item -%}
+      {%- set item_lens_id = item.split('"lens_id":')[1].split('"')[1] if '"lens_id":' in item else '' -%}
+      {%- if item_lens_id -%}
+        {%- set _ = cit_items.list.append({'lens_id': item_lens_id}) -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+<div class="unesco-section collapsed" id="unesco-citations-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-citations-section')">
+    <h3>
+      <i class="quote right icon"></i>
+      {{ _('Scholarly Citations') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    {%- if cit_items.list -%}
+    <div style="margin-bottom: 10px;">
+      <span style="color: #333; font-size: 0.82em; font-weight: 600; padding: 3px 10px; border-radius: 4px;">
+        {{ _('Cited by other scholarly works') }}
+      </span>
+    </div>
+    <div class="unesco-list">
+      {%- for cit in cit_items.list[:5] -%}
+      <div class="unesco-list-item">
+        <span class="unesco-list-text" title="{{ cit.lens_id }}">{{ cit.lens_id }}</span>
+        <a href="https://www.lens.org/lens/scholar/article/{{ cit.lens_id }}/main"
+           class="unesco-find-more-btn"
+           title="{{ _('View on Lens.org') }}"
+           target="_blank" rel="noopener noreferrer">
+          {{ _('Read more') }} <i class="external alternate icon"></i>
+        </a>
+      </div>
+      {%- endfor -%}
+    </div>
+    <div class="unesco-info-box" style="margin-top: 12px; text-align: center;">
+      <small>
+        <i class="info circle icon"></i>
+        {{ _('Showing first') }} <strong>{{ [cit_items.list|length, 5] | min }}</strong> {{ _('of') }} <strong>{{ cit_count }}</strong> {{ _('scholarly citations.') }}
+      </small>
+      {%- if lens_id -%}
+      <div style="margin-top: 8px;">
+        <button type="button" class="unesco-download-btn" onclick="downloadLensExport(this, 'citations', '{{ lens_id }}')" title="{{ _('Download all citations as CSV') }}">
+          <i class="download icon"></i> {{ _('Download all') }}
+        </button>
+      </div>
+      {%- endif -%}
+    </div>
+    {%- else -%}
+    <div class="unesco-info-box" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <small>
+        <i class="info circle icon"></i>
+        {{ _('This article is cited by') }} <strong>{{ cit_count }}</strong> {{ _('scholarly works') }}.
+      </small>
+      {%- if lens_id -%}
+      <button type="button" class="unesco-download-btn" onclick="downloadLensExport(this, 'citations', '{{ lens_id }}')" title="{{ _('Download all citations as CSV') }}">
+        <i class="download icon"></i> {{ _('Download all') }}
+      </button>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+  </div>
+</div>

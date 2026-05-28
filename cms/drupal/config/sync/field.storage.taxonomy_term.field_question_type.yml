@@ -1,0 +1,29 @@
+uuid: 7d4e2a9f-3c8b-4e1d-a5f2-8c3b1e9d5f2a
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+    - taxonomy
+_core:
+  default_config_hash: 23yUViHSe65KhR1ph6-Cyu82EqSNfCDal1RfvuB36fE
+id: taxonomy_term.field_question_type
+field_name: field_question_type
+entity_type: taxonomy_term
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: Open
+      label: Open
+    -
+      value: Closed
+      label: Closed
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

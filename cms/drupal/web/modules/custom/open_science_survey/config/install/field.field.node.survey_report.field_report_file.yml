@@ -1,0 +1,27 @@
+uuid: e966522d-c2dc-41b2-8f56-5620e19677ac
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_report_file
+    - node.type.survey_report
+  module:
+    - file
+id: node.survey_report.field_report_file
+field_name: field_report_file
+entity_type: node
+bundle: survey_report
+label: 'Report file'
+description: 'Upload the original report file submitted by the country.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'txt pdf docx doc odt'
+  max_filesize: ''
+  description_field: false
+field_type: file

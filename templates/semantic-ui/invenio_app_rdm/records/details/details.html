@@ -1,0 +1,171 @@
+{#
+  Custom override of details.html to handle Lens.org custom fields specially
+  This template renders Lens.org section with full-width layout
+#}
+{% from "invenio_app_rdm/records/macros/detail.html" import show_files_preview, show_record_management_menu, show_detail, show_list, show_funding, show_location, show_license, show_dates, show_section_custom_fields %}
+
+{# Identifiers #}
+{% if record_ui["pids"] %}
+  {# Check if there are any non-oai PIDs to display #}
+  {% set has_visible_pids = namespace(value=false) %}
+  {% for scheme, pid in record_ui["pids"].items() %}
+    {% if scheme != "oai" %}
+      {% set has_visible_pids.value = true %}
+    {% endif %}
+  {% endfor %}
+  
+  {% if has_visible_pids.value %}
+    <div class="ui grid">
+      <div class="sixteen wide mobile four wide tablet three wide computer column">
+        <h3 class="ui header">{{ _('Identifiers') }}</h3>
+      </div>
+      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+        <dl class="details-list">
+          {% for scheme, pid in record_ui["pids"].items() %}
+            {% if scheme != "oai" %}
+              <dt class="ui tiny header">{{ pid["provider"]["display_label"] or pid["provider"]["pid_label"] or scheme | upper }}</dt>
+              <dd>
+                <a class="external-url" href="{{ pid["provider"]["url"] }}" target="_blank" rel="noopener noreferrer">{{ pid["identifier"] }}</a>
+              </dd>
+            {% endif %}
+          {% endfor %}
+        </dl>
+      </div>
+    </div>
+    <div class="ui divider"></div>
+  {% endif %}
+{% endif %}
+
+{# Contributors #}
+{% if metadata.contributors %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Contributors') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_detail(metadata.contributors, 'person_or_org') }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Subjects - Card Style #}
+{# Moved to custom_fields_panel.html #}
+
+{# Languages #}
+{% if metadata.languages %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Languages') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_list(metadata.languages, 'title_l10n') }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Sizes #}
+{% if metadata.sizes %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Sizes') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_list(metadata.sizes) }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Formats #}
+{% if metadata.formats %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Formats') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_list(metadata.formats) }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Version #}
+{% if metadata.version %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Version') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        <dd>{{ metadata.version }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# === LENS.ORG BADGE/TAG === #}
+{% include "invenio_app_rdm/records/details/partials/_lens_id.html" %}
+
+{# === UNESCO CUSTOM FIELDS PANEL (Publisher, Related, Funding, Lens.org fields) === #}
+{% include "invenio_app_rdm/records/details/partials/_panel.html" %}
+
+{# Locations #}
+{% if metadata.locations %}
+  {% if metadata.locations.features %}
+    <div class="ui grid">
+      <div class="sixteen wide mobile four wide tablet three wide computer column">
+        <h3 class="ui header">{{ _('Locations') }}</h3>
+      </div>
+      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+        <dl class="details-list">
+          {{ show_location(metadata.locations.features) }}
+        </dl>
+      </div>
+    </div>
+    <div class="ui divider"></div>
+  {% endif %}
+{% endif %}
+
+{# License #}
+{% if metadata.rights %}
+  <div class="ui grid">
+    <div class="sixteen wide mobile four wide tablet three wide computer column">
+      <h3 class="ui header">{{ _('Rights') }}</h3>
+    </div>
+    <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+      <dl class="details-list">
+        {{ show_license(metadata.rights) }}
+      </dl>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+{% endif %}
+
+{# Dates #}
+{% if record_ui["ui"]["dates"] %}
+  {% if record_ui["ui"]["dates"]|length > 0 %}
+    <div class="ui grid">
+      <div class="sixteen wide mobile four wide tablet three wide computer column">
+        <h3 class="ui header">{{ _('Dates') }}</h3>
+      </div>
+      <div class="sixteen wide mobile twelve wide tablet thirteen wide computer column">
+        <dl class="details-list">
+          {{ show_dates(record_ui["ui"]["dates"]) }}
+        </dl>
+      </div>
+    </div>
+    <div class="ui divider"></div>
+  {% endif %}
+{% endif %}
+

@@ -1,0 +1,10 @@
+uuid: d765cd71-c95d-45a8-926a-c8a763ac81f8
+langcode: en
+status: true
+dependencies: {  }
+id: author
+label: Author
+icon_uuid: null
+icon_default: null
+description: 'Information about an article author.'
+behavior_plugins: {  }

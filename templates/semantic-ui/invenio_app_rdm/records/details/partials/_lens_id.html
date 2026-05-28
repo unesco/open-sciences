@@ -1,0 +1,28 @@
+{#
+  Lens.org Badge/Tag Component
+  Shows a badge linking to Lens.org when lens:id is available
+  CSS styles are in assets/less/site/globals/unesco-panel.overrides
+#}
+
+{%- set lens_id = record_ui.custom_fields.get('lens:id') if record_ui.custom_fields else none -%}
+{%- if lens_id -%}
+<a href="https://www.lens.org/lens/scholar/article/{{ lens_id }}/main" 
+   class="lens-id-badge"
+   target="_blank" 
+   rel="noopener noreferrer"
+   title="{{ _('View on Lens.org') }}">
+  <span>Enabled by The Lens</span>
+  <svg class="lens-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+    <!-- Top line -->
+    <rect x="7" y="2" width="18" height="2" rx="1"/>
+    <!-- Bottom line -->
+    <rect x="7" y="28" width="18" height="2" rx="1"/>
+    <!-- Left line -->
+    <rect x="2" y="7" width="2" height="18" rx="1"/>
+    <!-- Right line -->
+    <rect x="28" y="7" width="2" height="18" rx="1"/>
+    <!-- Center circle -->
+    <circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
+  </svg>
+</a>
+{%- endif -%}

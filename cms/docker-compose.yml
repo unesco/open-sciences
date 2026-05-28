@@ -1,0 +1,39 @@
+services:
+
+  db:
+    image: postgres:16
+    restart: "unless-stopped"
+    environment:
+      - "POSTGRES_USER=${DB_USER:-drupal}"
+      - "POSTGRES_PASSWORD=${DB_PASSWORD:-drupal}"
+      - "POSTGRES_DB=${DB_NAME:-drupal}"
+    ports:
+      - "5432:5432"
+
+  cms:
+    build:
+      context: .
+    environment:
+      ENV: dev
+      DB_NAME: "${DB_NAME:-cms}"
+      DB_HOST: "${DB_HOST:-db}"
+      DB_PORT: "${DB_PORT:-5432}"
+      DB_PASSWORD: "${DB_PASSWORD:-drupal}"
+      DB_USER: "${DB_USER:-drupal}"
+      DB_DRIVER: "${DB_DRIVER:-pgsql}"
+      DRUPAL_HASH_SALT: dummy
+      CACHE_BACKEND: database
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/host/
+      - ./drupal/web/modules/custom/:/var/www/web/modules/custom/
+      - ./drupal/web/themes/custom/:/var/www/web/themes/custom/
+      - ./drupal/config/:/var/www/config/
+    depends_on:
+      - db
+
+# volumes:
+#   db_data: {}
+#   drupal_sites_data: {}
+#   drupal_private_data: {}

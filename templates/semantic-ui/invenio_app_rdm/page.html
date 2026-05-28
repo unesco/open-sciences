@@ -1,0 +1,47 @@
+{%- extends "invenio_theme/page.html" %} 
+
+{%- block head_meta %}
+{{ super() }}
+{%- include "invenio_app_rdm/_gtm_head.html" %}
+{%- endblock head_meta %}
+
+{%- block head_links %} 
+{{ super() }}
+<!-- Import Inter font from Google Fonts - UNESCO Official Font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Custom UNESCO favicon -->
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href="{{ url_for('static', filename='images/favicon.ico') }}"
+/>
+<link
+  rel="alternate icon"
+  href="{{ url_for('static', filename='images/favicon.ico') }}"
+/>
+<link
+  rel="mask-icon"
+  href="{{ url_for('static', filename='images/favicon.ico') }}"
+  color="#0073b7"
+/>
+{%- endblock head_links %}
+
+{%- block body_inner %}
+{%- include "invenio_app_rdm/_gtm_body.html" %}
+{{ super() }}
+
+<!-- Jira Issue Collector (only loaded on allowed hosts) -->
+<script type="text/javascript">
+  var JIRA_COLLECTOR_ALLOWED_HOSTS = ["open-science.dev.unesco.org", "127.0.0.1"];
+  if (JIRA_COLLECTOR_ALLOWED_HOSTS.indexOf(window.location.hostname) !== -1) {
+    var s = document.createElement("script");
+    s.type = "text/javascript";
+    s.src = "https://unicc.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/150dpd/b/9/c95134bc67d3a521bb3f4331beb9b804/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-GB&collectorId=bb75cf05";
+    document.body.appendChild(s);
+  }
+</script>
+<!-- End Jira Issue Collector -->
+
+{%- endblock body_inner %}

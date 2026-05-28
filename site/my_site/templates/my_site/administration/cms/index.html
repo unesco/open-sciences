@@ -1,0 +1,12 @@
+{%- extends config.ADMINISTRATION_BASE_TEMPLATE %} {%- block css %} {{ super()
+}} {{ webpack['cms-styles.css'] }} {%- endblock %} {%- block page_title %}
+<div class="ui grid">
+  <div class="column twelve wide">
+    <h1 class="ui header">{{ title }}</h1>
+  </div>
+</div>
+<div class="ui divider" aria-hidden="true"></div>
+{%- endblock page_title %} {%- block admin_page_content %}
+<div id="cms-root"></div>
+{%- endblock admin_page_content %} {%- block javascript %} {{ super() }} {{
+webpack['cms.js'] }} {%- endblock %}

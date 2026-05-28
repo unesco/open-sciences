@@ -1,0 +1,23 @@
+uuid: 8a1f9e3d-6c4a-4b2f-d7e1-5c8a2f9d4b6e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_region
+    - taxonomy.vocabulary.countries
+  module:
+    - options
+_core:
+  default_config_hash: o5f-hAsV_nd_8yxiQEBvRQf9-4S_W-PNDt4vngcGmBk
+id: taxonomy_term.countries.field_region
+field_name: field_region
+entity_type: taxonomy_term
+bundle: countries
+label: Region
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,11 @@
+uuid: 690bde12-22c2-47ec-80e5-3566f16df702
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: '-2QgWkiR7YlwQ61pUNRaeyHjqMz6-KGwq7PcDKMVMPU'
+name: 'Survey Question'
+vid: survey_question
+description: null
+weight: 0
+new_revision: false

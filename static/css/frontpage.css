@@ -1,0 +1,1024 @@
+/* UNESCO Open Science Platform - Frontpage Styles */
+
+/* Header Navigation Styling */
+.outer-navbar .ui.menu {
+  padding: 32px 56px 0;
+}
+
+.outer-navbar .ui.menu .item {
+  padding: 0;
+}
+
+/* Responsive header navigation */
+@media only screen and (max-width: 991px) {
+  .outer-navbar .ui.menu {
+    padding: 20px 30px 0;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .outer-navbar .ui.menu {
+    padding: 15px 20px 0;
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .outer-navbar .navbar_nav {
+    flex-direction: column !important;
+    gap: 15px !important;
+    margin-top: 15px;
+  }
+}
+
+/* Introduction Section */
+.intro-section {
+  background-color: #f1f4f6;
+  padding: 24px 120px;
+  margin-top: -15px !important;
+}
+
+/* Remove default spacing from page body */
+#invenio-page-body {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Remove spacing from outer navbar wrapper */
+.outer-navbar {
+  margin-bottom: 0 !important;
+}
+
+.intro-content {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.intro-text {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #212121;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+}
+
+/* Highlights Section */
+.highlights-section {
+  background-color: #fff;
+  padding: 48px 0 64px;
+  overflow: hidden;
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #4c5054;
+  text-align: center;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  font-family: "Inter", sans-serif;
+}
+
+.section-subtitle {
+  font-size: 16px;
+  color: #4c5054;
+  text-align: center;
+  margin-bottom: 40px;
+  line-height: 1.6;
+  font-family: "Inter", sans-serif;
+}
+
+.section-title-white {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 8px;
+  line-height: 36px;
+  font-family: "Inter", sans-serif;
+}
+
+.section-subtitle-white {
+  font-size: 20px;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 40px;
+  line-height: 1.6;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+}
+
+/* Swiper Highlights Carousel */
+.highlightsSwiper {
+  width: 100%;
+  padding: 20px 0 60px 0;
+  overflow: hidden;
+}
+
+.highlightsSwiper .swiper-slide {
+  height: auto;
+  display: flex;
+}
+
+.highlightsSwiper .swiper-pagination {
+  bottom: 20px;
+}
+
+/* Swiper Nav Wrapper */
+.swiper-nav-wrapper {
+  position: relative;
+}
+
+/* Highlights arrows */
+.highlightsSwiper-prev,
+.highlightsSwiper-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #0073b7;
+  color: #0073b7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 0.2s, color 0.2s;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.highlightsSwiper-prev {
+  left: -20px;
+}
+
+.highlightsSwiper-next {
+  right: -20px;
+}
+
+.highlightsSwiper-prev:hover,
+.highlightsSwiper-next:hover {
+  background: #0073b7;
+  color: #fff;
+}
+
+.highlightsSwiper-prev::after,
+.highlightsSwiper-next::after {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.highlightsSwiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: #ddd;
+  opacity: 1;
+}
+
+.highlightsSwiper .swiper-pagination-bullet-active {
+  background: #0073b7;
+}
+
+/* ========================================
+   Highlight Card Component - Figma Design
+   ======================================== */
+
+.highlight-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #f1f4f6;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.highlight-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Image */
+.highlight-image {
+  width: 100%;
+  height: 144px;
+  min-height: 144px;
+  max-height: 144px;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Card Content */
+.highlight-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px;
+  gap: 24px;
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  background: #f1f4f6;
+}
+
+/* Tags */
+.highlight-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100% !important;
+}
+
+.highlight-tag {
+  display: inline-block;
+  padding: 5px 14px !important;
+  border-radius: 5px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  border: 1px solid #dadada !important;
+  color: #4c5054;
+  background: #fafafa !important;
+  max-width: 100% !important;
+  word-break: break-word !important;
+}
+
+
+/* Text Wrapper */
+.highlight-text-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Number/Statistic */
+.highlight-number {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 40px;
+  line-height: 48px;
+  color: #212121;
+}
+
+/* Description Text */
+.highlight-description {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 150%;
+  color: #212121;
+  margin: 0;
+}
+
+/* Button */
+.highlight-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  gap: 10px;
+  height: 40px;
+  border: 1px solid #0077d4;
+  border-radius: 24px;
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.highlight-button span {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: #0077d4;
+  transition: color 0.2s ease;
+}
+
+.highlight-button-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.highlight-button-icon path {
+  fill: #0077d4;
+  transition: fill 0.2s ease;
+}
+
+/* Button Hover State */
+.highlight-button:hover {
+  background: #0077d4;
+  text-decoration: none;
+}
+
+.highlight-button:hover span {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.highlight-button:hover .highlight-button-icon path {
+  fill: #ffffff;
+}
+
+/* Responsive adjustments */
+@media only screen and (max-width: 1200px) {
+  .highlight-card {
+    height: auto;
+  }
+
+  .highlight-number {
+    font-size: 36px;
+    line-height: 44px;
+  }
+}
+
+@media only screen and (max-width: 991px) {
+  .highlight-card {
+    height: auto;
+  }
+
+  .highlight-number {
+    font-size: 32px;
+    line-height: 40px;
+  }
+
+  .highlight-content {
+    padding: 20px;
+    gap: 20px;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .highlight-card {
+    height: auto;
+  }
+
+  .highlight-image {
+    height: 160px;
+    min-height: 160px;
+    max-height: 160px;
+  }
+
+  .highlight-number {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .highlight-description {
+    font-size: 14px;
+  }
+
+  .highlight-content {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+/* Research Family Section */
+.research-family-section {
+  background: #0077d4;
+  padding: 60px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.research-family-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/static/images/unesco.png");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+/* Swiper Research Family Carousel */
+.researchSwiper {
+  width: 100%;
+  padding: 20px 0 60px 0;
+  overflow: hidden;
+}
+
+.researchSwiper .swiper-slide {
+  height: auto;
+}
+
+.researchSwiper .swiper-pagination {
+  bottom: 20px;
+}
+
+/* Research arrows */
+.researchSwiper-prev,
+.researchSwiper-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #0073b7;
+  color: #0073b7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 0.2s, color 0.2s;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.researchSwiper-prev {
+  left: -20px;
+}
+
+.researchSwiper-next {
+  right: -20px;
+}
+
+.researchSwiper-prev:hover,
+.researchSwiper-next:hover {
+  background: #0073b7;
+  color: #fff;
+}
+
+.researchSwiper-prev::after,
+.researchSwiper-next::after {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.researchSwiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  opacity: 1;
+}
+
+.researchSwiper .swiper-pagination-bullet-active {
+  background: #fff;
+}
+
+/* ========================================
+   Research Card Component - Figma Design
+   ======================================== */
+
+.research-card {
+  position: relative;
+  width: 100%;
+  height: 440px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.research-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #212121;
+  opacity: 0.4;
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.research-card:hover .research-card-overlay {
+  opacity: 0.5;
+}
+
+.research-card-content {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  z-index: 1;
+}
+
+.research-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  width: 209px;
+}
+
+.research-card-title {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 24px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.research-card-button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 24px;
+  gap: 10px;
+  background: #0077d4;
+  border-radius: 24px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.research-card-button:hover {
+  background: #005fa3;
+  text-decoration: none;
+}
+
+.research-card-button span {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 16px;
+  color: #ffffff;
+}
+
+/* Responsive adjustments for research cards */
+@media only screen and (max-width: 991px) {
+  .research-card {
+    height: 380px;
+  }
+
+  .research-card-text {
+    width: 180px;
+  }
+
+  .research-card-title {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .research-card {
+    height: 340px;
+  }
+
+  .research-card-content {
+    top: 20px;
+    left: 20px;
+    gap: 20px;
+  }
+
+  .research-card-text {
+    width: 160px;
+  }
+
+  .research-card-title {
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .research-card-button {
+    padding: 10px 20px;
+  }
+
+  .research-card-button span {
+    font-size: 13px;
+  }
+}
+
+/* ========================================
+   Plain Language Summary (PLS) Card
+   ======================================== */
+
+.pls-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pls-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+  transform: translateY(-2px);
+}
+
+.pls-card-image {
+  width: 100%;
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+.pls-card-body {
+  padding: 20px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.pls-badge {
+  display: inline-block;
+  background: #e8f4fd;
+  color: #0073b7;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.pls-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.pls-card-desc {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+  /* clamp to 3 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pls-card-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 20px;
+  background: #0073b7;
+  color: #fff;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  width: fit-content;
+  margin-top: 4px;
+  transition: background 0.2s ease;
+}
+
+.pls-card-btn:hover {
+  background: #005a8e;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Section modifier for PLS swiper background */
+.pls-section {
+  /* inherits research-family-section background — no change needed */
+}
+
+/* PLS empty / error state */
+.pls-empty {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1rem;
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* PLS skeleton loader */
+.pls-card--skeleton {
+  pointer-events: none;
+}
+
+.pls-skeleton-img {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #ebebeb 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: pls-shimmer 1.4s infinite;
+  flex-shrink: 0;
+}
+
+.pls-skeleton-line {
+  display: block;
+  height: 14px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #ebebeb 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: pls-shimmer 1.4s infinite;
+}
+
+@keyframes pls-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Skeleton loader for research cards */
+.research-card .skeleton {
+  width: 80%;
+  height: 20px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #ebebeb 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive */
+    height: 160px;
+  }
+
+  .pls-card-body {
+    padding: 16px 16px 20px;
+  }
+
+  .pls-card-title {
+    font-size: 15px;
+  }
+}
+
+/* Dashboards Section */
+.dashboards-section {
+  background-color: #fff;
+  padding: 32px 0;
+  border-top: 1px solid #d5dadd;
+}
+
+.dashboards-text-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.dashboards-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #212121;
+  margin-bottom: 16px;
+  line-height: 1.3;
+  font-family: "Inter", sans-serif;
+}
+
+.dashboards-description {
+  font-size: 16px;
+  color: #212121;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  font-family: "Inter", sans-serif;
+}
+
+.dashboards-section .button {
+  background: #0077d4 !important;
+  color: #fff !important;
+  border-radius: 24px !important;
+  padding: 10px 20px !important;
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboards-section .button:hover {
+  background: #005a9e !important;
+}
+
+.dashboards-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboards-map img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Partners Section */
+.partners-section {
+  background-color: #fff;
+  padding: 64px 120px 0 120px;
+  position: relative;
+  margin-bottom:-45px;
+}
+
+.partners-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 120px;
+  right: 120px;
+  height: 1px;
+  background: #d5dadd;
+}
+
+.partners-section .ui.container {
+  max-width: 100% !important;
+}
+
+.partners-wrapper {
+  background-color: #f1f4f6;
+  padding: 70px 60px;
+  border-radius: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.partners-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #212121;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  font-family: "Inter", sans-serif;
+}
+
+.partners-subtitle {
+  font-size: 16px;
+  color: #4c5054;
+  margin-bottom: 30px;
+  line-height: 1.5;
+  font-family: "Inter", sans-serif;
+}
+
+.partners-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+  flex-wrap: wrap;
+}
+
+.partner-logo {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0.8;
+}
+
+.partner-logo:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 991px) {
+  .section-title,
+  .section-title-white {
+    font-size: 28px;
+  }
+
+  .section-subtitle,
+  .section-subtitle-white {
+    font-size: 15px;
+  }
+
+  .highlight-number {
+    font-size: 28px;
+  }
+
+  .dashboards-title {
+    font-size: 28px;
+  }
+
+  .dashboards-description {
+    font-size: 15px;
+  }
+
+  .carousel-nav {
+    width: 35px;
+    height: 35px;
+  }
+
+  .partners-logos {
+    gap: 40px;
+  }
+
+  .partner-logo {
+    height: 50px;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .intro-section,
+  .highlights-section,
+  .research-family-section {
+    padding: 40px 0;
+  }
+
+  .intro-text {
+    font-size: 15px;
+  }
+
+  /* .dashboards-section {
+    padding: 50px 0;
+  } */
+
+  .section-title,
+  .section-title-white {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .section-subtitle,
+  .section-subtitle-white {
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
+
+  .highlight-card {
+    margin-bottom: 20px;
+  }
+
+  .research-family-card {
+    margin-bottom: 20px;
+  }
+
+  .research-family-carousel {
+    padding: 0 30px;
+  }
+
+  .carousel-nav {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dashboards-title {
+    font-size: 24px;
+    text-align: left;
+  }
+
+  .dashboards-description {
+    text-align: left;
+  }
+
+  .ui.button.large {
+    margin: 0 auto;
+    display: block;
+    width: fit-content;
+  }
+
+  /* Partners Section Mobile Improvements */
+  .partners-section {
+    padding: 40px 16px !important;
+    margin-top:-17px !important;
+  }
+
+  .partners-wrapper {
+    padding: 32px 20px !important;
+    border-radius: 8px;
+  }
+
+  .partners-title {
+    font-size: 20px !important;
+  }
+
+  .partners-subtitle {
+    font-size: 14px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .partners-logos {
+    gap: 30px;
+    flex-direction: column;
+  }
+
+  .partner-logo {
+    height: 50px;
+    max-width: 80%;
+  }
+}

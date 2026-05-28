@@ -1,0 +1,95 @@
+{#
+  UNESCO Open Science Portal - Chemical Substances Section
+  
+  Variables required (from parent context):
+  - lens_chemicals (JSON string with array of chemicals)
+#}
+
+{# Parse JSON string to extract chemicals with full details #}
+{%- set chem = namespace(items=[]) -%}
+
+{%- if '"substance_name":' in lens_chemicals -%}
+  {%- for item in lens_chemicals.split('{') -%}
+    {%- if '"substance_name":' in item -%}
+      {# Extract substance_name #}
+      {%- set name_part = item.split('"substance_name":')[1].split(',')[0].split('}')[0].strip() -%}
+      {%- set substance_name = name_part.replace('"', '').strip() -%}
+      
+      {# Extract registry_number (CAS number) if available #}
+      {%- set registry_number = '' -%}
+      {%- if '"registry_number":' in item -%}
+        {%- set reg_part = item.split('"registry_number":')[1].split(',')[0].split('}')[0].strip() -%}
+        {%- set registry_number = reg_part.replace('"', '').strip() -%}
+      {%- endif -%}
+      
+      {# Extract mesh_id if available #}
+      {%- set mesh_id = '' -%}
+      {%- if '"mesh_id":' in item -%}
+        {%- set id_part = item.split('"mesh_id":')[1].split(',')[0].split('}')[0].strip() -%}
+        {%- set mesh_id = id_part.replace('"', '').strip() -%}
+      {%- endif -%}
+      
+      {%- if substance_name -%}
+        {%- set _ = chem.items.append({
+          'substance_name': substance_name,
+          'registry_number': registry_number,
+          'mesh_id': mesh_id
+        }) -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- if chem.items | length > 0 -%}
+<div class="unesco-section collapsed" id="unesco-chemicals-section">
+  <div class="unesco-section-header" onclick="toggleUnescoSection('unesco-chemicals-section')">
+    <h3>
+      <i class="flask icon"></i>
+      {{ _('Chemical Substances') }}
+    </h3>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <!-- <span class="badge">{{ chem.items | length }}</span> -->
+      <i class="chevron down icon chevron"></i>
+    </div>
+  </div>
+  <div class="unesco-section-content">
+    <div class="unesco-chemicals-grid">
+      {%- for chemical in chem.items -%}
+      <div class="unesco-chemical-card">
+        <div class="unesco-chemical-name">
+          <i class="flask icon"></i>
+          {{ chemical.substance_name }}
+        </div>
+        {%- if chemical.registry_number -%}
+        <div class="unesco-chemical-detail">
+          <span class="unesco-chemical-label">CAS:</span>
+          <a href="https://pubchem.ncbi.nlm.nih.gov/#query={{ chemical.registry_number | urlencode }}" 
+             target="_blank" rel="noopener noreferrer"
+             class="unesco-chemical-link">
+            {{ chemical.registry_number }}
+            <i class="external alternate icon"></i>
+          </a>
+        </div>
+        {%- endif -%}
+        {%- if chemical.mesh_id -%}
+        <div class="unesco-chemical-detail">
+          <a href="https://meshb.nlm.nih.gov/record/ui?ui={{ chemical.mesh_id }}" 
+             target="_blank" rel="noopener noreferrer"
+             class="unesco-chemical-mesh-link">
+            <i class="tag icon"></i>
+            {{ chemical.mesh_id }}
+          </a>
+        </div>
+        {%- endif -%}
+      </div>
+      {%- endfor -%}
+    </div>
+    <div class="unesco-info-box" style="margin-top: 16px; background: #e8f8f5;">
+      <small>
+        <i class="info circle icon" style="color: #27ae60;"></i>
+        <strong>{{ chem.items | length }}</strong> {{ _('chemical') }} {{ _('substances') if chem.items | length > 1 else _('substance') }} {{ _('identified from Medical Subject Headings (MeSH).') }}
+      </small>
+    </div>
+  </div>
+</div>
+{%- endif -%}

@@ -1,0 +1,17 @@
+uuid: a9f168be-7958-443d-8013-acabf01da456
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: 'Plain language summary'
+type: plain_language_summary
+description: 'A plain language summary is a low-level description of a high-level technical article, making it accessible for wider audience.'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

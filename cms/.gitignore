@@ -1,0 +1,11 @@
+*/.env
+/.vscode
+/data/*
+/logs/*
+.DS_Store
+.idea
+*.iml
+
+*/vendor
+
+architecture_design/.structurizr

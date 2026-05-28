@@ -1,0 +1,31 @@
+uuid: da1e7d8a-d6e6-42cf-88fb-0fafbcfea8fc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_publication_authors
+    - node.type.plain_language_summary
+    - paragraphs.paragraphs_type.author
+  module:
+    - entity_reference_revisions
+id: node.plain_language_summary.field_publication_authors
+field_name: field_publication_authors
+entity_type: node
+bundle: plain_language_summary
+label: 'Original publication authors'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    target_bundles:
+      author: author
+    negate: 0
+    target_bundles_drag_drop:
+      author:
+        weight: 2
+        enabled: true
+field_type: entity_reference_revisions

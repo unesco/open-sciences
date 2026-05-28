@@ -1,0 +1,12 @@
+uuid: fa178027-f17c-4b9f-890c-1dc31e2c0f45
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: YC0I-T0WZt7j_cOxtbqV-Vl1Ynjtbbl3Wfw-JdNmz2M
+id: open_science_survey
+label: 'Open Science Survey'
+description: 'Migrations for Open Science Survey module'
+source_type: null
+module: null
+shared_configuration: null

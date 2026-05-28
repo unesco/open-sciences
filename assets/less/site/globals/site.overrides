@@ -1,0 +1,763 @@
+/*
+ * Open Science Portal Theme Overrides
+ */
+
+/* Import UNESCO panel styles */
+@import 'unesco-panel.overrides';
+
+/* Inter font is loaded via <link> tag in page.html template
+   This avoids webpack build failures when network is unavailable */
+
+/* Apply Inter font globally */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headers with Inter font */
+h1, h2, h3, h4, h5, h6,
+.ui.header,
+.header {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Navigation and menu items */
+.ui.menu,
+.ui.menu .item,
+.ui.navbar,
+.navbar-nav,
+.navbar-brand {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 500;
+}
+
+/* Buttons with Inter font */
+.ui.button,
+.btn {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Forms and inputs */
+.ui.input input,
+.ui.form input,
+.ui.form textarea,
+.ui.form select,
+input,
+textarea,
+select {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 400;
+}
+
+/* Footer text with Inter */
+#footer,
+.footer-bottom,
+.sub-footer {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 400;
+}
+
+/* Cards and content areas */
+.ui.card,
+.ui.segment {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Custom header styling */
+.theme-header {
+  background: linear-gradient(135deg, #0073b7 0%, #2ea3d9 100%);
+  box-shadow: 0 2px 4px rgba(0, 115, 183, 0.2);
+}
+
+/* Custom footer styling */
+.footer {
+  background: linear-gradient(to bottom, #0073b7, #003366);
+}
+
+/* UNESCO accent elements - using blue for better brand consistency */
+.unesco-accent {
+  color: #0073b7 !important;
+}
+
+/* Search button and primary buttons with UNESCO blue */
+.ui.primary.button,
+.ui.primary.buttons .button,
+.ui.search .ui.button {
+  background-color: #0073b7 !important;
+  color: white !important;
+}
+
+.ui.primary.button:hover,
+.ui.primary.buttons .button:hover,
+.ui.search .ui.button:hover {
+  background-color: #005a93 !important;
+}
+
+/* Custom styling for search results */
+.search-results .ui.card {
+  border-left: 3px solid #009639;
+}
+
+/* Logo styling */
+.navbar-brand img {
+  max-height: 50px;
+  width: auto;
+}
+
+/* Homepage section styling */
+.section-title {
+  color: #212121 !important;
+  font-weight: 700;
+  margin-bottom: 8px !important;
+}
+
+.section-subtitle {
+  color: #4a4a4a;
+  line-height: 1.6;
+}
+
+/* Homepage improvements */
+.get-started-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.brought-to-you-section {
+  background-color: #f8f9fa;
+}
+
+/* Card hover effects */
+.brought-to-you-section .column > div {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.brought-to-you-section .column > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 115, 183, 0.15) !important;
+}
+
+/* Footer customizations */
+.page-footer {
+  background-color: #f8f9fa;
+  border-top: 2px solid #0073b7;
+}
+
+.footer-bottom, .sub-footer {
+  background-color: #0073b7 !important;
+  color: white;
+}
+
+.footer-bottom a, .sub-footer a {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.footer-bottom a:hover, .sub-footer a:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+/* Card hover animations */
+.ui.card {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* Button improvements */
+.ui.button {
+  transition: all 0.3s ease;
+}
+
+.ui.button:hover {
+  /* Remove translateY to prevent button lifting effect */
+}
+
+/* Icon color consistency */
+.ui.icon.button i {
+  color: white !important;
+}
+
+/* Search input styling */
+.ui.input input {
+  border-color: rgba(0, 115, 183, 0.3);
+}
+
+.ui.input input:focus {
+  border-color: #0073b7;
+  box-shadow: 0 0 0 2px rgba(0, 115, 183, 0.2);
+}
+
+/* Navbar improvements */
+.theme.header {
+  border-bottom: 3px solid rgba(0, 115, 183, 0.1);
+}
+
+/* Ensure search auto-suggestions appear above all other content */
+.outer-navbar,
+.invenio-header-container,
+header.theme.header {
+  overflow: visible !important;
+}
+
+.ui.search > .results {
+  z-index: 1000 !important;
+}
+
+#rdm-burger-toggle {
+  right: 0 !important;
+}
+
+/* Frontpage only: extra top offset for burger button */
+#header-background #rdm-burger-toggle {
+  margin-top: 15px !important;
+}
+
+
+#rdm-burger-toggle #rdm-burger-menu-icon {
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: none !important;
+}
+
+#rdm-burger-toggle #rdm-burger-menu-icon .navicon,
+#rdm-burger-toggle #rdm-burger-menu-icon .navicon::before,
+#rdm-burger-toggle #rdm-burger-menu-icon .navicon::after {
+  background: #ffffff !important;
+}
+
+/* Result-options row: add top spacing (all viewports) */
+.ui.grid > .row.result-options {
+  margin-top: 20px !important;
+}
+
+/* ==============================================
+   Search results page: top controls mobile fix
+   ============================================== */
+@media only screen and (max-width: 767px) {
+  /* Tighten gap between header and search controls */
+  .ui.relaxed.grid {
+    margin-top: -15px !important;
+  }
+
+  /* Make result-options row relative so filter icon can be absolute */
+  .ui.grid > .row.result-options {
+    position: relative !important;
+    margin-top: 20px !important;
+  }
+
+  /* Filter icon: absolute, top-left */
+  .ui.grid > .row.result-options > .column[class*="mobile"]:first-child {
+    position: absolute !important;
+    left: 0 !important;
+    top: 4px !important;
+    width: auto !important;
+    z-index: 2;
+    padding: 0 0 0 1rem !important;
+  }
+
+  /* Filter button: round, UNESCO blue bg, white icon */
+  .ui.grid > .row.result-options > .column[class*="mobile"]:first-child .ui.basic.icon.button {
+    background: #0077D4 !important;
+    color: #fafafa !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+  }
+
+  .ui.grid > .row.result-options > .column[class*="mobile"]:first-child .ui.basic.icon.button i.icon {
+    color: #fafafa !important;
+    margin: 0 !important;
+  }
+
+  /* Result options column: full width */
+  .ui.grid > .row.result-options > .column[class*="right floated"] {
+    width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Mobile sort dropdown sizing */
+  .unesco-sort-wrapper .ui.selection.dropdown {
+    min-width: 100px !important;
+    min-height: 36px !important;
+    font-size: 0.9rem !important;
+    padding: 8px 12px !important;
+  }
+
+  .unesco-sort-wrapper label {
+    font-size: 0.9rem !important;
+  }
+
+  /* Download button mobile */
+  .unesco-download-btn.ui.button i.icon {
+    color: #0077D4 !important;
+  }
+
+  .unesco-download-btn.ui.button:hover {
+    background-color: #0077D4 !important;
+    color: #fff !important;
+  }
+
+  .unesco-download-btn.ui.button:hover i.icon {
+    color: #fff !important;
+  }
+}
+
+
+/* Responsive improvements */
+@media only screen and (max-width: 768px) {
+  .section-title {
+    font-size: 24px !important;
+  }
+  
+  .get-started-section {
+    min-height: 60vh !important;
+    background-attachment: scroll;
+  }
+  
+  .brought-to-you-section .column {
+    margin-bottom: 1rem;
+  }
+  
+  .footer-bottom .grid {
+    text-align: center !important;
+  }
+  
+  .footer-bottom .right.aligned {
+    text-align: center !important;
+  }
+  
+  .ui.container {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+  }
+  
+  /* Fix mobile burger menu drawer overflow */
+  #invenio-menu {
+    max-width: 100vw !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    box-sizing: border-box !important;
+  }
+  
+  #invenio-menu .item,
+  #invenio-menu .menu,
+  #invenio-menu .item > * {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    word-wrap: break-word !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Allow search suggestions dropdown to overflow */
+  #invenio-menu .item.search-bar,
+  #invenio-menu .item.search-bar > *,
+  #invenio-menu .ui.search,
+  #invenio-menu .ui.search .results,
+  #invenio-menu .search-bar .ui.input,
+  #invenio-menu .invenio-search-bar {
+    overflow: visible !important;
+  }
+
+  /* Search suggestions dropdown z-index */
+  #invenio-menu .ui.search > .results,
+  .ui.search > .results,
+  .invenio-search-bar .results {
+    z-index: 1000 !important;
+    overflow: visible !important;
+  }
+  
+  /* Ensure drawer content has proper padding */
+  #invenio-menu.ui.menu {
+    padding: 1rem !important;
+  }
+  
+  /* Fix any wide elements in drawer */
+  #invenio-menu .search,
+  #invenio-menu .ui.input,
+  #invenio-menu input {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Footer spacing management */
+.invenio-page-body {
+  padding-bottom: 1.5rem !important; /* Space before footer for all pages */
+}
+
+/* Footer unification - remove all separations */
+#rdm-footer-element {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.footer-top {
+  box-shadow: none !important;
+  border: none !important;
+  margin-bottom: 0 !important;
+}
+
+.footer-bottom, .sub-footer {
+  box-shadow: none !important;
+  border-top: none !important;
+  margin-top: 0 !important;
+  border: none !important;
+}
+
+/* ====================
+   FIX: Remove white strip below header
+   ==================== */
+main#main,
+.invenio-page-body {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Fix for communities page - compensate for grid negative margin */
+.page-subheader-outer > .ui.grid {
+  margin-top: 0 !important;
+}
+
+.ui.container.page-subheader-outer,
+section#banners,
+#banners {
+  box-shadow: none !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border: none !important;
+}
+
+/* Remove any shadow/border from header area */
+header.theme.header,
+.invenio-header-container,
+.outer-navbar {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* ====================
+   FIX: Jump button spacing from footer (all pages)
+   ==================== */
+#jump-btn,
+.jump-to-top {
+  bottom: 20px !important;
+  margin-bottom: 1rem !important;
+  
+  background-color: #ffffff !important;
+  color: #0077D4 !important;
+  border: 1.5px solid #0077D4 !important;
+  box-shadow: none !important;
+  border-radius: 20px !important;
+  transition: all 0.2s ease !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  padding: 10px 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  
+  i.icon {
+    color: #0077D4 !important;
+    margin: 0 !important;
+  }
+  
+  &:hover {
+    background-color: #0077D4 !important;
+    color: #ffffff !important;
+    border-color: #0077D4 !important;
+    box-shadow: 0 2px 8px rgba(0, 119, 212, 0.25) !important;
+    
+    i.icon {
+      color: #ffffff !important;
+    }
+  }
+  
+  &:active {
+    background-color: #005fa3 !important;
+    border-color: #005fa3 !important;
+    color: #ffffff !important;
+  }
+  
+  &:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(0, 119, 212, 0.2) !important;
+  }
+}
+
+/* Ensure content doesn't touch footer */
+.ui.container > .ui.grid:last-child,
+.main-record-content,
+article {
+  margin-bottom: 1rem !important;
+}
+
+/* ====================
+   Search results - underline author names
+   ==================== */
+.item.creatibutors a,
+.item.creatibutors span {
+  text-decoration: underline !important;
+}
+
+/* ====================
+   Ant Design style for standard UI buttons (Export, etc.)
+   ==================== */
+/* ====================
+   Affiliations button - outlined blue pill
+   ==================== */
+.ui.button.affiliations-button {
+  border: 1.5px solid #0077D4 !important;
+  color: #0077D4 !important;
+  background: #ffffff !important;
+  border-radius: 24px !important;
+  padding: 10px 22px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  
+  i.chevron.icon {
+    transition: transform 0.25s ease !important;
+    transform: rotate(0deg) !important;
+    margin: 0 !important;
+    color: #0077D4 !important;
+  }
+  
+  &[aria-expanded="true"] i.chevron.icon {
+    transform: rotate(180deg) !important;
+  }
+  
+  &:hover, &:focus, &:active {
+    border-color: #0077D4 !important;
+    color: #0077D4 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+}
+
+.ui.button:not(.basic):not(.transparent):not(.jump-to-top):not(.labeled):not(.search):not(.affiliations-button) {
+  background-color: #ffffff !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  border: 1px solid #d9d9d9 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 6px !important;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+  font-weight: 400 !important;
+  
+  /* Icon color */
+  i.icon {
+    color: rgba(0, 0, 0, 0.85) !important;
+  }
+  
+  /* Hover state - Ant Design primary blue */
+  &:hover {
+    color: #1890ff !important;
+    border-color: #1890ff !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12) !important;
+    
+    i.icon {
+      color: #1890ff !important;
+    }
+  }
+  
+  /* Active/pressed state */
+  &:active {
+    color: #096dd9 !important;
+    border-color: #096dd9 !important;
+    background-color: #ffffff !important;
+  }
+  
+  /* Focus state */
+  &:focus {
+    outline: none !important;
+    border-color: #40a9ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+  }
+  
+  /* Disabled state */
+  &.disabled,
+  &:disabled {
+    background-color: #f5f5f5 !important;
+    border-color: #d9d9d9 !important;
+    color: rgba(0, 0, 0, 0.25) !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    
+    &:hover {
+      background-color: #f5f5f5 !important;
+      border-color: #d9d9d9 !important;
+      color: rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+}
+
+/* ====================
+   Button Groups - Fix visual issues
+   ==================== */
+.ui.buttons {
+  /* Remove extra border/shadow that creates rectangle effect */
+  box-shadow: none !important;
+  border: none !important;
+  
+  /* Fix button spacing in groups */
+  .button {
+    margin: 0 !important;
+    
+    /* First button - left rounded corners */
+    &:first-child {
+      border-top-left-radius: 6px !important;
+      border-bottom-left-radius: 6px !important;
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+    
+    /* Middle buttons - no rounded corners */
+    &:not(:first-child):not(:last-child) {
+      border-radius: 0 !important;
+      border-left: none !important;
+    }
+    
+    /* Last button - right rounded corners */
+    &:last-child {
+      border-top-right-radius: 6px !important;
+      border-bottom-right-radius: 6px !important;
+      border-top-left-radius: 0 !important;
+      border-bottom-left-radius: 0 !important;
+      border-left: none !important;
+    }
+  }
+}
+
+/* ====================
+   FIX: Basic button icon visibility
+   ==================== */
+/* Fix for copy-to-clipboard and other basic buttons with low contrast icons */
+.ui.basic.button,
+.ui.basic.buttons .button {
+  i.icon, i {
+    color: rgba(0, 0, 0, 0.87) !important;
+    opacity: 1 !important;
+  }
+  
+  &:hover {
+    i.icon, i {
+      color: #000 !important;
+    }
+  }
+}
+
+/* Specific fix for copy button */
+button.copy.button {
+  i.copy.icon {
+    color: rgba(0, 0, 0, 0.87) !important;
+    opacity: 1 !important;
+  }
+  
+  &:hover {
+    i.copy.icon {
+      color: #000 !important;
+    }
+  }
+}
+
+/* Compact spacing between facet cards - only in search sidebar */
+.sidebar-container .ui.card.facet,
+.search-filters .ui.card.facet,
+.facets .ui.card.facet,
+.custom-facets-container .ui.card.facet {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Custom facets container - compact layout */
+.custom-facets-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+
+.custom-facets-container > .ui.card,
+.custom-facets-container > .ui.card.borderless,
+.custom-facets-container > .ui.card.borderless.facet {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Override the 2em margin-bottom from .ui.card.borderless.facet>.content */
+.ui.card.borderless.facet > .content,
+.custom-facets-container .ui.card.borderless.facet > .content,
+.custom-facets-container > .ui.card > .content,
+.custom-facets-container > .ui.card.borderless > .content {
+  margin-bottom: 0 !important;
+  padding: 0.4rem 0.5rem !important;
+}
+
+.custom-facets-container > .ui.card .header,
+.custom-facets-container > .ui.card h2.header {
+  margin-bottom: 0.4rem !important;
+}
+
+/* Reset card margins for deposit form sidebar */
+#deposit-form .ui.card,
+.sidebar .ui.card.access-right,
+.deposit-sidebar .ui.card {
+  margin: 1rem 0 !important;
+}
+
+/* Fix page-subheader vertical alignment */
+.page-subheader-outer {
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+}
+
+.page-subheader {
+  display: flex;
+  align-items: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.page-subheader h1.ui.large.header {
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Jira trigger button styling */
+#atlwdg-trigger {
+  background-color: #0072bc !important;
+  color: #ffffff !important;
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 0 !important;
+  bottom: 5px;
+  right: 5px;
+  letter-spacing: 0.8px;
+}
+
+/* Jira modal primary button styling */
+.aui-button.aui-button-primary,
+.aui-button.aui-button-primary:visited {
+  background-color: #0072bc !important;
+  color: #ffffff !important;
+}

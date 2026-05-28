@@ -1,0 +1,12 @@
+# UNESCO Open Science Platform - Static Pages Configuration
+#
+# DEPRECATED: Static pages are now managed via the CMS system.
+# Use /administration/cms to manage pages instead.
+# The About page is now available at /pages/about
+#
+# This file is kept for reference only and will be removed in a future version.
+# ---
+# - url: /about
+#   title: About Open Science
+#   description: Learn about the open science movement and its global impact
+#   template: about.html

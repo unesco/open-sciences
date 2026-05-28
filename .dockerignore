@@ -1,0 +1,60 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development files
+.env
+.invenio
+.invenio.private
+celerybeat-schedule
+
+# Logs
+logs/
+*.log
+
+# Uploads (these should be in volumes)
+uploads/
+private/
+
+# Test files
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker files (no need to copy into image)
+docker-compose*.yml
+docker-services.yml
+Dockerfile
+.dockerignore
+
+# CMS Code
+cms/

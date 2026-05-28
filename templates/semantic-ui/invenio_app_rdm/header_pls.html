@@ -1,0 +1,115 @@
+{# -*- coding: utf-8 -*- Copyright (C) 2024-2025 UNESCO. Invenio App RDM is free
+software; you can redistribute it and/or modify it under the terms of the MIT
+License; see LICENSE file for more details. #}
+
+{#
+  Header for the Plain Language Summary detail page.
+
+  Reuses the same top navigation as the homepage (logo + CMS-driven nav links +
+  white divider), but stays transparent so it overlays the page's own hero
+  image. It deliberately omits the homepage's search hero — the PLS page renders
+  its own hero below.
+
+  Navigation links are loaded from the CMS API (/data/cms/public/header_frontpage)
+  with the markup below acting as a fallback, exactly like header_frontpage.html.
+#}
+
+{%- extends config.THEME_HEADER_TEMPLATE %}
+
+{#- No search field in the top bar. #}
+{%- block navbar_search %}{% endblock %}
+
+{%- block brand %}
+<a class="logo-link" href="/" style="display: flex; align-items: center;">
+  <img
+    id="header-logo"
+    src="/static/images/unesco-logo.svg"
+    alt="UNESCO"
+    style="height: 56px; margin-top: 25px;"
+  />
+</a>
+{%- endblock brand %}
+
+{%- block navbar_nav %}
+<!-- Desktop navigation - hidden on mobile -->
+<div id="header-nav-desktop" class="computer large screen widescreen only" style="display: flex; align-items: center; gap: 32px; flex: 1; justify-content: right; margin-right: 40px;">
+  <a href="/pages/about" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;">About</a>
+  <a href="https://www.unesco.org/en/natural-sciences" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;">Natural Sciences</a>
+  <a href="https://www.unesco.org/en/open-science" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; font-family: 'Inter'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;">Open Science</a>
+</div>
+
+<!-- Mobile navigation - shown only on mobile -->
+<div id="header-nav-mobile" class="mobile tablet only" style="display: flex; flex-direction: column; width: 100%; padding: 20px 0;">
+  <a href="/pages/about" class="item" style="color: #212121 !important; font-family: 'Inter'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none; border-bottom: 1px solid #e0e0e0;">About</a>
+  <a href="https://www.unesco.org/en/natural-sciences" target="_blank" rel="noopener noreferrer" class="item" style="color: #212121 !important; font-family: 'Inter'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none; border-bottom: 1px solid #e0e0e0;">UNESCO Natural Sciences Family</a>
+  <a href="https://www.unesco.org/en/open-science" target="_blank" rel="noopener noreferrer" class="item" style="color: #212121 !important; font-family: 'Inter'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none;">UNESCO Open Science</a>
+</div>
+{%- endblock navbar_nav %}
+
+{%- block navbar %}
+<!-- Transparent wrapper so the PLS hero shows through behind the header -->
+<div id="header-background" class="outer-navbar" style="background: transparent; position: relative;">
+  {{ super() }}
+
+  <!-- White divider line after header (same as homepage) -->
+  <div style="width: 95%; height: 1px; background: #FFFFFF; margin: 32px auto 0;"></div>
+</div>
+
+<!-- CMS Header navigation integration (same source as the homepage header) -->
+<script>
+(function() {
+  var lang = document.documentElement.lang || 'en';
+  fetch('/data/cms/public/header_frontpage?lang=' + lang)
+    .then(function(response) {
+      if (!response.ok) { throw new Error('Failed to fetch header data'); }
+      return response.json();
+    })
+    .then(function(result) {
+      var data = result.data || {};
+
+      // Update logo
+      var logo = document.getElementById('header-logo');
+      if (logo && data.logo) {
+        var logoPath = data.logo.startsWith('uploads/') ? '/' + data.logo : '/static/' + data.logo;
+        logo.src = logoPath;
+        logo.onerror = function() { this.onerror = null; this.src = '/static/images/unesco-logo.svg'; };
+      }
+
+      // Update navigation links (desktop + mobile)
+      if (data.navigation_links && Array.isArray(data.navigation_links)) {
+        var navDesktop = document.getElementById('header-nav-desktop');
+        var navMobile = document.getElementById('header-nav-mobile');
+
+        if (navDesktop) {
+          navDesktop.innerHTML = '';
+          data.navigation_links.forEach(function(link) {
+            var a = document.createElement('a');
+            a.href = link.url;
+            a.textContent = link.label;
+            a.style.cssText = 'color: #FFFFFF; font-family: \'Inter\'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;';
+            if (link.external) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+            navDesktop.appendChild(a);
+          });
+        }
+
+        if (navMobile) {
+          navMobile.innerHTML = '';
+          data.navigation_links.forEach(function(link, index) {
+            var a = document.createElement('a');
+            a.href = link.url;
+            a.textContent = link.label;
+            a.className = 'item';
+            var borderStyle = index < data.navigation_links.length - 1 ? 'border-bottom: 1px solid #e0e0e0;' : '';
+            a.style.cssText = 'color: #212121 !important; font-family: \'Inter\'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none; ' + borderStyle;
+            if (link.external) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+            navMobile.appendChild(a);
+          });
+        }
+      }
+    })
+    .catch(function(error) {
+      console.debug('PLS header CMS: Using default content', error.message);
+    });
+})();
+</script>
+{%- endblock navbar %}

@@ -1,0 +1,60 @@
+# ==============================================================================
+# MinIO Bucket Creation Job
+# ==============================================================================
+# This job creates the default InvenioRDM bucket in MinIO.
+# Run after MinIO is deployed and ready.
+#
+# Usage:
+#   kubectl apply -f minio-init.yaml
+# ==============================================================================
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-create-bucket
+  namespace: unesco-rdm
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mc
+          image: minio/mc:latest
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: MINIO_ROOT_USER
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: unesco-rdm-secrets
+                  key: MINIO_ROOT_PASSWORD
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Waiting for MinIO to be ready..."
+              until mc alias set myminio http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"; do
+                echo "MinIO not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "MinIO is ready!"
+
+              # Create buckets if they don't exist
+              for BUCKET in default invenio-test invenio-main; do
+                if ! mc ls myminio/$BUCKET >/dev/null 2>&1; then
+                  echo "Creating bucket '$BUCKET'..."
+                  mc mb myminio/$BUCKET
+                  echo "Bucket '$BUCKET' created successfully!"
+                else
+                  echo "Bucket '$BUCKET' already exists."
+                fi
+                echo "Setting bucket policy to public-read..."
+                mc anonymous set download myminio/$BUCKET
+              done
+
+              echo "MinIO initialization complete!"

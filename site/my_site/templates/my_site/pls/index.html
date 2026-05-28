@@ -1,0 +1,15 @@
+{%- extends config.BASE_TEMPLATE %}
+{%- block css %} {{ super() }} {{ webpack['pls-styles.css'] }} {%- endblock %}
+
+{#- Use the same top navigation as the homepage, transparent over the hero. #}
+{%- block page_header %}
+{%- include "invenio_app_rdm/header_pls.html" %}
+{%- endblock page_header %}
+
+{%- block page_body %}
+<div id="pls-root"></div>
+{# Flag this page so the PLS stylesheet can make the site header a
+   transparent overlay on top of the hero image. #}
+<script>document.body.classList.add("pls-detail-page");</script>
+{%- endblock %}
+{%- block javascript %} {{ super() }} {{ webpack['pls.js'] }} {%- endblock %}

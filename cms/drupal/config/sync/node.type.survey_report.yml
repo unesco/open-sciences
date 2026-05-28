@@ -1,0 +1,17 @@
+uuid: 793c67c4-6588-42f3-b1e7-c3af957b0464
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: 'Survey report'
+type: survey_report
+description: 'The information related to a report submitted by a country.'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

@@ -1,0 +1,22 @@
+uuid: 123e4567-e89b-12d3-a456-426614174001
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_open_ans
+  module:
+    - open_science_survey
+_core:
+  default_config_hash: tDHHJ2j3aZf1fEEQGINa3SQ8EbgAn-xHxR7VGwwRN4k
+id: node.survey_response.field_open_ans
+field_name: field_open_ans
+entity_type: node
+bundle: survey_response
+label: 'Open Answer'
+description: 'A field for open-ended responses.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

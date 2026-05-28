@@ -1,0 +1,622 @@
+/* PLS detail page */
+
+@pls-bg: #F1F4F6;
+@pls-primary: #0073b7;
+@pls-text: #212121;
+@pls-muted: #6b7280;
+@pls-border: #f1f4f6;
+@pls-hero-bg: #0b3d4f;
+
+.pls-page {
+  background: @pls-bg;
+  min-height: 100vh;
+  color: @pls-text;
+  font-size: 1.05rem;
+  line-height: 1.55;
+
+  /* Smooth scroll for in-page anchor navigation (Summary list). */
+  scroll-behavior: smooth;
+}
+
+html { scroll-behavior: smooth; }
+
+/* ── Hero ────────────────────────────────────────────── */
+.pls-hero {
+  /* Hero image URL is set via inline style in JSX so webpack
+     does not try to resolve "/static/..." at build time. */
+  background-color: @pls-hero-bg;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  color: #fff;
+  /* Top padding clears the transparent overlay header; the hero is also
+     taller overall than before. */
+  padding: 150px 0 110px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+      rgba(11,61,79,0.95) 0%,
+      rgba(11,61,79,0.6) 60%,
+      rgba(11,61,79,0.2) 100%);
+    pointer-events: none;
+  }
+}
+
+/* Image copyright caption, bottom-right of the hero. */
+.pls-hero-copyright {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  z-index: 1;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+
+  p { margin: 0; }
+}
+
+.pls-hero-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.pls-hero-eyebrow {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  opacity: 0.95;
+  margin: 0 0 20px;
+}
+
+.pls-hero-title {
+  font-size: 3.2rem;
+  line-height: 1.15;
+  font-weight: 700;
+  margin: 0;
+  max-width: 820px;
+}
+
+@media (max-width: 700px) {
+  .pls-hero { padding: 110px 0 56px; }
+  .pls-hero-title { font-size: 2.1rem; }
+}
+
+/* ── Transparent overlay header (PLS detail page only) ─── */
+/* The site header is rendered outside #pls-root, so we scope these
+   rules with a body class added by the PLS page template, and let the
+   hero's top padding sit the title clear of the nav. */
+body.pls-detail-page {
+  header.theme.header,
+  header.theme.header .outer-navbar,
+  header.theme.header .invenio-header-container {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Lift the header out of the document flow so the hero image
+     shows through behind it. */
+  header.theme.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+  }
+
+  /* Remove the gap the header used to occupy. */
+  #invenio-page-body,
+  main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Vertically center the logo and nav links on one line. The logo image
+     carries an inline margin-top that otherwise pushes it below the links. */
+  /* 20px breathing room above the nav row. Applied as padding on the
+     header wrapper because margin on the flex .ui.menu has no effect. */
+  #header-background {
+    padding-top: 20px !important;
+  }
+
+  #invenio-nav {
+    align-items: center !important;
+  }
+
+  #invenio-nav .logo img {
+    margin-top: 0 !important;
+  }
+
+  #header-nav-desktop {
+    align-items: center !important;
+  }
+
+  #header-nav-desktop a {
+    line-height: 1.2 !important;
+  }
+}
+
+/* ── Container / layout ──────────────────────────────── */
+.pls-container {
+  max-width: 1180px;
+  margin: -32px auto 0;
+  padding: 0 28px 56px;
+  position: relative;
+}
+
+.pls-layout {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 36px 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 48px;
+}
+
+@media (max-width: 900px) {
+  .pls-layout {
+    grid-template-columns: 1fr;
+    padding: 24px 20px;
+    gap: 32px;
+  }
+}
+
+/* ── Main column ─────────────────────────────────────── */
+.pls-main { min-width: 0; }
+
+.pls-section + .pls-section { margin-top: 32px; }
+
+.pls-section-title {
+  font-size: 2.3rem;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: @pls-text;
+  scroll-margin-top: 24px;
+}
+
+.pls-html {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: @pls-text;
+
+  p { margin: 0 0 12px; line-height: 1.8em; }
+  p:last-child { margin-bottom: 0; }
+  img { max-width: 100%; height: auto; margin: 12px 0; border-radius: 4px; }
+  a { color: @pls-primary; text-decoration: underline; }
+  ul, ol { margin: 0 0 12px 20px; }
+  table { border-collapse: collapse; max-width: 100%; }
+  table td, table th { border: 1px solid @pls-border; padding: 6px 10px; }
+}
+
+.pls-footnotes .pls-html {
+  font-size: 0.85rem;
+  color: @pls-muted;
+  border-top: 1px solid @pls-border;
+  padding-top: 16px;
+}
+
+/* Related PLS — full-width stacked cards */
+.pls-related-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.pls-related-card {
+  width: 100%;
+  background: #f7f9fb;
+  border: 1px solid @pls-border;
+  border-radius: 6px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  @media (max-width: 700px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.pls-related-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+  color: @pls-text;
+  flex: 1 1 auto;
+}
+
+.pls-related-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: @pls-primary;
+  color: #fff !important;
+  text-decoration: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &:hover { background: darken(@pls-primary, 6%); }
+}
+
+.pls-related-btn-icon { display: inline-block; }
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.pls-sidebar {
+  font-size: 1rem;
+  border-left: 1px solid @pls-border;
+  padding-left: 32px;
+}
+
+@media (max-width: 900px) {
+  .pls-sidebar { border-left: none; padding-left: 0; border-top: 1px solid @pls-border; padding-top: 24px; }
+}
+
+.pls-side-block + .pls-side-block { margin-top: 24px; }
+
+.pls-side-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: @pls-text;
+}
+
+.pls-side-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: @pls-text;
+
+  li {
+    position: relative;
+    padding-left: 26px;
+    margin-bottom: 22px;
+    line-height: 1.45;
+
+    &:last-child { margin-bottom: 0; }
+
+    /* timeline dot */
+    &::before {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 0.55em;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #b8c2cc;
+      z-index: 1;
+    }
+
+    /* vertical connecting line to the next item */
+    &:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 0.55em;
+      bottom: -22px;
+      width: 1px;
+      background: #d7dde3;
+    }
+  }
+
+  a {
+    color: @pls-text;
+    text-decoration: none;
+    cursor: pointer;
+  }
+}
+
+/* Gray filled card (Original publication + authors) */
+.pls-pub-card {
+  background: #eef1f4;
+  border-radius: 10px;
+  padding: 22px 22px 24px;
+}
+
+/* White outlined card (UN SDGs, Keywords) */
+.pls-card-outlined {
+  background: #fff;
+  border: 1px solid #e3e8ec;
+  border-radius: 10px;
+  padding: 18px 20px 20px;
+}
+
+.pls-card-title {
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e3e8ec;
+}
+
+.pls-card-divider {
+  border: none;
+  border-top: 1px solid #dbe0e5;
+  margin: 16px 0;
+}
+
+.pls-authors-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: @pls-text;
+}
+
+.pls-pub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.pls-pub-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  min-width: 0;
+
+  .pls-side-title {
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .pls-info { flex: 0 0 auto; }
+}
+
+/* Info icon + tooltip */
+.pls-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: @pls-muted;
+  cursor: help;
+  outline: none;
+
+  svg { display: block; }
+}
+
+.pls-tooltip {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-28%);
+  width: 250px;
+  background: #2b2b2b;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: center;
+  padding: 13px 16px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 28%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-bottom-color: #2b2b2b;
+  }
+}
+
+.pls-info:hover .pls-tooltip,
+.pls-info:focus .pls-tooltip,
+.pls-info:focus-within .pls-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pls-open-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: @pls-primary;
+  color: #fff !important;
+  border-radius: 20px;
+  padding: 7px 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover { background: darken(@pls-primary, 6%); }
+}
+
+.pls-author-list {
+  margin: 0;
+  padding: 0;
+  line-height: 1.85;
+
+  a {
+    color: @pls-text;
+    text-decoration: underline;
+
+    &:hover { color: @pls-primary; }
+  }
+
+  .pls-orcid {
+    display: inline-flex;
+    vertical-align: text-bottom;
+    margin: 0 1px 0 5px;
+    text-decoration: none;
+
+    .pls-orcid-icon {
+      display: block;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.pls-sponsor-block { font-size: 0.95rem; color: @pls-text; margin-top: 16px; }
+.pls-sponsor-text { margin: 0 0 10px; line-height: 1.5; }
+.pls-sponsor-logo { max-height: 40px; max-width: 100%; }
+
+.pls-sdgs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+.pls-sdg {
+  aspect-ratio: 1 / 1;
+  background: #f3f3f3;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.pls-sdg-fallback {
+  font-weight: 700;
+  color: @pls-muted;
+}
+
+/* Inline basic-label tags, matching records/details/partials/_keywords.html */
+.pls-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pls-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fff;
+  border: 1px solid rgba(34, 36, 38, 0.15);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-weight: normal;
+}
+
+.pls-tag-link {
+  color: @pls-text;
+  text-decoration: none;
+  font-size: 0.9rem;
+  line-height: 1.2;
+
+  &:hover { color: @pls-primary; }
+}
+
+.pls-tag-info {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: @pls-muted;
+  cursor: help;
+  outline: none;
+
+  svg { display: block; width: 17px; height: 17px; }
+}
+
+/* Tag definition tooltip — opens to the left of the pill */
+.pls-tooltip--tag {
+  top: 50%;
+  bottom: auto;
+  left: auto;
+  right: calc(100% + 14px);
+  transform: translateY(-50%);
+  width: 260px;
+  text-align: left;
+
+  &::before {
+    top: 50%;
+    bottom: auto;
+    left: auto;
+    right: -15px;
+    transform: translateY(-50%);
+    border: 8px solid transparent;
+    border-left-color: #2b2b2b;
+  }
+}
+
+.pls-tag-info:hover ~ .pls-tooltip--tag,
+.pls-tag-info:focus ~ .pls-tooltip--tag {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ── Jump up ─────────────────────────────────────────── */
+.pls-jumpup-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.pls-jumpup {
+  background: transparent;
+  color: @pls-primary;
+  border: 1px solid @pls-primary;
+  border-radius: 20px;
+  padding: 8px 26px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover { background: @pls-primary; color: #fff; }
+}
+
+/* ── Loading / empty / error ─────────────────────────── */
+.pls-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  gap: 12px;
+}
+
+.pls-spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid @pls-border;
+  border-top-color: @pls-primary;
+  animation: pls-spin 1s linear infinite;
+}
+
+@keyframes pls-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pls-link {
+  color: @pls-primary;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}

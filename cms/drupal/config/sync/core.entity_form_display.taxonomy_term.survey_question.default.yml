@@ -1,0 +1,78 @@
+uuid: 65fa6f88-ba5e-4ffa-a900-148b4e800d02
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.survey_question.field_question_long_description
+    - field.field.taxonomy_term.survey_question.field_question_short_name
+    - field.field.taxonomy_term.survey_question.field_question_text
+    - field.field.taxonomy_term.survey_question.field_question_type
+    - field.field.taxonomy_term.survey_question.field_section
+    - taxonomy.vocabulary.survey_question
+  module:
+    - text
+id: taxonomy_term.survey_question.default
+targetEntityType: taxonomy_term
+bundle: survey_question
+mode: default
+content:
+  description:
+    type: text_textarea
+    weight: 1
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_question_long_description:
+    type: string_textarea
+    weight: 3
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_question_short_name:
+    type: string_textfield
+    weight: 5
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_question_text:
+    type: string_textarea
+    weight: 6
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_question_type:
+    type: options_select
+    weight: 7
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_section:
+    type: options_select
+    weight: 8
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  name:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 9
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+hidden: {  }

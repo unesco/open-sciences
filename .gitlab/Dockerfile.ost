@@ -1,0 +1,35 @@
+# Custom Docker image for publishing Python packages to GitLab Package Registry
+# This image includes twine pre-installed to avoid network issues during CI/CD
+
+FROM python:3.11-slim
+
+# Accept proxy build arguments for UNESCO network
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+
+# Set proxy environment variables if provided
+ENV HTTP_PROXY=${HTTP_PROXY}
+ENV HTTPS_PROXY=${HTTPS_PROXY}
+ENV NO_PROXY=${NO_PROXY}
+ENV http_proxy=${HTTP_PROXY}
+ENV https_proxy=${HTTPS_PROXY}
+ENV no_proxy=${NO_PROXY}
+
+# Install twine and its dependencies (use latest version for Metadata-Version 2.4 support)
+RUN pip install --no-cache-dir twine>=6.0
+
+# Verify installation
+RUN python -m twine --version
+
+# Unset proxy variables for runtime (only needed during build)
+ENV HTTP_PROXY=
+ENV HTTPS_PROXY=
+ENV http_proxy=
+ENV https_proxy=
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command
+CMD ["/bin/bash"]

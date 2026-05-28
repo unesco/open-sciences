@@ -1,0 +1,407 @@
+# GitLab CI/CD Pipeline for openscience_tools package
+# Builds, tests, and publishes the package to GitLab Package Registry
+
+stages:
+  # SECTION: Custom stages for openscience_tools package
+  - ost_prepare
+  - ost_build
+  - ost_publish
+  # !SECTION
+  # SECTION: k3s deployment pipeline
+  - build
+  - deploy
+  # !SECTION
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PACKAGE_NAME: "openscience_tools"
+  PACKAGE_VERSION: "0.2.6"
+  # Increase pip timeout and retries for network issues
+  PIP_DEFAULT_TIMEOUT: "100"
+  PIP_RETRIES: "5"
+
+cache:
+  paths:
+    - .cache/pip
+    - .venv/
+
+# Prepare stage - Build custom Docker image with twine pre-installed
+ost_build_publish_image:
+  stage: ost_prepare
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  variables:
+    DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}/ost-publish-tool:latest
+    # UNESCO proxy configuration for external internet access
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    # Don't use proxy for UNESCO and local domains
+    NO_PROXY: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    # Disable TLS for Docker-in-Docker (standard for ephemeral CI environments)
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    # Give Docker daemon a moment to fully initialize
+    - sleep 5
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "Building custom publish image with twine..."
+    # Build with proxy arguments to allow package installation from PyPI
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f .gitlab/Dockerfile.ost -t ${DOCKER_IMAGE} .
+    - echo "Pushing image to registry..."
+    - docker push ${DOCKER_IMAGE}
+    - echo "Publish image ready at ${DOCKER_IMAGE}"
+  only:
+    - ost
+
+# Build stage - Create distribution packages
+ost_build:
+  stage: ost_build
+  image: python:3.11
+  needs:
+    - job: ost_build_publish_image
+  # Disable cache to ensure fresh build with new package structure
+  cache: {}
+  variables:
+    # UNESCO proxy configuration (may be needed for some operations)
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  before_script:
+    - cd openscience_tools
+    - echo "Verifying package structure..."
+    - ls -la | grep openscience_tools || echo "WARNING openscience_tools directory not found"
+    - echo "Using pre-installed Python build tools"
+    - python -m pip --version || echo "pip available"
+    - python -c "import setuptools; print(f'setuptools {setuptools.__version__}')" || echo "setuptools available"
+  script:
+    - echo "Building package..."
+    - python -m build --no-isolation 2>&1 || python setup.py sdist bdist_wheel
+    - ls -lh dist/
+    - echo "Verifying built package metadata..."
+    - tar -xzf dist/openscience_tools-${PACKAGE_VERSION}.tar.gz openscience_tools-${PACKAGE_VERSION}/PKG-INFO 2>/dev/null || true
+    - cat openscience_tools-${PACKAGE_VERSION}/PKG-INFO 2>/dev/null | head -10 || echo "Could not extract PKG-INFO"
+    - echo "Package built successfully!"
+  artifacts:
+    paths:
+      - openscience_tools/dist/
+    expire_in: 1 week
+  only:
+    - ost
+
+# Publish stage - Upload to GitLab Package Registry (manual trigger only)
+ost_publish:
+  stage: ost_publish
+  # Use custom image with twine pre-installed to bypass runner network issues
+  image: ${CI_REGISTRY_IMAGE}/ost-publish-tool:latest
+  needs:
+    - job: ost_build
+      artifacts: true
+  retry:
+    max: 2
+    when:
+      - script_failure
+  variables:
+    TWINE_USERNAME: gitlab-ci-token
+    TWINE_PASSWORD: ${CI_JOB_TOKEN}
+  before_script:
+    - cd openscience_tools
+    - ls -lh dist/
+    - echo "Verifying twine installation..."
+    - python -m twine --version
+    - echo "Checking package metadata before upload..."
+    - echo "=== Checking tarball ==="
+    - tar -xzf dist/openscience_tools-${PACKAGE_VERSION}.tar.gz openscience_tools-${PACKAGE_VERSION}/PKG-INFO
+    - cat openscience_tools-${PACKAGE_VERSION}/PKG-INFO | head -15
+    - echo "=== Checking wheel ==="
+    - python -m zipfile -e dist/openscience_tools-${PACKAGE_VERSION}-py3-none-any.whl /tmp/wheel_check
+    - cat /tmp/wheel_check/openscience_tools-${PACKAGE_VERSION}.dist-info/METADATA | head -15 || echo "METADATA not found in wheel"
+    - echo "=== Running twine check ==="
+    - python -m twine check dist/*
+  script:
+    - echo "Publishing package to GitLab Package Registry..."
+    - python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+    - echo ""
+    - echo "Package published successfully!"
+    - echo ""
+    - echo "Install with:"
+    - echo "   pip install openscience_tools --index-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi/simple"
+  artifacts:
+    paths:
+      - openscience_tools/dist/
+  only:
+    - ost
+
+# ==============================================================================
+# K3s Deployment Pipeline (test + main/production)
+# ==============================================================================
+# A single pair of jobs covers both branches; the GitLab environment name
+# controls which set of CI/CD variables is injected.
+#
+# Branch → Environment mapping:
+#   test  → environment: test  (make deploy ENV=test)
+#   main  → environment: main  (make deploy ENV=main)
+# ==============================================================================
+
+build:invenio:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  environment:
+    name: $CI_COMMIT_BRANCH
+  variables:
+    DOCKER_IMAGE: "${CI_REGISTRY_IMAGE}"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+  before_script:
+    - sleep 5
+    - echo "Logging in to GitLab Container Registry..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "==================================================================="
+    - echo "Building InvenioRDM Docker image"
+    - echo "==================================================================="
+    - 'echo "Image: ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
+    - 'echo "Environment: ${CI_COMMIT_BRANCH}"'
+    - echo ""
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - echo ""
+    - echo "Pushing image to registry..."
+    - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
+    - echo ""
+    - echo "==================================================================="
+    - echo "InvenioRDM image built and pushed successfully!"
+    - echo "==================================================================="
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+build:cms:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  environment:
+    name: $CI_COMMIT_BRANCH
+  variables:
+    DOCKER_IMAGE: "${CI_REGISTRY_IMAGE}/cms"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+    no_proxy: "localhost,127.0.0.1,docker,*.unesco.org,unesco.org,repository.unesco.org,registry.gitlab.com"
+  before_script:
+    - sleep 5
+    - echo "Logging in to GitLab Container Registry..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "=================================================================="
+    - echo "Building CMS (Drupal) Docker image"
+    - echo "=================================================================="
+    - 'echo "Image: ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}"'
+    - 'echo "Environment: ${CI_COMMIT_BRANCH}"'
+    - echo ""
+    - docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY -f deploy/Dockerfile.cms -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - echo ""
+    - echo "Pushing image to registry..."
+    - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
+    - echo ""
+    - echo "=================================================================="
+    - echo "CMS image built and pushed successfully!"
+    - echo "=================================================================="
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+deploy:env:
+  stage: deploy
+  image: alpine:latest
+  environment:
+    name: $CI_COMMIT_BRANCH
+  needs:
+    - job: build:invenio
+    - job: build:cms
+  variables:
+    HTTP_PROXY: "http://proxy.unesco.org:8080"
+    HTTPS_PROXY: "http://proxy.unesco.org:8080"
+    http_proxy: "http://proxy.unesco.org:8080"
+    https_proxy: "http://proxy.unesco.org:8080"
+    NO_PROXY: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+    no_proxy: "localhost,127.0.0.1,*.unesco.org,unesco.org"
+  before_script:
+    - apk add --no-cache openssh-client gettext
+    - eval $(ssh-agent -s)
+    # Decode base64 encoded SSH key and add to agent (same pattern as deploy_staging/deploy_production)
+    - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts || echo "WARN ssh-keyscan failed - host unreachable on port 22 (firewall?)"
+  script:
+    - echo "==================================================================="
+    - echo "Deploying .env.${CI_COMMIT_BRANCH} to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
+    - echo "==================================================================="
+    - |
+      # Build .env.${CI_COMMIT_BRANCH} content from CI/CD variables
+      cat > /tmp/.env.${CI_COMMIT_BRANCH} << 'ENVEOF'
+      ADMIN_EMAIL=${ADMIN_EMAIL}
+      ADMIN_USER_EMAIL=${ADMIN_USER_EMAIL}
+      ADMIN_USER_PASSWORD=${ADMIN_USER_PASSWORD}
+      APP_ENABLE_SECURE_HEADERS=${APP_ENABLE_SECURE_HEADERS}
+      BACKUP_PATH=${BACKUP_PATH}
+      BACKUP_RETENTION_COUNT=${BACKUP_RETENTION_COUNT}
+      BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS}
+      BACKUP_SCHEDULE=${BACKUP_SCHEDULE}
+      BACKUP_STORAGE_SIZE=${BACKUP_STORAGE_SIZE}
+      CMS_CPU_LIMIT=${CMS_CPU_LIMIT}
+      CMS_CPU_REQUEST=${CMS_CPU_REQUEST}
+      CMS_DB_NAME=${CMS_DB_NAME}
+      CMS_DB_PASSWORD=${CMS_DB_PASSWORD}
+      CMS_DB_USER=${CMS_DB_USER}
+      CMS_DOCKER_IMAGE_NAME=${CMS_DOCKER_IMAGE_NAME}
+      CMS_DOCKER_IMAGE_TAG=__CI_COMMIT_SHORT_SHA__
+      CMS_DRUPAL_HASH_SALT=${CMS_DRUPAL_HASH_SALT}
+      CMS_IMAGE_REGISTRY=${CMS_IMAGE_REGISTRY}
+      CMS_MEMORY_LIMIT=${CMS_MEMORY_LIMIT}
+      CMS_MEMORY_REQUEST=${CMS_MEMORY_REQUEST}
+      DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME}
+      DOCKER_IMAGE_TAG=__CI_COMMIT_SHORT_SHA__
+      DOCKER_REGISTRY=${DOCKER_REGISTRY}
+      DOMAIN=${DOMAIN}
+      FILES_REST_DEFAULT_STORAGE_CLASS=${FILES_REST_DEFAULT_STORAGE_CLASS}
+      FILES_REST_STORAGE_FACTORY=${FILES_REST_STORAGE_FACTORY}
+      FORCE_HTTPS=${FORCE_HTTPS}
+      IMAGE_PULL_POLICY=${IMAGE_PULL_POLICY}
+      IMAGE_REGISTRY=${IMAGE_REGISTRY}
+      INGRESS_ENTRYPOINT=${INGRESS_ENTRYPOINT}
+      INGRESS_TLS_ENABLED=${INGRESS_TLS_ENABLED}
+      INVENIO_REQUIRE_HTTPS=${INVENIO_REQUIRE_HTTPS}
+      LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER}
+      MAIL_PASSWORD=${MAIL_PASSWORD}
+      MAIL_PORT=${MAIL_PORT}
+      MAIL_SERVER=${MAIL_SERVER}
+      MAIL_USERNAME=${MAIL_USERNAME}
+      MAIL_USE_TLS=${MAIL_USE_TLS}
+      MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      OAISERVER_ADMIN_EMAIL=${OAISERVER_ADMIN_EMAIL}
+      OAISERVER_ID_PREFIX=${OAISERVER_ID_PREFIX}
+      POSTGRES_DB=${POSTGRES_DB}
+      POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      POSTGRES_USER=${POSTGRES_USER}
+      RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      RABBITMQ_USER=${RABBITMQ_USER}
+      REGISTRY_PASSWORD=${REGISTRY_PASSWORD}
+      REGISTRY_USER=${REGISTRY_USER}
+      S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      S3_ENDPOINT_URL=${S3_ENDPOINT_URL}
+      S3_REGION_NAME=${S3_REGION_NAME}
+      S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      SEARCH_INDEX_PREFIX=${SEARCH_INDEX_PREFIX}
+      SECRET_KEY=${SECRET_KEY}
+      SECURITY_LOGIN_SALT=${SECURITY_LOGIN_SALT}
+      SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE}
+      SITE_PROTOCOL=${SITE_PROTOCOL}
+      STRICT_TRANSPORT_SECURITY=${STRICT_TRANSPORT_SECURITY}
+      TLS_MODE=${TLS_MODE}
+      UWSGI_PROCESSES=${UWSGI_PROCESSES}
+      UWSGI_THREADS=${UWSGI_THREADS}
+      WEB_CPU_LIMIT=${WEB_CPU_LIMIT}
+      WEB_CPU_REQUEST=${WEB_CPU_REQUEST}
+      WEB_MEMORY_LIMIT=${WEB_MEMORY_LIMIT}
+      WEB_MEMORY_REQUEST=${WEB_MEMORY_REQUEST}
+      WEB_REPLICAS=${WEB_REPLICAS}
+      WIP_MODE=${WIP_MODE}
+      WORKER_CPU_LIMIT=${WORKER_CPU_LIMIT}
+      WORKER_CPU_REQUEST=${WORKER_CPU_REQUEST}
+      WORKER_MEMORY_LIMIT=${WORKER_MEMORY_LIMIT}
+      WORKER_MEMORY_REQUEST=${WORKER_MEMORY_REQUEST}
+      WORKER_REPLICAS=${WORKER_REPLICAS}
+      ENVEOF
+    - |
+      # Remove leading whitespace (heredoc indentation) and substitute CI/CD variables
+      sed -i 's/^      //' /tmp/.env.${CI_COMMIT_BRANCH}
+      envsubst < /tmp/.env.${CI_COMMIT_BRANCH} > /tmp/.env.${CI_COMMIT_BRANCH}.out
+      mv /tmp/.env.${CI_COMMIT_BRANCH}.out /tmp/.env.${CI_COMMIT_BRANCH}
+      # Set DOCKER_IMAGE_TAG to the commit SHA (not a CI/CD variable, injected separately)
+      sed -i "s/__CI_COMMIT_SHORT_SHA__/${CI_COMMIT_SHORT_SHA}/" /tmp/.env.${CI_COMMIT_BRANCH}
+      # On main: inject proxy so Helm can reach GitHub through the UNESCO proxy
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        echo "HTTPS_PROXY=http://proxy.unesco.org:8080" >> /tmp/.env.${CI_COMMIT_BRANCH}
+        echo "NO_PROXY=localhost,127.0.0.1,*.unesco.org,unesco.org,192.168.0.0/16" >> /tmp/.env.${CI_COMMIT_BRANCH}
+      fi
+    - echo ""
+    - echo "Uploading .env.${CI_COMMIT_BRANCH} to server..."
+    - scp -o StrictHostKeyChecking=no /tmp/.env.${CI_COMMIT_BRANCH} "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy/.env.${CI_COMMIT_BRANCH}"
+    - echo ""
+    - echo "Pulling latest code on server (branch ${CI_COMMIT_BRANCH})..."
+    - ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH} && git fetch origin && git checkout ${CI_COMMIT_BRANCH} && git pull origin ${CI_COMMIT_BRANCH}"
+    - echo "Running make deploy on server..."
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "cd ${DEPLOY_PATH}/deploy && sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml make deploy ENV=${CI_COMMIT_BRANCH}"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "cd ${DEPLOY_PATH}/deploy && make deploy ENV=${CI_COMMIT_BRANCH}"
+      fi
+    - echo ""
+    - echo "--- Images BEFORE pruning ---"
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>&1"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo k3s crictl images 2>&1"
+      fi
+    - echo "Pruning unused container images on server..."
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl --timeout 60s rmi --prune 2>&1 || true"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo k3s crictl --timeout 60s rmi --prune 2>&1 || true"
+      fi
+    - echo "--- Images AFTER pruning ---"
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s crictl images 2>&1"
+      else
+        ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          "sudo k3s crictl images 2>&1"
+      fi
+    - echo ""
+    - |
+      echo "==================================================================="
+      echo "Deployed commit ${CI_COMMIT_SHORT_SHA} to ${DEPLOY_PATH}"
+      echo "  Image tag: ${CI_COMMIT_SHORT_SHA}"
+      echo "==================================================================="
+    - rm -f /tmp/.env.${CI_COMMIT_BRANCH}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+    - if: '$CI_COMMIT_BRANCH == "main"'

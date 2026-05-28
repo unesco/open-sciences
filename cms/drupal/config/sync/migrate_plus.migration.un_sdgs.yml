@@ -1,0 +1,57 @@
+uuid: aee7bd32-dde6-412f-925c-96578196c481
+langcode: en
+status: true
+dependencies: {  }
+id: un_sdgs
+class: null
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags: null
+migration_group: open_science_survey
+label: 'UN SDGs'
+source:
+  plugin: csv
+  path: modules/custom/open_science_survey_migration/data/un_sdgs.csv
+  header_row_count: 1
+  constants:
+    logo_source_dir: modules/custom/open_science_survey_migration/data/pls/sdgs/
+    logo_destination_dir: 'public://un_sdgs/'
+  ids:
+    - number
+process:
+  _logo_filename:
+    plugin: callback
+    callable: basename
+    source: logo
+  _logo_source_path:
+    plugin: concat
+    source:
+      - constants/logo_source_dir
+      - '@_logo_filename'
+  _logo_destination_path:
+    plugin: concat
+    source:
+      - constants/logo_destination_dir
+      - '@_logo_filename'
+  _logo_uri:
+    plugin: file_copy
+    source:
+      - '@_logo_source_path'
+      - '@_logo_destination_path'
+    file_exists: replace
+    move: false
+  name: name
+  description: description
+  field_number: number
+  field_logo/target_id:
+    plugin: entity_generate
+    source: '@_logo_uri'
+    entity_type: file
+    value_key: uri
+  field_logo/alt: name
+  field_logo/title: name
+destination:
+  plugin: 'entity:taxonomy_term'
+  default_bundle: un_sdgs
+idMap: {  }
+migration_dependencies: null

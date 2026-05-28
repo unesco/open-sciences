@@ -1,0 +1,332 @@
+{%- extends "invenio_theme/frontpage.html" %}
+
+{%- block page_header %} 
+{%- include "invenio_app_rdm/header_frontpage.html" %} 
+{%- endblock page_header %}
+
+{%- block head_links %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/frontpage.css') }}" />
+{%- endblock head_links %}
+
+{%- block page_body %}
+<!-- Introduction Section -->
+<section class="intro-section">
+  <div class="ui container">
+    <div class="intro-content">
+      <p class="intro-text">
+        The UNESCO Open Science Platform is your open gateway to the knowledge produced by 
+        the UNESCO Natural Sciences Family. It provides open access to original publications, 
+        policy briefs, reports, data, and related information published or commissioned by 
+        UNESCO and its partners. The platform also provides thematic insights from these studies 
+        through natural language summaries and dashboards.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Explore Highlights Section -->
+<section class="highlights-section">
+  <div class="ui container">
+    <h2 class="section-title">Explore Highlights from the UNESCO Knowledge Base</h2>
+    <p class="section-subtitle">
+      Evidence and insights from UNESCO-led or UNESCO-supported studies
+    </p>
+    
+    <div class="swiper-nav-wrapper">
+      <div class="swiper highlightsSwiper">
+        <div class="swiper-wrapper" id="highlights-swiper-wrapper"></div>
+        <div class="swiper-pagination"></div>
+      </div>
+      <div class="swiper-button-prev highlightsSwiper-prev"></div>
+      <div class="swiper-button-next highlightsSwiper-next"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Research Family Section -->
+<section class="research-family-section pls-section">
+  <div class="ui container">
+    <h2 class="section-title-white">Discover Research across the UNESCO Natural Science Family</h2>
+    <p class="section-subtitle-white">
+      Summary descriptions of UNESCO-led or UNESCO-supported studies
+    </p>
+    
+    <div class="swiper-nav-wrapper">
+      <div class="swiper researchSwiper">
+        <div class="swiper-wrapper" id="research-swiper-wrapper"></div>
+        <div class="swiper-pagination"></div>
+      </div>
+      <div class="swiper-button-prev researchSwiper-prev"></div>
+      <div class="swiper-button-next researchSwiper-next"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Dashboards Section -->
+<section class="dashboards-section">
+  <div class="ui container">
+    <div class="ui two column stackable grid">
+      <div class="column">
+        <div class="dashboards-map">
+          <img src="/static/images/world_map.svg" alt="World Map" />
+        </div>
+      </div>
+      <div class="column dashboards-text-column" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:left;">
+        <h2 class="dashboards-title">Browse Insights from UNESCO Open Science Dashboards</h2>
+        <p class="dashboards-description">
+          Interactive dashboards tracking implementation of the UNESCO Recommendation on Open Science
+        </p>
+        <a href="/statistics" class="ui primary button" style="color:#fafafa !important; background-color: #0073b7 !important; box-shadow: none !important;border-radius:25px !important;border:none !important">
+          Open Science Dashboards
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 4px;">
+            <path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z" fill="white"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Partners Section -->
+<section class="partners-section">
+  <div class="ui container center aligned" style="width:100%;">
+    <div class="partners-wrapper">
+      <h3 class="partners-title">Partners</h3>
+      <p class="partners-subtitle">Proudly collaborating with Open Source and other partners</p>
+      <div class="partners-logos">
+        <a href="https://inveniosoftware.org/" target="_blank" rel="noopener noreferrer">
+          <img src="/static/images/invenio-logo.svg" alt="InvenioRDM" class="partner-logo" />
+        </a>
+        <a href="https://www.lens.org/" target="_blank" rel="noopener noreferrer">
+          <img src="/static/images/lens-logo.png" alt="Lens.org" class="partner-logo" />
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{%- endblock page_body %}
+
+{%- block javascript %}
+{{ super() }}
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<!-- Frontpage highlight card data -->
+<script id="frontpage-data" type="application/json">
+  {
+    "highlight_cards": [
+      {
+        "image": "/static/images/highlight_1.png",
+        "tags": ["Biodiversity conservation", "UNESCO designated sites"],
+        "number": "60%",
+        "description": "of global vertebrate species richness is found within UNESCO sites.",
+        "search_query": "biodiversity"
+      },
+      {
+        "image": "/static/images/highlight_2.png",
+        "tags": ["Indigenous peoples"],
+        "number": ">25%",
+        "description": "of the Earth's land area is traditionally owned, managed, used or occupied by indigenous peoples.",
+        "search_query": "indigenous+peoples"
+      },
+      {
+        "image": "/static/images/highlight_3.png",
+        "tags": ["Water resource management", "Climate change"],
+        "number": "By 2050,",
+        "description": "climate change could significantly affect drinking water resources, with stream flows in the Seine and its tributaries supplying the Paris metropolitan area declining by up to 30%, according to the Seine-Normandy Water Agency.",
+        "search_query": "climate+change+water+resources+management"
+      },
+      {
+        "image": "/static/images/highlight_4.png",
+        "tags": ["Quantum", "Physics"],
+        "number": ">23.3%",
+        "description": "of participants in a UNESCO-led global survey who represented the Global South reported having no access to the necessary quantum research facilities, despite their wish to shape the quantum future.",
+        "search_query": "quantum+physics"
+      },
+        {
+          "image": "/static/images/research_image5.png",
+          "tags": ["SIDS", "Climate change"],
+          "number": "~70%",
+          "description": "of the Pacific Small Island Developing States’ agricultural area depends on seasonal rainfall, making it highly vulnerable to climate change, which is predicted to affect the entire food supply chain in this region.",
+          "search_query": "climate+change+SIDS+agriculture"
+        },
+        {
+          "image": "/static/images/research_image6.png",
+          "tags": ["Hydrology", "Open data"],
+          "number": "80%",
+          "description": "of respondents in the UNESCO Water Family survey share data (such as earth observations and research data), while an even greater majority (93%) use open data. This shows that a strongly data-intensive discipline like hydrology depends heavily on the availability of open data.",
+          "search_query": "hydrology+open+data+UNESCO"
+        },
+        {
+          "image": "/static/images/research_image7.png",
+          "tags": ["Water supply", "Mountains", "Glaciers"],
+          "number": "2 Billion",
+          "description": "people worldwide depend directly on water from mountains and glaciers for drinking water, agriculture, energy, and ecosystems, making cryosphere decline a major global water-security risk. Up to 60% of the world's fresh water originates in mountains.",
+          "search_query": "mountains+glaciers+water+supply"
+        },
+        {
+          "image": "/static/images/research_image8.png",
+          "tags": ["Water resources management", "AI"],
+          "number": "95%",
+          "description": "of respondents to a global survey of the hydrological community see a clear role for AI and Machine Learning in addressing water resources management challenges, highlighting strong worldwide momentum for AI-enabled modelling, forecasting, water resources management, climate adaptation and disaster risk reduction.",
+          "search_query": "AI+water+resources+management+hydrology"
+        }
+    ]
+  }
+</script>
+
+<!-- Initialize Swiper -->
+<script>
+  (function () {
+    var data = JSON.parse(document.getElementById('frontpage-data').textContent);
+    var arrowSVG = '<svg class="highlight-button-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z"/></svg>';
+
+    // Render highlight cards
+    var hWrapper = document.getElementById('highlights-swiper-wrapper');
+    data.highlight_cards.forEach(function (card) {
+      var tags = card.tags.map(function (t) {
+        return '<span class="highlight-tag">' + t + '</span>';
+      }).join('');
+      hWrapper.innerHTML += '<div class="swiper-slide">' +
+        '<div class="highlight-card">' +
+          '<div class="highlight-image" style="background-image: url(\'' + card.image + '\');"></div>' +
+          '<div class="highlight-content">' +
+            '<div class="highlight-tags">' + tags + '</div>' +
+            '<div class="highlight-text-wrapper">' +
+              '<div class="highlight-number">' + card.number + '</div>' +
+              '<p class="highlight-description">' + card.description + '</p>' +
+            '</div>' +
+            '<a href="/search?q=' + card.search_query + '" class="highlight-button">' +
+              '<span>See more</span>' + arrowSVG +
+            '</a>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+
+    // ── PLS helpers ──────────────────────────────────────────────────────────
+    // Use each PLS's field_hero_image; fall back to a placeholder when empty.
+    var plsPlaceholderImage = '/static/images/placeholderimg.jpg';
+
+    // Resolve a Drupal-relative asset path to an absolute URL (dev hits :8080,
+    // prod is proxied under /cms). Mirrors resolveCmsAsset in pages/pls/api.js.
+    function resolveCmsAsset(path) {
+      if (!path) return '';
+      if (/^https?:\/\//i.test(path)) return path;
+      if (path.indexOf('/cms/') === 0) return (isDev ? 'http://localhost:8080' : '') + path;
+      if (path.charAt(0) === '/') return (isDev ? 'http://localhost:8080' : '/cms') + path;
+      return path;
+    }
+
+    // Render PLS (Plain Language Summary) cards
+    var rWrapper = document.getElementById('research-swiper-wrapper');
+
+    function renderPlsCards(items) {
+      rWrapper.innerHTML = '';
+      if (!items || items.length === 0) {
+        rWrapper.closest('.swiper-nav-wrapper').innerHTML =
+          '<p class="pls-empty">No plain language summaries available yet.</p>';
+        return;
+      }
+
+      items.forEach(function (pls, i) {
+        var img = resolveCmsAsset(pls.field_hero_image) || plsPlaceholderImage;
+        rWrapper.innerHTML += '<div class="swiper-slide">' +
+          '<div class="research-card" style="background-image: url(\'' + img + '\');">' +
+            '<div class="research-card-overlay"></div>' +
+            '<div class="research-card-content">' +
+              '<div class="research-card-text">' +
+                '<h3 class="research-card-title">' + pls.title + '</h3>' +
+              '</div>' +
+              '<a href="/pls/' + pls.id + '" class="research-card-button">' +
+                '<span>See more</span>' +
+              '</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+    }
+
+    // Show skeleton loaders while fetching
+    (function showPlsSkeletons() {
+      for (var s = 0; s < 4; s++) {
+        rWrapper.innerHTML += '<div class="swiper-slide">' +
+          '<div class="research-card">' +
+            '<div class="research-card-overlay"></div>' +
+            '<div class="research-card-content">' +
+              '<div class="research-card-text">' +
+                '<div class="research-card-title skeleton"></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }
+    })();
+
+    // Fetch PLS from API (Drupal-backed; in dev it lives on :8080, in prod nginx proxies /cms)
+    var isDev = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') &&
+                location.port !== '' && location.port !== '80' && location.port !== '443';
+    var plsUrl = (isDev ? 'http://localhost:8080' : '') + '/cms/api/pls';
+    fetch(plsUrl, { headers: { Accept: 'application/json' } })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (items) {
+        renderPlsCards(items);
+        new Swiper('.researchSwiper', {
+          slidesPerView: 1,
+          spaceBetween: 20,
+          navigation: { nextEl: '.researchSwiper-next', prevEl: '.researchSwiper-prev' },
+          pagination: { el: '.researchSwiper .swiper-pagination', clickable: true },
+          breakpoints: {
+            768:  { slidesPerView: 2, spaceBetween: 20 },
+            992:  { slidesPerView: 3, spaceBetween: 20 },
+            1200: { slidesPerView: 4, spaceBetween: 20 },
+          },
+        });
+      })
+      .catch(function (err) {
+        console.error('Failed to load plain language summaries:', err);
+        rWrapper.closest('.swiper-nav-wrapper').innerHTML =
+          '<p class="pls-empty">Could not load plain language summaries at this time.</p>';
+      });
+
+    // Highlights Swiper
+    var highlightsSwiper = new Swiper(".highlightsSwiper", {
+      slidesPerView: 1,
+      spaceBetween: 24,
+      navigation: {
+        nextEl: ".highlightsSwiper-next",
+        prevEl: ".highlightsSwiper-prev",
+      },
+      pagination: {
+        el: ".highlightsSwiper .swiper-pagination",
+        clickable: true,
+      },
+      breakpoints: {
+        576: {
+          slidesPerView: 1,
+          spaceBetween: 24,
+        },
+        768: {
+          slidesPerView: 2,
+          spaceBetween: 24,
+        },
+        1024: {
+          slidesPerView: 3,
+          spaceBetween: 24,
+        },
+        1400: {
+          slidesPerView: 4,
+          spaceBetween: 24,
+        },
+      },
+    });
+
+  })();
+</script>
+{%- endblock javascript %}

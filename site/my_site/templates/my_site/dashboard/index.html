@@ -1,0 +1,6 @@
+{%- extends config.BASE_TEMPLATE %}
+{%- block css %} {{ super() }} {{ webpack['dashboard.css'] }} {{ webpack['dashboard-styles.css'] }} {%- endblock %}
+{%- block page_body %}
+<div id="dashboard-root" style="background-color: #F1F4F6 !important;"></div>
+{%- endblock %}
+{%- block javascript %} {{ super() }} {{ webpack['dashboard.js'] }} {%- endblock %}

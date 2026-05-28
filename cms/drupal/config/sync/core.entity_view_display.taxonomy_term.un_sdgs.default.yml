@@ -1,0 +1,44 @@
+uuid: 6c44f8d5-b598-4111-87a3-134928f58713
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.un_sdgs.field_logo
+    - field.field.taxonomy_term.un_sdgs.field_number
+    - taxonomy.vocabulary.un_sdgs
+  module:
+    - image
+    - text
+id: taxonomy_term.un_sdgs.default
+targetEntityType: taxonomy_term
+bundle: un_sdgs
+mode: default
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_logo:
+    type: image
+    label: above
+    settings:
+      image_link: ''
+      image_style: ''
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_number:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }
