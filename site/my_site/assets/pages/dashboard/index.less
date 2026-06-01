@@ -43,7 +43,6 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 0;
-  border-bottom: 2px solid #e0e0e0;
   margin-bottom: 24px;
   background: #F1F4F6;
   padding: 0 8px;
@@ -60,35 +59,39 @@
 
 .dashboard-tab {
   background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  padding: 14px 24px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 1px 1px 0 0;
+  padding: 12px 24px;
   font-size: 0.97rem;
   font-weight: 500;
   color: #444;
   cursor: pointer;
   margin-bottom: -2px;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
   white-space: nowrap;
   flex: 0 0 auto;
+  position: relative;
 
   &:hover {
     color: #0073b7;
+    background: rgba(255, 255, 255, 0.5);
   }
 
   &.active {
+    background: #fff;
     color: #111;
     font-weight: 700;
-    border-bottom: 3px solid #0073b7;
+    border-bottom: 6px solid #0073b7;
   }
 
   @media (max-width: 900px) {
-    padding: 12px 16px;
+    padding: 10px 16px;
     font-size: 0.9rem;
   }
 
   @media (max-width: 600px) {
-    padding: 10px 12px;
+    padding: 8px 12px;
     font-size: 0.85rem;
   }
 }
