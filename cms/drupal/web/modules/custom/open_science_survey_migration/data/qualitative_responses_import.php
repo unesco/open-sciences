@@ -76,41 +76,6 @@ $normalize_question_number = static function (string $value): string {
   return $value;
 };
 
-/**
- * Detect CSV delimiter by probing the first row.
- */
-$detect_delimiter = static function (string $path): string {
-  $candidates = ["\t", ',', ';'];
-  $best_delimiter = ',';
-  $best_column_count = 0;
-
-  foreach ($candidates as $candidate) {
-    $handle = fopen($path, 'r');
-    if ($handle === FALSE) {
-      continue;
-    }
-
-    if (fgets($handle, 4) !== "\xef\xbb\xbf") {
-      rewind($handle);
-    }
-
-    $row = fgetcsv($handle, 0, $candidate);
-    fclose($handle);
-
-    if ($row === FALSE) {
-      continue;
-    }
-
-    $column_count = count($row);
-    if ($column_count > $best_column_count) {
-      $best_column_count = $column_count;
-      $best_delimiter = $candidate;
-    }
-  }
-
-  return $best_delimiter;
-};
-
 $country_term_cache = [];
 $country_term_ids = $taxonomy_storage->getQuery()
   ->accessCheck(FALSE)
@@ -173,7 +138,6 @@ if (!empty($question_term_ids)) {
   }
 }
 
-$delimiter = $detect_delimiter($csv_path);
 $handle = fopen($csv_path, 'r');
 if ($handle === FALSE) {
   throw new \RuntimeException("Unable to open CSV file: {$csv_path}");
@@ -183,7 +147,7 @@ if (fgets($handle, 4) !== "\xef\xbb\xbf") {
   rewind($handle);
 }
 
-$headers = fgetcsv($handle, 0, $delimiter);
+$headers = fgetcsv($handle);
 if ($headers === FALSE) {
   fclose($handle);
   throw new \RuntimeException('CSV is empty.');
@@ -286,7 +250,7 @@ $updated_responses = 0;
 $skipped_cells = 0;
 $line_number = 1;
 
-while (($row = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
+while (($row = fgetcsv($handle)) !== FALSE) {
   $line_number++;
 
   if ($row === [NULL] || $row === []) {
@@ -380,7 +344,6 @@ fclose($handle);
 
 print "Done.\n";
 print "  CSV: {$csv_path}\n";
-print "  Delimiter: " . ($delimiter === "\t" ? '\\t' : $delimiter) . "\n";
 print "  Processed rows: {$processed_rows}\n";
 print "  Skipped rows: {$skipped_rows}\n";
 print "  Processed cells: {$processed_cells}\n";
