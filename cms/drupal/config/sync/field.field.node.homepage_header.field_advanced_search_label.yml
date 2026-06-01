@@ -1,0 +1,21 @@
+uuid: f42aaad3-73ed-4cd3-8449-1850db01141d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_advanced_search_label
+    - node.type.homepage_header
+id: node.homepage_header.field_advanced_search_label
+field_name: field_advanced_search_label
+entity_type: node
+bundle: homepage_header
+label: 'Advanced search label'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 'Advanced search'
+default_value_callback: ''
+settings: {  }
+field_type: string

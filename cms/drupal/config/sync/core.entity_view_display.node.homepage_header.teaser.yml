@@ -1,0 +1,45 @@
+uuid: 7d34ba31-44cf-45a9-9c58-b7a0d8e20078
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.homepage_header.field_advanced_search_label
+    - field.field.node.homepage_header.field_image
+    - field.field.node.homepage_header.field_logo
+    - field.field.node.homepage_header.field_navigation_links
+    - field.field.node.homepage_header.field_search_placeholder
+    - field.field.node.homepage_header.field_subtitle
+    - image.style.medium
+    - node.type.homepage_header
+  module:
+    - image
+    - user
+id: node.homepage_header.teaser
+targetEntityType: node
+bundle: homepage_header
+mode: teaser
+content:
+  field_image:
+    type: image
+    label: hidden
+    settings:
+      image_link: content
+      image_style: medium
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: -1
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_advanced_search_label: true
+  field_logo: true
+  field_nagivation_links: true
+  field_navigation_links: true
+  field_search_placeholder: true
+  field_subtitle: true

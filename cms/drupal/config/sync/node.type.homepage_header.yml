@@ -1,0 +1,17 @@
+uuid: 8b242089-5495-42c7-af87-68266c0072a6
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: 'Homepage header'
+type: homepage_header
+description: 'Define the header of the homepage.'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true
