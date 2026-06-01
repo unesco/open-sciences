@@ -36,7 +36,7 @@ export const DashboardLayout = () => {
           Interactive dashboards tracking implementation of UNESCO
           Recommendation on Open Science by Member States who reported their
           progress to UNESCO. See more details on{" "}
-          <a href="/about">About page</a>.
+          <a href="/pages/about">About page</a>.
         </p>
       </div>
 

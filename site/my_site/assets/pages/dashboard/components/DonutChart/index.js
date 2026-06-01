@@ -7,9 +7,9 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { loadScript, getAnswerColor } from "../utils";
+import { loadScript, getAnswerColor, getRegionColor } from "../utils";
 import { InfoIcon } from "../InfoIcon";
-import { BLUE_PALETTE, CHARTJS_CDN_URL, CHARTJS_CDN_ID } from "../../constants";
+import { CHARTJS_CDN_URL, CHARTJS_CDN_ID } from "../../constants";
 
 /**
  * Compute what the chart should display.
@@ -75,7 +75,7 @@ export const DonutChart = ({
     dataset.backgroundColor = Array.from({ length: len }, (_, i) => {
       const [name] = entries[i] || [""];
       const color  = isRegionMode
-        ? BLUE_PALETTE[i % BLUE_PALETTE.length]
+        ? getRegionColor(name, i)
         : getAnswerColor(name, i);
       if (hoveredIndex === null) return color;
       return i === hoveredIndex ? color : `${color}4d`;
@@ -108,7 +108,7 @@ export const DonutChart = ({
           datasets: [{
             data:            displayEntries.map(([, count]) => count),
             backgroundColor: displayEntries.map(([name], i) =>
-              isRegionMode ? BLUE_PALETTE[i % BLUE_PALETTE.length] : getAnswerColor(name, i)
+              isRegionMode ? getRegionColor(name, i) : getAnswerColor(name, i)
             ),
             borderWidth:  2,
             borderColor: "#fff",
@@ -167,8 +167,10 @@ export const DonutChart = ({
             const CX      = 190;
             const CY      = 150;
             const R       = 82;
-            const LABEL_H = 46;
-            const MIN_GAP = 6;
+            const W       = 380;  // wrap width (CX×2) — labels must stay inside it
+            const LABEL_W = 120;  // matches .donut-float-label max-width
+            const LABEL_H = 54;   // tallest (wrapped) pill height, for overlap spacing
+            const MIN_GAP = 8;
 
             let cumDeg = -90;
             const items = displayEntries.map(([name, count], i) => {
@@ -178,11 +180,20 @@ export const DonutChart = ({
               const midDeg  = cumDeg + spanDeg / 2;
               cumDeg       += spanDeg;
               const midRad  = (midDeg * Math.PI) / 180;
+              const onRight = Math.cos(midRad) >= 0;
+              const rawLx   = CX + R * Math.cos(midRad);
+              // Pin each label into a left/right column clamped inside the wrap so
+              // the pill (which extends outward by up to LABEL_W) never spills out
+              // of the card. Right pills anchor their left edge; left pills (CSS
+              // translateX -100%) anchor their right edge.
+              const lx = onRight
+                ? Math.min(rawLx, W - LABEL_W)
+                : Math.max(rawLx, LABEL_W);
               return {
                 name, count, pct, i,
-                lx:      CX + R * Math.cos(midRad),
+                lx,
                 ly:      CY + R * Math.sin(midRad),
-                onRight: Math.cos(midRad) >= 0,
+                onRight,
               };
             });
 
@@ -203,7 +214,7 @@ export const DonutChart = ({
 
             return items.map(({ name, count, pct, i, lx, ly, onRight }) => {
               const color = isRegionMode
-                ? BLUE_PALETTE[i % BLUE_PALETTE.length]
+                ? getRegionColor(name, i)
                 : getAnswerColor(name, i);
               return (
                 <div
