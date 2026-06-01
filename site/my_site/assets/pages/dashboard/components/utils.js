@@ -1,7 +1,7 @@
 /**
  * Dashboard Shared Utilities
  * Script/stylesheet loaders and colour helper.
- * Raw constants (palette, colors, CDN URL) live in ../constants.js.
+ * All raw constants (palette, colors, regions, CDN URL) live in ../constants.js.
  */
 
 import React from "react";
@@ -9,26 +9,52 @@ import {
   BLUE_PALETTE,
   COLOR_YES,
   COLOR_NO,
+  COLOR_PARTLY,
+  COLOR_UNDER_DEVELOPMENT,
+  COLOR_NA_ANSWER,
   NA_LABEL,
   NA_LABEL_VARIANTS,
   NA_INFO_NOTE,
 } from "../constants";
 import {
   REGIONS,
+  REGION_COLORS,
   COLOR_NO_DATA,
   COLOR_BORDER,
   COLOR_PARTICIPATED,
   COLOR_MATCHES,
-} from "./GlobalOverview/components/constants";
+} from "../constants";
+
+// Fixed colour per standard closed-answer option (lower-cased label → colour).
+// Shared by every comparison chart so Yes/No/Partly/etc. read the same
+// everywhere (donuts, region & country breakdowns, mini donuts, legends).
+const ANSWER_COLORS = {
+  "yes": COLOR_YES,
+  "no": COLOR_NO,
+  "partly": COLOR_PARTLY,
+  "under development": COLOR_UNDER_DEVELOPMENT,
+};
 
 /**
  * Returns the chart segment colour for a given answer name and palette index.
- * "Yes" → brand blue, "No" → light grey, others → BLUE_PALETTE cycle.
+ * Standard options (Yes/No/Partly/Under Development) and N/A use their fixed
+ * brand colours; any other answer falls back to the BLUE_PALETTE cycle.
  */
 export function getAnswerColor(name, index) {
+  if (isNotApplicableLabel(name)) return COLOR_NA_ANSWER;
   const lower = (name || "").toLowerCase().trim();
-  if (lower === "yes") return COLOR_YES;
-  if (lower === "no")  return COLOR_NO;
+  if (ANSWER_COLORS[lower]) return ANSWER_COLORS[lower];
+  return BLUE_PALETTE[index % BLUE_PALETTE.length];
+}
+
+/**
+ * Returns the fixed chart colour for a region name so the same region always
+ * reads as the same shade regardless of segment order. Unknown regions fall
+ * back to the BLUE_PALETTE cycle.
+ */
+export function getRegionColor(name, index) {
+  const key = normaliseRegion(name);
+  if (REGION_COLORS[key]) return REGION_COLORS[key];
   return BLUE_PALETTE[index % BLUE_PALETTE.length];
 }
 
@@ -227,6 +253,32 @@ export function buildSubDetails(parentQuestion, allQuestions, responsesMap) {
   }
 
   return { intro: parsed.intro, items };
+}
+
+/**
+ * Return the list of sub-question numbers that will be folded into a parent
+ * question's breakdown sub-section, or null if no sub-section will render.
+ *
+ * Mirrors the structural rules in `buildSubDetails` (one-bullet-per-sub-question
+ * or single-sub-question with answer-value bullets) but ignores response data,
+ * since the fold decision is purely structural. Used by the donut grid to hide
+ * sub-question cards whose data is already surfaced inside the parent drawer.
+ */
+export function subQuestionsFoldedIntoParent(parentQuestion, allQuestions) {
+  if (!parentQuestion || !parentQuestion.number) return null;
+  const prefix = `${parentQuestion.number}.`;
+  const subQs = (allQuestions || [])
+    .filter((q) => q.type === "Closed" && q.number && q.number.startsWith(prefix))
+    .sort((a, b) => String(a.number).localeCompare(String(b.number), undefined, { numeric: true }));
+  if (subQs.length === 0) return null;
+  const introHolder = subQs.find((q) => q.long_description);
+  if (!introHolder) return null;
+  const parsed = parseSubDetailsDescription(introHolder.long_description);
+  if (!parsed) return null;
+  if (subQs.length === parsed.bullets.length || subQs.length === 1) {
+    return subQs.map((q) => q.number);
+  }
+  return null;
 }
 
 // ── Survey-question helpers ─────────────────────────────────────────────────

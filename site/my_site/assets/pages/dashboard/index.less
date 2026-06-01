@@ -886,14 +886,51 @@
   overflow: visible; /* allow pills to extend slightly outside */
   transform-origin: top center;
 
-  @media (max-width: 500px) {
+  // ── Row layout (>900px): topic-list (280px) + gap (24px) steals space;
+  //    each card inner ≈ (viewport − 372) / 2 − 32px.
+  //    Scale down so the 380px wrap fits the narrowing cards.
+  @media (max-width: 1100px) {
+    transform: scale(0.87);
+    margin-bottom: -39px; // 300 * 0.13
+  }
+  @media (max-width: 1000px) {
     transform: scale(0.78);
-    margin-bottom: -66px; /* compensate for scaled-down height (300 * 0.22) */
+    margin-bottom: -66px; // 300 * 0.22
   }
 
+  // ── At 900px comparison-main switches to column; topic-list no longer
+  //    steals width, so each card inner ≈ (viewport − 68) / 2 − 32px.
+  //    At 900px that's ~384px — just fits — so reset the row-mode scale.
+  @media (max-width: 900px) {
+    transform: none;
+    margin-bottom: 0;
+  }
+
+  // ── Column layout (700–900px): cards shrink again as viewport narrows.
+  @media (max-width: 820px) {
+    transform: scale(0.88);
+    margin-bottom: -36px; // 300 * 0.12
+  }
+  @media (max-width: 760px) {
+    transform: scale(0.80);
+    margin-bottom: -60px; // 300 * 0.20
+  }
+
+  // ── Below 700px donut-grid switches to 1-column; full-width card fits
+  //    the 380px wrap from 700px down to ~500px — reset the column-mode scale.
+  @media (max-width: 700px) {
+    transform: none;
+    margin-bottom: 0;
+  }
+
+  // ── Very small screens: 1-col but card itself narrows.
+  @media (max-width: 500px) {
+    transform: scale(0.78);
+    margin-bottom: -66px; // 300 * 0.22
+  }
   @media (max-width: 380px) {
     transform: scale(0.62);
-    margin-bottom: -114px; /* 300 * 0.38 */
+    margin-bottom: -114px; // 300 * 0.38
   }
 }
 
@@ -903,10 +940,10 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
 
-  canvas { width: 160px !important; height: 160px !important; }
+  canvas { width: 140px !important; height: 140px !important; }
 }
 
 .donut-center {
@@ -925,6 +962,9 @@
 /* Floating callout label — positioned by JS around the ring */
 .donut-float-label {
   position: absolute;
+  /* border-box so max-width is the TOTAL pill width (incl. padding/border) and
+     matches the LABEL_W the JS uses to clamp pills inside the wrap. */
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -935,7 +975,7 @@
   white-space: normal;
   box-shadow: 0 2px 6px rgba(0, 50, 100, 0.13);
   pointer-events: auto;
-  max-width: 150px;
+  max-width: 120px;
   cursor: default;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 
@@ -1284,6 +1324,9 @@
   font-size: 0.82rem;
   color: #212121;
   margin: 0;
+  /* Always sit on its own row at the bottom of the grid, even when there's
+     only one donut card in the row (otherwise it lands in the empty cell). */
+  grid-column: 1 / -1;
 }
 
 /* ── Country breakdown drawer (slides in from right) ────── */
