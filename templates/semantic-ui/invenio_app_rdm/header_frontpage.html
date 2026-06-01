@@ -7,7 +7,7 @@ details. #}
 {#
   Header Frontpage Template with CMS Integration
 
-  This header loads its content from the CMS API at /data/cms/public/header_frontpage.
+  This header loads its content from the CMS API at /cms/api/homepage/header.
   If CMS data is not available, it falls back to default values defined here.
 
   Managed fields:
@@ -166,25 +166,16 @@ details. #}
 <!-- End of background wrapper -->
 
 <!-- CMS Header Frontpage Integration Script -->
+<script src="{{ url_for('static', filename='js/cms-api.js') }}"></script>
 <script>
 (function() {
   // Default paths (fallback)
   var DEFAULT_LOGO = '/static/images/unesco-logo.svg';
   var DEFAULT_BACKGROUND = '/static/images/science-background1.jpg';
 
-  // Get current language from HTML lang attribute or default to 'en'
-  var lang = document.documentElement.lang || 'en';
-
-  // Fetch header data from CMS public API
-  fetch('/data/cms/public/header_frontpage?lang=' + lang)
-    .then(function(response) {
-      if (!response.ok) {
-        throw new Error('Failed to fetch header data');
-      }
-      return response.json();
-    })
-    .then(function(result) {
-      var data = result.data || {};
+  // Fetch header data from CMS API
+  CmsApi.fetch('/homepage/header')
+    .then(function(data) {
 
       // Update logo
       var logo = document.getElementById('header-logo');
