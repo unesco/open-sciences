@@ -1,0 +1,17 @@
+uuid: 3e4f388b-dea4-4997-811f-82eb048af052
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: 'Homepage footer'
+type: homepage_footer
+description: 'Defines the content of the footer.'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

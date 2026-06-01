@@ -1,0 +1,17 @@
+uuid: 48c2913c-0772-48e6-b970-f1bbc861d841
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: 'Header footer'
+type: header_footer
+description: 'Define the content of the site footer.'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

@@ -437,11 +437,11 @@ class TermContextController extends ControllerBase {
         }
 
         $question_term = $survey_response->get('field_question')->entity;
-        if (!$question_term || !$question_term->hasField('field_question_text') || $question_term->get('field_question_text')->isEmpty()) {
+        if (!$question_term || !$question_term->hasField('field_question_short_name') || $question_term->get('field_question_short_name')->isEmpty()) {
             return '';
         }
 
-        return trim((string) $question_term->get('field_question_text')->value);
+        return trim((string) $question_term->get('field_question_short_name')->value);
     }
 
     /**

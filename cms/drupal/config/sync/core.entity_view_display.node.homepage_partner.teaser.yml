@@ -1,0 +1,26 @@
+uuid: 9361d92c-a56b-458e-b8d4-9d8c3f4d80d6
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.homepage_partner.field_logo
+    - field.field.node.homepage_partner.field_website
+    - field.field.node.homepage_partner.field_weight
+    - node.type.homepage_partner
+  module:
+    - user
+id: node.homepage_partner.teaser
+targetEntityType: node
+bundle: homepage_partner
+mode: teaser
+content:
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_logo: true
+  field_website: true
+  field_weight: true

@@ -1,0 +1,25 @@
+uuid: fb188dea-f892-4180-9c95-2aac3d661a52
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_weight
+    - node.type.homepage_partner
+id: node.homepage_partner.field_weight
+field_name: field_weight
+entity_type: node
+bundle: homepage_partner
+label: Weight
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

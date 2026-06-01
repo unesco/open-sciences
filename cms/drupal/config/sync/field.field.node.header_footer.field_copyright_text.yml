@@ -1,0 +1,21 @@
+uuid: b71d55db-ea85-4f19-ae94-e91f91c76b5b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_copyright_text
+    - node.type.header_footer
+id: node.header_footer.field_copyright_text
+field_name: field_copyright_text
+entity_type: node
+bundle: header_footer
+label: 'Copyright text'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: '© 2025 UNESCO Open Science Portal - United Nations Educational, Scientific and Cultural Organization'
+default_value_callback: ''
+settings: {  }
+field_type: string
