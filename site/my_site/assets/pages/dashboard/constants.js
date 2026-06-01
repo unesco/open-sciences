@@ -27,8 +27,13 @@ export const BLUE_PALETTE = [
   "#c8e6f9", // very pale blue
 ];
 
-export const COLOR_YES = "#0077D4";
-export const COLOR_NO  = "#E7E6E6";
+// Fixed colours for the standard closed-answer options, shared by every
+// comparison chart (donuts, region/country breakdowns, mini donuts, legends).
+export const COLOR_YES               = "#0077D4";
+export const COLOR_NO                = "#7F888F";
+export const COLOR_PARTLY            = "#4D9ACC";
+export const COLOR_UNDER_DEVELOPMENT = "#0E4280";
+export const COLOR_NA_ANSWER         = "#D5DADD";
 
 // ── N/A handling ──────────────────────────────────────────────────────────────
 // Canonical N/A label shown in charts/legends.
@@ -49,6 +54,48 @@ export const NA_LABEL_VARIANTS = [
 // ── Chart.js CDN ──────────────────────────────────────────────────────────────
 export const CHARTJS_CDN_URL = "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js";
 export const CHARTJS_CDN_ID  = "chartjs-cdn";
+
+// ── Choropleth / map colours ──────────────────────────────────────────────────
+export const COLOR_NO_DATA      = "#D5DADD";
+export const COLOR_BORDER       = "#ffffff";
+export const COLOR_PARTICIPATED = "#4C5054";
+export const COLOR_MATCHES      = "#B2D6F2";
+
+// ── World GeoJSON ─────────────────────────────────────────────────────────────
+export const WORLD_GEOJSON_URL =
+  "https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json";
+
+// ── Regions ───────────────────────────────────────────────────────────────────
+export const ALL_REGIONS = "All regions";
+
+export const REGIONS = [
+  { label: "All regions",                    apiValue: null,                             view: null },
+  { label: "Africa",                         apiValue: "Africa",                         view: { center: [5,    20],  zoom: 2.5 } },
+  { label: "Arab States",                    apiValue: "Arab States",                    view: { center: [25,   42],  zoom: 3.5 } },
+  { label: "Asia-Pacific",                   apiValue: "Asia & the Pacific",             view: { center: [25,   100], zoom: 2.5 } },
+  { label: "Europe & North America",         apiValue: "Europe & North America",         view: { center: [50,   -20], zoom: 3 } },
+  { label: "Latin America & the Caribbean",  apiValue: "Latin America & the Caribbean",  view: { center: [-15,  -60], zoom: 2.5 } },
+];
+
+// Fixed colour per region — keyed by lower-cased apiValue, resolved via getRegionColor in utils.
+export const REGION_COLORS = {
+  "africa":                        "#0d3b6e",
+  "asia & the pacific":            "#1a5c9e",
+  "europe & north america":        "#3a9bd5",
+  "arab states":                   "#6db8e8",
+  "latin america & the caribbean": "#a3d4f5",
+};
+
+// Derived lookups
+export const REGION_LABELS = REGIONS.map((r) => r.label);
+
+export const REGION_DISPLAY_TO_API = Object.fromEntries(
+  REGIONS.filter((r) => r.apiValue).map((r) => [r.label, r.apiValue])
+);
+
+export const REGION_VIEW = Object.fromEntries(
+  REGIONS.filter((r) => r.view).map((r) => [r.label, r.view])
+);
 
 // ── Country detail sections ───────────────────────────────────────────────────
 export const COUNTRY_SECTIONS = [
