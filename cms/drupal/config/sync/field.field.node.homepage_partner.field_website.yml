@@ -1,0 +1,23 @@
+uuid: 78bed50f-1b6c-4110-872c-8c95e65df254
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_website
+    - node.type.homepage_partner
+  module:
+    - link
+id: node.homepage_partner.field_website
+field_name: field_website
+entity_type: node
+bundle: homepage_partner
+label: Website
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  title: 2
+  link_type: 16
+field_type: link

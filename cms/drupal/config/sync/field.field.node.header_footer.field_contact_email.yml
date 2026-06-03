@@ -1,0 +1,21 @@
+uuid: 6d273e7c-ef10-438a-9b47-8023589f4962
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_contact_email
+    - node.type.header_footer
+id: node.header_footer.field_contact_email
+field_name: field_contact_email
+entity_type: node
+bundle: header_footer
+label: 'Contact email'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: open-science-platform@unesco.org
+default_value_callback: ''
+settings: {  }
+field_type: email

@@ -1,0 +1,36 @@
+uuid: 23cd79e2-0afb-4ea4-96dd-75e4e413a0e6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.header_footer.field_contact_email
+    - field.field.node.header_footer.field_copyright_text
+    - node.type.header_footer
+  module:
+    - user
+id: node.header_footer.default
+targetEntityType: node
+bundle: header_footer
+mode: default
+content:
+  field_contact_email:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_copyright_text:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden: {  }

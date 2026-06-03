@@ -9,7 +9,7 @@ import { DonutChart } from "../DonutChart";
 import { CountryBreakdownModal } from "../CountryBreakdownModal";
 import { RegionBreakdownModal } from "../RegionBreakdownModal";
 import { fetchSurveySections, fetchSurveyQuestions, fetchSurveyResponsesByQuestion, fetchCountries, surveyResponsesDownloadUrl } from "../../api";
-import { decodeHtmlEntities, parseClosedAnswerOptions, normaliseAnswerName, buildSubDetails } from "../utils";
+import { decodeHtmlEntities, parseClosedAnswerOptions, normaliseAnswerName, buildSubDetails, subQuestionsFoldedIntoParent } from "../utils";
 import { DownloadMenu } from "../DownloadMenu";
 
 /**
@@ -61,8 +61,18 @@ export const Comparison = ({ onCountryClick }) => {
   // Closed questions whose section matches the selected topic.
   // Stringify both sides so numeric IDs from one API and string IDs from
   // another still match (e.g. section.id === 1 vs question.section === "1").
-  const filteredQuestions = allQuestions.filter(
+  const sectionQuestions = allQuestions.filter(
     (q) => q.type === "Closed" && String(q.section) === String(selectedTopic)
+  );
+
+  // Sub-questions whose data will be folded into a parent's breakdown drawer
+  // (via long_description sub-section) should not also appear as standalone
+  // donut cards — they'd duplicate what the drawer already shows.
+  const hiddenSubQuestionNumbers = new Set(
+    sectionQuestions.flatMap((q) => subQuestionsFoldedIntoParent(q, allQuestions) || [])
+  );
+  const filteredQuestions = sectionQuestions.filter(
+    (q) => !hiddenSubQuestionNumbers.has(q.number)
   );
 
   // On mount: load country→region map, sections, and questions in parallel

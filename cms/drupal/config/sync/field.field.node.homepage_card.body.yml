@@ -1,0 +1,26 @@
+uuid: 32622c05-6d47-49fa-86f5-381f6d1a9fd3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.body
+    - filter.format.basic_html
+    - node.type.homepage_card
+  module:
+    - text
+id: node.homepage_card.body
+field_name: body
+entity_type: node
+bundle: homepage_card
+label: Description
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  display_summary: false
+  required_summary: false
+  allowed_formats:
+    - basic_html
+field_type: text_with_summary

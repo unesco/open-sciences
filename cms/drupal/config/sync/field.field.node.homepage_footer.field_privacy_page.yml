@@ -1,0 +1,29 @@
+uuid: 79cfad18-2e3f-409f-8d9b-89546f68b6ac
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_privacy_page
+    - node.type.homepage_footer
+    - node.type.page
+id: node.homepage_footer.field_privacy_page
+field_name: field_privacy_page
+entity_type: node
+bundle: homepage_footer
+label: 'Privacy page'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      page: page
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

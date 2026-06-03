@@ -10,7 +10,7 @@ License; see LICENSE file for more details. #}
   image. It deliberately omits the homepage's search hero — the PLS page renders
   its own hero below.
 
-  Navigation links are loaded from the CMS API (/data/cms/public/header_frontpage)
+  Navigation links are loaded from the CMS API (/cms/api/homepage/header)
   with the markup below acting as a fallback, exactly like header_frontpage.html.
 #}
 
@@ -56,16 +56,11 @@ License; see LICENSE file for more details. #}
 </div>
 
 <!-- CMS Header navigation integration (same source as the homepage header) -->
+<script src="{{ url_for('static', filename='js/cms-api.js') }}"></script>
 <script>
 (function() {
-  var lang = document.documentElement.lang || 'en';
-  fetch('/data/cms/public/header_frontpage?lang=' + lang)
-    .then(function(response) {
-      if (!response.ok) { throw new Error('Failed to fetch header data'); }
-      return response.json();
-    })
-    .then(function(result) {
-      var data = result.data || {};
+  CmsApi.fetch('/homepage/header')
+    .then(function(data) {
 
       // Update logo
       var logo = document.getElementById('header-logo');

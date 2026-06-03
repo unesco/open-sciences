@@ -15,7 +15,7 @@ import { FilterPanel } from "./components/FilterPanel";
 import { MapPanel } from "./components/MapPanel";
 import { NoDataModal } from "./components/NoDataModal";
 import { CountriesModal } from "./components/CountriesModal";
-import { ALL_REGIONS } from "./components/constants";
+import { ALL_REGIONS } from "../../constants";
 import { buildFilterTree } from "../utils";
 import { DownloadMenu } from "../DownloadMenu";
 
