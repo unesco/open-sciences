@@ -98,43 +98,33 @@ export const REGION_VIEW = Object.fromEntries(
 );
 
 // ── Country detail sections ───────────────────────────────────────────────────
-export const COUNTRY_SECTIONS = [
-  {
-    id: "promote_culture",
-    label:
-      "Promoting a common understanding of open science, associated benefits, and challenges, as well as diverse paths to open science",
-    field: "field_info_promote_culture",
-  },
-  {
-    id: "policy",
-    label: "Developing an enabling policy environment for open science",
-    field: "field_info_policy",
-  },
-  {
-    id: "funding_infra",
-    label: "Investing in open science infrastructures",
-    field: "field_info_funding_infra",
-  },
-  {
-    id: "funding_training",
-    label:
-      "Investing in human resources, training, education, digital literacy, and capacity building for open science",
-    field: "field_info_funding_training",
-  },
-  {
-    id: "promoting",
-    label: "Fostering a culture of open science and aligning incentives for open science",
-    field: "field_info_promoting",
-  },
-  {
-    id: "promote_cooperation",
-    label: "Promoting innovative approaches for open science at different stages of the scientific process",
-    field: "field_info_promote_cooperation",
-  },
-  {
-    id: "promote_inovation",
-    label:
-      "Promoting international and multi-stakeholder cooperation in the context of open science and with a view to reducing digital, technological, and knowledge gaps",
-    field: "field_info_promote_inovation",
-  },
-];
+// Country detail sections are not hardcoded — their order and labels come from
+// the survey-sections endpoint. This map links each survey-section id to the
+// country rich-text field that holds that section's content. Section "A"
+// (general info) has no detail field and is therefore omitted.
+export const SECTION_FIELD_MAP = {
+  "1": "field_info_promoting",
+  "2": "field_info_policy",
+  "3": "field_info_funding_infra",
+  "4": "field_info_funding_training",
+  "5": "field_info_promote_culture",
+  "6": "field_info_promote_inovation",
+  "7": "field_info_promote_cooperation",
+};
+
+/**
+ * Build the country-detail section list from the survey-sections response.
+ * Keeps the survey order, uses each section's title as the label, and resolves
+ * the content field via SECTION_FIELD_MAP. Sections without a mapped field
+ * (e.g. the "A" general-info section) are skipped.
+ * @param {Array<{id: string|number, title: string}>} sections
+ * @returns {Array<{id: string, label: string, field: string}>}
+ */
+export function buildCountrySections(sections) {
+  return (sections || [])
+    .map((s) => {
+      const field = SECTION_FIELD_MAP[String(s.id)];
+      return field ? { id: String(s.id), label: s.title, field } : null;
+    })
+    .filter(Boolean);
+}
