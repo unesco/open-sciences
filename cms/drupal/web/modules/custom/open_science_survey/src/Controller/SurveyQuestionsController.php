@@ -61,11 +61,6 @@ class SurveyQuestionsController extends ControllerBase {
 
         foreach ($sections as $section) {
             $section_id = (int) $section->id();
-            $is_visible = (string) ($section->get('field_visible_in_dashboard')->value ?? '0') === '1';
-            if (!$is_visible) {
-                continue;
-            }
-
             $visible_sections[$section_id] = (string) ($section->get('field_section_id')->value ?? '');
         }
 
