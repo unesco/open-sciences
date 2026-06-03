@@ -95,14 +95,7 @@
     <div class="partners-wrapper">
       <h3 class="partners-title">Partners</h3>
       <p class="partners-subtitle">Proudly collaborating with Open Source and other partners</p>
-      <div class="partners-logos">
-        <a href="https://inveniosoftware.org/" target="_blank" rel="noopener noreferrer">
-          <img src="/static/images/invenio-logo.svg" alt="InvenioRDM" class="partner-logo" />
-        </a>
-        <a href="https://www.lens.org/" target="_blank" rel="noopener noreferrer">
-          <img src="/static/images/lens-logo.png" alt="Lens.org" class="partner-logo" />
-        </a>
-      </div>
+      <div class="partners-logos" id="partners-logos"></div>
     </div>
   </div>
 </section>
@@ -256,6 +249,33 @@
         console.error('Failed to load plain language summaries:', err);
         rWrapper.closest('.swiper-nav-wrapper').innerHTML =
           '<p class="pls-empty">Could not load plain language summaries at this time.</p>';
+      });
+
+    // ── Partners ─────────────────────────────────────────────────────────────
+    var partnersWrapper = document.getElementById('partners-logos');
+
+    function renderPartners(partners) {
+      partnersWrapper.innerHTML = '';
+      if (!partners || partners.length === 0) {
+        partnersWrapper.closest('.partners-wrapper').style.display = 'none';
+        return;
+      }
+      partners.forEach(function (partner) {
+        var img = CmsApi.resolveAsset(partner.image);
+        partnersWrapper.innerHTML +=
+          '<a href="' + partner.url + '" target="_blank" rel="noopener noreferrer">' +
+            '<img src="' + img + '" alt="' + partner.title + '" class="partner-logo" />' +
+          '</a>';
+      });
+    }
+
+    CmsApi.fetch('/homepage/partners')
+      .then(function (data) {
+        renderPartners(data.partners || []);
+      })
+      .catch(function (err) {
+        console.error('Failed to load partners:', err);
+        partnersWrapper.closest('.partners-wrapper').style.display = 'none';
       });
 
   })();
