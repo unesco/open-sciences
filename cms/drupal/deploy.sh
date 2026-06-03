@@ -14,6 +14,9 @@ vendor/bin/drush site:install --yes --existing-config \
   --account-name="$ADMIN_USER_EMAIL" \
   --account-pass="$ADMIN_USER_PASSWORD"
 
+echo "Rebuilding cache after site:install..."
+vendor/bin/drush cr
+
 echo "Installing open_science_survey_migration..."
 vendor/bin/drush en open_science_survey_migration -y
 
@@ -24,3 +27,6 @@ vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/quali
 vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/quantitative_responses_import.php
 vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/countries_profiles_import.php
 vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/challenges_import.php
+
+echo "Final cache rebuild..."
+vendor/bin/drush cr

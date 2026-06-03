@@ -368,26 +368,6 @@ deploy:env:
           "cd ${DEPLOY_PATH}/deploy && make deploy ENV=${CI_COMMIT_BRANCH}"
       fi
     - echo ""
-    - echo "Running CMS initialization (drush site:install + data migrations)..."
-    - |
-      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
-        KUBECTL="sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml k3s kubectl"
-        ENV_NAME="main"
-      else
-        KUBECTL="sudo k3s kubectl"
-        ENV_NAME="test"
-      fi
-      ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" \
-        "set -e
-         echo 'Waiting for CMS pod to be ready...'
-         ${KUBECTL} rollout status deployment cms -n unesco-rdm --timeout=3m
-         CMS_POD=\$(${KUBECTL} get pods -n unesco-rdm -l app=cms -o jsonpath='{.items[0].metadata.name}')
-         echo \"CMS pod: \$CMS_POD\"
-         ADMIN_EMAIL=\$(${KUBECTL} get secret unesco-rdm-secrets -n unesco-rdm -o jsonpath='{.data.ADMIN_USER_EMAIL}' | base64 -d)
-         ADMIN_PASS=\$(${KUBECTL} get secret unesco-rdm-secrets -n unesco-rdm -o jsonpath='{.data.ADMIN_USER_PASSWORD}' | base64 -d)
-         ${KUBECTL} exec -n unesco-rdm \"\$CMS_POD\" -- env ENV=${ENV_NAME} ADMIN_USER_EMAIL=\"\$ADMIN_EMAIL\" ADMIN_USER_PASSWORD=\"\$ADMIN_PASS\" /var/www/deploy.sh
-         echo 'CMS initialization complete.'"
-    - echo ""
     - echo "--- Images BEFORE pruning ---"
     - |
       if [ "$CI_COMMIT_BRANCH" = "main" ]; then
