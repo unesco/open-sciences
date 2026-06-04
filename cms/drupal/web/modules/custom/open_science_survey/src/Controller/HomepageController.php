@@ -519,8 +519,12 @@ class HomepageController extends ControllerBase {
                 continue;
             }
 
-            $url = $this->normalizelinkuri($uri);
             $external = $this->isexternallinkuri($uri);
+            $url = $this->normalizelinkuri($uri);
+
+            if (!$external) {
+                $url = '/api/pages/' . ltrim($url, '/');
+            }
 
             $links[] = [
                 'external' => $external,
