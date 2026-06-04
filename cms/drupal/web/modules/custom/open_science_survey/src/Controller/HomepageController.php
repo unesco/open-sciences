@@ -138,7 +138,7 @@ class HomepageController extends ControllerBase {
                 'contact_email' => $this->extractstringfieldvalue($node, 'field_contact_email'),
                 'copyright_text' => $this->extractstringfieldvalue($node, 'field_copyright_text'),
                 'navigation_links' => $this->extractnavigationlinks($node),
-                'privacy_page' => $this->extractentityreferenceurl($node, 'field_privacy_page'),
+                'privacy_page' => $this->extractentityreferenceapipageurl($node, 'field_privacy_page'),
                 'tagline' => $this->extractstringfieldvalue($node, 'field_tagline'),
                 'unesco_logo' => $this->extractimagefieldurl($node, 'field_logo'),
                 'unesco_website_label' => $website['label'],
@@ -207,7 +207,7 @@ class HomepageController extends ControllerBase {
                     'tags' => $this->extractcardtags($node),
                     'number' => $this->extractstringfieldvalue($node, 'field_tagline'),
                     'description' => $this->extractbodyfieldvalue($node),
-                    'search_query' => $this->extractstringfieldvalue($node, 'field_search_query'),
+                    'website' => $this->extractapilinkfield($node, 'field_website'),
                 ];
             }
 
@@ -291,6 +291,88 @@ class HomepageController extends ControllerBase {
             $response->headers->set('Cache-Control', 'private, no-store');
             return $response;
         }
+    }
+
+    /**
+     * Page endpoint.
+     *
+     * GET /api/pages/{page_path}
+     *
+    * @param string $page_path
+    *   First path segment for alias/internal path.
+    * @param string $page_subpath
+    *   Optional remaining path segments.
+     *
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *   JSON object with title and rendered body for a published basic page.
+     */
+    public function page($page_path, $page_subpath = '') {
+        try {
+            $combinedpath = (string) $page_path;
+            if ($page_subpath !== '') {
+                $combinedpath .= '/' . (string) $page_subpath;
+            }
+
+            $requestedpath = '/' . ltrim($combinedpath, '/');
+            $resolvedpath = \Drupal::service('path_alias.manager')->getPathByAlias($requestedpath);
+
+            // If the alias lookup does not resolve, allow direct internal node paths.
+            if ($resolvedpath === $requestedpath && strpos($requestedpath, '/node/') !== 0) {
+                return new JsonResponse([
+                    'error' => 'Page not found',
+                ], 404);
+            }
+
+            if (!preg_match('#^/node/(\d+)$#', $resolvedpath, $matches)) {
+                return new JsonResponse([
+                    'error' => 'Page not found',
+                ], 404);
+            }
+
+            $node = $this->entityTypeManager()->getStorage('node')->load((int) $matches[1]);
+            if (!$node || $node->bundle() !== 'page' || !$node->isPublished() || !$node->access('view')) {
+                return new JsonResponse([
+                    'error' => 'Page not found',
+                ], 404);
+            }
+
+            return $this->buildcacheablejsonresponse(
+                [
+                    'body' => $this->extractbodyfieldvalue($node),
+                    'title' => (string) $node->label(),
+                ],
+                ['languages:language_interface', 'url.path', 'user.permissions'],
+                ['node:' . $node->id(), 'route_match'],
+                $node,
+                Cache::PERMANENT
+            );
+        } catch (\Exception $e) {
+            $this->getLogger('open_science_survey')->error('Homepage page endpoint failed: @message', [
+                '@message' => $e->getMessage(),
+            ]);
+
+            $response = new JsonResponse([
+                'error' => 'Failed to fetch page',
+            ], 500);
+
+            $response->headers->set('Cache-Control', 'private, no-store');
+            return $response;
+        }
+    }
+
+    /**
+     * Page endpoint for internal node paths.
+     *
+     * GET /api/pages/node/{nid}
+     *
+     * @param int|string $nid
+     *   Node ID.
+     *
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *   JSON object with title and rendered body for a published basic page.
+     */
+    public function pagebynid($nid) {
+        return $this->page('node', (string) $nid);
     }
 
     /**
@@ -437,8 +519,12 @@ class HomepageController extends ControllerBase {
                 continue;
             }
 
-            $url = $this->normalizelinkuri($uri);
             $external = $this->isexternallinkuri($uri);
+            $url = $this->normalizelinkuri($uri);
+
+            if (!$external) {
+                $url = '/api/pages/' . ltrim($url, '/');
+            }
 
             $links[] = [
                 'external' => $external,
@@ -474,6 +560,40 @@ class HomepageController extends ControllerBase {
         return [
             'label' => (string) ($item->title ?? ''),
             'url' => $this->normalizelinkuri($uri),
+        ];
+    }
+
+    /**
+     * Extracts a single link field in {external, label, url} format.
+     *
+     * Internal links are converted to /api/pages/... URLs.
+     */
+    protected function extractapilinkfield(EntityInterface $node, $fieldname) {
+        if (!$node->hasField($fieldname) || $node->get($fieldname)->isEmpty()) {
+            return ['external' => false, 'label' => '', 'url' => ''];
+        }
+
+        $item = $node->get($fieldname)->first();
+        if (!$item) {
+            return ['external' => false, 'label' => '', 'url' => ''];
+        }
+
+        $uri = (string) ($item->uri ?? '');
+        $label = (string) ($item->title ?? '');
+        if ($uri === '') {
+            return ['external' => false, 'label' => $label, 'url' => ''];
+        }
+
+        $external = $this->isexternallinkuri($uri);
+        $url = $this->normalizelinkuri($uri);
+        if (!$external) {
+            $url = '/api/pages/' . ltrim($url, '/');
+        }
+
+        return [
+            'external' => $external,
+            'label' => $label,
+            'url' => $url,
         ];
     }
 
@@ -514,4 +634,32 @@ class HomepageController extends ControllerBase {
     protected function isexternallinkuri($uri) {
         return preg_match('/^(https?:|mailto:|tel:)/i', (string) $uri) === 1;
     }
+
+    /**
+     * Returns the /api/pages/ URL for a referenced node entity.
+     *
+     * Uses the path alias if one exists (e.g. /api/pages/about),
+     * otherwise falls back to the node ID form (e.g. /api/pages/node/42).
+     */
+    protected function extractentityreferenceapipageurl(EntityInterface $node, $fieldname) {
+        if (!$node->hasField($fieldname) || $node->get($fieldname)->isEmpty()) {
+            return '';
+        }
+
+        $entity = $node->get($fieldname)->entity;
+        if (!$entity) {
+            return '';
+        }
+
+        $nid = $entity->id();
+        $internalpath = '/node/' . $nid;
+        $alias = \Drupal::service('path_alias.manager')->getAliasByPath($internalpath);
+
+        if ($alias !== $internalpath) {
+            return '/api/pages/' . ltrim($alias, '/');
+        }
+
+        return '/api/pages/node/' . $nid;
+    }
+
 }

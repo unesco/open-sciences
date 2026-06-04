@@ -45,9 +45,9 @@ $card_bundle = 'homepage_card';
 $card_required_fields = [
   'body',
   'field_image',
-  'field_search_query',
   'field_tagline',
   'field_tags',
+  'field_website',
   'field_weight',
 ];
 
@@ -89,7 +89,7 @@ $sample_data = [
   'field_navigation_links' => [
     [
       'title' => 'About',
-      'uri' => 'internal:/pages/about',
+      'uri' => 'internal:/about',
     ],
     [
       'title' => 'UNESCO Natural Sciences Family',
@@ -116,9 +116,46 @@ $header_node = $node_storage->create([
 $header_node->save();
 print "Created sample homepage_header node with NID {$header_node->id()}.\n";
 
+$about_page_node = $node_storage->create([
+  'type' => 'page',
+  'title' => 'About',
+  'path' => [
+    'alias' => '/about',
+  ],
+  'status' => 1,
+  'langcode' => 'en',
+  'body' => [
+    'value' => 'About UNESCO Open Science Platform sample content.',
+    'format' => 'basic_html',
+  ],
+]);
+
+$about_page_node->save();
+print "Created sample about page node with NID {$about_page_node->id()}.\n";
+
+$natural_sciences_page_node = $node_storage->create([
+  'type' => 'page',
+  'title' => 'UNESCO Natural Sciences Family',
+  'path' => [
+    'alias' => '/natural-sciences-family',
+  ],
+  'status' => 1,
+  'langcode' => 'en',
+  'body' => [
+    'value' => 'UNESCO Natural Sciences Family sample content.',
+    'format' => 'basic_html',
+  ],
+]);
+
+$natural_sciences_page_node->save();
+print "Created sample natural sciences family page node with NID {$natural_sciences_page_node->id()}.\n";
+
 $privacy_page_node = $node_storage->create([
   'type' => 'page',
   'title' => 'Privacy',
+  'path' => [
+    'alias' => '/privacy',
+  ],
   'status' => 1,
   'langcode' => 'en',
   'body' => [
@@ -137,11 +174,11 @@ $footer_sample_data = [
   'field_navigation_links' => [
     [
       'title' => 'About',
-      'uri' => 'internal:/pages/about',
+      'uri' => 'internal:/about',
     ],
     [
       'title' => 'UNESCO Natural Sciences Family',
-      'uri' => 'internal:/pages/natural-sciences-family',
+      'uri' => 'internal:/natural-sciences-family',
     ],
     [
       'title' => 'UNESCO Open Science Dashboards',
@@ -149,7 +186,7 @@ $footer_sample_data = [
     ],
     [
       'title' => 'Privacy',
-      'uri' => 'internal:/pages/privacy',
+      'uri' => 'internal:/privacy',
     ],
   ],
   'field_tagline' => 'Promoting international cooperation in education, science, and culture worldwide.',
@@ -267,7 +304,7 @@ $card_samples = [
     'tags' => ['Biodiversity conservation', 'UNESCO designated sites'],
     'field_tagline' => '60%',
     'body' => 'of global vertebrate species richness is found within UNESCO sites.',
-    'field_search_query' => 'biodiversity',
+    'page_alias' => '/biodiversity-conservation',
     'field_weight' => 1,
   ],
   [
@@ -276,7 +313,7 @@ $card_samples = [
     'tags' => ['Indigenous peoples'],
     'field_tagline' => '>25%',
     'body' => "of the Earth's land area is traditionally owned, managed, used or occupied by indigenous peoples.",
-    'field_search_query' => 'indigenous+peoples',
+    'page_alias' => '/indigenous-peoples',
     'field_weight' => 2,
   ],
   [
@@ -285,7 +322,7 @@ $card_samples = [
     'tags' => ['Water resource management', 'Climate change'],
     'field_tagline' => 'By 2050,',
     'body' => 'climate change could significantly affect drinking water resources, with stream flows in the Seine and its tributaries supplying the Paris metropolitan area declining by up to 30%, according to the Seine-Normandy Water Agency.',
-    'field_search_query' => 'climate+change+water+resources+management',
+    'page_alias' => '/water-resource-management',
     'field_weight' => 3,
   ],
   [
@@ -294,7 +331,7 @@ $card_samples = [
     'tags' => ['Quantum', 'Physics'],
     'field_tagline' => '>23.3%',
     'body' => 'of participants in a UNESCO-led global survey who represented the Global South reported having no access to the necessary quantum research facilities, despite their wish to shape the quantum future.',
-    'field_search_query' => 'quantum+physics',
+    'page_alias' => '/quantum-physics',
     'field_weight' => 4,
   ],
   [
@@ -303,12 +340,28 @@ $card_samples = [
     'tags' => ['SIDS', 'Climate change'],
     'field_tagline' => '~70%',
     'body' => 'of the Pacific Small Island Developing States\' agricultural area depends on seasonal rainfall, making it highly vulnerable to climate change, which is predicted to affect the entire food supply chain in this region.',
-    'field_search_query' => 'climate+change+SIDS+agriculture',
+    'page_alias' => '/sids-climate-change',
     'field_weight' => 5,
   ],
 ];
 
 foreach ($card_samples as $card_data) {
+  $card_page_node = $node_storage->create([
+    'type' => 'page',
+    'title' => $card_data['title'] . ' details',
+    'path' => [
+      'alias' => $card_data['page_alias'],
+    ],
+    'status' => 1,
+    'langcode' => 'en',
+    'body' => [
+      'value' => $card_data['body'],
+      'format' => 'basic_html',
+    ],
+  ]);
+  $card_page_node->save();
+  print "Created sample card page node '{$card_page_node->label()}' with NID {$card_page_node->id()}.\n";
+
   $tag_refs = [];
   foreach ($card_data['tags'] as $tag_label) {
     $tag_term = $ensure_tag_term($tag_label);
@@ -325,7 +378,10 @@ foreach ($card_samples as $card_data) {
       'format' => 'basic_html',
     ],
     'field_tagline' => $card_data['field_tagline'],
-    'field_search_query' => $card_data['field_search_query'],
+    'field_website' => [
+      'title' => $card_data['title'] . ' details',
+      'uri' => 'internal:' . $card_data['page_alias'],
+    ],
     'field_weight' => $card_data['field_weight'],
     'field_tags' => $tag_refs,
   ];
