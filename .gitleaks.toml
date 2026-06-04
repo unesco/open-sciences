@@ -1,0 +1,25 @@
+# Gitleaks config for the public-mirror secret-scan gate (see .gitlab-ci.yml).
+# Extends the built-in ruleset and suppresses known false positives only.
+# Do NOT add real secrets here — remove them from the tree or rotate them.
+
+title = "UNESCO open-science secret-scan"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known false positives in the published tree"
+
+# .invenio is a generated manifest of SHA-256 content checksums, not credentials.
+# Its 40/64-char hex strings trip generic-api-key; the whole file is safe.
+paths = [
+  '''(^|/)\.invenio$''',
+]
+
+# Placeholder/reference strings that look secret-ish but are not.
+regexes = [
+  '''Votre[A-Za-z0-9]+''',        # French "YourPassword…" placeholders in docs
+  '''FROM_\.K8S-SECRETS''',        # reference notation in k8s/README
+  '''YOUR_INVENIO_TOKEN''',        # doc placeholder
+  '''\$\{[A-Z_]+\}''',             # env-var references like ${SECRET_KEY}
+]
