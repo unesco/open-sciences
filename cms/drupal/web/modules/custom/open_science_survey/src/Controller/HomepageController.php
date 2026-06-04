@@ -294,6 +294,88 @@ class HomepageController extends ControllerBase {
     }
 
     /**
+     * Page endpoint.
+     *
+     * GET /api/pages/{page_path}
+     *
+    * @param string $page_path
+    *   First path segment for alias/internal path.
+    * @param string $page_subpath
+    *   Optional remaining path segments.
+     *
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *   JSON object with title and rendered body for a published basic page.
+     */
+    public function page($page_path, $page_subpath = '') {
+        try {
+            $combinedpath = (string) $page_path;
+            if ($page_subpath !== '') {
+                $combinedpath .= '/' . (string) $page_subpath;
+            }
+
+            $requestedpath = '/' . ltrim($combinedpath, '/');
+            $resolvedpath = \Drupal::service('path_alias.manager')->getPathByAlias($requestedpath);
+
+            // If the alias lookup does not resolve, allow direct internal node paths.
+            if ($resolvedpath === $requestedpath && strpos($requestedpath, '/node/') !== 0) {
+                return new JsonResponse([
+                    'error' => 'Page not found',
+                ], 404);
+            }
+
+            if (!preg_match('#^/node/(\d+)$#', $resolvedpath, $matches)) {
+                return new JsonResponse([
+                    'error' => 'Page not found',
+                ], 404);
+            }
+
+            $node = $this->entityTypeManager()->getStorage('node')->load((int) $matches[1]);
+            if (!$node || $node->bundle() !== 'page' || !$node->isPublished() || !$node->access('view')) {
+                return new JsonResponse([
+                    'error' => 'Page not found',
+                ], 404);
+            }
+
+            return $this->buildcacheablejsonresponse(
+                [
+                    'body' => $this->extractbodyfieldvalue($node),
+                    'title' => (string) $node->label(),
+                ],
+                ['languages:language_interface', 'url.path', 'user.permissions'],
+                ['node:' . $node->id(), 'route_match'],
+                $node,
+                Cache::PERMANENT
+            );
+        } catch (\Exception $e) {
+            $this->getLogger('open_science_survey')->error('Homepage page endpoint failed: @message', [
+                '@message' => $e->getMessage(),
+            ]);
+
+            $response = new JsonResponse([
+                'error' => 'Failed to fetch page',
+            ], 500);
+
+            $response->headers->set('Cache-Control', 'private, no-store');
+            return $response;
+        }
+    }
+
+    /**
+     * Page endpoint for internal node paths.
+     *
+     * GET /api/pages/node/{nid}
+     *
+     * @param int|string $nid
+     *   Node ID.
+     *
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *   JSON object with title and rendered body for a published basic page.
+     */
+    public function pagebynid($nid) {
+        return $this->page('node', (string) $nid);
+    }
+
+    /**
      * Builds a cacheable JSON response with cache metadata.
      */
     protected function buildcacheablejsonresponse(

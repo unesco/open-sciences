@@ -94,3 +94,35 @@ open_science_survey.homepage_partners:
   methods: [GET]
   requirements:
     _access: 'TRUE'
+
+open_science_survey.page:
+  path: '/api/pages/{page_path}'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::page'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    page_path: '[^/]+'
+
+open_science_survey.page_nested:
+  path: '/api/pages/{page_path}/{page_subpath}'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::page'
+  methods: [GET]
+  options:
+    parameters:
+      page_subpath:
+        type: 'path'
+  requirements:
+    _access: 'TRUE'
+    page_path: '[^/]+'
+    page_subpath: '.+'
+
+open_science_survey.page_node:
+  path: '/api/pages/node/{nid}'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::pagebynid'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    nid: '\d+'
