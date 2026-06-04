@@ -488,8 +488,8 @@ mirror:github:
   before_script:
     - pip install --quiet git-filter-repo
     - git config --global http.proxy "$HTTPS_PROXY"
-    - git config --global user.email "ci@unesco.org"
-    - git config --global user.name "UNESCO CI"
+    - git config --global user.email "sharmat@unicc.org"
+    - git config --global user.name "sharma-tushar12"
   script:
     - test -n "$GITHUB_PAT" || { echo "GITHUB_PAT is not set/exposed (is the branch protected?)"; exit 1; }
     - git rev-parse --verify "${PUBLIC_BASELINE}^{commit}" >/dev/null || { echo "PUBLIC_BASELINE not in history (GIT_DEPTH=0?)"; exit 1; }
