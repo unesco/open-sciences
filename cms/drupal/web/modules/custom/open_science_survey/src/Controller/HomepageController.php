@@ -138,7 +138,7 @@ class HomepageController extends ControllerBase {
                 'contact_email' => $this->extractstringfieldvalue($node, 'field_contact_email'),
                 'copyright_text' => $this->extractstringfieldvalue($node, 'field_copyright_text'),
                 'navigation_links' => $this->extractnavigationlinks($node),
-                'privacy_page' => $this->extractentityreferenceurl($node, 'field_privacy_page'),
+                'privacy_page' => $this->extractentityreferenceapipageurl($node, 'field_privacy_page'),
                 'tagline' => $this->extractstringfieldvalue($node, 'field_tagline'),
                 'unesco_logo' => $this->extractimagefieldurl($node, 'field_logo'),
                 'unesco_website_label' => $website['label'],
@@ -596,4 +596,32 @@ class HomepageController extends ControllerBase {
     protected function isexternallinkuri($uri) {
         return preg_match('/^(https?:|mailto:|tel:)/i', (string) $uri) === 1;
     }
+
+    /**
+     * Returns the /api/pages/ URL for a referenced node entity.
+     *
+     * Uses the path alias if one exists (e.g. /api/pages/about),
+     * otherwise falls back to the node ID form (e.g. /api/pages/node/42).
+     */
+    protected function extractentityreferenceapipageurl(EntityInterface $node, $fieldname) {
+        if (!$node->hasField($fieldname) || $node->get($fieldname)->isEmpty()) {
+            return '';
+        }
+
+        $entity = $node->get($fieldname)->entity;
+        if (!$entity) {
+            return '';
+        }
+
+        $nid = $entity->id();
+        $internalpath = '/node/' . $nid;
+        $alias = \Drupal::service('path_alias.manager')->getAliasByPath($internalpath);
+
+        if ($alias !== $internalpath) {
+            return '/api/pages/' . ltrim($alias, '/');
+        }
+
+        return '/api/pages/node/' . $nid;
+    }
+
 }

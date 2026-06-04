@@ -119,6 +119,9 @@ print "Created sample homepage_header node with NID {$header_node->id()}.\n";
 $privacy_page_node = $node_storage->create([
   'type' => 'page',
   'title' => 'Privacy',
+  'path' => [
+    'alias' => '/privacy',
+  ],
   'status' => 1,
   'langcode' => 'en',
   'body' => [
