@@ -422,6 +422,8 @@ gitleaks:
   stage: secret-scan
   image: alpine:latest
   needs: []
+  environment:
+    name: $CI_COMMIT_BRANCH
   variables:
     GITLEAKS_VERSION: "8.18.4"
     HTTP_PROXY: "http://proxy.unesco.org:8080"
@@ -475,6 +477,8 @@ mirror:github:
   image: python:3.11        # ships with git; pip installs git-filter-repo
   needs:
     - job: gitleaks         # only mirror if the secret-scan gate passed
+  environment:
+    name: $CI_COMMIT_BRANCH
   variables:
     GIT_DEPTH: 0            # full history; the graft baseline must be reachable
     PUBLIC_BASELINE: "fcf52048370814a8abb13eb4cf9d65ac6b6a8aa3"
@@ -491,6 +495,9 @@ mirror:github:
     - git config --global user.email "sharmat@unicc.org"
     - git config --global user.name "sharma-tushar12"
   script:
+    # TEMP DEBUG (remove after diagnosing): non-revealing presence + length probe.
+    - 'echo "ref=${CI_COMMIT_REF_NAME} protected=${CI_COMMIT_REF_PROTECTED} pipeline_source=${CI_PIPELINE_SOURCE}"'
+    - 'echo "PAT present? ${GITHUB_PAT:+yes}${GITHUB_PAT:-NO} | length=${#GITHUB_PAT}"'
     - test -n "$GITHUB_PAT" || { echo "GITHUB_PAT is not set/exposed (is the branch protected?)"; exit 1; }
     - git rev-parse --verify "${PUBLIC_BASELINE}^{commit}" >/dev/null || { echo "PUBLIC_BASELINE not in history (GIT_DEPTH=0?)"; exit 1; }
     # Guard: baseline must be an ANCESTOR of the branch, else the graft would not
