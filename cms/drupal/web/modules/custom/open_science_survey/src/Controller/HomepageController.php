@@ -207,7 +207,7 @@ class HomepageController extends ControllerBase {
                     'tags' => $this->extractcardtags($node),
                     'number' => $this->extractstringfieldvalue($node, 'field_tagline'),
                     'description' => $this->extractbodyfieldvalue($node),
-                    'search_query' => $this->extractstringfieldvalue($node, 'field_search_query'),
+                    'website' => $this->extractapilinkfield($node, 'field_website'),
                 ];
             }
 
@@ -560,6 +560,40 @@ class HomepageController extends ControllerBase {
         return [
             'label' => (string) ($item->title ?? ''),
             'url' => $this->normalizelinkuri($uri),
+        ];
+    }
+
+    /**
+     * Extracts a single link field in {external, label, url} format.
+     *
+     * Internal links are converted to /api/pages/... URLs.
+     */
+    protected function extractapilinkfield(EntityInterface $node, $fieldname) {
+        if (!$node->hasField($fieldname) || $node->get($fieldname)->isEmpty()) {
+            return ['external' => false, 'label' => '', 'url' => ''];
+        }
+
+        $item = $node->get($fieldname)->first();
+        if (!$item) {
+            return ['external' => false, 'label' => '', 'url' => ''];
+        }
+
+        $uri = (string) ($item->uri ?? '');
+        $label = (string) ($item->title ?? '');
+        if ($uri === '') {
+            return ['external' => false, 'label' => $label, 'url' => ''];
+        }
+
+        $external = $this->isexternallinkuri($uri);
+        $url = $this->normalizelinkuri($uri);
+        if (!$external) {
+            $url = '/api/pages/' . ltrim($url, '/');
+        }
+
+        return [
+            'external' => $external,
+            'label' => $label,
+            'url' => $url,
         ];
     }
 
