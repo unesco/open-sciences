@@ -89,7 +89,7 @@ $sample_data = [
   'field_navigation_links' => [
     [
       'title' => 'About',
-      'uri' => 'internal:/pages/about',
+      'uri' => 'internal:/about',
     ],
     [
       'title' => 'UNESCO Natural Sciences Family',
@@ -116,6 +116,40 @@ $header_node = $node_storage->create([
 $header_node->save();
 print "Created sample homepage_header node with NID {$header_node->id()}.\n";
 
+$about_page_node = $node_storage->create([
+  'type' => 'page',
+  'title' => 'About',
+  'path' => [
+    'alias' => '/about',
+  ],
+  'status' => 1,
+  'langcode' => 'en',
+  'body' => [
+    'value' => 'About UNESCO Open Science Platform sample content.',
+    'format' => 'basic_html',
+  ],
+]);
+
+$about_page_node->save();
+print "Created sample about page node with NID {$about_page_node->id()}.\n";
+
+$natural_sciences_page_node = $node_storage->create([
+  'type' => 'page',
+  'title' => 'UNESCO Natural Sciences Family',
+  'path' => [
+    'alias' => '/natural-sciences-family',
+  ],
+  'status' => 1,
+  'langcode' => 'en',
+  'body' => [
+    'value' => 'UNESCO Natural Sciences Family sample content.',
+    'format' => 'basic_html',
+  ],
+]);
+
+$natural_sciences_page_node->save();
+print "Created sample natural sciences family page node with NID {$natural_sciences_page_node->id()}.\n";
+
 $privacy_page_node = $node_storage->create([
   'type' => 'page',
   'title' => 'Privacy',
@@ -140,11 +174,11 @@ $footer_sample_data = [
   'field_navigation_links' => [
     [
       'title' => 'About',
-      'uri' => 'internal:/pages/about',
+      'uri' => 'internal:/about',
     ],
     [
       'title' => 'UNESCO Natural Sciences Family',
-      'uri' => 'internal:/pages/natural-sciences-family',
+      'uri' => 'internal:/natural-sciences-family',
     ],
     [
       'title' => 'UNESCO Open Science Dashboards',
@@ -152,7 +186,7 @@ $footer_sample_data = [
     ],
     [
       'title' => 'Privacy',
-      'uri' => 'internal:/pages/privacy',
+      'uri' => 'internal:/privacy',
     ],
   ],
   'field_tagline' => 'Promoting international cooperation in education, science, and culture worldwide.',
