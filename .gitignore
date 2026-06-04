@@ -110,6 +110,10 @@ docker-compose.override.yml
 .env*
 !deploy/.env.example
 
+# Secret-scanning artefacts (contain real leaked values — never commit)
+gitleaks-report.json
+replacements.txt
+
 # Generated configuration files (from templates)
 invenio.cfg
 
