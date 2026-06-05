@@ -5,14 +5,16 @@ dependencies:
   config:
     - field.field.node.homepage_card.body
     - field.field.node.homepage_card.field_image
-    - field.field.node.homepage_card.field_search_query
     - field.field.node.homepage_card.field_tagline
     - field.field.node.homepage_card.field_tags
+    - field.field.node.homepage_card.field_website
     - field.field.node.homepage_card.field_weight
     - image.style.thumbnail
     - node.type.homepage_card
   module:
     - image
+    - link
+    - path
     - text
 id: node.homepage_card.default
 targetEntityType: node
@@ -21,7 +23,7 @@ mode: default
 content:
   body:
     type: text_textarea_with_summary
-    weight: 121
+    weight: 7
     region: content
     settings:
       rows: 9
@@ -31,29 +33,21 @@ content:
     third_party_settings: {  }
   created:
     type: datetime_timestamp
-    weight: 10
+    weight: 4
     region: content
     settings: {  }
     third_party_settings: {  }
   field_image:
     type: image_image
-    weight: 122
+    weight: 8
     region: content
     settings:
       progress_indicator: throbber
       preview_image_style: thumbnail
     third_party_settings: {  }
-  field_search_query:
-    type: string_textfield
-    weight: 124
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
   field_tagline:
     type: string_textfield
-    weight: 5
+    weight: 1
     region: content
     settings:
       size: 60
@@ -61,7 +55,7 @@ content:
     third_party_settings: {  }
   field_tags:
     type: entity_reference_autocomplete
-    weight: 123
+    weight: 9
     region: content
     settings:
       match_operator: CONTAINS
@@ -69,23 +63,37 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_website:
+    type: link_default
+    weight: 2
+    region: content
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
   field_weight:
     type: number
-    weight: 125
+    weight: 10
     region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
+  path:
+    type: path
+    weight: 5
+    region: content
+    settings: {  }
+    third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 120
+    weight: 6
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   title:
     type: string_textfield
-    weight: -5
+    weight: 0
     region: content
     settings:
       size: 60
@@ -93,7 +101,7 @@ content:
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 5
+    weight: 3
     region: content
     settings:
       match_operator: CONTAINS

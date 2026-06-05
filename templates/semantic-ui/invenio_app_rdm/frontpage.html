@@ -78,7 +78,7 @@
         <p class="dashboards-description">
           Interactive dashboards tracking implementation of the UNESCO Recommendation on Open Science
         </p>
-        <a href="/statistics" class="ui primary button" style="color:#fafafa !important; background-color: #0073b7 !important; box-shadow: none !important;border-radius:25px !important;border:none !important">
+        <a href="/dashboards" class="ui primary button" style="color:#fafafa !important; background-color: #0073b7 !important; box-shadow: none !important;border-radius:25px !important;border:none !important">
           Open Science Dashboards
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 4px;">
             <path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z" fill="white"/>
@@ -129,7 +129,10 @@
           return '<span class="highlight-tag">' + t + '</span>';
         }).join('');
         var img = CmsApi.resolveAsset(card.image);
-        hWrapper.innerHTML += '<div class="swiper-slide">' +
+
+        var slide = document.createElement('div');
+        slide.className = 'swiper-slide';
+        slide.innerHTML =
           '<div class="highlight-card">' +
             '<div class="highlight-image" style="background-image: url(\'' + img + '\');"></div>' +
             '<div class="highlight-content">' +
@@ -138,12 +141,16 @@
                 '<div class="highlight-number">' + card.number + '</div>' +
                 '<p class="highlight-description">' + card.description + '</p>' +
               '</div>' +
-              '<a href="/search?q=' + card.search_query + '" class="highlight-button">' +
-                '<span>See more</span>' + arrowSVG +
-              '</a>' +
             '</div>' +
-          '</div>' +
-        '</div>';
+          '</div>';
+
+        var btn = document.createElement('a');
+        btn.className = 'highlight-button';
+        btn.innerHTML = '<span>See more</span>' + arrowSVG;
+        CmsApi.applyLink(btn, card.website || {});
+        slide.querySelector('.highlight-content').appendChild(btn);
+
+        hWrapper.appendChild(slide);
       });
       new Swiper('.highlightsSwiper', {
         slidesPerView: 1,

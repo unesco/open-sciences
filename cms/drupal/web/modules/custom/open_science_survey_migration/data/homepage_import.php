@@ -45,9 +45,9 @@ $card_bundle = 'homepage_card';
 $card_required_fields = [
   'body',
   'field_image',
-  'field_search_query',
   'field_tagline',
   'field_tags',
+  'field_website',
   'field_weight',
 ];
 
@@ -89,7 +89,7 @@ $sample_data = [
   'field_navigation_links' => [
     [
       'title' => 'About',
-      'uri' => 'internal:/pages/about',
+      'uri' => 'internal:/about',
     ],
     [
       'title' => 'UNESCO Natural Sciences Family',
@@ -116,9 +116,46 @@ $header_node = $node_storage->create([
 $header_node->save();
 print "Created sample homepage_header node with NID {$header_node->id()}.\n";
 
+$about_page_node = $node_storage->create([
+  'type' => 'page',
+  'title' => 'About',
+  'path' => [
+    'alias' => '/about',
+  ],
+  'status' => 1,
+  'langcode' => 'en',
+  'body' => [
+    'value' => 'About UNESCO Open Science Platform sample content.',
+    'format' => 'basic_html',
+  ],
+]);
+
+$about_page_node->save();
+print "Created sample about page node with NID {$about_page_node->id()}.\n";
+
+$natural_sciences_page_node = $node_storage->create([
+  'type' => 'page',
+  'title' => 'UNESCO Natural Sciences Family',
+  'path' => [
+    'alias' => '/natural-sciences-family',
+  ],
+  'status' => 1,
+  'langcode' => 'en',
+  'body' => [
+    'value' => 'UNESCO Natural Sciences Family sample content.',
+    'format' => 'basic_html',
+  ],
+]);
+
+$natural_sciences_page_node->save();
+print "Created sample natural sciences family page node with NID {$natural_sciences_page_node->id()}.\n";
+
 $privacy_page_node = $node_storage->create([
   'type' => 'page',
   'title' => 'Privacy',
+  'path' => [
+    'alias' => '/privacy',
+  ],
   'status' => 1,
   'langcode' => 'en',
   'body' => [
@@ -137,11 +174,11 @@ $footer_sample_data = [
   'field_navigation_links' => [
     [
       'title' => 'About',
-      'uri' => 'internal:/pages/about',
+      'uri' => 'internal:/about',
     ],
     [
       'title' => 'UNESCO Natural Sciences Family',
-      'uri' => 'internal:/pages/natural-sciences-family',
+      'uri' => 'internal:/natural-sciences-family',
     ],
     [
       'title' => 'UNESCO Open Science Dashboards',
@@ -149,7 +186,7 @@ $footer_sample_data = [
     ],
     [
       'title' => 'Privacy',
-      'uri' => 'internal:/pages/privacy',
+      'uri' => 'internal:/privacy',
     ],
   ],
   'field_tagline' => 'Promoting international cooperation in education, science, and culture worldwide.',
@@ -179,7 +216,6 @@ $footer_node = $node_storage->create([
 $footer_node->save();
 print "Created sample homepage_footer node with NID {$footer_node->id()}.\n";
 
-$card_nids = [];
 $module_relative_path = \Drupal::service('extension.list.module')->getPath('open_science_survey_migration');
 if ($module_relative_path === '' || $module_relative_path === NULL) {
   throw new \RuntimeException('Unable to resolve module path for open_science_survey_migration.');
@@ -267,7 +303,7 @@ $card_samples = [
     'tags' => ['Biodiversity conservation', 'UNESCO designated sites'],
     'field_tagline' => '60%',
     'body' => 'of global vertebrate species richness is found within UNESCO sites.',
-    'field_search_query' => 'biodiversity',
+    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000397874',
     'field_weight' => 1,
   ],
   [
@@ -275,17 +311,17 @@ $card_samples = [
     'image_source' => $homepage_images_path . '/highlight_2.png',
     'tags' => ['Indigenous peoples'],
     'field_tagline' => '>25%',
-    'body' => "of the Earth's land area is traditionally owned, managed, used or occupied by indigenous peoples.",
-    'field_search_query' => 'indigenous+peoples',
+    'body' => "of the Earth's land area is traditionally owned, managed, used or occupied by indigenous people.",
+    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000385181',
     'field_weight' => 2,
   ],
   [
     'title' => 'Highlight 3',
     'image_source' => $homepage_images_path . '/highlight_3.png',
     'tags' => ['Water resource management', 'Climate change'],
-    'field_tagline' => 'By 2050,',
+    'field_tagline' => 'By 2050',
     'body' => 'climate change could significantly affect drinking water resources, with stream flows in the Seine and its tributaries supplying the Paris metropolitan area declining by up to 30%, according to the Seine-Normandy Water Agency.',
-    'field_search_query' => 'climate+change+water+resources+management',
+    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000380319?posInSet=20&queryId=000e407c-75f2-46a2-b0d3-950d52a933f0',
     'field_weight' => 3,
   ],
   [
@@ -294,17 +330,44 @@ $card_samples = [
     'tags' => ['Quantum', 'Physics'],
     'field_tagline' => '>23.3%',
     'body' => 'of participants in a UNESCO-led global survey who represented the Global South reported having no access to the necessary quantum research facilities, despite their wish to shape the quantum future.',
-    'field_search_query' => 'quantum+physics',
+    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000398055.locale=en',
     'field_weight' => 4,
   ],
   [
     'title' => 'Highlight 5',
     'image_source' => $homepage_images_path . '/research_image5.png',
     'tags' => ['SIDS', 'Climate change'],
-    'field_tagline' => '~70%',
+    'field_tagline' => '70%',
     'body' => 'of the Pacific Small Island Developing States\' agricultural area depends on seasonal rainfall, making it highly vulnerable to climate change, which is predicted to affect the entire food supply chain in this region.',
-    'field_search_query' => 'climate+change+SIDS+agriculture',
+    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000260140',
     'field_weight' => 5,
+  ],
+  [
+    'title' => 'Highlight 6',
+    'image_source' => $homepage_images_path . '/research_image5.png',
+    'tags' => ['Hydrology', 'Open data'],
+    'field_tagline' => '80%',
+    'body' => 'of respondents in the UNESCO Water Family survey share data (such as earth observations and research data), while an even greater majority (93%) use open data. This shows that a strongly data-intensive discipline like hydrology depends heavily on the availability of open data.',
+    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000390401?posInSet=1&queryId=e3124150-391d-4785-b6c9-6bf9e7eb5052',
+    'field_weight' => 6,
+  ],
+  [
+    'title' => 'Highlight 7',
+    'image_source' => $homepage_images_path . '/research_image5.png',
+    'tags' => ['Water supply', 'Mountains', 'Glaciers'],
+    'field_tagline' => '2 Billion',
+    'body' => 'people worldwide depend directly on water from mountains and glaciers for drinking water, agriculture, energy, and ecosystems, making cryosphere decline a major global water-security risk. Up to 60% of the world\'s fresh water originates in mountains.',
+    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000393070?posInSet=1&queryId=96c48524-8e7b-47cd-8f1e-fa1e75cb7b76',
+    'field_weight' => 7,
+  ],
+  [
+    'title' => 'Highlight 8',
+    'image_source' => $homepage_images_path . '/research_image5.png',
+    'tags' => ['Water resources management', 'AI'],
+    'field_tagline' => '95%',
+    'body' => 'of respondents to a global survey of the hydrological community see a clear role for AI and Machine Learning in addressing water resources management challenges, highlighting strong worldwide momentum for AI-enabled modelling, forecasting, water resources management, climate adaptation and disaster risk reduction.',
+    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000393243?posInSet=1&queryId=12d7726d-f54f-482d-bff4-0ac4b8525b3c',
+    'field_weight' => 8,
   ],
 ];
 
@@ -325,7 +388,10 @@ foreach ($card_samples as $card_data) {
       'format' => 'basic_html',
     ],
     'field_tagline' => $card_data['field_tagline'],
-    'field_search_query' => $card_data['field_search_query'],
+    'field_website' => [
+      'title' => 'Source',
+      'uri' => $card_data['link'],
+    ],
     'field_weight' => $card_data['field_weight'],
     'field_tags' => $tag_refs,
   ];
@@ -340,7 +406,6 @@ foreach ($card_samples as $card_data) {
 
   $card_node = $node_storage->create($card_values);
   $card_node->save();
-  $card_nids[] = $card_node->id();
   print "Created sample homepage_card node '{$card_data['title']}' with NID {$card_node->id()}.\n";
 }
 

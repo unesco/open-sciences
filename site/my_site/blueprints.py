@@ -19,7 +19,7 @@ def create_blueprint(app):
     Returns:
         Configured Blueprint instance
     """
-    from .views import StatisticsView, CMSPageView
+    from .views import StatisticsView, CMSPageView, CmsReactPageView
     from .views.dashboard import DashboardView
     from .views.pls import PLSDetailView
     from .api import (
@@ -87,6 +87,13 @@ def create_blueprint(app):
     blueprint.add_url_rule(
         "/pages/<path:slug>",
         view_func=CMSPageView.as_view("cms_page"),
+        methods=["GET"],
+    )
+
+    # CMS React page - mount point; page selected client-side via hash (/page#about)
+    blueprint.add_url_rule(
+        "/page",
+        view_func=CmsReactPageView.as_view("cms_react_page"),
         methods=["GET"],
     )
 

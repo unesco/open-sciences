@@ -6,9 +6,9 @@ dependencies:
     - core.entity_view_mode.node.teaser
     - field.field.node.homepage_card.body
     - field.field.node.homepage_card.field_image
-    - field.field.node.homepage_card.field_search_query
     - field.field.node.homepage_card.field_tagline
     - field.field.node.homepage_card.field_tags
+    - field.field.node.homepage_card.field_website
     - field.field.node.homepage_card.field_weight
     - image.style.medium
     - node.type.homepage_card
@@ -54,6 +54,6 @@ content:
     weight: 100
     region: content
 hidden:
-  field_search_query: true
   field_tagline: true
+  field_website: true
   field_weight: true
