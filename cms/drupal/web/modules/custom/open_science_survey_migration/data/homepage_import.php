@@ -142,7 +142,7 @@ $natural_sciences_page_node = $node_storage->create([
   'status' => 1,
   'langcode' => 'en',
   'body' => [
-    'value' => 'UNESCO Natural Sciences Family sample content.',
+    'value' => file_get_contents(__DIR__ . '/homepage/natural_sciences_family.html'),
     'format' => 'basic_html',
   ],
 ]);
