@@ -1,0 +1,9 @@
+{%- extends config.BASE_TEMPLATE %}
+{%- block css %} {{ super() }} {{ webpack['page-styles.css'] }} {%- endblock %}
+
+{%- block page_body %}
+<div id="cms-page-root"></div>
+{%- endblock %}
+{%- block javascript %} {{ super() }}
+<script src="{{ url_for('static', filename='js/cms-api.js') }}"></script>
+{{ webpack['page.js'] }} {%- endblock %}
