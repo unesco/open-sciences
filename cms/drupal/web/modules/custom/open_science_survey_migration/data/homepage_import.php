@@ -118,14 +118,14 @@ print "Created sample homepage_header node with NID {$header_node->id()}.\n";
 
 $about_page_node = $node_storage->create([
   'type' => 'page',
-  'title' => 'About',
+  'title' => 'About the UNESCO Open Science Platform',
   'path' => [
     'alias' => '/about',
   ],
   'status' => 1,
   'langcode' => 'en',
   'body' => [
-    'value' => 'About UNESCO Open Science Platform sample content.',
+    'value' => file_get_contents(__DIR__ . '/homepage/about.html'),
     'format' => 'basic_html',
   ],
 ]);
@@ -142,7 +142,7 @@ $natural_sciences_page_node = $node_storage->create([
   'status' => 1,
   'langcode' => 'en',
   'body' => [
-    'value' => 'UNESCO Natural Sciences Family sample content.',
+    'value' => file_get_contents(__DIR__ . '/homepage/natural_sciences_family.html'),
     'format' => 'basic_html',
   ],
 ]);
@@ -152,14 +152,14 @@ print "Created sample natural sciences family page node with NID {$natural_scien
 
 $privacy_page_node = $node_storage->create([
   'type' => 'page',
-  'title' => 'Privacy',
+  'title' => 'Privacy Notice',
   'path' => [
     'alias' => '/privacy',
   ],
   'status' => 1,
   'langcode' => 'en',
   'body' => [
-    'value' => 'Privacy notice content for UNESCO Open Science sample data.',
+    'value' => file_get_contents(__DIR__ . '/homepage/privacy_notice.html'),
     'format' => 'basic_html',
   ],
 ]);
