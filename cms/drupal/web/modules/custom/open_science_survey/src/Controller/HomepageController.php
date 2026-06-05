@@ -523,7 +523,7 @@ class HomepageController extends ControllerBase {
             $url = $this->normalizelinkuri($uri);
 
             if (!$external) {
-                $url = '/api/pages/' . ltrim($url, '/');
+                $url = $this->buildapipagesurlfromnormalizedurl($url);
             }
 
             $links[] = [
@@ -587,7 +587,7 @@ class HomepageController extends ControllerBase {
         $external = $this->isexternallinkuri($uri);
         $url = $this->normalizelinkuri($uri);
         if (!$external) {
-            $url = '/api/pages/' . ltrim($url, '/');
+            $url = $this->buildapipagesurlfromnormalizedurl($url);
         }
 
         return [
@@ -656,10 +656,57 @@ class HomepageController extends ControllerBase {
         $alias = \Drupal::service('path_alias.manager')->getAliasByPath($internalpath);
 
         if ($alias !== $internalpath) {
-            return '/api/pages/' . ltrim($alias, '/');
+            return $this->buildapipagesurl($alias);
         }
 
-        return '/api/pages/node/' . $nid;
+        return $this->buildapipagesurl('node/' . $nid);
+    }
+
+    /**
+     * Builds an API pages URL using the site's base path.
+     */
+    protected function buildapipagesurl($path = '') {
+        $basepath = rtrim((string) \Drupal::request()->getBasePath(), '/');
+        $prefix = $basepath . '/api/pages';
+
+        $cleanpath = ltrim((string) $path, '/');
+        if ($cleanpath === '') {
+            return $prefix;
+        }
+
+        return $prefix . '/' . $cleanpath;
+    }
+
+    /**
+     * Converts a normalized internal URL to a base-path-aware /api/pages URL.
+     */
+    protected function buildapipagesurlfromnormalizedurl($url) {
+        $url = (string) $url;
+        $parts = parse_url($url);
+
+        if ($parts === false) {
+            return $this->buildapipagesurl($url);
+        }
+
+        $path = (string) ($parts['path'] ?? '');
+        $basepath = rtrim((string) \Drupal::request()->getBasePath(), '/');
+        if ($basepath !== '') {
+            if (strpos($path, $basepath . '/') === 0) {
+                $path = substr($path, strlen($basepath));
+            } elseif ($path === $basepath) {
+                $path = '/';
+            }
+        }
+
+        $apiurl = $this->buildapipagesurl($path);
+        if (!empty($parts['query'])) {
+            $apiurl .= '?' . $parts['query'];
+        }
+        if (!empty($parts['fragment'])) {
+            $apiurl .= '#' . $parts['fragment'];
+        }
+
+        return $apiurl;
     }
 
 }
