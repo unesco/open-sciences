@@ -157,12 +157,8 @@ link #}
                       var div = document.createElement('div');
                       div.className = 'item';
                       var a = document.createElement('a');
-                      a.href = link.url;
                       a.textContent = link.label;
-                      if (link.external) {
-                        a.target = '_blank';
-                        a.rel = 'noopener noreferrer';
-                      }
+                      CmsApi.applyLink(a, link);
                       div.appendChild(a);
                       container.appendChild(div);
                     });

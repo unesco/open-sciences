@@ -13,6 +13,23 @@ from flask.views import MethodView
 from ..services.cms import CMSContentService, CMSContentServiceConfig
 
 
+class CmsReactPageView(MethodView):
+    """Render the React mount point for CMS pages.
+
+    The page to show is selected client-side from the URL hash slug
+    (e.g. /page#about), which the React app fetches from
+    /cms/api/pages/<slug> as { title, body }.
+    """
+
+    def __init__(self):
+        """Store the template name."""
+        self.template = "my_site/page/index.html"
+
+    def get(self):
+        """Render the React mount template."""
+        return render_template(self.template)
+
+
 class CMSPageView(MethodView):
     """View to render CMS content pages."""
 
