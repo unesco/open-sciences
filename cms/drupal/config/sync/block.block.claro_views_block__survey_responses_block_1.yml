@@ -1,0 +1,52 @@
+uuid: ea92511a-9d0c-4ce0-91f2-51645b196114
+langcode: en
+status: true
+dependencies:
+  config:
+    - views.view.survey_responses
+  module:
+    - node
+    - system
+    - user
+    - views
+  theme:
+    - claro
+id: claro_views_block__survey_responses_block_1
+theme: claro
+region: content
+weight: 1
+provider: null
+plugin: 'views_block:survey_responses-block_1'
+settings:
+  id: 'views_block:survey_responses-block_1'
+  label: ''
+  label_display: '0'
+  provider: views
+  context_mapping: {  }
+  views_label: ''
+  items_per_page: null
+visibility:
+  response_status:
+    id: response_status
+    negate: false
+    status_codes:
+      - 200
+  request_path:
+    id: request_path
+    negate: false
+    pages: '/node/*'
+  user_role:
+    id: user_role
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'
+    roles:
+      content_editor: content_editor
+      administrator: administrator
+  'entity_bundle:node':
+    id: 'entity_bundle:node'
+    negate: false
+    context_mapping:
+      node: '@node.node_route_context:node'
+    bundles:
+      survey_report: survey_report

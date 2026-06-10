@@ -106,7 +106,7 @@ $load_country_report_file = static function (string $iso_code) use (
   $file_system,
   $file_storage
 ): ?File {
-  $filename = strtolower($iso_code) . '.pdf';
+  $filename = strtoupper($iso_code) . '.pdf';
   $source_path = $report_files_source_dir . '/' . $filename;
 
   if (!is_file($source_path) || !is_readable($source_path)) {

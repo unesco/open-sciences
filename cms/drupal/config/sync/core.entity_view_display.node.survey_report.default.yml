@@ -30,7 +30,7 @@ content:
     settings:
       use_description_as_link_text: true
     third_party_settings: {  }
-    weight: 11
+    weight: 12
     region: content
   field_country:
     type: entity_reference_label
@@ -109,6 +109,6 @@ content:
   links:
     settings: {  }
     third_party_settings: {  }
-    weight: 10
+    weight: 11
     region: content
 hidden: {  }
