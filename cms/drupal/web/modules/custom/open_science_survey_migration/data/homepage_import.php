@@ -125,7 +125,7 @@ $about_page_node = $node_storage->create([
   'status' => 1,
   'langcode' => 'en',
   'body' => [
-    'value' => file_get_contents(__DIR__ . '/homepage/about.html'),
+    'value' => file_get_contents(__DIR__ . '/homepage/page_about.html'),
     'format' => 'basic_html',
   ],
 ]);
@@ -142,7 +142,7 @@ $natural_sciences_page_node = $node_storage->create([
   'status' => 1,
   'langcode' => 'en',
   'body' => [
-    'value' => file_get_contents(__DIR__ . '/homepage/natural_sciences_family.html'),
+    'value' => file_get_contents(__DIR__ . '/homepage/page_natural_sciences_family.html'),
     'format' => 'basic_html',
   ],
 ]);
@@ -159,7 +159,7 @@ $privacy_page_node = $node_storage->create([
   'status' => 1,
   'langcode' => 'en',
   'body' => [
-    'value' => file_get_contents(__DIR__ . '/homepage/privacy_notice.html'),
+    'value' => file_get_contents(__DIR__ . '/homepage/page_privacy_notice.html'),
     'format' => 'basic_html',
   ],
 ]);
@@ -222,9 +222,9 @@ if ($module_relative_path === '' || $module_relative_path === NULL) {
 }
 
 $module_absolute_path = DRUPAL_ROOT . '/' . $module_relative_path;
-$homepage_images_path = $module_absolute_path . '/data/homepage';
-if (!is_dir($homepage_images_path)) {
-  throw new \RuntimeException("Homepage images directory not found: {$homepage_images_path}");
+$homepage_data_path = $module_absolute_path . '/data/homepage';
+if (!is_dir($homepage_data_path)) {
+  throw new \RuntimeException("Homepage images directory not found: {$homepage_data_path}");
 }
 
 $public_images_directory = 'public://homepage_cards';
@@ -296,80 +296,11 @@ $load_or_create_image = static function (string $source_path, string $destinatio
   return $file;
 };
 
-$card_samples = [
-  [
-    'title' => 'Highlight 1',
-    'image_source' => $homepage_images_path . '/highlight_1.png',
-    'tags' => ['Biodiversity conservation', 'UNESCO designated sites'],
-    'field_tagline' => '60%',
-    'body' => 'of global vertebrate species richness is found within UNESCO sites.',
-    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000397874',
-    'field_weight' => 1,
-  ],
-  [
-    'title' => 'Highlight 2',
-    'image_source' => $homepage_images_path . '/highlight_2.png',
-    'tags' => ['Indigenous peoples'],
-    'field_tagline' => '>25%',
-    'body' => "of the Earth's land area is traditionally owned, managed, used or occupied by indigenous people.",
-    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000385181',
-    'field_weight' => 2,
-  ],
-  [
-    'title' => 'Highlight 3',
-    'image_source' => $homepage_images_path . '/highlight_3.png',
-    'tags' => ['Water resource management', 'Climate change'],
-    'field_tagline' => 'By 2050',
-    'body' => 'climate change could significantly affect drinking water resources, with stream flows in the Seine and its tributaries supplying the Paris metropolitan area declining by up to 30%, according to the Seine-Normandy Water Agency.',
-    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000380319?posInSet=20&queryId=000e407c-75f2-46a2-b0d3-950d52a933f0',
-    'field_weight' => 3,
-  ],
-  [
-    'title' => 'Highlight 4',
-    'image_source' => $homepage_images_path . '/highlight_4.png',
-    'tags' => ['Quantum', 'Physics'],
-    'field_tagline' => '>23.3%',
-    'body' => 'of participants in a UNESCO-led global survey who represented the Global South reported having no access to the necessary quantum research facilities, despite their wish to shape the quantum future.',
-    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000398055.locale=en',
-    'field_weight' => 4,
-  ],
-  [
-    'title' => 'Highlight 5',
-    'image_source' => $homepage_images_path . '/research_image5.png',
-    'tags' => ['SIDS', 'Climate change'],
-    'field_tagline' => '70%',
-    'body' => 'of the Pacific Small Island Developing States\' agricultural area depends on seasonal rainfall, making it highly vulnerable to climate change, which is predicted to affect the entire food supply chain in this region.',
-    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000260140',
-    'field_weight' => 5,
-  ],
-  [
-    'title' => 'Highlight 6',
-    'image_source' => $homepage_images_path . '/research_image5.png',
-    'tags' => ['Hydrology', 'Open data'],
-    'field_tagline' => '80%',
-    'body' => 'of respondents in the UNESCO Water Family survey share data (such as earth observations and research data), while an even greater majority (93%) use open data. This shows that a strongly data-intensive discipline like hydrology depends heavily on the availability of open data.',
-    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000390401?posInSet=1&queryId=e3124150-391d-4785-b6c9-6bf9e7eb5052',
-    'field_weight' => 6,
-  ],
-  [
-    'title' => 'Highlight 7',
-    'image_source' => $homepage_images_path . '/research_image5.png',
-    'tags' => ['Water supply', 'Mountains', 'Glaciers'],
-    'field_tagline' => '2 Billion',
-    'body' => 'people worldwide depend directly on water from mountains and glaciers for drinking water, agriculture, energy, and ecosystems, making cryosphere decline a major global water-security risk. Up to 60% of the world\'s fresh water originates in mountains.',
-    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000393070?posInSet=1&queryId=96c48524-8e7b-47cd-8f1e-fa1e75cb7b76',
-    'field_weight' => 7,
-  ],
-  [
-    'title' => 'Highlight 8',
-    'image_source' => $homepage_images_path . '/research_image5.png',
-    'tags' => ['Water resources management', 'AI'],
-    'field_tagline' => '95%',
-    'body' => 'of respondents to a global survey of the hydrological community see a clear role for AI and Machine Learning in addressing water resources management challenges, highlighting strong worldwide momentum for AI-enabled modelling, forecasting, water resources management, climate adaptation and disaster risk reduction.',
-    'link' => 'https://unesdoc.unesco.org/ark:/48223/pf0000393243?posInSet=1&queryId=12d7726d-f54f-482d-bff4-0ac4b8525b3c',
-    'field_weight' => 8,
-  ],
-];
+$cards_json_path = $homepage_data_path . '/cards.json';
+if (!is_readable($cards_json_path)) {
+  throw new \RuntimeException("Cards JSON file not found or unreadable: {$cards_json_path}");
+}
+$card_samples = json_decode(file_get_contents($cards_json_path), TRUE, 512, JSON_THROW_ON_ERROR);
 
 foreach ($card_samples as $card_data) {
   $tag_refs = [];
@@ -396,7 +327,7 @@ foreach ($card_samples as $card_data) {
     'field_tags' => $tag_refs,
   ];
 
-  $image_file = $load_or_create_image($card_data['image_source'], $public_images_directory);
+  $image_file = $load_or_create_image($homepage_data_path . '/' . $card_data['image_source'], $public_images_directory);
   if ($image_file) {
     $card_values['field_image'] = [
       'target_id' => $image_file->id(),
@@ -413,13 +344,13 @@ $partner_samples = [
   [
     'title' => 'InvenioRDM',
     'url' => 'https://inveniosoftware.org/',
-    'image_source' => $homepage_images_path . '/partner_1.svg',
+    'image_source' => $homepage_data_path . '/partner_1.svg',
     'field_weight' => 1,
   ],
   [
     'title' => 'Lens.org',
     'url' => 'https://www.lens.org/',
-    'image_source' => $homepage_images_path . '/partner_2.png',
+    'image_source' => $homepage_data_path . '/partner_2.png',
     'field_weight' => 2,
   ],
 ];
