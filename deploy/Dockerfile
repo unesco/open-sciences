@@ -69,6 +69,13 @@ RUN echo "📦 Copying static assets and templates..." && \
     if [ -d ./static ]; then cp -rv ./static/. ${INVENIO_INSTANCE_PATH}/static/; fi && \
     echo "✅ Assets copied"
 
+# Make npm resilient to the flaky UNESCO proxy: more retries and longer
+# timeouts so a single slow tarball doesn't fail the whole webpack build.
+ENV NPM_CONFIG_FETCH_RETRIES=5 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000 \
+    NPM_CONFIG_FETCH_TIMEOUT=600000
+
 # Build webpack assets (pre-compile for production)
 RUN echo "🔨 Building webpack assets..." && \
     invenio webpack buildall && \
