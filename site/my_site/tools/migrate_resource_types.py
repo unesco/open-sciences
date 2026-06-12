@@ -219,6 +219,93 @@ def patch_records(base_url: str, token: str, dry_run: bool = False) -> str:
 
         page += 1
 
+    summary = _build_summary(updated, skipped, errors, dry_run, dry_run_details, error_details)
+    logger.info(summary)
+    return summary
+
+
+def patch_records_inplace(dry_run: bool = False) -> str:
+    """Migrate target resource types directly on the record models, in-process.
+
+    This avoids the REST edit->publish flow entirely (no draft creation, no
+    token, no HTTP). Some imported records have a broken draft/parent PID that
+    makes ``POST /records/{id}/draft`` raise "persistent identifier does not
+    exist"; loading the published record by recid and committing the metadata
+    change sidesteps that. Must run inside a Flask app context.
+
+    Returns a summary string in the same format as ``patch_records``.
+    """
+    from invenio_access.permissions import system_identity
+    from invenio_db import db
+    from invenio_rdm_records.proxies import current_rdm_records_service as svc
+
+    record_cls = svc.record_cls
+    updated = 0
+    skipped = 0
+    errors = 0
+    error_details = []
+    dry_run_details = []
+
+    # Find the (few) standalone-type records via search, then operate on the
+    # record model for each so the change persists + reindexes.
+    query = " OR ".join(f'metadata.resource_type.id:"{t}"' for t in sorted(TARGETS))
+    ids = []
+    page = 1
+    size = 100
+    while True:
+        res = svc.search(
+            system_identity, params={"q": query, "size": size, "page": page}
+        )
+        hits = res.to_dict().get("hits", {}).get("hits", [])
+        if not hits:
+            break
+        ids.extend(h["id"] for h in hits)
+        if len(hits) < size:
+            break
+        page += 1
+
+    for rid in ids:
+        try:
+            rec = record_cls.pid.resolve(rid)
+        except Exception as e:
+            logger.error(f"Record {rid}: resolve failed - {e}")
+            error_details.append(f"{rid}: resolve failed - {e}")
+            errors += 1
+            continue
+
+        rt_id = (rec.get("metadata", {}) or {}).get("resource_type", {}).get("id")
+        if rt_id not in TARGETS:
+            skipped += 1
+            continue
+
+        new_type = derive_target_type({"custom_fields": rec.get("custom_fields", {})})
+
+        if dry_run:
+            logger.info(f"[DRY RUN] Record {rid}: would change {rt_id} -> {new_type}")
+            dry_run_details.append((rid, f"{rt_id} -> {new_type}"))
+            updated += 1
+            continue
+
+        try:
+            rec["metadata"]["resource_type"] = {"id": new_type}
+            rec.commit()
+            db.session.commit()
+            svc.indexer.index(rec)
+            updated += 1
+            logger.info(f"Record {rid}: resource_type {rt_id} -> {new_type}")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Record {rid} ({rt_id}): failed to update - {e}")
+            error_details.append(f"{rid} ({rt_id}): {e}")
+            errors += 1
+
+    summary = _build_summary(updated, skipped, errors, dry_run, dry_run_details, error_details)
+    logger.info(summary)
+    return summary
+
+
+def _build_summary(updated, skipped, errors, dry_run, dry_run_details, error_details):
+    """Format the run summary (shared by REST and in-process migrations)."""
     verb = "Would update" if dry_run else "Updated"
     summary = f"Done. {verb}: {updated}, Skipped: {skipped}, Errors: {errors}"
     if dry_run and dry_run_details:
@@ -231,7 +318,6 @@ def patch_records(base_url: str, token: str, dry_run: bool = False) -> str:
             summary += f" (+{len(dry_run_details) - 10} more)"
     if error_details:
         summary += " | First errors: " + " || ".join(error_details[:3])
-    logger.info(summary)
     return summary
 
 
