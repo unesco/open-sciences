@@ -195,6 +195,7 @@ $load_country_report = static function (TermInterface $country_term) use (
  * Remove empty HTML blocks and redundant line breaks from imported summaries.
  */
 $normalize_summary_html = static function (string $summary) use ($renderer): string {
+  $summary = str_replace(["<div", "</div>"], ['<p', '</p>'], $summary);
   $summary = str_replace(["\r\n", "\r", "\n", '&nbsp;'], ' ', $summary);
   $summary = html_entity_decode($summary, ENT_QUOTES | ENT_HTML5, 'UTF-8');
   $processed_text = [
