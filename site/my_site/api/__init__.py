@@ -23,19 +23,19 @@ from .lens_proxy import LensExportProxyAPIView
 # Other APIs
 from .export import ExportAPIView
 from .patch_regions import PatchRegionsAPIView
+from .patch_resource_types import PatchResourceTypesAPIView
 from .reindex import ReindexAPIView
 from .search import SearchAPIView
 from .statistics import StatisticsAPIView
-from .update_fields import UpdateFieldsAPIView
 
 __all__ = [
     "ExportAPIView",
     "LensExportProxyAPIView",
     "PatchRegionsAPIView",
+    "PatchResourceTypesAPIView",
     "ReindexAPIView",
     "SearchAPIView",
     "StatisticsAPIView",
-    "UpdateFieldsAPIView",
     # CMS Content API
     "CMSResourcesAPIView",
     "CMSResourceDefinitionAPIView",

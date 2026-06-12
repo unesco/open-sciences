@@ -26,10 +26,10 @@ def create_blueprint(app):
         ExportAPIView,
         LensExportProxyAPIView,
         PatchRegionsAPIView,
+        PatchResourceTypesAPIView,
         ReindexAPIView,
         SearchAPIView,
         StatisticsAPIView,
-        UpdateFieldsAPIView,
         # Resource-Driven CMS API
         CMSResourcesAPIView,
         CMSResourceDefinitionAPIView,
@@ -164,10 +164,10 @@ def create_blueprint(app):
         methods=["GET", "POST"],
     )
 
-    # Update custom fields from Lens source data (admin only)
+    # Migrate standalone resource types to publication-other (admin only)
     blueprint.add_url_rule(
-        f"{API_PREFIX}/update-fields",
-        view_func=UpdateFieldsAPIView.as_view("update_fields_api"),
+        f"{API_PREFIX}/patch-resource-types",
+        view_func=PatchResourceTypesAPIView.as_view("patch_resource_types_api"),
         methods=["GET", "POST"],
     )
 
