@@ -308,13 +308,21 @@ export function buildFilterTree(sections, questions) {
     .filter((q) => q.type === "Closed" && q.short_name && q.short_name.trim())
     .map((q) => ({ ...q, _options: parseClosedAnswerOptions(q.closed_answer_options) }))
     .filter((q) => q._options.length > 0);
+
+  // Sub-questions whose data is folded into a parent question's breakdown
+  // (via long_description) should not also appear as standalone filter items —
+  // they only surface in the country report. Mirrors the Comparison dashboard.
+  const hiddenSubQuestionNumbers = new Set(
+    (questions || []).flatMap((q) => subQuestionsFoldedIntoParent(q, questions) || [])
+  );
+
   return (sections || [])
     .filter((s) => s.id !== "A")
     .map((section) => ({
       id: `s${section.id}`,
       label: section.title,
       items: usable
-        .filter((q) => q.section === section.id)
+        .filter((q) => q.section === section.id && !hiddenSubQuestionNumbers.has(q.number))
         .map((q) => ({
           id: `q${String(q.number).replace(/\./g, "_")}`,
           label: q.short_name.trim(),
