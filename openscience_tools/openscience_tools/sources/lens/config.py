@@ -23,7 +23,7 @@ class LensImportConfig:
     RESOURCE_TYPE_MAPPING: Dict[str, str] = {
         "journal article": "publication-article",
         "letter": "publication-other",  # InvenioRDM doesn't have 'letter', use 'other'
-        "review": "publication-review",
+        "review": "publication-peerreview",  # correct vocabulary id ('publication-review' does not exist)
         "conference paper": "publication-conferencepaper",
         "conference proceeding": "publication-conferencepaper",
         "book chapter": "publication-section",
@@ -35,12 +35,15 @@ class LensImportConfig:
         "retraction": "publication-other",
         "case report": "publication-article",
         "clinical trial": "publication-article",
-        "dataset": "dataset",
-        "software": "software",
-        "other": "other",
+        # Consolidate standalone types under the Publication hierarchy so the
+        # facet shows a single "Other" entry (publication-other) rather than
+        # separate dataset/software/other top-level entries.
+        "dataset": "publication-other",
+        "software": "publication-other",
+        "other": "publication-other",
     }
 
-    DEFAULT_RESOURCE_TYPE = "publication-article"
+    DEFAULT_RESOURCE_TYPE = "publication-other"
 
     # ========================================================================
     # LICENSE MAPPING
