@@ -283,7 +283,10 @@ while (($row = fgetcsv($handle)) !== FALSE) {
   $country_term_id = (int) $country_term->id();
 
   foreach ($valid_question_columns as $column_index => $column_meta) {
-    $response_text = trim((string) ($row[$column_index] ?? ''));
+    $response_text = (string) ($row[$column_index] ?? '');
+    $response_text = str_replace(["\r\n", "\r", "\n"], " ", $response_text);
+    $response_text = preg_replace('/\s+/u', ' ', $response_text);
+    $response_text = trim($response_text);
     if ($response_text === '') {
       $skipped_cells++;
       continue;
