@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Card,
-  Icon,
-  Popup,
   Loader,
   Dimmer,
   Checkbox,
@@ -18,9 +16,6 @@ const ResourceTypeFacet = () => {
   const [data, setData] = useState(cachedData || []);
   const [loading, setLoading] = useState(!cachedData);
   const [selectedType, setSelectedType] = useState(null); // Single selection
-  const [expandedParents, setExpandedParents] = useState(
-    new Set(["publication"]),
-  ); // Expand by default
 
   // Parse URL to get current filter (single selection)
   useEffect(() => {
@@ -109,22 +104,6 @@ const ResourceTypeFacet = () => {
     });
   }, [window.location.search]); // Re-fetch when search context changes
 
-  // Organize InvenioRDM aggregation buckets into parent-child hierarchy
-  const organizeHierarchy = (buckets) => {
-    const parents = buckets.map((bucket) => ({
-      value: bucket.key,
-      label: bucket.label,
-      count: bucket.doc_count,
-      children: (bucket.inner?.buckets || []).map((child) => ({
-        value: child.key,
-        label: child.label,
-        count: child.doc_count,
-      })),
-    }));
-
-    return parents;
-  };
-
   // Helper function to format resource type labels
   const formatLabel = (typeId) => {
     // For child types like "publication-article", extract and format the subtype
@@ -142,57 +121,35 @@ const ResourceTypeFacet = () => {
     return typeId.charAt(0).toUpperCase() + typeId.slice(1);
   };
 
-  // Organize results from custom backend into parent-child hierarchy
+  // Flatten the backend results into a single list of leaf resource types.
+  // Each item carries its parentValue (e.g. "publication") solely for building
+  // the URL filter — there is no parent row or expand/collapse in the UI.
   const organizeHierarchyFromBackend = (results) => {
-    // Group by parent type (e.g., "publication", "image")
-    const parentMap = {};
+    const flatItems = [];
 
     results.forEach((item) => {
       const typeId = item.value || item.name;
 
-      // Split on hyphen to determine parent-child relationship
       if (typeId.includes("-")) {
-        const [parent, child] = typeId.split("-", 2);
-        if (!parentMap[parent]) {
-          parentMap[parent] = {
-            value: parent,
-            label: formatLabel(parent),
-            count: 0,
-            children: [],
-          };
-        }
-        parentMap[parent].children.push({
+        // e.g. "publication-article" → rendered directly as "Article"
+        flatItems.push({
           value: typeId,
-          label: formatLabel(typeId),
+          label: formatLabel(typeId), // strips "publication-" prefix, capitalises
+          parentValue: typeId.split("-")[0], // "publication" — used only for URL filter
           count: item.count || 0,
         });
-        parentMap[parent].count += item.count || 0;
       } else {
-        // Parent type
-        if (!parentMap[typeId]) {
-          parentMap[typeId] = {
-            value: typeId,
-            label: formatLabel(typeId),
-            count: item.count || 0,
-            children: [],
-          };
-        } else {
-          parentMap[typeId].label = formatLabel(typeId);
-        }
+        // safety fallback for any remaining standalone type
+        flatItems.push({
+          value: typeId,
+          label: formatLabel(typeId),
+          parentValue: null,
+          count: item.count || 0,
+        });
       }
     });
 
-    return Object.values(parentMap);
-  };
-
-  const handleToggleParent = (parentValue) => {
-    const newExpanded = new Set(expandedParents);
-    if (newExpanded.has(parentValue)) {
-      newExpanded.delete(parentValue);
-    } else {
-      newExpanded.add(parentValue);
-    }
-    setExpandedParents(newExpanded);
+    return flatItems; // no nesting
   };
 
   const handleItemClick = (typeValue, parentValue = null) => {
@@ -299,154 +256,53 @@ const ResourceTypeFacet = () => {
               No resource types found
             </div>
           ) : (
-            data.map((parent) => (
-              <div key={parent.value} style={{ marginBottom: "0.5rem" }}>
-                {/* Parent type */}
-                <div
+            data.map((item) => (
+              <div
+                key={item.value}
+                role="button"
+                tabIndex={0}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.6rem 0.8rem",
+                  cursor: "pointer",
+                }}
+                onClick={() => handleItemClick(item.value, item.parentValue)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleItemClick(item.value, item.parentValue);
+                  }
+                }}
+              >
+                <Checkbox
+                  radio
+                  label={
+                    <label
+                      style={{
+                        cursor: "pointer",
+                        fontSize: "0.92rem",
+                        color: "rgba(0, 0, 0, 0.87)",
+                      }}
+                    >
+                      {item.label}
+                    </label>
+                  }
+                  checked={selectedType === item.value}
+                />
+                <Label
+                  size="mini"
+                  circular
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "0.6rem 0.8rem",
-                    cursor: parent.children.length > 0 ? "pointer" : "default",
+                    backgroundColor: "#e0e1e2",
+                    color: "rgba(0, 0, 0, 0.6)",
+                    minWidth: "2rem",
+                    textAlign: "center",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "100%",
-                    }}
-                  >
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        flex: 1,
-                        cursor: "pointer",
-                      }}
-                      onClick={() => handleItemClick(parent.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleItemClick(parent.value);
-                        }
-                      }}
-                    >
-                      {parent.children.length > 0 && (
-                        <Icon
-                          name={
-                            expandedParents.has(parent.value)
-                              ? "caret down"
-                              : "caret right"
-                          }
-                          style={{
-                            marginRight: "0.5rem",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleParent(parent.value);
-                          }}
-                        />
-                      )}
-                      <Checkbox
-                        radio
-                        label={
-                          <label
-                            style={{
-                              cursor: "pointer",
-                              fontSize: "0.92rem",
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {parent.label}
-                          </label>
-                        }
-                        checked={selectedType === parent.value}
-                        style={{
-                          marginLeft:
-                            parent.children.length === 0 ? "1.5rem" : "0",
-                        }}
-                      />
-                    </div>
-                    <Label
-                      size="mini"
-                      circular
-                      style={{
-                        backgroundColor: "#e0e1e2",
-                        color: "rgba(0, 0, 0, 0.6)",
-                        minWidth: "2rem",
-                        textAlign: "center",
-                      }}
-                    >
-                      {parent.count}
-                    </Label>
-                  </div>
-                </div>
-
-                {/* Child types */}
-                {expandedParents.has(parent.value) &&
-                  parent.children.length > 0 && (
-                    <div style={{ marginLeft: "2rem" }}>
-                      {parent.children.map((child) => (
-                        <div
-                          key={child.value}
-                          role="button"
-                          tabIndex={0}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            padding: "0.6rem 0.8rem",
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            handleItemClick(child.value, parent.value)
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              handleItemClick(child.value, parent.value);
-                            }
-                          }}
-                        >
-                          <Checkbox
-                            radio
-                            label={
-                              <label
-                                style={{
-                                  cursor: "pointer",
-                                  fontSize: "0.92rem",
-                                  color: "rgba(0, 0, 0, 0.87)",
-                                }}
-                              >
-                                {child.label}
-                              </label>
-                            }
-                            checked={selectedType === child.value}
-                            style={{ flex: 1, marginRight: "0.5rem" }}
-                          />
-                          <Label
-                            size="mini"
-                            circular
-                            style={{
-                              backgroundColor: "#e0e1e2",
-                              color: "rgba(0, 0, 0, 0.6)",
-                              minWidth: "2rem",
-                              textAlign: "center",
-                            }}
-                          >
-                            {child.count}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {item.count}
+                </Label>
               </div>
             ))
           )}
