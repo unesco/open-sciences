@@ -16,6 +16,7 @@ import {
   Segment,
   Grid,
   Modal,
+  Checkbox,
 } from "semantic-ui-react";
 import { useResourceCMSApi } from "../../hooks";
 
@@ -41,6 +42,7 @@ export const ResourceList = ({ onSelectResource }) => {
   const [migrateTypesMessage, setMigrateTypesMessage] = useState(null);
   const [migrateTypesConfirmOpen, setMigrateTypesConfirmOpen] = useState(false);
   const [migrateTypesStatus, setMigrateTypesStatus] = useState(null);
+  const [migrateTypesDryRun, setMigrateTypesDryRun] = useState(true);
 
   // Poll reindex status
   useEffect(() => {
@@ -188,7 +190,10 @@ export const ResourceList = ({ onSelectResource }) => {
     setMigrateTypesMessage(null);
     setMigrateTypesStatus(null);
     try {
-      const response = await fetch("/data/patch-resource-types", {
+      const url = migrateTypesDryRun
+        ? "/data/patch-resource-types?dry_run=true"
+        : "/data/patch-resource-types";
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -577,7 +582,11 @@ export const ResourceList = ({ onSelectResource }) => {
                 onClick={() => setMigrateTypesConfirmOpen(true)}
               >
                 <Icon name="tags" />
-                {migratingTypes ? "Migrating..." : "Migrate Types"}
+                {migratingTypes
+                  ? migrateTypesDryRun
+                    ? "Previewing..."
+                    : "Migrating..."
+                  : "Migrate Types"}
               </Button>
             </Grid.Column>
           </Grid>
@@ -595,15 +604,23 @@ export const ResourceList = ({ onSelectResource }) => {
           <Modal.Content>
             <p>
               This will update existing records whose resource type is
-              "dataset", "software" or "other" to "publication-other". The
-              process runs in the background and may take several minutes.
+              "dataset", "software" or "other" to the type derived from their
+              Lens data (falling back to "publication-other"). The process runs
+              in the background and may take several minutes.
             </p>
             <p>Records already using a publication type will be skipped.</p>
+            <Checkbox
+              toggle
+              label="Dry run (preview only — reports what would change without modifying any records)"
+              checked={migrateTypesDryRun}
+              onChange={(e, { checked }) => setMigrateTypesDryRun(checked)}
+            />
           </Modal.Content>
           <Modal.Actions>
             <Button onClick={() => setMigrateTypesConfirmOpen(false)}>Cancel</Button>
             <Button color="purple" onClick={handleMigrateTypes}>
-              <Icon name="tags" /> Migrate Types
+              <Icon name="tags" />
+              {migrateTypesDryRun ? "Run Dry Run" : "Migrate Types"}
             </Button>
           </Modal.Actions>
         </Modal>
