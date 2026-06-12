@@ -23,25 +23,16 @@ _patch_status = {
 _status_lock = threading.Lock()
 
 
-def _run_patch(app, base_url, dry_run=False):
-    """Run the migrate_resource_types script in a background thread."""
+def _run_patch(app, dry_run=False):
+    """Run the in-process resource-type migration in a background thread."""
     with app.app_context():
         try:
             app.logger.info("PatchResourceTypes: Starting migrate_resource_types...")
 
-            from invenio_oauth2server.models import Token
-
-            # Get admin token for API calls
-            token = Token.query.first()
-            if not token:
-                with _status_lock:
-                    _patch_status["status"] = "failed"
-                    _patch_status["finished_at"] = datetime.now(timezone.utc).isoformat()
-                    _patch_status["message"] = "No API token found. Create one via admin panel."
-                return
-
-            from my_site.tools.migrate_resource_types import patch_records
-            summary = patch_records(base_url, token.access_token, dry_run=dry_run)
+            # In-process direct update + reindex. Avoids the REST edit->publish
+            # flow, which 404s on records with a broken draft/parent PID.
+            from my_site.tools.migrate_resource_types import patch_records_inplace
+            summary = patch_records_inplace(dry_run=dry_run)
 
             with _status_lock:
                 _patch_status["finished_at"] = datetime.now(timezone.utc).isoformat()
@@ -97,16 +88,9 @@ class PatchResourceTypesAPIView(MethodView):
 
         app = current_app._get_current_object()
 
-        # Use the host the admin request arrived on (correct port in both dev
-        # on :5000 and prod behind nginx on :443) rather than the portless
-        # SITE_UI_URL, which resolves to :443 and is unreachable in dev.
-        base_url = request.host_url.rstrip("/") or app.config.get(
-            "SITE_UI_URL", "https://127.0.0.1:5000"
-        )
-
         thread = threading.Thread(
             target=_run_patch,
-            args=(app, base_url, dry_run),
+            args=(app, dry_run),
             daemon=True,
         )
         thread.start()
