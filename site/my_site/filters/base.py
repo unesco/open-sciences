@@ -3,6 +3,7 @@
 Inspired by Django REST Framework and django-filter patterns.
 """
 
+import re
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 from flask import current_app
@@ -36,6 +37,28 @@ class BaseFilterBackend(ABC):
         """Return the aggregation order. Override if needed."""
         return {"_key": "asc"}
 
+    # Lucene regexp reserved characters (used by the terms aggregation `include`).
+    _LUCENE_REGEXP_RESERVED = set('.?+*|{}[]()"\\#@&<>~')
+
+    def _build_include_regexp(self, search_term: str) -> str:
+        """Build a case-insensitive substring regexp for a terms `include`.
+
+        OpenSearch's terms aggregation `include` uses Lucene regexp syntax,
+        which matches the *entire* term and has no inline case-insensitivity
+        flag. We therefore wrap each ASCII letter in a `[Aa]` character class
+        and escape any reserved characters, then surround with `.*` so the
+        term may appear anywhere in the value.
+        """
+        parts = []
+        for ch in search_term:
+            if ch.isascii() and ch.isalpha():
+                parts.append(f"[{ch.upper()}{ch.lower()}]")
+            elif ch in self._LUCENE_REGEXP_RESERVED:
+                parts.append("\\" + ch)
+            else:
+                parts.append(ch)
+        return ".*" + "".join(parts) + ".*"
+
     def build_query(
         self,
         search_term: Optional[str] = None,
@@ -52,15 +75,24 @@ class BaseFilterBackend(ABC):
         Returns:
             OpenSearch query dict with aggregations filtered by search context
         """
+        terms_agg = {
+            "field": self.get_field_name(),
+            "size": self.get_aggregation_size(),
+            "order": self.get_aggregation_order(),
+        }
+
+        # Push the typed search term down into the aggregation so matching
+        # happens server-side across *all* values, rather than capping at
+        # `size` buckets (alphabetically) and filtering client-side — which
+        # silently hides any matching value beyond the first `size` terms.
+        if search_term:
+            terms_agg["include"] = self._build_include_regexp(search_term)
+
         query_dict = {
             "size": 0,  # We don't need the actual documents
             "aggs": {
                 f"unique_{self.get_filter_key()}": {
-                    "terms": {
-                        "field": self.get_field_name(),
-                        "size": self.get_aggregation_size(),
-                        "order": self.get_aggregation_order(),
-                    }
+                    "terms": terms_agg
                 }
             },
         }
