@@ -181,7 +181,7 @@ $footer_sample_data = [
       'uri' => 'internal:/natural-sciences-family',
     ],
     [
-      'title' => 'UNESCO Open Science Dashboards',
+      'title' => 'UNESCO Open Science Dashboard',
       'uri' => 'https://www.unesco.org/en/open-science/',
     ],
     [
