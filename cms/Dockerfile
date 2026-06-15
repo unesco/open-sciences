@@ -29,4 +29,4 @@ ENV COMPOSER_HOME=/var/www
 RUN composer install
 ENV PATH=$PATH:/var/www/vendor/bin
 
-# CMD ["/var/www/startup.sh"]
+#   CMD ["/var/www/startup.sh"]

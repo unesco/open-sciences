@@ -18,8 +18,10 @@ Usage:
 """
 
 import argparse
+import json
 import logging
 import time
+from collections import Counter
 
 import requests
 
@@ -27,11 +29,42 @@ import requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# The Lens importer config maps a raw `publication_type` to an InvenioRDM
+# resource_type id. Optional: the tool degrades to TARGET_TYPE without it.
+try:
+    from openscience_tools.sources.lens.config import LensImportConfig
+except Exception:  # pragma: no cover
+    LensImportConfig = None
+
 logger = logging.getLogger(__name__)
 
 # Standalone resource_type ids that must be folded into publication-other.
 TARGETS = {"dataset", "software", "other"}
 TARGET_TYPE = "publication-other"
+
+
+def derive_target_type(record):
+    """Determine the correct resource_type id for a target record.
+
+    Prefer re-deriving from the stored raw Lens record
+    (``custom_fields['lens:raw_lens_data']`` -> ``publication_type``) so a
+    record mis-stored as "other" becomes its accurate type (e.g.
+    publication-article) instead of a blanket publication-other. Falls back to
+    TARGET_TYPE when the raw data or the importer config is unavailable.
+    """
+    if LensImportConfig is None:
+        return TARGET_TYPE
+    raw = (record.get("custom_fields", {}) or {}).get("lens:raw_lens_data")
+    if not raw:
+        return TARGET_TYPE
+    try:
+        data = json.loads(raw) if isinstance(raw, str) else raw
+        pub_type = data.get("publication_type")
+        if not pub_type:
+            return TARGET_TYPE
+        return LensImportConfig.get_resource_type(pub_type)
+    except Exception:
+        return TARGET_TYPE
 
 
 class PatchClient:
@@ -105,6 +138,8 @@ def patch_records(base_url: str, token: str, dry_run: bool = False) -> str:
     updated = 0
     skipped = 0
     errors = 0
+    error_details = []
+    dry_run_details = []  # (record_id, "rt_id -> new_type") for dry-run preview
 
     while True:
         result = client.search_records(page=page, size=size)
@@ -129,11 +164,16 @@ def patch_records(base_url: str, token: str, dry_run: bool = False) -> str:
                 skipped += 1
                 continue
 
+            # Re-derive the accurate type from the stored raw Lens data when
+            # available, falling back to publication-other.
+            new_type = derive_target_type(record)
+
             if dry_run:
                 logger.info(
                     f"[DRY RUN] Record {record_id}: would change resource_type "
-                    f"{rt_id} -> {TARGET_TYPE}"
+                    f"{rt_id} -> {new_type}"
                 )
+                dry_run_details.append((record_id, f"{rt_id} -> {new_type}"))
                 updated += 1
                 continue
 
@@ -141,7 +181,7 @@ def patch_records(base_url: str, token: str, dry_run: bool = False) -> str:
             try:
                 draft = client.create_draft_from_record(record_id)
                 metadata = draft.get("metadata", {})
-                metadata["resource_type"] = {"id": TARGET_TYPE}
+                metadata["resource_type"] = {"id": new_type}
 
                 # Build the full update payload (API requires full metadata + custom_fields)
                 update_data = {
@@ -155,22 +195,129 @@ def patch_records(base_url: str, token: str, dry_run: bool = False) -> str:
 
                 updated += 1
                 logger.info(
-                    f"Record {record_id}: resource_type {rt_id} -> {TARGET_TYPE}"
+                    f"Record {record_id}: resource_type {rt_id} -> {new_type}"
                 )
 
                 # Small delay to avoid overwhelming the API
                 time.sleep(0.2)
 
             except Exception as e:
-                logger.error(f"Record {record_id}: failed to patch - {e}")
+                # Surface the real cause: for HTTP errors the validation
+                # detail lives in the response body, not in str(e).
+                detail = str(e)
+                resp = getattr(e, "response", None)
+                if resp is not None:
+                    try:
+                        detail = f"HTTP {resp.status_code}: {resp.text[:500]}"
+                    except Exception:
+                        pass
+                logger.error(f"Record {record_id} ({rt_id}): failed to patch - {detail}")
+                error_details.append(f"{record_id} ({rt_id}): {detail}")
                 # Try to clean up the draft
                 client.delete_draft(record_id)
                 errors += 1
 
         page += 1
 
-    summary = f"Done. Updated: {updated}, Skipped: {skipped}, Errors: {errors}"
+    summary = _build_summary(updated, skipped, errors, dry_run, dry_run_details, error_details)
     logger.info(summary)
+    return summary
+
+
+def patch_records_inplace(dry_run: bool = False) -> str:
+    """Migrate target resource types directly on the record models, in-process.
+
+    This avoids the REST edit->publish flow entirely (no draft creation, no
+    token, no HTTP). Some imported records have a broken draft/parent PID that
+    makes ``POST /records/{id}/draft`` raise "persistent identifier does not
+    exist"; loading the published record by recid and committing the metadata
+    change sidesteps that. Must run inside a Flask app context.
+
+    Returns a summary string in the same format as ``patch_records``.
+    """
+    from invenio_access.permissions import system_identity
+    from invenio_db import db
+    from invenio_rdm_records.proxies import current_rdm_records_service as svc
+
+    record_cls = svc.record_cls
+    updated = 0
+    skipped = 0
+    errors = 0
+    error_details = []
+    dry_run_details = []
+
+    # Find the (few) standalone-type records via search, then operate on the
+    # record model for each so the change persists + reindexes.
+    query = " OR ".join(f'metadata.resource_type.id:"{t}"' for t in sorted(TARGETS))
+    ids = []
+    page = 1
+    size = 100
+    while True:
+        res = svc.search(
+            system_identity, params={"q": query, "size": size, "page": page}
+        )
+        hits = res.to_dict().get("hits", {}).get("hits", [])
+        if not hits:
+            break
+        ids.extend(h["id"] for h in hits)
+        if len(hits) < size:
+            break
+        page += 1
+
+    for rid in ids:
+        try:
+            rec = record_cls.pid.resolve(rid)
+        except Exception as e:
+            logger.error(f"Record {rid}: resolve failed - {e}")
+            error_details.append(f"{rid}: resolve failed - {e}")
+            errors += 1
+            continue
+
+        rt_id = (rec.get("metadata", {}) or {}).get("resource_type", {}).get("id")
+        if rt_id not in TARGETS:
+            skipped += 1
+            continue
+
+        new_type = derive_target_type({"custom_fields": rec.get("custom_fields", {})})
+
+        if dry_run:
+            logger.info(f"[DRY RUN] Record {rid}: would change {rt_id} -> {new_type}")
+            dry_run_details.append((rid, f"{rt_id} -> {new_type}"))
+            updated += 1
+            continue
+
+        try:
+            rec["metadata"]["resource_type"] = {"id": new_type}
+            rec.commit()
+            db.session.commit()
+            svc.indexer.index(rec)
+            updated += 1
+            logger.info(f"Record {rid}: resource_type {rt_id} -> {new_type}")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Record {rid} ({rt_id}): failed to update - {e}")
+            error_details.append(f"{rid} ({rt_id}): {e}")
+            errors += 1
+
+    summary = _build_summary(updated, skipped, errors, dry_run, dry_run_details, error_details)
+    logger.info(summary)
+    return summary
+
+
+def _build_summary(updated, skipped, errors, dry_run, dry_run_details, error_details):
+    """Format the run summary (shared by REST and in-process migrations)."""
+    verb = "Would update" if dry_run else "Updated"
+    summary = f"Done. {verb}: {updated}, Skipped: {skipped}, Errors: {errors}"
+    if dry_run and dry_run_details:
+        # Compact breakdown by transition (scales to any count) + per-record sample.
+        transitions = Counter(t for _, t in dry_run_details)
+        breakdown = ", ".join(f"{t}: {n}" for t, n in transitions.items())
+        sample = "; ".join(f"{rid} ({t})" for rid, t in dry_run_details[:10])
+        summary += f" | Breakdown [{breakdown}] | e.g. {sample}"
+        if len(dry_run_details) > 10:
+            summary += f" (+{len(dry_run_details) - 10} more)"
+    if error_details:
+        summary += " | First errors: " + " || ".join(error_details[:3])
     return summary
 
 
