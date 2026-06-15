@@ -245,7 +245,7 @@ export const PlsDetail = () => {
                   <>
                     <hr className="pls-card-divider" />
                     <h4 className="pls-authors-title">
-                      Authors of the original publication
+                      Authors of the original publication:
                     </h4>
                     <p className="pls-author-list">
                       {authors.map((a, i) => (
