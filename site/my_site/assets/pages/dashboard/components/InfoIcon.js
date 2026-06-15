@@ -38,7 +38,7 @@ export const InfoIcon = ({ description, options, modalTitle, ariaLabel = "Show q
           onClick={handleClick}
           onKeyDown={(e) => e.key === "Enter" && setShowInfo((v) => !v)}
         >
-          ⓘ
+          <img src="/static/images/info_icn.png" alt="info" className="donut-info-icon-img" />
         </span>
         <span className="info-hover-tooltip" role="tooltip">
           {renderInfoDescription(description, options)}

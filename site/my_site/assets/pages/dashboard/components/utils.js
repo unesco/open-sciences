@@ -371,16 +371,17 @@ export function featureStyle(iso3, participatingSet, matchingSet) {
 export const MedalIcon = ({ className }) => (
   <svg
     className={className}
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
+    viewBox="0 0 32 32"
+    width="32"
+    height="32"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <circle cx="12" cy="14" r="6" fill="#1a6fa8" />
-    <circle cx="12" cy="14" r="4" fill="white" />
-    <circle cx="12" cy="14" r="2.5" fill="#1a6fa8" />
-    <path d="M9 8.5L7 2h10l-2 6.5" stroke="#1a6fa8" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-    <path d="M9 8.5 Q12 10 15 8.5" stroke="#1a6fa8" strokeWidth="1.5" fill="none" />
+    <circle cx="16" cy="16" r="16" fill="#0077d4" />
+    <path
+      d="M10 12h12M10 16h12M10 20h8"
+      stroke="#ffffff"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );

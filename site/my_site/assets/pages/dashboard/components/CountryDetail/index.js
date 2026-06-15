@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { fetchCountryByIso3, fetchSurveySections, resolveCmsAsset } from "../../api";
 import { buildCountrySections } from "../../constants";
-import { decodeHtmlEntities, sanitizeRichText, MedalIcon } from "../utils";
+import { decodeHtmlEntities, sanitizeRichText } from "../utils";
 import { iso3ToIso2 } from "./iso2Map";
 
 // ── CountryDetail component ─────────────────────────────────────────────────
@@ -170,7 +170,11 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
                       className="country-sidebar-link"
                       onClick={() => scrollToSection(section.id)}
                     >
-                      <MedalIcon className="country-section-icon" />
+                      <img
+                        src="/static/images/menu_icon.png"
+                        alt=""
+                        className="country-section-icon"
+                      />
                       <span>{section.label}</span>
                     </button>
                   </li>
