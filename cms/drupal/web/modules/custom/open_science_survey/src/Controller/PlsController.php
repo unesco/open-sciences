@@ -344,37 +344,43 @@ class PlsController extends ControllerBase {
     }
 
     /**
-     * Loads up to 3 random related published PLS nodes sharing at least one tag.
+     * Loads related published PLS nodes, sorted by number of shared tags (descending).
+     * Nodes with no common tags may still be returned up to $maxitems.
      */
-    protected function loadrelatedpls($currentnid, array $tagids) {
-        if (empty($tagids)) {
+    protected function loadrelatedpls($currentnid, array $tagids, int $maxitems = 3) {
+        $database = \Drupal::database();
+        $query = $database->select('node_field_data', 'n');
+        $query->addField('n', 'nid');
+        $query->condition('n.type', 'plain_language_summary');
+        $query->condition('n.status', 1);
+        $query->condition('n.nid', (int) $currentnid, '<>');
+        $query->range(0, $maxitems);
+
+        if (!empty($tagids)) {
+            $query->leftJoin('node__field_tags', 't', 'n.nid = t.entity_id AND t.field_tags_target_id IN (:tagids[])', [':tagids[]' => $tagids]);
+            $query->addExpression('COUNT(t.field_tags_target_id)', 'common_tags');
+            $query->groupBy('n.nid');
+            $query->orderBy('common_tags', 'DESC');
+        }
+
+        $selectedids = $query->execute()->fetchCol();
+
+        if (empty($selectedids)) {
             return [];
         }
 
         $nodestorage = $this->entityTypeManager()->getStorage('node');
-        $candidateids = $nodestorage->getQuery()->accessCheck(true)
-            ->condition('type', 'plain_language_summary')
-            ->condition('status', 1)
-            ->condition('nid', (int) $currentnid, '<>')
-            ->condition('field_tags.target_id', $tagids, 'IN')
-            ->execute();
-
-        if (empty($candidateids)) {
-            return [];
-        }
-
-        $candidateids = array_values($candidateids);
-        shuffle($candidateids);
-        $selectedids = array_slice($candidateids, 0, 3);
-
         $selectednodes = $nodestorage->loadMultiple($selectedids);
         $related = [];
-        foreach ($selectednodes as $relatednode) {
-            $related[] = [
-                'title' => (string) $relatednode->label(),
-                'id' => (int) $relatednode->id(),
-                'field_hero_image' => $this->extractimagefieldabsoluteurl($relatednode, 'field_hero_image'),
-            ];
+        foreach ($selectedids as $nid) {
+            if (isset($selectednodes[$nid])) {
+                $relatednode = $selectednodes[$nid];
+                $related[] = [
+                    'title' => (string) $relatednode->label(),
+                    'id' => (int) $relatednode->id(),
+                    'field_hero_image' => $this->extractimagefieldabsoluteurl($relatednode, 'field_hero_image'),
+                ];
+            }
         }
 
         return $related;

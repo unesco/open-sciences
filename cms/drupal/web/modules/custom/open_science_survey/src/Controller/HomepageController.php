@@ -632,7 +632,7 @@ class HomepageController extends ControllerBase {
      * Determines if a link URI points to an external target.
      */
     protected function isexternallinkuri($uri) {
-        return preg_match('/^(https?:|mailto:|tel:)/i', (string) $uri) === 1;
+        return preg_match('/^(https?:|mailto:|tel:|\/)/i', (string) $uri) === 1;
     }
 
     /**
