@@ -20,3 +20,10 @@ class ResourceTypeFilterBackend(BaseFilterBackend):
     def get_aggregation_order(self) -> Dict[str, str]:
         """Order by count descending."""
         return {"_count": "desc"}
+
+    def get_sort_priority(self, name: str) -> int:
+        """Pin "other" resource types (e.g. 'publication-other') to the bottom."""
+        normalized = name.lower()
+        if normalized == "other" or normalized.endswith("-other"):
+            return 1
+        return 0

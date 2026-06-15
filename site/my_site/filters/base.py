@@ -37,6 +37,15 @@ class BaseFilterBackend(ABC):
         """Return the aggregation order. Override if needed."""
         return {"_key": "asc"}
 
+    def get_sort_priority(self, name: str) -> int:
+        """Return a sort-priority group for a facet value.
+
+        Lower groups sort first. Used as the leading key when sorting
+        results, so a value can be pinned to the bottom regardless of its
+        count or name. Override if needed. Default: every value in group 0.
+        """
+        return 0
+
     # Lucene regexp reserved characters (used by the terms aggregation `include`).
     _LUCENE_REGEXP_RESERVED = set('.?+*|{}[]()"\\#@&<>~')
 
@@ -216,11 +225,22 @@ class BaseFilterBackend(ABC):
                         }
                     )
 
-            # Sort results
+            # Sort results (priority group first, so "other" can be pinned last)
             if sort_by == "count":
-                results.sort(key=lambda x: (-x["count"], x["name"].lower()))
+                results.sort(
+                    key=lambda x: (
+                        self.get_sort_priority(x["name"]),
+                        -x["count"],
+                        x["name"].lower(),
+                    )
+                )
             else:
-                results.sort(key=lambda x: x["name"].lower())
+                results.sort(
+                    key=lambda x: (
+                        self.get_sort_priority(x["name"]),
+                        x["name"].lower(),
+                    )
+                )
 
             # Pagination
             total = len(results)
