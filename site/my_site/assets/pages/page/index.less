@@ -1,11 +1,23 @@
 /* CMS page (React) — styling for /page#<slug> content. */
 
 .cms-page {
-  max-width: 860px;
+  /* Match the Semantic-UI .ui.container width used by the header/footer so the
+     content edges align with the rest of the site (otherwise the narrower
+     centered column reads as empty space beside the content). */
+  max-width: 1127px;
   margin: 0 auto;
   padding: 48px 24px 80px;
   font-family: "Inter", sans-serif;
   color: #212121;
+
+  /* Keep body text at a comfortable reading measure, centered within the
+     wider container rather than stretching full width. */
+  .cms-page-header,
+  .cms-page-body {
+    max-width: 1127px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
   .cms-page-header {
     margin-bottom: 24px;
