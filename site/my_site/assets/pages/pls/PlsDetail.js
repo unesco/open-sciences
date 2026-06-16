@@ -22,6 +22,17 @@ const InfoIcon = () => (
   <img src="/static/images/info_icn.png" alt="info" style={{ width: 18, height: 18, verticalAlign: "middle" }} />
 );
 
+// Whether a URL points off this site. Relative links (starting with a single
+// "/") point to this site and open in the same tab; everything else (an
+// absolute or protocol-relative URL) is external and opens in a new tab.
+// Returns the props to spread onto the <a>, so internal links carry no
+// target/rel at all.
+const externalLinkProps = (url) => {
+  if (!url) return {};
+  if (url.startsWith("/") && !url.startsWith("//")) return {};
+  return { target: "_blank", rel: "noopener noreferrer" };
+};
+
 
 const HTMLBlock = ({ html }) => {
   if (!html) return null;
@@ -228,8 +239,7 @@ export const PlsDetail = () => {
                     <a
                       className="pls-open-btn"
                       href={pub.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      {...externalLinkProps(pub.link)}
                     >
                       <span>Open</span>
                       <ArrowIcon className="pls-open-btn-icon" />
