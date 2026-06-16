@@ -19,17 +19,17 @@ def create_blueprint(app):
     Returns:
         Configured Blueprint instance
     """
-    from .views import StatisticsView, CMSPageView
+    from .views import StatisticsView, CMSPageView, CmsReactPageView
     from .views.dashboard import DashboardView
     from .views.pls import PLSDetailView
     from .api import (
         ExportAPIView,
         LensExportProxyAPIView,
         PatchRegionsAPIView,
+        PatchResourceTypesAPIView,
         ReindexAPIView,
         SearchAPIView,
         StatisticsAPIView,
-        UpdateFieldsAPIView,
         # Resource-Driven CMS API
         CMSResourcesAPIView,
         CMSResourceDefinitionAPIView,
@@ -87,6 +87,13 @@ def create_blueprint(app):
     blueprint.add_url_rule(
         "/pages/<path:slug>",
         view_func=CMSPageView.as_view("cms_page"),
+        methods=["GET"],
+    )
+
+    # CMS React page - mount point; page selected client-side via hash (/page#about)
+    blueprint.add_url_rule(
+        "/page",
+        view_func=CmsReactPageView.as_view("cms_react_page"),
         methods=["GET"],
     )
 
@@ -157,10 +164,10 @@ def create_blueprint(app):
         methods=["GET", "POST"],
     )
 
-    # Update custom fields from Lens source data (admin only)
+    # Migrate standalone resource types to publication-other (admin only)
     blueprint.add_url_rule(
-        f"{API_PREFIX}/update-fields",
-        view_func=UpdateFieldsAPIView.as_view("update_fields_api"),
+        f"{API_PREFIX}/patch-resource-types",
+        view_func=PatchResourceTypesAPIView.as_view("patch_resource_types_api"),
         methods=["GET", "POST"],
     )
 

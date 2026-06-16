@@ -62,3 +62,67 @@ open_science_survey.pls_detail:
   requirements:
     _access: 'TRUE'
     nid: '\d+'
+
+open_science_survey.homepage_header:
+  path: '/api/homepage/header'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::header'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+open_science_survey.homepage_footer:
+  path: '/api/homepage/footer'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::footer'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+open_science_survey.homepage_cards:
+  path: '/api/homepage/cards'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::cards'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+open_science_survey.homepage_partners:
+  path: '/api/homepage/partners'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::partners'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+open_science_survey.page:
+  path: '/api/pages/{page_path}'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::page'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    page_path: '[^/]+'
+
+open_science_survey.page_nested:
+  path: '/api/pages/{page_path}/{page_subpath}'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::page'
+  methods: [GET]
+  options:
+    parameters:
+      page_subpath:
+        type: 'path'
+  requirements:
+    _access: 'TRUE'
+    page_path: '[^/]+'
+    page_subpath: '.+'
+
+open_science_survey.page_node:
+  path: '/api/pages/node/{nid}'
+  defaults:
+    _controller: '\Drupal\open_science_survey\Controller\HomepageController::pagebynid'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    nid: '\d+'

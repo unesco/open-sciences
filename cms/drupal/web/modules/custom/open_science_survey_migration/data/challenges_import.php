@@ -200,7 +200,11 @@ while (($row = fgetcsv($handle)) !== FALSE) {
   $challenge_name = trim((string) ($record['challenge_name'] ?? ''));
   $country_iso = strtoupper(trim((string) ($record['country'] ?? '')));
   $question_number = trim((string) ($record['question_number'] ?? ''));
+
   $snippet = trim((string) ($record['snippet'] ?? ''));
+  $snippet = str_replace(["\r\n", "\r", "\n"], " ", $snippet);
+  $snippet = preg_replace('/\s+/u', ' ', $snippet);
+  $snippet = trim($snippet);
 
   if ($challenge_name === '' || $country_iso === '' || $question_number === '') {
     $errors++;

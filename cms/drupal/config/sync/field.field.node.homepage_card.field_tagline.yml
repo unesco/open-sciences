@@ -1,0 +1,19 @@
+uuid: 689f4f6e-badd-46e9-9f48-4d6968411e8b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_tagline
+    - node.type.homepage_card
+id: node.homepage_card.field_tagline
+field_name: field_tagline
+entity_type: node
+bundle: homepage_card
+label: Tagline
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

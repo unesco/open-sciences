@@ -1,0 +1,23 @@
+uuid: b26d2c98-82ec-41ae-b665-00a0746a5184
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_website
+    - node.type.homepage_card
+  module:
+    - link
+id: node.homepage_card.field_website
+field_name: field_website
+entity_type: node
+bundle: homepage_card
+label: '"More" link '
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  title: 2
+  link_type: 17
+field_type: link

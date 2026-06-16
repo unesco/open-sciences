@@ -42,7 +42,7 @@ final class DelimitedEntityReference extends ProcessPluginBase implements Contai
 
     $items = is_array($value)
       ? $value
-      : explode($this->configuration['delimiter'] ?? ',', (string) $value);
+      : $this->splitEscaped((string) $value, $this->configuration['delimiter'] ?? ',');
 
     $references = [];
     foreach ($items as $item) {
@@ -66,6 +66,11 @@ final class DelimitedEntityReference extends ProcessPluginBase implements Contai
     }
 
     return $references;
+  }
+
+  private function splitEscaped(string $str, string $delimiter): array {
+    $parts = preg_split('/(?<!\\\\)' . preg_quote($delimiter, '/') . '/', $str);
+    return array_map(fn($part) => str_replace('\\' . $delimiter, $delimiter, $part), $parts);
   }
 
   private function loadEntity(string $entity_type, string $value_key, string $lookup_value): ?EntityInterface {

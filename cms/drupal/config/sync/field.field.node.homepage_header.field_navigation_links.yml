@@ -1,0 +1,23 @@
+uuid: 182fc9cc-f3f1-4bb7-b9ed-6def3acf3695
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_navigation_links
+    - node.type.homepage_header
+  module:
+    - link
+id: node.homepage_header.field_navigation_links
+field_name: field_navigation_links
+entity_type: node
+bundle: homepage_header
+label: 'Navigation links'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  title: 2
+  link_type: 17
+field_type: link

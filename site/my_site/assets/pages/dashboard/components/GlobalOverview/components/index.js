@@ -12,7 +12,7 @@ export {
   COLOR_BORDER,
   COLOR_PARTICIPATED,
   COLOR_MATCHES,
-} from "./constants";
+} from "../../../constants";
 export {
   buildFilterTree,
   featureStyle,

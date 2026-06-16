@@ -27,8 +27,13 @@ export const BLUE_PALETTE = [
   "#c8e6f9", // very pale blue
 ];
 
-export const COLOR_YES = "#0077D4";
-export const COLOR_NO  = "#E7E6E6";
+// Fixed colours for the standard closed-answer options, shared by every
+// comparison chart (donuts, region/country breakdowns, mini donuts, legends).
+export const COLOR_YES               = "#0077D4";
+export const COLOR_NO                = "#7F888F";
+export const COLOR_PARTLY            = "#4D9ACC";
+export const COLOR_UNDER_DEVELOPMENT = "#0E4280";
+export const COLOR_NA_ANSWER         = "#D5DADD";
 
 // ── N/A handling ──────────────────────────────────────────────────────────────
 // Canonical N/A label shown in charts/legends.
@@ -50,44 +55,76 @@ export const NA_LABEL_VARIANTS = [
 export const CHARTJS_CDN_URL = "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js";
 export const CHARTJS_CDN_ID  = "chartjs-cdn";
 
-// ── Country detail sections ───────────────────────────────────────────────────
-export const COUNTRY_SECTIONS = [
-  {
-    id: "promote_culture",
-    label:
-      "Promoting a common understanding of open science, associated benefits, and challenges, as well as diverse paths to open science",
-    field: "field_info_promote_culture",
-  },
-  {
-    id: "policy",
-    label: "Developing an enabling policy environment for open science",
-    field: "field_info_policy",
-  },
-  {
-    id: "funding_infra",
-    label: "Investing in open science infrastructures",
-    field: "field_info_funding_infra",
-  },
-  {
-    id: "funding_training",
-    label:
-      "Investing in human resources, training, education, digital literacy, and capacity building for open science",
-    field: "field_info_funding_training",
-  },
-  {
-    id: "promoting",
-    label: "Fostering a culture of open science and aligning incentives for open science",
-    field: "field_info_promoting",
-  },
-  {
-    id: "promote_cooperation",
-    label: "Promoting innovative approaches for open science at different stages of the scientific process",
-    field: "field_info_promote_cooperation",
-  },
-  {
-    id: "promote_inovation",
-    label:
-      "Promoting international and multi-stakeholder cooperation in the context of open science and with a view to reducing digital, technological, and knowledge gaps",
-    field: "field_info_promote_inovation",
-  },
+// ── Choropleth / map colours ──────────────────────────────────────────────────
+export const COLOR_NO_DATA      = "#D5DADD";
+export const COLOR_BORDER       = "#ffffff";
+export const COLOR_PARTICIPATED = "#4C5054";
+export const COLOR_MATCHES      = "#B2D6F2";
+
+// ── World GeoJSON ─────────────────────────────────────────────────────────────
+export const WORLD_GEOJSON_URL =
+  "https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json";
+
+// ── Regions ───────────────────────────────────────────────────────────────────
+export const ALL_REGIONS = "All regions";
+
+export const REGIONS = [
+  { label: "All regions",                    apiValue: null,                             view: null },
+  { label: "Africa",                         apiValue: "Africa",                         view: { center: [5,    20],  zoom: 2.5 } },
+  { label: "Arab States",                    apiValue: "Arab States",                    view: { center: [25,   42],  zoom: 3.5 } },
+  { label: "Asia-Pacific",                   apiValue: "Asia & the Pacific",             view: { center: [25,   100], zoom: 2.5 } },
+  { label: "Europe & North America",         apiValue: "Europe & North America",         view: { center: [50,   -20], zoom: 3 } },
+  { label: "Latin America & the Caribbean",  apiValue: "Latin America & the Caribbean",  view: { center: [-15,  -60], zoom: 2.5 } },
 ];
+
+// Fixed colour per region — keyed by lower-cased apiValue, resolved via getRegionColor in utils.
+export const REGION_COLORS = {
+  "africa":                        "#0d3b6e",
+  "asia & the pacific":            "#1a5c9e",
+  "europe & north america":        "#3a9bd5",
+  "arab states":                   "#6db8e8",
+  "latin america & the caribbean": "#a3d4f5",
+};
+
+// Derived lookups
+export const REGION_LABELS = REGIONS.map((r) => r.label);
+
+export const REGION_DISPLAY_TO_API = Object.fromEntries(
+  REGIONS.filter((r) => r.apiValue).map((r) => [r.label, r.apiValue])
+);
+
+export const REGION_VIEW = Object.fromEntries(
+  REGIONS.filter((r) => r.view).map((r) => [r.label, r.view])
+);
+
+// ── Country detail sections ───────────────────────────────────────────────────
+// Country detail sections are not hardcoded — their order and labels come from
+// the survey-sections endpoint. This map links each survey-section id to the
+// country rich-text field that holds that section's content. Section "A"
+// (general info) has no detail field and is therefore omitted.
+export const SECTION_FIELD_MAP = {
+  "1": "field_info_promoting",
+  "2": "field_info_policy",
+  "3": "field_info_funding_infra",
+  "4": "field_info_funding_training",
+  "5": "field_info_promote_culture",
+  "6": "field_info_promote_inovation",
+  "7": "field_info_promote_cooperation",
+};
+
+/**
+ * Build the country-detail section list from the survey-sections response.
+ * Keeps the survey order, uses each section's title as the label, and resolves
+ * the content field via SECTION_FIELD_MAP. Sections without a mapped field
+ * (e.g. the "A" general-info section) are skipped.
+ * @param {Array<{id: string|number, title: string}>} sections
+ * @returns {Array<{id: string, label: string, field: string}>}
+ */
+export function buildCountrySections(sections) {
+  return (sections || [])
+    .map((s) => {
+      const field = SECTION_FIELD_MAP[String(s.id)];
+      return field ? { id: String(s.id), label: s.title, field } : null;
+    })
+    .filter(Boolean);
+}

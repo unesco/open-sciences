@@ -66,7 +66,7 @@ link #}
               <span class="navicon" aria-hidden="true"></span>
             </button>
 
-            {%- if config.THEME_SEARCHBAR %} {%- block navbar_search %} {%-
+            {%- if config.THEME_SEARCHBAR and not request.path.startswith('/dashboards') %} {%- block navbar_search %} {%-
             include "invenio_app_rdm/searchbar.html" %}
             {# Advanced Search Button - Only on search page, hidden on mobile #}
             {# COMMENTED: Uncomment to add Advanced Search button in header (desktop only)
@@ -146,34 +146,26 @@ link #}
 
             {# CMS navigation links - dynamically loaded from CMS API, mobile only #}
             <div id="header-cms-nav-links" class="mobile tablet only"></div>
+            <script src="{{ url_for('static', filename='js/cms-api.js') }}"></script>
             <script>
-            (function() {
-              var lang = document.documentElement.lang || 'en';
-              fetch('/data/cms/public/header_frontpage?lang=' + lang)
-                .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
-                .then(function(result) {
-                  var data = result.data || {};
-                  if (data.navigation_links && Array.isArray(data.navigation_links)) {
-                    var container = document.getElementById('header-cms-nav-links');
-                    if (container) {
-                      data.navigation_links.forEach(function(link) {
-                        var div = document.createElement('div');
-                        div.className = 'item';
-                        var a = document.createElement('a');
-                        a.href = link.url;
-                        a.textContent = link.label;
-                        if (link.external) {
-                          a.target = '_blank';
-                          a.rel = 'noopener noreferrer';
-                        }
-                        div.appendChild(a);
-                        container.appendChild(div);
-                      });
-                    }
+            CmsApi.fetch('/homepage/header')
+              .then(function(data) {
+                if (data.navigation_links && Array.isArray(data.navigation_links)) {
+                  var container = document.getElementById('header-cms-nav-links');
+                  if (container) {
+                    data.navigation_links.forEach(function(link) {
+                      var div = document.createElement('div');
+                      div.className = 'item';
+                      var a = document.createElement('a');
+                      a.textContent = link.label;
+                      CmsApi.applyLink(a, link);
+                      div.appendChild(a);
+                      container.appendChild(div);
+                    });
                   }
-                })
-                .catch(function() {});
-            })();
+                }
+              })
+              .catch(function() {});
             </script>
             
             {# COMMENTED: Uncomment to show My Dashboard and related action menu items #}

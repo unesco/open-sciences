@@ -33,7 +33,7 @@
   color: #333;
   margin: 0;
   a {
-    color: #111;
+    color: #0077d4;
     text-decoration: underline;
   }
 }
@@ -43,7 +43,6 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 0;
-  border-bottom: 2px solid #e0e0e0;
   margin-bottom: 24px;
   background: #F1F4F6;
   padding: 0 8px;
@@ -60,35 +59,39 @@
 
 .dashboard-tab {
   background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  padding: 14px 24px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 1px 1px 0 0;
+  padding: 12px 24px;
   font-size: 0.97rem;
-  font-weight: 500;
+  font-weight: 700;
   color: #444;
   cursor: pointer;
   margin-bottom: -2px;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
   white-space: nowrap;
   flex: 0 0 auto;
+  position: relative;
 
   &:hover {
     color: #0073b7;
+    background: rgba(255, 255, 255, 0.5);
   }
 
   &.active {
+    background: #fff;
     color: #111;
     font-weight: 700;
-    border-bottom: 3px solid #0073b7;
+    border-bottom: 6px solid #0073b7;
   }
 
   @media (max-width: 900px) {
-    padding: 12px 16px;
+    padding: 10px 16px;
     font-size: 0.9rem;
   }
 
   @media (max-width: 600px) {
-    padding: 10px 12px;
+    padding: 8px 12px;
     font-size: 0.85rem;
   }
 }
@@ -549,7 +552,7 @@
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.88rem;
+  font-size: 1rem;
   color: #0073b7;
   text-decoration: underline;
   line-height: 2;
@@ -886,14 +889,51 @@
   overflow: visible; /* allow pills to extend slightly outside */
   transform-origin: top center;
 
-  @media (max-width: 500px) {
+  // ── Row layout (>900px): topic-list (280px) + gap (24px) steals space;
+  //    each card inner ≈ (viewport − 372) / 2 − 32px.
+  //    Scale down so the 380px wrap fits the narrowing cards.
+  @media (max-width: 1100px) {
+    transform: scale(0.87);
+    margin-bottom: -39px; // 300 * 0.13
+  }
+  @media (max-width: 1000px) {
     transform: scale(0.78);
-    margin-bottom: -66px; /* compensate for scaled-down height (300 * 0.22) */
+    margin-bottom: -66px; // 300 * 0.22
   }
 
+  // ── At 900px comparison-main switches to column; topic-list no longer
+  //    steals width, so each card inner ≈ (viewport − 68) / 2 − 32px.
+  //    At 900px that's ~384px — just fits — so reset the row-mode scale.
+  @media (max-width: 900px) {
+    transform: none;
+    margin-bottom: 0;
+  }
+
+  // ── Column layout (700–900px): cards shrink again as viewport narrows.
+  @media (max-width: 820px) {
+    transform: scale(0.88);
+    margin-bottom: -36px; // 300 * 0.12
+  }
+  @media (max-width: 760px) {
+    transform: scale(0.80);
+    margin-bottom: -60px; // 300 * 0.20
+  }
+
+  // ── Below 700px donut-grid switches to 1-column; full-width card fits
+  //    the 380px wrap from 700px down to ~500px — reset the column-mode scale.
+  @media (max-width: 700px) {
+    transform: none;
+    margin-bottom: 0;
+  }
+
+  // ── Very small screens: 1-col but card itself narrows.
+  @media (max-width: 500px) {
+    transform: scale(0.78);
+    margin-bottom: -66px; // 300 * 0.22
+  }
   @media (max-width: 380px) {
     transform: scale(0.62);
-    margin-bottom: -114px; /* 300 * 0.38 */
+    margin-bottom: -114px; // 300 * 0.38
   }
 }
 
@@ -903,10 +943,10 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
 
-  canvas { width: 160px !important; height: 160px !important; }
+  canvas { width: 140px !important; height: 140px !important; }
 }
 
 .donut-center {
@@ -925,6 +965,9 @@
 /* Floating callout label — positioned by JS around the ring */
 .donut-float-label {
   position: absolute;
+  /* border-box so max-width is the TOTAL pill width (incl. padding/border) and
+     matches the LABEL_W the JS uses to clamp pills inside the wrap. */
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -935,7 +978,7 @@
   white-space: normal;
   box-shadow: 0 2px 6px rgba(0, 50, 100, 0.13);
   pointer-events: auto;
-  max-width: 150px;
+  max-width: 120px;
   cursor: default;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 
@@ -1284,6 +1327,9 @@
   font-size: 0.82rem;
   color: #212121;
   margin: 0;
+  /* Always sit on its own row at the bottom of the grid, even when there's
+     only one donut card in the row (otherwise it lands in the empty cell). */
+  grid-column: 1 / -1;
 }
 
 /* ── Country breakdown drawer (slides in from right) ────── */
@@ -1341,10 +1387,13 @@
   margin: 0;
   line-height: 1.4;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
   .breakdown-info-icon {
     margin-left: 6px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: #aaa;
     cursor: pointer;
     font-weight: 400;
@@ -1428,7 +1477,7 @@
   border: none;
   padding: 0;
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-family: inherit;
   color: #0073b7;
   text-decoration: none;
@@ -1452,7 +1501,7 @@
 
 .breakdown-total-note {
   margin-top: 16px;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #666;
   text-align: right;
 }
@@ -1505,14 +1554,14 @@
   border: 1px solid #b9d4ec;
   border-radius: 4px;
   padding: 4px 12px;
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #0073b7;
   white-space: nowrap;
 }
 
 .breakdown-subdetail-text {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #333;
   line-height: 1.5;
 }
@@ -1528,15 +1577,22 @@
 }
 
 .donut-info-icon {
-  font-style: normal;
-  color: #888;
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
   user-select: none;
-  transition: color 0.15s;
   line-height: 1;
+  opacity: 1;
+  transition: opacity 0.15s;
 
   &:hover {
-    color: #0073b7;
+    opacity: 0.75;
+  }
+
+  .donut-info-icon-img {
+    width: 18px;
+    height: 18px;
+    display: block;
   }
 }
 
@@ -1549,7 +1605,7 @@
   width: 260px;
   background: #1a2a3a;
   color: #fff;
-  font-size: 0.82rem;
+  font-size: 1rem;
   line-height: 1.5;
   padding: 10px 12px;
   border-radius: 6px;
@@ -1757,7 +1813,7 @@
 }
 
 .rbd-mini-region {
-  font-size: 0.65rem;
+  font-size: 1rem;
   color: #666;
   margin-top: 2px;
   max-width: 70px;
@@ -1795,14 +1851,14 @@
 }
 
 .rbd-legend-label {
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #222;
 }
 
 .rbd-legend-countries {
   padding-left: 17px;
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: #0073b7;
   line-height: 1.6;
   word-break: break-word;
@@ -1829,6 +1885,7 @@
 .breakdown-country-link--clickable {
   cursor: pointer;
   color: #0073b7;
+  text-decoration: underline;
   &:hover {
     background: #e8f4fd;
     color: #005a8e;
@@ -1838,8 +1895,6 @@
 /* ── Country Detail Page ───────────────────────────────────────── */
 
 .country-detail-page {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 10px 0;
 }
 
@@ -2025,7 +2080,7 @@
 
 .country-sidebar-nav li {
   margin: 0;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid #c8c8c8;
   &:last-child {
     border-bottom: none;
   }
@@ -2040,7 +2095,7 @@
   border: none;
   border-radius: 0;
   padding: 14px 16px;
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #1a1a1a;
   cursor: pointer;
@@ -2049,14 +2104,14 @@
   transition: background 0.15s, color 0.15s;
   &:hover {
     background: #f0f7ff;
-    color: #0073b7;
+    color: #0077d4;
   }
 }
 
 .country-section-icon {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
 }
 
 /* ── Additional documents (Drupal-generated HTML) ────────── */
@@ -2158,7 +2213,7 @@
 .disclaimer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2169,8 +2224,8 @@
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-  width: 750px;
-  max-width: 90vw;
+  width: 880px;
+  max-width: 92vw;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -2181,7 +2236,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 24px;
+  padding: 18px 36px;
   border-bottom: 1px solid #e0e0e0;
 }
 
@@ -2207,7 +2262,7 @@
 }
 
 .disclaimer-body {
-  padding: 20px 24px;
+  padding: 28px 36px;
   overflow-y: auto;
   font-size: 1.04rem;
   line-height: 1.6;
@@ -2217,7 +2272,7 @@
 .disclaimer-footer {
   display: flex;
   justify-content: flex-end;
-  padding: 14px 24px;
+  padding: 16px 36px;
   border-top: 1px solid #e0e0e0;
 }
 
@@ -2226,8 +2281,9 @@
   color: #fff;
   border: none;
   border-radius: 4px;
-  padding: 10px 32px;
-  font-size: 0.95rem;
+  padding: 12px 48px;
+  min-width: 140px;
+  font-size: 1rem;
   cursor: pointer;
   font-weight: 500;
 
@@ -2318,8 +2374,8 @@
   border: none;
   padding: 0;
   font-size: 0.88rem;
-  color: #0073b7;
-  text-decoration: none;
+  color: #0077d4;
+  text-decoration: underline;
   line-height: 2;
   white-space: nowrap;
   cursor: pointer;

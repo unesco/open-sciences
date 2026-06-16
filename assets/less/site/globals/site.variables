@@ -4,7 +4,7 @@
  */
 
 /* UNESCO Brand Colors */
-@unescoBlue: #0073b7;
+@unescoBlue: #0077d4;
 @unescoGreen: #009639;
 @unescoLightBlue: #2ea3d9;
 @unescoNavy: #003366;
@@ -15,7 +15,7 @@
 
 /* Header/Navigation */
 @navbarBackgroundColor: @unescoBlue;
-@navbarBackgroundImage: linear-gradient(135deg, @unescoBlue 0%, @unescoLightBlue 100%);
+@navbarBackgroundImage: none;
 
 /* Footer */
 @footerLightColor: @unescoBlue;

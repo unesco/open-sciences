@@ -26,6 +26,7 @@ print "Importing $csv_path. This might take several minutes.\n";
 $entity_type_manager = \Drupal::entityTypeManager();
 $field_manager = \Drupal::service('entity_field.manager');
 $file_system = \Drupal::service('file_system');
+$renderer = \Drupal::service('renderer');
 $taxonomy_storage = $entity_type_manager->getStorage('taxonomy_term');
 $node_storage = $entity_type_manager->getStorage('node');
 $file_storage = $entity_type_manager->getStorage('file');
@@ -106,7 +107,7 @@ $load_country_report_file = static function (string $iso_code) use (
   $file_system,
   $file_storage
 ): ?File {
-  $filename = strtolower($iso_code) . '.pdf';
+  $filename = strtoupper($iso_code) . '.pdf';
   $source_path = $report_files_source_dir . '/' . $filename;
 
   if (!is_file($source_path) || !is_readable($source_path)) {
@@ -190,6 +191,38 @@ $load_country_report = static function (TermInterface $country_term) use (
   return $report;
 };
 
+/**
+ * Remove empty HTML blocks and redundant line breaks from imported summaries.
+ */
+$normalize_summary_html = static function (string $summary) use ($renderer): string {
+  $summary = str_replace(["<div", "</div>"], ['<p', '</p>'], $summary);
+  $summary = str_replace(["\r\n", "\r", "\n", '&nbsp;'], ' ', $summary);
+  $summary = html_entity_decode($summary, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+  $processed_text = [
+    '#type' => 'processed_text',
+    '#text' => $summary,
+    '#format' => 'basic_html',
+  ];
+  $summary = (string) $renderer->renderInIsolation($processed_text);
+  $summary = str_replace(["\r\n", "\r", "\n", '&nbsp;'], ' ', $summary);
+
+  $patterns = [
+    '/<p>(?:\s|<br>)*<\/p>/iu' => '',
+    '/(<p>\s*)((?:<br>\s*)+)/iu' => '$1',
+    '/(<p>.*?)((?:\s*<br>)+)(\s*<\/p>)/iu' => '$1$3',
+    '/<\/p>\s*(?:<br>\s*)+(?=<p>|$)/iu' => '</p>',
+    '/(?:<br>\s*){2,}/iu' => '<br>',
+    '/\A(?:\s*<br>\s*)+/iu' => '',
+    '/(?:\s*<br>\s*)+\z/iu' => '',
+  ];
+
+  foreach ($patterns as $pattern => $replacement) {
+    $summary = preg_replace($pattern, $replacement, $summary) ?? $summary;
+  }
+
+  return trim($summary);
+};
+
 $updated_rows = 0;
 $skipped_rows = 0;
 $errors = 0;
@@ -265,7 +298,7 @@ while (($row = fgetcsv($handle)) !== FALSE) {
   }
 
   $target_field = $section_to_field[$section_id];
-  $decoded_summary = html_entity_decode($summary, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+  $decoded_summary = $normalize_summary_html($summary);
   $report = $load_country_report($term);
 
   try {

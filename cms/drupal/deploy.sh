@@ -22,6 +22,7 @@ vendor/bin/drush en open_science_survey_migration -y
 
 echo "Importing data..."
 vendor/bin/drush migrate:import --all
+vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/homepage_import.php
 vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/qualitative_responses_import.php
 vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/quantitative_responses_import.php
 vendor/bin/drush scr web/modules/custom/open_science_survey_migration/data/countries_profiles_import.php

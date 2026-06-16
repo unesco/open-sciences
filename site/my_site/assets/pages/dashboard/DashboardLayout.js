@@ -15,16 +15,33 @@ export const DashboardLayout = () => {
   const location = useLocation();
   const [showDisclaimer, setShowDisclaimer] = useState(true);
 
-  // Derive the active tab from the current path segment
+  // Derive the active tab from the current path segment. On the country-detail
+  // route ("/country/:iso3") the segment isn't a tab, so fall back to the tab
+  // the country was opened from, carried in the URL as "?from=<tab>". Keeping
+  // it in the URL (rather than transient router state) means the right tab
+  // stays highlighted while viewing the country and survives browser
+  // back/forward navigation and page refreshes.
   const pathSegment = location.pathname.split("/").filter(Boolean)[0] || "global";
-  const activeTab = TABS.find((t) => t.id === pathSegment) ? pathSegment : "global";
+  const fromTab = new URLSearchParams(location.search).get("from");
+  const resolveTab = (id) => (TABS.find((t) => t.id === id) ? id : "global");
+  const activeTab = TABS.find((t) => t.id === pathSegment)
+    ? pathSegment
+    : resolveTab(fromTab);
 
   const handleTabClick = (tabId) => {
     navigate(`/${tabId}`);
   };
 
   const handleCountryClick = (iso3, name) => {
-    navigate(`/country/${iso3}`, { state: { countryName: name } });
+    // Carry the originating tab in the URL so both the highlight (forward) and
+    // "Back" resolve to it reliably, regardless of how the country was opened
+    // (map, modal, sub-view).
+    navigate(`/country/${iso3}?from=${activeTab}`, { state: { countryName: name } });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCountryBack = () => {
+    navigate(`/${resolveTab(fromTab)}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -36,7 +53,7 @@ export const DashboardLayout = () => {
           Interactive dashboards tracking implementation of UNESCO
           Recommendation on Open Science by Member States who reported their
           progress to UNESCO. See more details on{" "}
-          <a href="/about">About page</a>.
+          <a href="/page#about">About page</a>.
         </p>
       </div>
 
@@ -61,7 +78,7 @@ export const DashboardLayout = () => {
           <Route path="/challenges" element={<Challenges onCountryClick={handleCountryClick} />} />
           <Route
             path="/country/:iso3"
-            element={<CountryDetailRoute onBack={() => navigate(-1)} />}
+            element={<CountryDetailRoute onBack={handleCountryBack} />}
           />
           <Route path="*" element={<Navigate to="/global" replace />} />
         </Routes>

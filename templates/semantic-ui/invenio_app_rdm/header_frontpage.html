@@ -7,7 +7,7 @@ details. #}
 {#
   Header Frontpage Template with CMS Integration
 
-  This header loads its content from the CMS API at /data/cms/public/header_frontpage.
+  This header loads its content from the CMS API at /cms/api/homepage/header.
   If CMS data is not available, it falls back to default values defined here.
 
   Managed fields:
@@ -166,25 +166,16 @@ details. #}
 <!-- End of background wrapper -->
 
 <!-- CMS Header Frontpage Integration Script -->
+<script src="{{ url_for('static', filename='js/cms-api.js') }}"></script>
 <script>
 (function() {
   // Default paths (fallback)
   var DEFAULT_LOGO = '/static/images/unesco-logo.svg';
   var DEFAULT_BACKGROUND = '/static/images/science-background1.jpg';
 
-  // Get current language from HTML lang attribute or default to 'en'
-  var lang = document.documentElement.lang || 'en';
-
-  // Fetch header data from CMS public API
-  fetch('/data/cms/public/header_frontpage?lang=' + lang)
-    .then(function(response) {
-      if (!response.ok) {
-        throw new Error('Failed to fetch header data');
-      }
-      return response.json();
-    })
-    .then(function(result) {
-      var data = result.data || {};
+  // Fetch header data from CMS API
+  CmsApi.fetch('/homepage/header')
+    .then(function(data) {
 
       // Update logo
       var logo = document.getElementById('header-logo');
@@ -219,13 +210,9 @@ details. #}
           navDesktop.innerHTML = '';
           data.navigation_links.forEach(function(link) {
             var a = document.createElement('a');
-            a.href = link.url;
             a.textContent = link.label;
             a.style.cssText = 'color: #FFFFFF; font-family: \'Inter\'; font-weight: 600; font-size: 15px; line-height: 56px; text-decoration: none; white-space: nowrap;';
-            if (link.external) {
-              a.target = '_blank';
-              a.rel = 'noopener noreferrer';
-            }
+            CmsApi.applyLink(a, link);
             navDesktop.appendChild(a);
           });
         }
@@ -234,15 +221,11 @@ details. #}
           navMobile.innerHTML = '';
           data.navigation_links.forEach(function(link, index) {
             var a = document.createElement('a');
-            a.href = link.url;
             a.textContent = link.label;
             a.className = 'item';
             var borderStyle = index < data.navigation_links.length - 1 ? 'border-bottom: 1px solid #e0e0e0;' : '';
             a.style.cssText = 'color: #212121 !important; font-family: \'Inter\'; font-weight: 600; font-size: 16px; padding: 12px 20px; display: block; text-decoration: none; ' + borderStyle;
-            if (link.external) {
-              a.target = '_blank';
-              a.rel = 'noopener noreferrer';
-            }
+            CmsApi.applyLink(a, link);
             navMobile.appendChild(a);
           });
         }

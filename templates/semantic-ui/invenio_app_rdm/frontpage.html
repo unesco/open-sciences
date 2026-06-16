@@ -65,20 +65,20 @@
 </section>
 
 <!-- Dashboards Section -->
-<section class="dashboards-section">
+<section class="dashboards-section" style="margin-top:40px">
   <div class="ui container">
     <div class="ui two column stackable grid">
       <div class="column">
         <div class="dashboards-map">
-          <img src="/static/images/world_map.svg" alt="World Map" />
+          <img src="/static/images/world_map.png" alt="World Map" />
         </div>
       </div>
       <div class="column dashboards-text-column" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:left;">
-        <h2 class="dashboards-title">Browse Insights from UNESCO Open Science Dashboards</h2>
+        <h2 class="dashboards-title">Browse Insights from UNESCO Open Science Dashboard</h2>
         <p class="dashboards-description">
           Interactive dashboards tracking implementation of the UNESCO Recommendation on Open Science
         </p>
-        <a href="/statistics" class="ui primary button" style="color:#fafafa !important; background-color: #0073b7 !important; box-shadow: none !important;border-radius:25px !important;border:none !important">
+        <a href="/dashboards" class="ui primary button" style="color:#fafafa !important; background-color: #0073b7 !important; box-shadow: none !important;border-radius:25px !important;border:none !important">
           Open Science Dashboards
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 4px;">
             <path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z" fill="white"/>
@@ -95,14 +95,7 @@
     <div class="partners-wrapper">
       <h3 class="partners-title">Partners</h3>
       <p class="partners-subtitle">Proudly collaborating with Open Source and other partners</p>
-      <div class="partners-logos">
-        <a href="https://inveniosoftware.org/" target="_blank" rel="noopener noreferrer">
-          <img src="/static/images/invenio-logo.svg" alt="InvenioRDM" class="partner-logo" />
-        </a>
-        <a href="https://www.lens.org/" target="_blank" rel="noopener noreferrer">
-          <img src="/static/images/lens-logo.png" alt="Lens.org" class="partner-logo" />
-        </a>
-      </div>
+      <div class="partners-logos" id="partners-logos"></div>
     </div>
   </div>
 </section>
@@ -113,115 +106,95 @@
 {{ super() }}
 <!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
-<!-- Frontpage highlight card data -->
-<script id="frontpage-data" type="application/json">
-  {
-    "highlight_cards": [
-      {
-        "image": "/static/images/highlight_1.png",
-        "tags": ["Biodiversity conservation", "UNESCO designated sites"],
-        "number": "60%",
-        "description": "of global vertebrate species richness is found within UNESCO sites.",
-        "search_query": "biodiversity"
-      },
-      {
-        "image": "/static/images/highlight_2.png",
-        "tags": ["Indigenous peoples"],
-        "number": ">25%",
-        "description": "of the Earth's land area is traditionally owned, managed, used or occupied by indigenous peoples.",
-        "search_query": "indigenous+peoples"
-      },
-      {
-        "image": "/static/images/highlight_3.png",
-        "tags": ["Water resource management", "Climate change"],
-        "number": "By 2050,",
-        "description": "climate change could significantly affect drinking water resources, with stream flows in the Seine and its tributaries supplying the Paris metropolitan area declining by up to 30%, according to the Seine-Normandy Water Agency.",
-        "search_query": "climate+change+water+resources+management"
-      },
-      {
-        "image": "/static/images/highlight_4.png",
-        "tags": ["Quantum", "Physics"],
-        "number": ">23.3%",
-        "description": "of participants in a UNESCO-led global survey who represented the Global South reported having no access to the necessary quantum research facilities, despite their wish to shape the quantum future.",
-        "search_query": "quantum+physics"
-      },
-        {
-          "image": "/static/images/research_image5.png",
-          "tags": ["SIDS", "Climate change"],
-          "number": "~70%",
-          "description": "of the Pacific Small Island Developing States’ agricultural area depends on seasonal rainfall, making it highly vulnerable to climate change, which is predicted to affect the entire food supply chain in this region.",
-          "search_query": "climate+change+SIDS+agriculture"
-        },
-        {
-          "image": "/static/images/research_image6.png",
-          "tags": ["Hydrology", "Open data"],
-          "number": "80%",
-          "description": "of respondents in the UNESCO Water Family survey share data (such as earth observations and research data), while an even greater majority (93%) use open data. This shows that a strongly data-intensive discipline like hydrology depends heavily on the availability of open data.",
-          "search_query": "hydrology+open+data+UNESCO"
-        },
-        {
-          "image": "/static/images/research_image7.png",
-          "tags": ["Water supply", "Mountains", "Glaciers"],
-          "number": "2 Billion",
-          "description": "people worldwide depend directly on water from mountains and glaciers for drinking water, agriculture, energy, and ecosystems, making cryosphere decline a major global water-security risk. Up to 60% of the world's fresh water originates in mountains.",
-          "search_query": "mountains+glaciers+water+supply"
-        },
-        {
-          "image": "/static/images/research_image8.png",
-          "tags": ["Water resources management", "AI"],
-          "number": "95%",
-          "description": "of respondents to a global survey of the hydrological community see a clear role for AI and Machine Learning in addressing water resources management challenges, highlighting strong worldwide momentum for AI-enabled modelling, forecasting, water resources management, climate adaptation and disaster risk reduction.",
-          "search_query": "AI+water+resources+management+hydrology"
-        }
-    ]
-  }
-</script>
+<!-- CMS API helper -->
+<script src="{{ url_for('static', filename='js/cms-api.js') }}"></script>
 
 <!-- Initialize Swiper -->
 <script>
   (function () {
-    var data = JSON.parse(document.getElementById('frontpage-data').textContent);
     var arrowSVG = '<svg class="highlight-button-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z"/></svg>';
 
-    // Render highlight cards
+    // ── Highlight cards ────────────────────────────────────────────────────
     var hWrapper = document.getElementById('highlights-swiper-wrapper');
-    data.highlight_cards.forEach(function (card) {
-      var tags = card.tags.map(function (t) {
-        return '<span class="highlight-tag">' + t + '</span>';
-      }).join('');
-      hWrapper.innerHTML += '<div class="swiper-slide">' +
-        '<div class="highlight-card">' +
-          '<div class="highlight-image" style="background-image: url(\'' + card.image + '\');"></div>' +
-          '<div class="highlight-content">' +
-            '<div class="highlight-tags">' + tags + '</div>' +
-            '<div class="highlight-text-wrapper">' +
-              '<div class="highlight-number">' + card.number + '</div>' +
-              '<p class="highlight-description">' + card.description + '</p>' +
+
+    function renderHighlightCards(cards) {
+      hWrapper.innerHTML = '';
+      if (!cards || cards.length === 0) {
+        hWrapper.closest('.swiper-nav-wrapper').innerHTML =
+          '<p class="pls-empty">No highlights available yet.</p>';
+        return;
+      }
+      cards.forEach(function (card) {
+        var tags = card.tags.map(function (t) {
+          return '<span class="highlight-tag">' + t + '</span>';
+        }).join('');
+        var img = CmsApi.resolveAsset(card.image);
+
+        var slide = document.createElement('div');
+        slide.className = 'swiper-slide';
+        slide.innerHTML =
+          '<div class="highlight-card">' +
+            '<div class="highlight-image" style="background-image: url(\'' + img + '\');"></div>' +
+            '<div class="highlight-content">' +
+              '<div class="highlight-tags">' + tags + '</div>' +
+              '<div class="highlight-text-wrapper">' +
+                '<div class="highlight-number">' + card.number + '</div>' +
+                '<p class="highlight-description">' + card.description + '</p>' +
+              '</div>' +
             '</div>' +
-            '<a href="/search?q=' + card.search_query + '" class="highlight-button">' +
-              '<span>See more</span>' + arrowSVG +
-            '</a>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-    });
+          '</div>';
 
-    // ── PLS helpers ──────────────────────────────────────────────────────────
-    // Use each PLS's field_hero_image; fall back to a placeholder when empty.
-    var plsPlaceholderImage = '/static/images/placeholderimg.jpg';
+        var btn = document.createElement('a');
+        btn.className = 'highlight-button';
+        btn.innerHTML = '<span>See more</span>' + arrowSVG;
+        CmsApi.applyLink(btn, card.website || {});
+        slide.querySelector('.highlight-content').appendChild(btn);
 
-    // Resolve a Drupal-relative asset path to an absolute URL (dev hits :8080,
-    // prod is proxied under /cms). Mirrors resolveCmsAsset in pages/pls/api.js.
-    function resolveCmsAsset(path) {
-      if (!path) return '';
-      if (/^https?:\/\//i.test(path)) return path;
-      if (path.indexOf('/cms/') === 0) return (isDev ? 'http://localhost:8080' : '') + path;
-      if (path.charAt(0) === '/') return (isDev ? 'http://localhost:8080' : '/cms') + path;
-      return path;
+        hWrapper.appendChild(slide);
+      });
+      new Swiper('.highlightsSwiper', {
+        slidesPerView: 1,
+        spaceBetween: 24,
+        navigation: { nextEl: '.highlightsSwiper-next', prevEl: '.highlightsSwiper-prev' },
+        pagination: { el: '.highlightsSwiper .swiper-pagination', clickable: true },
+        breakpoints: {
+          576:  { slidesPerView: 1, spaceBetween: 24 },
+          768:  { slidesPerView: 2, spaceBetween: 24 },
+          1024: { slidesPerView: 3, spaceBetween: 24 },
+          1400: { slidesPerView: 4, spaceBetween: 24 },
+        },
+      });
     }
 
-    // Render PLS (Plain Language Summary) cards
+    (function showHighlightSkeletons() {
+      for (var s = 0; s < 4; s++) {
+        hWrapper.innerHTML += '<div class="swiper-slide">' +
+          '<div class="highlight-card">' +
+            '<div class="highlight-image skeleton"></div>' +
+            '<div class="highlight-content">' +
+              '<div class="highlight-tags"><span class="highlight-tag skeleton" style="width:80px">&nbsp;</span></div>' +
+              '<div class="highlight-text-wrapper">' +
+                '<div class="highlight-number skeleton" style="width:60px">&nbsp;</div>' +
+                '<p class="highlight-description skeleton">&nbsp;</p>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }
+    })();
+
+    CmsApi.fetch('/homepage/cards')
+      .then(function (data) {
+        renderHighlightCards(data.highlight_cards || []);
+      })
+      .catch(function (err) {
+        console.error('Failed to load highlight cards:', err);
+        hWrapper.closest('.swiper-nav-wrapper').innerHTML =
+          '<p class="pls-empty">Could not load highlights at this time.</p>';
+      });
+
+    // ── PLS cards ──────────────────────────────────────────────────────────
+    var plsPlaceholderImage = '/static/images/placeholderimg.jpg';
     var rWrapper = document.getElementById('research-swiper-wrapper');
 
     function renderPlsCards(items) {
@@ -231,9 +204,8 @@
           '<p class="pls-empty">No plain language summaries available yet.</p>';
         return;
       }
-
-      items.forEach(function (pls, i) {
-        var img = resolveCmsAsset(pls.field_hero_image) || plsPlaceholderImage;
+      items.forEach(function (pls) {
+        var img = CmsApi.resolveAsset(pls.field_hero_image) || plsPlaceholderImage;
         rWrapper.innerHTML += '<div class="swiper-slide">' +
           '<div class="research-card" style="background-image: url(\'' + img + '\');">' +
             '<div class="research-card-overlay"></div>' +
@@ -250,7 +222,6 @@
       });
     }
 
-    // Show skeleton loaders while fetching
     (function showPlsSkeletons() {
       for (var s = 0; s < 4; s++) {
         rWrapper.innerHTML += '<div class="swiper-slide">' +
@@ -266,15 +237,7 @@
       }
     })();
 
-    // Fetch PLS from API (Drupal-backed; in dev it lives on :8080, in prod nginx proxies /cms)
-    var isDev = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') &&
-                location.port !== '' && location.port !== '80' && location.port !== '443';
-    var plsUrl = (isDev ? 'http://localhost:8080' : '') + '/cms/api/pls';
-    fetch(plsUrl, { headers: { Accept: 'application/json' } })
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+    CmsApi.fetchRaw('/pls')
       .then(function (items) {
         renderPlsCards(items);
         new Swiper('.researchSwiper', {
@@ -295,37 +258,32 @@
           '<p class="pls-empty">Could not load plain language summaries at this time.</p>';
       });
 
-    // Highlights Swiper
-    var highlightsSwiper = new Swiper(".highlightsSwiper", {
-      slidesPerView: 1,
-      spaceBetween: 24,
-      navigation: {
-        nextEl: ".highlightsSwiper-next",
-        prevEl: ".highlightsSwiper-prev",
-      },
-      pagination: {
-        el: ".highlightsSwiper .swiper-pagination",
-        clickable: true,
-      },
-      breakpoints: {
-        576: {
-          slidesPerView: 1,
-          spaceBetween: 24,
-        },
-        768: {
-          slidesPerView: 2,
-          spaceBetween: 24,
-        },
-        1024: {
-          slidesPerView: 3,
-          spaceBetween: 24,
-        },
-        1400: {
-          slidesPerView: 4,
-          spaceBetween: 24,
-        },
-      },
-    });
+    // ── Partners ─────────────────────────────────────────────────────────────
+    var partnersWrapper = document.getElementById('partners-logos');
+
+    function renderPartners(partners) {
+      partnersWrapper.innerHTML = '';
+      if (!partners || partners.length === 0) {
+        partnersWrapper.closest('.partners-wrapper').style.display = 'none';
+        return;
+      }
+      partners.forEach(function (partner) {
+        var img = CmsApi.resolveAsset(partner.image);
+        partnersWrapper.innerHTML +=
+          '<a href="' + partner.url + '" target="_blank" rel="noopener noreferrer">' +
+            '<img src="' + img + '" alt="' + partner.title + '" class="partner-logo" />' +
+          '</a>';
+      });
+    }
+
+    CmsApi.fetch('/homepage/partners')
+      .then(function (data) {
+        renderPartners(data.partners || []);
+      })
+      .catch(function (err) {
+        console.error('Failed to load partners:', err);
+        partnersWrapper.closest('.partners-wrapper').style.display = 'none';
+      });
 
   })();
 </script>

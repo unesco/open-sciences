@@ -1,0 +1,19 @@
+uuid: e1a48f52-cc53-4d9e-919d-5aba14e17861
+langcode: en
+status: true
+dependencies:
+  module:
+    - link
+    - node
+id: node.field_navigation_links
+field_name: field_navigation_links
+entity_type: node
+type: link
+settings: {  }
+module: link
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

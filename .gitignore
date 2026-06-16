@@ -127,3 +127,5 @@ private/*
 # Backups (contain sensitive data)
 backups/
 *.bak
+.claude/*
+.mcp.json

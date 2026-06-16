@@ -19,11 +19,7 @@ const ArrowIcon = ({ className }) => (
 );
 
 const InfoIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="12" cy="12" r="9.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
-    <circle cx="12" cy="7.8" r="1.15" fill="currentColor" />
-    <rect x="11.1" y="10.6" width="1.8" height="6.4" rx="0.9" fill="currentColor" />
-  </svg>
+  <img src="/static/images/info_icn.png" alt="info" style={{ width: 18, height: 18, verticalAlign: "middle" }} />
 );
 
 
@@ -245,7 +241,7 @@ export const PlsDetail = () => {
                   <>
                     <hr className="pls-card-divider" />
                     <h4 className="pls-authors-title">
-                      Authors of the original publication
+                      Authors of the original publication:
                     </h4>
                     <p className="pls-author-list">
                       {authors.map((a, i) => (

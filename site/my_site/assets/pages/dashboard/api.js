@@ -11,6 +11,7 @@ export const API_PATHS = {
   SURVEY_RESPONSES: "/api/search/survey-responses",
   SURVEY_RESPONSES_DOWNLOAD: "/api/download/survey-responses",
   SURVEY_RESPONSES_DOWNLOAD_MULTI_FILTER: "/api/download/survey-responses-multi-filter",
+  SURVEY_RESPONSES_MULTI_FILTER: "/api/search/survey-responses-multi-filter",
   COUNTRIES: "/api/countries",
   WORDCLOUD: "/api/wordcloud",
   TERM_CONTEXT: "/api/term-context",
@@ -225,7 +226,7 @@ export async function fetchMultiFilter(filters) {
     params.append(`filters[${i}][question]`, f.question);
     params.append(`filters[${i}][answer]`, f.answers.join(","));
   });
-  return get(`/api/search/survey-responses-multi-filter?${params.toString()}`);
+  return get(`${API_PATHS.SURVEY_RESPONSES_MULTI_FILTER}?${params.toString()}`);
 }
 
 /**

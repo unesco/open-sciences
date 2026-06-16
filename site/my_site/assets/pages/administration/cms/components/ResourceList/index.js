@@ -16,6 +16,7 @@ import {
   Segment,
   Grid,
   Modal,
+  Checkbox,
 } from "semantic-ui-react";
 import { useResourceCMSApi } from "../../hooks";
 
@@ -36,11 +37,12 @@ export const ResourceList = ({ onSelectResource }) => {
   const [patchConfirmOpen, setPatchConfirmOpen] = useState(false);
   const [patchStatus, setPatchStatus] = useState(null);
 
-  // Update Custom Fields state
-  const [updatingFields, setUpdatingFields] = useState(false);
-  const [updateFieldsMessage, setUpdateFieldsMessage] = useState(null);
-  const [updateFieldsConfirmOpen, setUpdateFieldsConfirmOpen] = useState(false);
-  const [updateFieldsStatus, setUpdateFieldsStatus] = useState(null);
+  // Migrate Resource Types state
+  const [migratingTypes, setMigratingTypes] = useState(false);
+  const [migrateTypesMessage, setMigrateTypesMessage] = useState(null);
+  const [migrateTypesConfirmOpen, setMigrateTypesConfirmOpen] = useState(false);
+  const [migrateTypesStatus, setMigrateTypesStatus] = useState(null);
+  const [migrateTypesDryRun, setMigrateTypesDryRun] = useState(true);
 
   // Poll reindex status
   useEffect(() => {
@@ -154,24 +156,24 @@ export const ResourceList = ({ onSelectResource }) => {
     }
   };
 
-  // Poll update fields status
+  // Poll migrate resource types status
   useEffect(() => {
-    if (!updatingFields) return;
+    if (!migratingTypes) return;
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch("/data/update-fields", {
+        const res = await fetch("/data/patch-resource-types", {
           headers: { "Content-Type": "application/json" },
         });
         const data = await res.json();
-        setUpdateFieldsStatus(data);
+        setMigrateTypesStatus(data);
 
         if (data.status === "completed") {
-          setUpdatingFields(false);
-          setUpdateFieldsMessage({ type: "success", text: data.message });
+          setMigratingTypes(false);
+          setMigrateTypesMessage({ type: "success", text: data.message });
         } else if (data.status === "failed") {
-          setUpdatingFields(false);
-          setUpdateFieldsMessage({ type: "error", text: data.message });
+          setMigratingTypes(false);
+          setMigrateTypesMessage({ type: "error", text: data.message });
         }
       } catch (_) {
         // ignore polling errors
@@ -179,34 +181,37 @@ export const ResourceList = ({ onSelectResource }) => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [updatingFields]);
+  }, [migratingTypes]);
 
-  // Trigger update custom fields
-  const handleUpdateFields = async () => {
-    setUpdateFieldsConfirmOpen(false);
-    setUpdatingFields(true);
-    setUpdateFieldsMessage(null);
-    setUpdateFieldsStatus(null);
+  // Trigger migrate resource types
+  const handleMigrateTypes = async () => {
+    setMigrateTypesConfirmOpen(false);
+    setMigratingTypes(true);
+    setMigrateTypesMessage(null);
+    setMigrateTypesStatus(null);
     try {
-      const response = await fetch("/data/update-fields", {
+      const url = migrateTypesDryRun
+        ? "/data/patch-resource-types?dry_run=true"
+        : "/data/patch-resource-types";
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
       const data = await response.json();
       if (response.ok) {
-        setUpdateFieldsMessage({ type: "info", text: data.message });
+        setMigrateTypesMessage({ type: "info", text: data.message });
       } else if (response.status === 409) {
-        setUpdateFieldsMessage({ type: "info", text: data.message });
+        setMigrateTypesMessage({ type: "info", text: data.message });
       } else {
-        setUpdatingFields(false);
-        setUpdateFieldsMessage({
+        setMigratingTypes(false);
+        setMigrateTypesMessage({
           type: "error",
-          text: data.error || "Failed to trigger update",
+          text: data.error || "Failed to trigger migration",
         });
       }
     } catch (err) {
-      setUpdatingFields(false);
-      setUpdateFieldsMessage({ type: "error", text: err.message });
+      setMigratingTypes(false);
+      setMigrateTypesMessage({ type: "error", text: err.message });
     }
   };
 
@@ -527,24 +532,24 @@ export const ResourceList = ({ onSelectResource }) => {
           </Modal.Actions>
         </Modal>
 
-        {/* Update Custom Fields */}
-        {updateFieldsMessage && (
+        {/* Migrate Resource Types */}
+        {migrateTypesMessage && (
           <Message
-            positive={updateFieldsMessage.type === "success"}
-            negative={updateFieldsMessage.type === "error"}
-            info={updateFieldsMessage.type === "info"}
-            onDismiss={() => setUpdateFieldsMessage(null)}
+            positive={migrateTypesMessage.type === "success"}
+            negative={migrateTypesMessage.type === "error"}
+            info={migrateTypesMessage.type === "info"}
+            onDismiss={() => setMigrateTypesMessage(null)}
             icon
           >
-            <Icon name={updateFieldsMessage.type === "success" ? "check circle" : updateFieldsMessage.type === "error" ? "times circle" : "info circle"} />
+            <Icon name={migrateTypesMessage.type === "success" ? "check circle" : migrateTypesMessage.type === "error" ? "times circle" : "info circle"} />
             <Message.Content>
               <Message.Header>
-                {updateFieldsMessage.type === "success" ? "Success" : updateFieldsMessage.type === "error" ? "Error" : "In Progress"}
+                {migrateTypesMessage.type === "success" ? "Success" : migrateTypesMessage.type === "error" ? "Error" : "In Progress"}
               </Message.Header>
-              {updateFieldsMessage.text}
-              {updatingFields && updateFieldsStatus?.started_at && (
+              {migrateTypesMessage.text}
+              {migratingTypes && migrateTypesStatus?.started_at && (
                 <span style={{ marginLeft: "1em", opacity: 0.7 }}>
-                  (Started: {new Date(updateFieldsStatus.started_at).toLocaleTimeString()})
+                  (Started: {new Date(migrateTypesStatus.started_at).toLocaleTimeString()})
                 </span>
               )}
             </Message.Content>
@@ -555,54 +560,67 @@ export const ResourceList = ({ onSelectResource }) => {
           <Grid verticalAlign="middle">
             <Grid.Column width={12}>
               <Header as="h4">
-                <Icon name="edit" />
+                <Icon name="tags" />
                 <Header.Content>
-                  Update Custom Fields
+                  Migrate Resource Types
                   <Header.Subheader>
-                    Re-process existing records using the Lens.org source data to
-                    update or add custom fields. Use this after modifying the
-                    field mapper without needing to re-import all data.
+                    Consolidate standalone resource types (dataset, software,
+                    other) into "publication-other" on existing records, so the
+                    resource-type facet shows a single "Other" entry. Records
+                    already using a publication type are skipped.
                   </Header.Subheader>
                 </Header.Content>
               </Header>
             </Grid.Column>
             <Grid.Column width={4} textAlign="right">
               <Button
-                color="blue"
+                color="purple"
                 icon
                 labelPosition="left"
-                loading={updatingFields}
-                disabled={updatingFields}
-                onClick={() => setUpdateFieldsConfirmOpen(true)}
+                loading={migratingTypes}
+                disabled={migratingTypes}
+                onClick={() => setMigrateTypesConfirmOpen(true)}
               >
-                <Icon name="edit" />
-                {updatingFields ? "Updating..." : "Update Fields"}
+                <Icon name="tags" />
+                {migratingTypes
+                  ? migrateTypesDryRun
+                    ? "Previewing..."
+                    : "Migrating..."
+                  : "Migrate Types"}
               </Button>
             </Grid.Column>
           </Grid>
         </Segment>
 
-        {/* Update Fields Confirmation Modal */}
+        {/* Migrate Resource Types Confirmation Modal */}
         <Modal
           size="small"
-          open={updateFieldsConfirmOpen}
-          onClose={() => setUpdateFieldsConfirmOpen(false)}
+          open={migrateTypesConfirmOpen}
+          onClose={() => setMigrateTypesConfirmOpen(false)}
         >
           <Modal.Header>
-            <Icon name="edit" color="blue" /> Confirm Update Custom Fields
+            <Icon name="tags" color="purple" /> Confirm Migrate Resource Types
           </Modal.Header>
           <Modal.Content>
             <p>
-              This will re-run the custom field mapper on the Lens.org source
-              data and update all existing records with any new or changed
-              fields. Only fields that have actually changed will be updated.
+              This will update existing records whose resource type is
+              "dataset", "software" or "other" to the type derived from their
+              Lens data (falling back to "publication-other"). The process runs
+              in the background and may take several minutes.
             </p>
-            <p>The process runs in the background and may take several minutes.</p>
+            <p>Records already using a publication type will be skipped.</p>
+            <Checkbox
+              toggle
+              label="Dry run (preview only — reports what would change without modifying any records)"
+              checked={migrateTypesDryRun}
+              onChange={(e, { checked }) => setMigrateTypesDryRun(checked)}
+            />
           </Modal.Content>
           <Modal.Actions>
-            <Button onClick={() => setUpdateFieldsConfirmOpen(false)}>Cancel</Button>
-            <Button color="blue" onClick={handleUpdateFields}>
-              <Icon name="edit" /> Update Fields
+            <Button onClick={() => setMigrateTypesConfirmOpen(false)}>Cancel</Button>
+            <Button color="purple" onClick={handleMigrateTypes}>
+              <Icon name="tags" />
+              {migrateTypesDryRun ? "Run Dry Run" : "Migrate Types"}
             </Button>
           </Modal.Actions>
         </Modal>

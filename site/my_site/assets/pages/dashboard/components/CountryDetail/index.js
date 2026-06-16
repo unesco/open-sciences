@@ -6,15 +6,16 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { fetchCountryByIso3, resolveCmsAsset } from "../../api";
-import { COUNTRY_SECTIONS } from "../../constants";
-import { decodeHtmlEntities, sanitizeRichText, MedalIcon } from "../utils";
+import { fetchCountryByIso3, fetchSurveySections, resolveCmsAsset } from "../../api";
+import { buildCountrySections } from "../../constants";
+import { decodeHtmlEntities, sanitizeRichText } from "../utils";
 import { iso3ToIso2 } from "./iso2Map";
 
 // ── CountryDetail component ─────────────────────────────────────────────────
 
 export const CountryDetail = ({ iso3, countryName, onBack }) => {
   const [countryData, setCountryData] = useState(null);
+  const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const sectionRefs = useRef({});
@@ -23,12 +24,13 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
     let mounted = true;
     setLoading(true);
     setError(null);
-    fetchCountryByIso3(iso3)
-      .then((data) => {
+    Promise.all([fetchCountryByIso3(iso3), fetchSurveySections()])
+      .then(([data, surveySections]) => {
         if (!mounted) return;
         // API returns an array with one element
         const country = Array.isArray(data) ? data[0] : data;
         setCountryData(country || null);
+        setSections(buildCountrySections(surveySections));
       })
       .catch((err) => {
         if (!mounted) return;
@@ -58,14 +60,6 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
     countryData && countryData.field_report_file
       ? resolveCmsAsset(countryData.field_report_file.trim())
       : "";
-
-  // Filter sections that have content
-  const activeSections = countryData
-    ? COUNTRY_SECTIONS.filter((s) => {
-        const val = countryData[s.field];
-        return val && val.trim().length > 0;
-      })
-    : COUNTRY_SECTIONS;
 
   return (
     <div className="country-detail-page">
@@ -123,7 +117,7 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
         <div className="country-content-layout">
           {/* Content sections — left */}
           <div className="country-content-main">
-            {COUNTRY_SECTIONS.map((section) => {
+            {sections.map((section) => {
               const raw = countryData[section.field];
               const html = raw ? sanitizeRichText(raw.trim()) : "";
               return (
@@ -169,14 +163,18 @@ export const CountryDetail = ({ iso3, countryName, onBack }) => {
             <div className="country-sidebar-title">On this page:</div>
             <div className="country-sidebar-card">
               <ul className="country-sidebar-nav">
-                {COUNTRY_SECTIONS.map((section) => (
+                {sections.map((section) => (
                   <li key={section.id}>
                     <button
                       type="button"
                       className="country-sidebar-link"
                       onClick={() => scrollToSection(section.id)}
                     >
-                      <MedalIcon className="country-section-icon" />
+                      <img
+                        src="/static/images/menu_icon.png"
+                        alt=""
+                        className="country-section-icon"
+                      />
                       <span>{section.label}</span>
                     </button>
                   </li>

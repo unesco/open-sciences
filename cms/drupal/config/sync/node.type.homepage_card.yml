@@ -1,0 +1,17 @@
+uuid: baea66e4-60e9-4c52-98ce-a45ee955a96b
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: 'Homepage card'
+type: homepage_card
+description: 'Define cards for the homepage'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

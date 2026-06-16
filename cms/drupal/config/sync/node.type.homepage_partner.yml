@@ -1,0 +1,17 @@
+uuid: dc53cad6-1bca-4165-895c-01ee2958a83b
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: 'Homepage partner'
+type: homepage_partner
+description: 'Define information about a partner.'
+help: null
+new_revision: true
+preview_mode: 2
+display_submitted: true
