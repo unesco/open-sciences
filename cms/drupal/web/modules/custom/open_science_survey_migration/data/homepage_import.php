@@ -93,11 +93,11 @@ $sample_data = [
     ],
     [
       'title' => 'UNESCO Natural Sciences Family',
-      'uri' => 'https://www.unesco.org/en/natural-sciences',
+      'uri' => 'internal:/natural-sciences-family',
     ],
     [
-      'title' => 'UNESCO Open Science Dashbords',
-      'uri' => 'https://www.unesco.org/en/open-science',
+      'title' => 'UNESCO Open Science Dashboards',
+      'uri' => '/dashboards',
     ],
   ],
 ];
@@ -170,7 +170,7 @@ print "Created sample privacy page node with NID {$privacy_page_node->id()}.\n";
 $footer_sample_data = [
   'title' => 'Homepage Footer',
   'field_contact_email' => 'open-science-platform@unesco.org',
-  'field_copyright_text' => '© 2025 UNESCO Open Science Portal - United Nations Educational, Scientific and Cultural Organization',
+  'field_copyright_text' => '© 2026 UNESCO Open Science Portal - United Nations Educational, Scientific and Cultural Organization',
   'field_navigation_links' => [
     [
       'title' => 'About',
@@ -181,8 +181,8 @@ $footer_sample_data = [
       'uri' => 'internal:/natural-sciences-family',
     ],
     [
-      'title' => 'UNESCO Open Science Dashboards',
-      'uri' => 'https://www.unesco.org/en/open-science/',
+      'title' => 'UNESCO Open Science Dashboard',
+      'uri' => '/dashboards',
     ],
     [
       'title' => 'Privacy',
