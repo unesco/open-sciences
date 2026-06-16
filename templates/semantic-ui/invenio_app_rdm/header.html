@@ -66,7 +66,7 @@ link #}
               <span class="navicon" aria-hidden="true"></span>
             </button>
 
-            {%- if config.THEME_SEARCHBAR %} {%- block navbar_search %} {%-
+            {%- if config.THEME_SEARCHBAR and not request.path.startswith('/dashboards') %} {%- block navbar_search %} {%-
             include "invenio_app_rdm/searchbar.html" %}
             {# Advanced Search Button - Only on search page, hidden on mobile #}
             {# COMMENTED: Uncomment to add Advanced Search button in header (desktop only)
