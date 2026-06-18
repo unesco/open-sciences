@@ -50,9 +50,7 @@ export const DashboardLayout = () => {
       <div className="dashboard-header">
         <h1 className="dashboard-title">Open Science dashboards</h1>
         <p className="dashboard-description">
-          Interactive dashboards tracking implementation of UNESCO
-          Recommendation on Open Science by Member States who reported their
-          progress to UNESCO. See more details on{" "}
+          Interactive dashboards tracking the implementation of the UNESCO Recommendation on Open Science by Member States that reported their progress to UNESCO. See more details on the {" "}
           <a href="/page#about">About page</a>.
         </p>
       </div>
