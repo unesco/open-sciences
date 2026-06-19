@@ -72,7 +72,8 @@ class TermContextController extends ControllerBase {
 
                 $answer = $this->extractOpenAnswer($survey_response);
 
-                $rows[] = [$country, $question_number_value, $question_text_value, $answer];
+                $challenges = $this->extractChallengeNames($survey_response);
+                $rows[] = [$country, $question_number_value, $question_text_value, $answer, $challenges];
             }
 
             return $this->buildCsvResponse($term, $region, $rows);
@@ -340,6 +341,31 @@ class TermContextController extends ControllerBase {
     }
 
     /**
+     * Extracts challenge tag names from a survey response.
+     *
+     * @param \Drupal\Core\Entity\EntityInterface $survey_response
+     *   Survey response entity.
+     *
+     * @return string
+     *   Comma-separated challenge names or empty string.
+     */
+    protected function extractChallengeNames($survey_response) {
+        if (!$survey_response->hasField('field_challenge') || $survey_response->get('field_challenge')->isEmpty()) {
+            return '';
+        }
+
+        $names = [];
+        foreach ($survey_response->get('field_challenge') as $item) {
+            $term = $item->entity;
+            if ($term) {
+                $names[] = $term->label();
+            }
+        }
+
+        return implode(', ', $names);
+    }
+
+    /**
      * Extracts open answer text from a survey response.
      *
      * @param \Drupal\Core\Entity\EntityInterface $survey_response
@@ -525,7 +551,7 @@ class TermContextController extends ControllerBase {
 
         $response = new StreamedResponse(function () use ($rows) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['country', 'question_number', 'question_text', 'answer']);
+            fputcsv($handle, ['country', 'question_number', 'question_text', 'answer', 'challenges']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, $row);
