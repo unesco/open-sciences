@@ -99,7 +99,7 @@ export const PlsDetail = () => {
   // Summary nav = body sections + the related section (when present).
   const summaryItems = useMemo(() => {
     const items = sections.map((s) => ({ anchor: s.anchor, title: s.title }));
-    if (data?.related?.length) {
+    if (data?.more_links?.length) {
       items.push({ anchor: "related", title: "You may be interested to read" });
     }
     return items;
@@ -135,7 +135,7 @@ export const PlsDetail = () => {
   const pub = data.original_publication || {};
   const tags = data.tags || [];
   const sdgs = data.sdgs || [];
-  const related = data.related || [];
+  const moreLinks = data.more_links || [];
   const authors = pub.authors || [];
   const sponsorLogo = resolveCmsAsset(pub.sponsor_logo);
   const heroImage =
@@ -175,14 +175,14 @@ export const PlsDetail = () => {
               </section>
             ))}
 
-            {related.length > 0 && (
+            {moreLinks.length > 0 && (
               <section id="related" className="pls-section">
                 <h2 className="pls-section-title">You may be interested to read</h2>
                 <div className="pls-related-list">
-                  {related.map((r) => (
-                    <article key={r.id} className="pls-related-card">
-                      <h3 className="pls-related-title">{r.title}</h3>
-                      <a className="pls-related-btn" href={`/pls/${r.id}`}>
+                  {moreLinks.map((link, i) => (
+                    <article key={i} className="pls-related-card">
+                      <h3 className="pls-related-title">{link.title}</h3>
+                      <a className="pls-related-btn" href={link.uri} target="_blank" rel="noopener noreferrer">
                         <span>Read more</span>
                         <ArrowIcon className="pls-related-btn-icon" />
                       </a>
