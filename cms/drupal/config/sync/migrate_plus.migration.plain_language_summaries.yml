@@ -150,6 +150,12 @@ process:
     bundle: tags
     trim: true
     autocreate: true
+  field_website:
+    plugin: delimited_links
+    source:
+      - more_titles
+      - more_links
+    trim: true
 destination:
   plugin: 'entity:node'
   default_bundle: plain_language_summary

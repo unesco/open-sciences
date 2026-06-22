@@ -122,6 +122,7 @@ class PlsController extends ControllerBase {
                 ],
                 'tags' => $this->extracttags($node),
                 'sdgs' => $this->extractsdgs($node),
+                'more_links' => $this->extractlinkfieldvalues($node, 'field_website'),
                 'related' => $this->loadrelatedpls((int) $node->id(), $tagids),
             ];
 
@@ -341,6 +342,25 @@ class PlsController extends ControllerBase {
         }
 
         return array_values(array_unique($ids));
+    }
+
+    /**
+     * Extracts all link items (title + uri) from a link field.
+     */
+    protected function extractlinkfieldvalues(EntityInterface $node, $fieldname) {
+        $links = [];
+        if (!$node->hasField($fieldname) || $node->get($fieldname)->isEmpty()) {
+            return $links;
+        }
+
+        foreach ($node->get($fieldname) as $item) {
+            $links[] = [
+                'title' => (string) ($item->title ?? ''),
+                'uri' => (string) ($item->uri ?? ''),
+            ];
+        }
+
+        return $links;
     }
 
     /**

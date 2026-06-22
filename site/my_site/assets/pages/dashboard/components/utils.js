@@ -252,6 +252,10 @@ export function buildSubDetails(parentQuestion, allQuestions, responsesMap) {
     return null;
   }
 
+  // Show the actions ordered by number of responses, highest first. Sort is
+  // stable, so ties keep their original sub-question order.
+  items.sort((a, b) => b.count - a.count);
+
   return { intro: parsed.intro, items };
 }
 

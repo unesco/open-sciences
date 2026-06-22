@@ -40,7 +40,7 @@ export const COLOR_NA_ANSWER         = "#D5DADD";
 export const NA_LABEL = "N/A";
 // Note appended to info tooltips/modals when an N/A answer exists.
 export const NA_INFO_NOTE =
-  'N/A in this case means "Not applicable, no answer or no clear answer"';
+  'N/A means "Not applicable, no answer or no clear answer"';
 // Lower-cased variants that should all be treated as N/A.
 export const NA_LABEL_VARIANTS = [
   "",
