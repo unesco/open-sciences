@@ -10,6 +10,8 @@ import { regionToApi } from "../utils";
 import { WordCloud } from "./components/WordCloud";
 import { TermDetail } from "./components/TermDetail";
 import { useDownload } from "../useDownload";
+import { ComingSoonWrap } from "../ComingSoonWrap";
+import { DOWNLOAD_COMING_SOON } from "../../constants";
 import { termsToWords } from "./utils";
 
 // ─── Challenges component ──────────────────────────────────────────────────
@@ -103,22 +105,26 @@ export const Challenges = ({ onCountryClick }) => {
               <option key={r}>{r}</option>
             ))}
           </select>
-          <button
-            type="button"
-            className="dash-btn outline"
-            disabled={downloadLoading}
-            aria-busy={downloadLoading}
-            onClick={() => download(termContextDownloadUrl({
-              region: region !== ALL_REGIONS ? regionToApi(region) : null,
-            }))}
-          >
-            {downloadLoading ? "Downloading…" : "Download"}
-            {downloadLoading ? (
-              <svg className="download-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-            )}
-          </button>
+          <ComingSoonWrap>
+            <button
+              type="button"
+              className="dash-btn outline"
+              disabled={downloadLoading}
+              aria-busy={downloadLoading}
+              // While downloads are disabled the button only surfaces the
+              // "Coming soon" tooltip on hover.
+              onClick={DOWNLOAD_COMING_SOON ? undefined : () => download(termContextDownloadUrl({
+                region: region !== ALL_REGIONS ? regionToApi(region) : null,
+              }))}
+            >
+              {downloadLoading ? "Downloading…" : "Download"}
+              {downloadLoading ? (
+                <svg className="download-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              )}
+            </button>
+          </ComingSoonWrap>
         </div>
         {downloadToast}
       </div>

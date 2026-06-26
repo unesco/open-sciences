@@ -3,12 +3,15 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { fetchCountries } from "../../../api";
 import {
-  WORLD_GEOJSON_URL,
   REGION_LABELS,
   REGION_DISPLAY_TO_API,
   REGION_VIEW,
   ALL_REGIONS,
 } from "../../../constants";
+// Official UNESCO world boundaries (UN, Miller medium-low resolution), vendored
+// locally from https://www.unesco.org/modules/custom/unesco_import_country/datas/world.min.js
+// Normalised to GeoJSON: feature.id = ISO3 code, feature.properties.name = country name.
+import worldGeoJson from "../../../data/world.geo.json";
 import { normaliseRegion, featureStyle } from "../../utils";
 
 export const MapPanel = ({
@@ -70,13 +73,8 @@ export const MapPanel = ({
 
     (async () => {
       try {
-        const [geoJson, countriesData] = await Promise.all([
-          fetch(WORLD_GEOJSON_URL).then((r) => {
-            if (!r.ok) throw new Error(`GeoJSON fetch failed: ${r.status}`);
-            return r.json();
-          }),
-          fetchCountries().catch(() => []),
-        ]);
+        const geoJson = worldGeoJson;
+        const countriesData = await fetchCountries().catch(() => []);
         if (!mounted) return;
 
         const participating = new Set(
@@ -234,6 +232,22 @@ export const MapPanel = ({
       </div>
 
       <div ref={mapRef} className="dashboard-leaflet-map" />
+
+      <p className="dashboard-map-disclaimer">
+        <strong>UN Disclaimer - </strong>The designations employed and the presentation of material on this map
+        do not imply the expression of any opinion whatsoever on the part of the
+        Secretariat of the United Nations concerning the legal status of any
+        country, territory, city or area or of its authorities, or concerning the
+        delimitation of its frontiers or boundaries. Dotted line represents
+        approximately the Line of Control in Jammu and Kashmir agreed upon by
+        India and Pakistan. The final status of Jammu and Kashmir has not yet
+        been agreed upon by the parties. Final boundary between the Republic of
+        Sudan and the Republic of South Sudan has not yet been determined. Final
+        status of the Abyei area is not yet determined. A dispute exists between
+        the Governments of Argentina and the United Kingdom of Great Britain and
+        Northern Ireland concerning sovereignty over the Falkland Islands
+        (Malvinas).
+      </p>
 
       {matchingSet !== null && displayedCountries.length > 0 && (
         <div className="dashboard-map-country-list">

@@ -11,6 +11,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useDownload } from "./useDownload";
+import { ComingSoonWrap } from "./ComingSoonWrap";
+import { DOWNLOAD_COMING_SOON } from "../constants";
 
 const DownloadIcon = () => (
   <svg
@@ -72,18 +74,22 @@ export const DownloadMenu = ({ filteredHref, allHref }) => {
 
   return (
     <div className="download-menu" ref={wrapRef}>
-      <button
-        type="button"
-        className="dash-btn outline"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-busy={loading}
-        disabled={loading}
-        onClick={() => setOpen((v) => !v)}
-      >
-        {loading ? "Downloading…" : "Download"}
-        {loading ? <Spinner /> : <DownloadIcon />}
-      </button>
+      <ComingSoonWrap>
+        <button
+          type="button"
+          className="dash-btn outline"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-busy={loading}
+          disabled={loading}
+          // While downloads are disabled the button only surfaces the
+          // "Coming soon" tooltip on hover — it doesn't open the popup.
+          onClick={DOWNLOAD_COMING_SOON ? undefined : () => setOpen((v) => !v)}
+        >
+          {loading ? "Downloading…" : "Download"}
+          {loading ? <Spinner /> : <DownloadIcon />}
+        </button>
+      </ComingSoonWrap>
 
       {open && !loading && (
         <div className="download-menu-popup" role="menu">

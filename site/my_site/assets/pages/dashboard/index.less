@@ -511,6 +511,21 @@
   }
 }
 
+/* UN disclaimer below the map */
+.dashboard-map-disclaimer {
+  margin: 12px 0 0;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: #8a9099;
+  text-align: justify;
+
+  strong {
+    margin-right: 4px;
+    font-weight: 600;
+    color: #6b7178;
+  }
+}
+
 /* Leaflet tooltip */
 .map-tooltip {
   background: #fff;
@@ -689,6 +704,49 @@
 
 .download-spinner {
   animation: download-spin 0.85s linear infinite;
+}
+
+/* ── "Coming soon" hover tooltip on download buttons (desktop) ──────────── */
+.coming-soon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.coming-soon-tooltip {
+  display: none; /* shown via hover below */
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: #1a2a3a;
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+  z-index: 200;
+
+  /* Arrow pointing up */
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: #1a2a3a;
+  }
+}
+
+/* Show on hover/focus — only on devices that support hover (desktop) */
+@media (hover: hover) {
+  .coming-soon-wrap:hover .coming-soon-tooltip,
+  .coming-soon-wrap:focus-within .coming-soon-tooltip {
+    display: block;
+  }
 }
 
 @keyframes download-spin {

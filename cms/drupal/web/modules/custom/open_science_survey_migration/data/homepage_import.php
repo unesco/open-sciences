@@ -170,7 +170,7 @@ print "Created sample privacy page node with NID {$privacy_page_node->id()}.\n";
 $footer_sample_data = [
   'title' => 'Homepage Footer',
   'field_contact_email' => 'open-science-platform@unesco.org',
-  'field_copyright_text' => 'UNESCO Open Science Platform - United Nations Educational, Scientific and Cultural Organization',
+  'field_copyright_text' => '© 2026 UNESCO Open Science Platform - United Nations Educational, Scientific and Cultural Organization',
   'field_navigation_links' => [
     [
       'title' => 'About',
