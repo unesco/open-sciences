@@ -1,4 +1,10 @@
 
+// ── Download feature flag ──────────────────────────────────────────────────────
+// When true, the dashboard download buttons don't fetch any data; clicking them
+// surfaces a "Coming soon" toast instead. Flip to false to re-enable downloads.
+export const DOWNLOAD_COMING_SOON = true;
+export const COMING_SOON_MESSAGE = "Coming soon";
+
 /** Blue-shade cycle for answer/region segments (index → colour). */
 export const TABS = [
   { id: "global", label: "Global overview" },
@@ -9,10 +15,7 @@ export const TABS = [
 export const DISCLAIMER_TEXT =
   "The Dashboards present information as reported by the Member States. " +
   "UNESCO does not independently verify the accuracy or completeness of the " +
-  "submitted information. An AI model, Claude Opus 4.5, was used to assist " +
-  "in preparing initial draft summaries for the Country Profiles. These " +
-  "drafts were subsequently thoroughly reviewed, revised and approved by " +
-  "the UNESCO team. Personal data contained in the original national " +
+  "submitted information. Personal data contained in the original national " +
   "submission files, including respondents\u2019 contact details, was removed " +
   "before the files were published as supporting materials accompanying the " +
   "Dashboards.";
@@ -62,8 +65,8 @@ export const COLOR_PARTICIPATED = "#4C5054";
 export const COLOR_MATCHES      = "#B2D6F2";
 
 // ── World GeoJSON ─────────────────────────────────────────────────────────────
-export const WORLD_GEOJSON_URL =
-  "https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json";
+// The world map boundaries are vendored locally and imported directly in
+// MapPanel.js: ./data/world.geo.json (official UNESCO/UN data).
 
 // ── Regions ───────────────────────────────────────────────────────────────────
 export const ALL_REGIONS = "All regions";

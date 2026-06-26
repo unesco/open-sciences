@@ -207,11 +207,11 @@ $normalize_summary_html = static function (string $summary) use ($renderer): str
   $summary = str_replace(["\r\n", "\r", "\n", '&nbsp;'], ' ', $summary);
 
   $patterns = [
+    '/(?:<br>\s*){2,}/iu' => '<p>',
     '/<p>(?:\s|<br>)*<\/p>/iu' => '',
     '/(<p>\s*)((?:<br>\s*)+)/iu' => '$1',
     '/(<p>.*?)((?:\s*<br>)+)(\s*<\/p>)/iu' => '$1$3',
     '/<\/p>\s*(?:<br>\s*)+(?=<p>|$)/iu' => '</p>',
-    '/(?:<br>\s*){2,}/iu' => '<br>',
     '/\A(?:\s*<br>\s*)+/iu' => '',
     '/(?:\s*<br>\s*)+\z/iu' => '',
   ];
